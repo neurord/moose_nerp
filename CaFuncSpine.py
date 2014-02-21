@@ -31,11 +31,11 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         #connect them to the channels
     for chan in moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)):
         channame=chan.path[rfind(chan.path,'/')+1:]
-        if (find(channame,'Ca')==0):
+        if isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
                 moose.connect(chan, 'IkOut', capool, 'current')
-        elif (find(channame,'KCa')==1):
+        elif isKCaChannel(channame):
             moose.connect(capool, 'concOut', chan, 'concen')
 
 def connectNMDA(nmdachans,poolname,caFrac):

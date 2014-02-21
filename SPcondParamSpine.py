@@ -1,12 +1,16 @@
 # SPcondParams.py
 #Do not define EREST_ACT or ELEAK here - they are in the .p file
-# Contains maximal conductances, name of .p file
-# calcium channel names must begin with Ca to connect to caConc
-#If you want to use a different name, you must change it in CaFunc.py and also ChanKCaProtoDict.py
-# calcium dependent potassium channel names must be XKCa to connect to caConc
-# This naming convention could be changed in CaFunc.py
+# Contains maximal conductances, name of .p file, and some other parameters
+# such as whether to use GHK, or whether to have real spines
 
 import numpy as np
+
+def isCaChannel(channame):
+    return channame.startswith('Ca')
+
+def isKCaChannel(channame):
+    return channame.endswith('KCa')
+
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
@@ -76,7 +80,5 @@ chanvar={'KaF': 0.04,
          'SKCa': 0.04}
 
 Condset={'D1':CondD1,'D2':CondD2}
-
-
 
 

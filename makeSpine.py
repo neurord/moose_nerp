@@ -83,7 +83,7 @@ def addChansSpines(comp,chanlist,condlist):
         chan.Gbar=cond*SA
         channame=chan.path[rfind(chan.path,'/')+1:]
             #If we are using GHK AND it is a calcium channel, connect it to GHK
-        if (ghkYN and (find(channame,'Ca')==0)):
+        if (ghkYN and isCaChannel(channame)):
             moose.connect(chan,'permeability',ghk,'addPermeability')
             moose.connect(comp,'VmOut',chan,'Vm')
         else:
