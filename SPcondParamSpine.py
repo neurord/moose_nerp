@@ -11,6 +11,12 @@ def isCaChannel(channame):
 def isKCaChannel(channame):
     return channame.endswith('KCa')
 
+def dist_num(table, dist):
+    for num, val in enumerate(table):
+        if dist < val:
+            return num
+    else:
+        return num
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
@@ -26,7 +32,9 @@ spineChanList=[] #['CaL13']
 spineCond=[0.1*ghKluge]
 
 #dictionary to index the Conductance and synapses with distance
-distTable={'prox':26.1e-6, 'mid': 50e-6, 'dist':1000e-6}
+distTable=[26.1e-6,   # "prox"
+           50e-6,     # "mid"
+           1000e-6]   # "dist"
 
 #neurontype of each neuron created, with set of conductances
 neurontypes=['D1', 'D2']

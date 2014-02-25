@@ -81,8 +81,9 @@ def add_synchans(container,calYN,ghkYN):
     for keynum in range(len(SynChanDict.keys())):
         synchans.append([])
     allkeys=SynChanDict.keys()
-    i=0     #i indexes compartment for array that stores number of synapses
-    for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
+
+    # i indexes compartment for array that stores number of synapses
+    for i, comp in enumerate(moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))):
         SynPerComp.append([0,0])
         #create each type of synchan in each compartment.  Add to 2D array
         for key in DendSynChans:
@@ -104,18 +105,12 @@ def add_synchans(container,calYN,ghkYN):
         dist=sqrt(xloc*xloc+yloc*yloc)
         #create array of number of synapses per compartment based on distance
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
-#Check in ExtConn - how is SynPerComp used
-        if (dist<distTable['prox']):
-            SynPerComp[i][GABA]=NumGaba['prox']
-            SynPerComp[i][GLU]=NumGlu['prox']
-        else:
-            if (dist<distTable['mid']):
-                SynPerComp[i][GABA]=NumGaba['mid']
-                SynPerComp[i][GLU]=NumGlu['mid']
-            else:
-                SynPerComp[i][GABA]=NumGaba['dist']
-                SynPerComp[i][GLU]=NumGlu['dist']
-        i=i+1
+        #Check in ExtConn - how is SynPerComp used
+
+        num = dist_num(distTable, dist)
+        SynPerComp[i][GABA] = NumGaba[num]
+        SynPerComp[i][GLU] = NumGlu[num]
+
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
     allsynchans={}

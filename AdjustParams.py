@@ -8,26 +8,14 @@ def adjustParams(container,GnaCond,Cond,factlist,chanlist):
         yloc=moose.Compartment(comp).y
         dist=sqrt(xloc*xloc+yloc*yloc)
         SA=pi*length*diam
-        if chanlist.__contains__('NaF'):
+        if 'NaF' in chanlist:
             fact=factlist[chanlist.index('NaF')]
             chan=moose.element(comp.path+'NaF')
-            if (dist<distTable['prox']):
-                nachan.Gbar =GnaCond[0]*SA*fact
-            else:
-                if (dist<distTable['mid']):
-                    nachan.Gbar = GnaCond[1]*SA*fact
-                else:
-                    nachan.Gbar = GnaCond[2]*SA*fact
+            nachan.Gbar = GnaCond[dist_num(distTable, dist)] * SA * fact
         for channame in chanlist:
             fact=factlist[chanlist.index(channame)]
             chan=moose.element(comp.path+'/'+channame)
             print "Channel GBAR adjustment:",chan.path,fact
             if channame != 'NaF':
-                if (dist<distTable['prox']):
-                    chan.Gbar = Cond[channame][0]*SA*fact
-                else:
-                    if (dist<distTable['mid']):
-                        chan.Gbar = Cond[channame][1]*SA*fact
-                    else:
-                        chan.Gbar = Cond[channame][2]*SA*fact
+                chan.Gbar = Cond[channame][dist_num(distTable, dist)] * SA * fact
 #No return

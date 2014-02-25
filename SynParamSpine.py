@@ -27,8 +27,8 @@ GbarVar=0.05
 #dictionary of synapses at each distance
 #distances defined in configSPdict.py
 
-NumGaba={'prox':3, 'mid':2, 'dist':1}
-NumGlu={'prox':1, 'mid':2, 'dist':3}
+NumGaba=[3, 2, 1]
+NumGlu=[1, 2, 3]
 #indices to use in some arrays
 GABA=0
 GLU=1

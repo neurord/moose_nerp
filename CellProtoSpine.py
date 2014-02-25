@@ -18,14 +18,8 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
         proto = moose.HHChannel('/library/'+chanpath)
         nachan = moose.copy(proto, comp, chanpath)[0]
         moose.connect(nachan, 'channel', comp, 'channel')
-        if (dist<distTable['prox']):
-            nachan.Gbar =GnaCond[0]*SA
-        else:
-            if (dist<distTable['mid']):
-                nachan.Gbar = GnaCond[1]*SA
-            else:
-                nachan.Gbar = GnaCond[2]*SA
-        #
+        nachan.Gbar =GnaCond[dist_num(distTable, dist)] * SA
+
         #other Channels
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         if ghkYN:
@@ -46,17 +40,8 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
             #
             #Distance dependent conductances, change distTable[0] to distTable[prox]?
             #Then, just use some look up table function and probably don't need if statement
-            if (dist<distTable['prox']):
-                chan.Gbar = Cond[key][0]*SA
-            else:
-                if (dist<distTable['mid']):
-                    #if Cond[key][1]==0, then delete chan, else
-                    chan.Gbar = Cond[key][1]*SA
-                else:
-                    #if Cond[key][2]==0, then delete chan, else
-                    chan.Gbar = Cond[key][2]*SA
-        #End for key
-    #End for comps
+            chan.Gbar = Cond[key][dist_num(distTable, dist)] * SA
+
     return {'comps': comps, 'cell': cellproto}
 
 def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
