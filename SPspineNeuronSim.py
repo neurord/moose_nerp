@@ -33,6 +33,7 @@ execfile('CaPlasFunc.py')
 execfile('injectfunc.py')
 
 ############ Parameters for simulation control #################
+printinfo=1
 #plas=plasticity elements and synaptic input, curr=ionic currents
 #calcium and plasyesno are originally defined in CaPlasParam.py
 #Note that you will get spines, but no plasticity if calcium=0 and plasyesno=1
@@ -78,6 +79,7 @@ simdt = 0.25e-5
 hsolve=1
 
 ################### Clocks.  Note that there are no default clocks ##########
+#Information on how to use clocks can be read by typing: help("moose") in python
 inited = False
 def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
     global inited
@@ -90,7 +92,9 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
         moose.setClock(3, simdt)
         moose.setClock(4, simdt)
         moose.setClock(5, simdt)
-        moose.setClock(6, plotdt)
+        moose.setClock(6, simdt)
+        moose.setClock(7, simdt)
+        moose.setClock(8, plotdt)
         for path in model_container_list:
             print 'Scheduling elements under:', path
             if hsolve:
@@ -99,12 +103,13 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
                 moose.useClock( 1, '%s/hsolve' % (path), 'process' )
                 hsolve.dt=simdt
             moose.useClock(0, '%s/##[ISA=Compartment]' % (path), 'init')
-            moose.useClock(1, '%s/##[ISA=Compartment],%s/##[TYPE=CaConc]' % (path,path), 'process')
-            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel]' % (path,path), 'process')
-            moose.useClock(3, '%s/##[TYPE=Func],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' % (path,path,path), 'process')
-            moose.useClock(4, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
-        moose.useClock(5, '/##[TYPE=PulseGen]', 'process')
-        moose.useClock(6, '%s/##[TYPE=Table]' % (dataName), 'process')
+            moose.useClock(1, '%s/##[ISA=Compartment]' % (path), 'process')
+            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' 
+                           % (path,path,path,path), 'process')
+            moose.useClock(3, '%s/##[TYPE=CaConc],%s/##[TYPE=Func]' % (path,path), 'process')
+            moose.useClock(6, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
+            moose.useClock(8, '%s/##[TYPE=Table]' % (dataName), 'process')
+        moose.useClock(7, '/##[TYPE=PulseGen]', 'process')
         inited = True
     moose.reinit()
 
