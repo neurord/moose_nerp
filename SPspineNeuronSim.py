@@ -15,6 +15,7 @@ from pylab import *
 import numpy as np
 import matplotlib.pyplot as plt
 from string import *
+from pprint import pprint
 
 import moose 
 from moose import utils
@@ -38,11 +39,12 @@ printinfo=1
 #calcium and plasyesno are originally defined in CaPlasParam.py
 #Note that you will get spines, but no plasticity if calcium=0 and plasyesno=1
 calcium=1
+ghkYesNo=1
 plasYesNo=0
 synYesNo=1
 #ghkYesNo and spineYN are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
-spineYN=1
+spineYN=0
 if spineYN==0:
     #put all the synaptic channels in the dendrite.  These lists are in SynParamSpine.py
     DendSynChans=list(set(DendSynChans+SpineSynChans))
@@ -65,7 +67,7 @@ pltpow=1
 showclocks=0
 
 #simulation time, current injection, and synaptic input
-simtime = 0.12 #0.4999
+simtime = 0.06 #0.4999
 curr1=0.20e-9
 curr2=curr1+0.09e-9
 currinc=0.1e-9
@@ -93,9 +95,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
         moose.setClock(3, simdt)
         moose.setClock(4, simdt)
         moose.setClock(5, simdt)
-        moose.setClock(6, simdt)
-        moose.setClock(7, simdt)
-        moose.setClock(8, plotdt)
+        moose.setClock(6, plotdt)
         for path in model_container_list:
             print 'Scheduling elements under:', path
             if hsolve:
@@ -104,13 +104,12 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
                 moose.useClock( 1, '%s/hsolve' % (path), 'process' )
                 hsolve.dt=simdt
             moose.useClock(0, '%s/##[ISA=Compartment]' % (path), 'init')
-            moose.useClock(1, '%s/##[ISA=Compartment]' % (path), 'process')
-            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' 
-                           % (path,path,path,path), 'process')
-            moose.useClock(3, '%s/##[TYPE=CaConc],%s/##[TYPE=Func]' % (path,path), 'process')
-            moose.useClock(6, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
-            moose.useClock(8, '%s/##[TYPE=Table]' % (dataName), 'process')
-        moose.useClock(7, '/##[TYPE=PulseGen]', 'process')
+            moose.useClock(1, '%s/##[ISA=Compartment],%s/##[TYPE=CaConc]' % (path,path), 'process')
+            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel]' % (path,path), 'process')
+            moose.useClock(3, '%s/##[TYPE=Func],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' % (path,path,path), 'process')
+            moose.useClock(4, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
+        moose.useClock(5, '/##[TYPE=PulseGen]', 'process')
+        moose.useClock(6, '%s/##[TYPE=Table]' % (dataName), 'process')
         inited = True
     moose.reinit()
 
@@ -159,10 +158,11 @@ if spineYN==1:
         spinecatab.append(moose.Table('/data/SpCa%s' % (neurtype)))
         spinevmtab.append(moose.Table('/data/SpVm%s' % (neurtype)))
         spname=MSNsyn[neurtype]['ampa'][1].path[0:rfind(MSNsyn[neurtype]['ampa'][1].path,'/')+1]
-        cal=moose.element(spname+caName)
         spine=moose.element(spname)
-        moose.connect(spinecatab[neurnum], 'requestData', cal, 'get_Ca')
         moose.connect(spinevmtab[neurnum], 'requestData', spine, 'get_Vm')
+        if calcium:
+            cal=moose.element(spname+caName)
+            moose.connect(spinecatab[neurnum], 'requestData', cal, 'get_Ca')
 #
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
@@ -177,6 +177,7 @@ if (showclocks):
         for e in tk.neighbours['proc%s' % (ii)]:
             print ' ->', e.path
 
+
 ###########Actually run the simulation
 for inj in arange(curr1,curr2,currinc):
     pg.firstLevel = inj
@@ -186,13 +187,15 @@ for inj in arange(curr1,curr2,currinc):
     graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
 if spineYN==1:
     figure()
-    t = np.linspace(0, simtime, len(spinecatab[0].vec))
-    subplot(211)
-    for neurnum in range(len(neurontypes)):
-        plt.plot(t,spinecatab[neurnum].vec,label=neurontypes[neurnum])
-    subplot(212)
+    t = np.linspace(0, simtime, len(spinevmtab[0].vec))
+    if calcium:
+        subplot(211)
     for neurnum in range(len(neurontypes)):
         plt.plot(t,spinevmtab[neurnum].vec,label=neurontypes[neurnum])
+    if calcium:
+        subplot(212)
+        for neurnum in range(len(neurontypes)):
+            plt.plot(t,spinecatab[neurnum].vec,label=neurontypes[neurnum])
     plt.legend()
     plt.show()
 #End of inject loop
