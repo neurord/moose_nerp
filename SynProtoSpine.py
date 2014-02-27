@@ -78,12 +78,14 @@ def add_synchans(container,calYN,ghkYN):
     synchans=[]
     SynPerComp=[]
     numspines=0
+    #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
     for keynum in range(len(SynChanDict.keys())):
         synchans.append([])
     allkeys=SynChanDict.keys()
 
     # i indexes compartment for array that stores number of synapses
     for i, comp in enumerate(moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))):
+        #Store SynPerComp (GABA, Glu) for each comp (pair, and not triplet since AMPA=NMDA=Glu)
         SynPerComp.append([0,0])
         #create each type of synchan in each compartment.  Add to 2D array
         for key in DendSynChans:
@@ -95,7 +97,9 @@ def add_synchans(container,calYN,ghkYN):
             Gbar=SynChanDict[key]['Gbar']
             numspines=0   #count number of spines in each compartment
             for spcomp in moose.wildcardFind('%s/#[ISA=Compartment]'%(comp.path)):
-                if (find(spcomp.path,'head')>-1):
+                print "in add_synchans",comp.path,spcomp.path
+                if 'head' in spcomp.path:
+                    print "in add_synchans, found head, add synchan",spcomp.path, key
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar,calYN,ghkYN))
                     numspines=numspines+1
         #

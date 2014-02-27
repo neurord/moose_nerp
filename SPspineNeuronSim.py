@@ -38,7 +38,8 @@ printinfo=1
 #calcium and plasyesno are originally defined in CaPlasParam.py
 #Note that you will get spines, but no plasticity if calcium=0 and plasyesno=1
 calcium=1
-plasyesno=1
+plasYesNo=0
+synYesNo=1
 #ghkYesNo and spineYN are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 spineYN=1
@@ -49,7 +50,7 @@ if spineYN==0:
 #Which parts of the simulation should be shown?
 plotplas=1
 #to prevent you from plotting plasticity if not created:
-if (plasyesno==0):
+if (plasYesNo==0):
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
@@ -64,13 +65,13 @@ pltpow=1
 showclocks=0
 
 #simulation time, current injection, and synaptic input
-simtime = 0.5999 #0.4999
+simtime = 0.12 #0.4999
 curr1=0.20e-9
 curr2=curr1+0.09e-9
 currinc=0.1e-9
 #With these params, 1st PSP has no AP, 2nd PSP has AP after, 3d PSP has AP before
-delay=0.20
-width=0.02
+delay=0.020
+width=0.1
 stimtimes=[0.04,0.19,0.46]
 
 ###dt and solver
@@ -115,12 +116,12 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
 
 #################################-----------create the model
 ##create 2 neuron prototypes with synapses and calcium
-##only create synapses to create plasticity, hence pass plasyesno to function
-[MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(pltchan,pltpow,calcium,plasyesno,spineYN,ghkYesNo)
+##only create synapses to create plasticity, hence pass plasYesNo to function
+[MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(pltchan,pltpow,calcium,synYesNo,spineYN,ghkYesNo)
 
 #for testing, create one synaptic connection, a time table, and one plasticity device
 #No point doing this unless calcium has been implemented
-if (calcium==1 and plasyesno==1):
+if (calcium==1 and synYesNo==1):
     syn={}
     plas={}
     stimtab={}
@@ -134,13 +135,14 @@ if (calcium==1 and plasyesno==1):
             synap.synapse[0].delay=0.001
             m = moose.connect(stimtab[neurtype], 'event', moose.element(synap.path + '/synapse'),  'addSpike')
             if key=='nmda':
-                synchanCa=moose.SynChan(MSNsyn[neurtype][key][1].path+'CaCurr')
+                synchanCa=moose.SynChan(MSNsyn[neurtype][key][1].path+'/CaCurr')
                 synchanCa.synapse.num=1
                 synchanCa.synapse[0].delay=0.001
                 m = moose.connect(stimtab[neurtype], 'event', moose.element(synchanCa.path + '/synapse'),  'addSpike')
         syn[neurtype]=moose.SynChan(MSNsyn[neurtype]['ampa'][1])
         ###Synaptic Plasticity
-        plas[neurtype]=plasticity(MSNsyn[neurtype]['ampa'][1],highThresh,lowThresh,highfactor,lowfactor)
+        if (plasYesNo==1):
+            plas[neurtype]=plasticity(MSNsyn[neurtype]['ampa'][1],highThresh,lowThresh,highfactor,lowfactor)
 
 #------------------Current Injection
 pg=setupinj(delay,width,curr1)
@@ -195,7 +197,7 @@ if spineYN==1:
     plt.show()
 #End of inject loop
 ###### Demonstration of loop with parameter adjustment ###
-if plasyesno==0:
+if plasYesNo==2:
     execfile('AdjustParams.py')
     ChanList=['KaF','CaL12']
     minfac=0.8
