@@ -42,9 +42,9 @@ def connectNMDA(nmdachans,poolname,caFrac):
     #Note that ghk must receive input from SynChan and send output to MgBlock
     for chan in nmdachans:
         if ghkYesNo:
-            nmdaCurr=moose.GHK(chan.path+'CaCurr/ghk')
+            nmdaCurr=moose.GHK(chan.path+'/CaCurr/ghk')
         else:
-            nmdaCurr=moose.MgBlock(chan.path+'CaCurr/mgblock')
+            nmdaCurr=moose.MgBlock(chan.path+'/CaCurr/mgblock')
         caname=chan.path[0:rfind(chan.path,'/')+1]+poolname
         capool=moose.CaConc(caname)
         #print "CONNECT", nmdaCurr.path,'to',capool.path
