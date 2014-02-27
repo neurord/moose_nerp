@@ -62,13 +62,11 @@ def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
         neuron[ntype]=create_neuron(pfile,ntype,GnaCondset[ntype],Condset[ntype],ghkYN)
         #optionally add spines
         if spYesNo:
-            headarray[ntype]=addSpines(ntype)
-        print "headarray", headarray
+            addSpines(ntype)
         pathlist=pathlist+['/'+ntype]
-        #optionally add synapses, to dendrites, and possibly to spines
+        #optionally add synapses to dendrites, and possibly to spines
         if synYesNo:
             [synarray[ntype],syn[ntype]]=add_synchans(ntype,calyesno,ghkYN)
-            print "in neuronclasses, prin syn", syn
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
     if (calyesno==1):
