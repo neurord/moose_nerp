@@ -19,7 +19,7 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     plastab=[]
     plasCumtab=[]
     synlegend=[]
-    if (pltplas):
+    if pltplas:
         for ii,neurtype in zip(range(len(neurontypes)),neurontypes):
             plastab.append(moose.Table('/data/plas'+neurtype))
             plasCumtab.append(moose.Table('/data/plasCum'+neurtype))
@@ -62,7 +62,7 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
                 plt.plot(t, oid.vec*1e3, label=oid.path[-5:])
             plt.ylabel('calcium, uM')
         #plt.legend()
-        if (plotplas):
+        if plotplas:
             figure(figsize=(6,8))
             plt.title(neurontypes[ii]+'plas')
             subplot(311)
@@ -74,7 +74,7 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
             subplot(313)
             plt.plot(t,syntab['cum'][ii].vec,label='cum '+legend[ii])
             plt.legend(loc='upper left')
-        if (grphcurr):
+        if grphcurr:
             print neurontypes[ii]
             figure(figsize=(6,12))
             plt.title('%s currents' %(neurontypes[ii]))

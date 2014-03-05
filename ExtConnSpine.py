@@ -6,7 +6,7 @@ def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
     #print "SYNAPSE:", synpath,jj,s.synapse.num,s.synapse[jj].delay
     #It is possible to set the synaptic weight here.  
     m = moose.connect(presyn, 'event', moose.element(s.path + '/synapse'), 'addSpike')
-    if (find(synpath,'nmda')>-1 and calcium):
+    if 'nmda' in synpath and calcium:
         synchanCa=moose.SynChan(s.path+'CaCurr')
         synchanCa.synapse.num=s.synapse.num
         synchanCa.synapse[jj].delay=s.synapse[jj].delay
@@ -77,7 +77,7 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
             cumcomps=np.array([int(sum(remainingcomps[0:x])) for x in arange(1,len(remainingcomps)+1)])
             cell=int(np.min(where(cumcomps>br)))
             postneur=cells[cell]
-            if (cell>0):
+            if cell > 0:
                 branch=br-cumcomps[cell-1]
             else:
                 branch=br

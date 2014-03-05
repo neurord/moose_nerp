@@ -83,7 +83,7 @@ def addChansSpines(comp,chanlist,condlist):
         chan.Gbar=cond*SA
         channame=chan.path[rfind(chan.path,'/')+1:]
             #If we are using GHK AND it is a calcium channel, connect it to GHK
-        if (ghkYN and isCaChannel(channame)):
+        if ghkYN and isCaChannel(channame):
             moose.connect(chan,'permeability',ghk,'addPermeability')
             moose.connect(comp,'VmOut',chan,'Vm')
         else:
@@ -92,7 +92,7 @@ def addChansSpines(comp,chanlist,condlist):
 def addSpines(container):
     headarray=[]
     for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
-        if (find(comp.path,'soma')==-1):
+        if 'soma' not in comp:
             numSpines=int(np.round(spineDensity*comp.length))
             spineSpace=comp.length/(numSpines+1)
             for index in range(numSpines):
@@ -100,7 +100,7 @@ def addSpines(container):
                 #print comp.path,"Spine:", index, "located:", frac
                 head=makeSpine (comp, 'spine',index, frac, necklen, neckdia, headdia)
                 headarray.append(head)
-                if (len(spineChanList)>0):
+                if spineChanList:
                   addChansSpines(head,spineChanList,spineCond)
             #end for index
     #end for comp

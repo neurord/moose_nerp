@@ -60,7 +60,7 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
         print "adding channel",chanpath,"to",syncomp.path,"from",proto.path
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
-    if (chanpath=='nmda'):
+    if chanpath=='nmda':
         #mgblock, CaCurr, and ghk were copied above if they exist
         mgblock=moose.element(synchan.path+'/mgblock')
         #bidirectional connection from mgblock to compartment for non-Ca part of NMDA:

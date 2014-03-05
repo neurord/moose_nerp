@@ -45,14 +45,14 @@ synYesNo=1
 #ghkYesNo and spineYN are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 spineYN=0
-if spineYN==0:
+if not spineYN:
     #put all the synaptic channels in the dendrite.  These lists are in SynParamSpine.py
     DendSynChans=list(set(DendSynChans+SpineSynChans))
     SpineSynChans=[]
 #Which parts of the simulation should be shown?
 plotplas=1
 #to prevent you from plotting plasticity if not created:
-if (plasYesNo==0):
+if not plasYesNo:
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
@@ -120,7 +120,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
 
 #for testing, create one synaptic connection, a time table, and one plasticity device
 #No point doing this unless calcium has been implemented
-if (calcium==1 and synYesNo==1):
+if calcium and synYesNo:
     syn={}
     plas={}
     stimtab={}
@@ -140,7 +140,7 @@ if (calcium==1 and synYesNo==1):
                 m = moose.connect(stimtab[neurtype], 'event', moose.element(synchanCa.path + '/synapse'),  'addSpike')
         syn[neurtype]=moose.SynChan(MSNsyn[neurtype]['ampa'][1])
         ###Synaptic Plasticity
-        if (plasYesNo==1):
+        if plasYesNo:
             plas[neurtype]=plasticity(MSNsyn[neurtype]['ampa'][1],highThresh,lowThresh,highfactor,lowfactor)
 
 #------------------Current Injection
@@ -150,8 +150,8 @@ pg=setupinj(delay,width,curr1)
 data = moose.Neutral('/data')
 
 execfile('SingleGraphs.py')
-[vmtab,catab,plastab,currtab,plaslegend]=graphtables(neuron,plotplas,plotcurr,calcium,capools,currmsg)
-if spineYN==1:
+vmtab,catab,plastab,currtab,plaslegend = graphtables(neuron,plotplas,plotcurr,calcium,capools,currmsg)
+if spineYN:
     spinecatab=[]
     spinevmtab=[]
     for neurtype,neurnum in zip(neurontypes,range(len(neurontypes))):
@@ -171,7 +171,7 @@ assign_clocks(pathlist,'/data', simdt, plotdt,hsolve)
 
 #Make sure elements have been assigned clocks
 tk = moose.element('/clock/tick')
-if (showclocks):
+if showclocks:
     for ii in range(3,6):
         print 'Elements on tick ', ii
         for e in tk.neighbours['proc%s' % (ii)]:
@@ -185,7 +185,7 @@ for inj in arange(curr1,curr2,currinc):
     moose.start(simtime)
     #
     graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
-if spineYN==1:
+if spineYN:
     figure()
     t = np.linspace(0, simtime, len(spinevmtab[0].vec))
     if calcium:
@@ -200,7 +200,7 @@ if spineYN==1:
     plt.show()
 #End of inject loop
 ###### Demonstration of loop with parameter adjustment ###
-if plasYesNo==2:
+if plasYesNo == 2:
     execfile('AdjustParams.py')
     ChanList=['KaF','CaL12']
     minfac=0.8

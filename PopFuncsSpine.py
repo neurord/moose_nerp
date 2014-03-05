@@ -73,10 +73,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
         for ii in range(numSpikeGen):
             precomp=spikegen[ii].path[0:rfind(spikegen[ii].path,'/')]
             #################Can be expanded to determine whether an FS neuron also
-            if (find(precomp,postype) != -1):
-                fact=spaceConst['same']
-            else:
-                fact=spaceConst['diff']
+            fact=spaceConst['same' if posttype in precomp else 'diff']
             xpre=moose.element(precomp).x
             ypre=moose.element(precomp).y
             #calculate distance between pre- and post-soma
@@ -84,8 +81,8 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             prob=exp(-(dist/fact))
             connect=np.random.uniform()
             #print precomp,postsoma,dist,fact,prob,connect
-             #select a random number to determine whether a connection should occur
-            if ((connect<prob) and (dist >0) and len(comps)>0):
+            #select a random number to determine whether a connection should occur
+            if connect < prob and dist > 0 and comps:
                 #if so, randomly select a branch, and then eliminate that branch from the table.
                 #presently only a single synapse established.  Need to expand this to allow mutliple conns
                 branch=np.random.random_integers(0,len(comps)-1)

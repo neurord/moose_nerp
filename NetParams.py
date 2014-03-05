@@ -1,7 +1,5 @@
 #NetParams.py
 
-import numpy as np
-
 netsizeX=3
 netsizeY=3
 fractionD1=0.5

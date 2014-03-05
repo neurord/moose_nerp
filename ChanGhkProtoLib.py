@@ -19,17 +19,17 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=[]):
     #print params
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params['Xpow']
-    if (params['Xpow'] > 0):
+    if params['Xpow'] > 0:
         xGate = moose.HHGate(chan.path + '/gateX') 
         xGate.setupAlpha(Xparams +
                       [VDIVS, VMIN, VMAX])
 #    moose.showfield(xGate)
     chan.Ypower = params['Ypow']
-    if (params['Ypow'] > 0):
+    if params['Ypow'] > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
         yGate.setupAlpha(Yparams + 
                       [VDIVS, VMIN, VMAX])
-    if (params['Zpow'] > 0):
+    if params['Zpow'] > 0:
         chan.Zpower = params['Zpow']
         zgate = moose.HHGate(chan.path + '/gateZ') 
         ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
@@ -115,21 +115,17 @@ def chanlib(plotchan,plotpow):
     nachan=NaFchan_proto(chanpath,NaFparam,Na_m_params,Na_h_params)
     #Either add special call for BK, or add condition for BK channel below
     #
-    chan=list()
-    for key in ChanDict:
-        chanpath='/library/'+key
-        if (ChanDict[key]['Zpow']==0):
-            chan.append(chan_proto(chanpath,ChanDict[key],XChanDict[key],YChanDict[key]))
-        else:
-            chan.append(chan_proto(chanpath,ChanDict[key],XChanDict[key],YChanDict[key],ZChanDict[key]))
-    #
+    chan = [chan_proto('/library/'+key,
+                       ChanDict[key], XChanDict[key], YChanDict[key],
+                       ZChanDict[key] if ChanDict[key]['Zpow'] > 0 else [])
+            for key in ChanDict]
     if ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=Temp
         ghk.Cout=ConcOut
         ghk.valency=2
     #
-    if (plotchan==1):
+    if plotchan:
         plot_gate_params(nachan,plotpow)
         for libchan in chan:
             plot_gate_params(libchan,plotpow)

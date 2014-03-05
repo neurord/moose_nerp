@@ -65,10 +65,10 @@ def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
         pathlist=pathlist+['/'+ntype]
         #optionally add synapses to dendrites, and possibly to spines
         if synYesNo:
-            [synarray[ntype],syn[ntype]]=add_synchans(ntype,calyesno,ghkYN)
+            synarray[ntype], syn[ntype] = add_synchans(ntype, calyesno, ghkYN)
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
-    if (calyesno==1):
+    if calyesno:
         CaProto(CaThick,CaBasal,CaTau,caName)
         for ntype in neurontypes:
             tempCaPools=[]
@@ -78,14 +78,13 @@ def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
                 connectVDCC_KCa(ghkYesNo,comp,capool)
                 #if there are spines, calcium will be added to the spine head
                 for spcomp in moose.wildcardFind('%s/#[ISA=Compartment]'%(comp.path)):
-                    if (find(spcomp.path,'head')>-1):
+                    if 'head' in spcomp.path:
                         capool=addCaPool(spcomp,caName)
-                        if (len(spineChanList)>0):
+                        if spineChanList:
                             connectVDCC_KCa(ghkYesNo,spcomp,capool)
             caPools[ntype]=tempCaPools
             #if there are synapses, NMDA will be connected to the appropriate calcium pool
             if synYesNo:
                 connectNMDA(syn[ntype]['nmda'],caName,nmdaCaFrac)
-    #
+
     return syn,neuron,pathlist,caPools,synarray
-#

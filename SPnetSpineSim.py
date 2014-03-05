@@ -48,12 +48,12 @@ single=0
 calcium=0
 plasyesno=0
 #can't do plasticity without calcium
-if calcium==0:
+if not calcium:
     plasyesno=0
 #ghkYesNo and spineYN are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 #Also, if you are creating network (single=0) probably shouldn't create spines
-if single==0:
+if not single:
     spineYN=0
     #put all the synaptic channels in the dendrite.  Lists in SynParamSpine.py
     DendSynChans=list(set(DendSynChans+SpineSynChans))
@@ -68,7 +68,7 @@ Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 graphplas=1
 #to prevent you from plotting plasticity if not created:
-if plasyesno==0:
+if not plasyesno:
     graphplas=0
 
 #whether to plot the various ion channel activation and inactivation curves
@@ -90,7 +90,7 @@ plotdt = 0.2e-3
 simdt = 2.0e-5 #try 2x simdt since using hsolve
 hsolve=1
 
-if (single==0):
+if not single:
     execfile('PopFuncsSpine.py')
     title1='network'
 else:
@@ -148,7 +148,7 @@ indata=moose.Neutral('/input')
 inpath=indata.path
 networkname='/network'
 totaltt=0
-if (single == 1):
+if single:
     totaltt=sum(numglu)
     #read in the spike time tables
     timetab=alltables(infile,inpath,totaltt)
@@ -184,15 +184,11 @@ else:
 ##### Synaptic Plasticity
 #### Array of SynPlas has ALL neurons of a single type in one big array.  Might want to change this
 #### Don't implement this unless calcium exists
-if (calcium==1 and plasyesno==1):
-    SynPlas={}
-    if (single==1):
-        for ntype in neurontypes:
-            SynPlas[ntype]=addPlasticity(MSNsyn[ntype]['ampa'],highThresh,lowThresh,highfactor,lowfactor,[])
-    else:
-        for nnum,ntype in zip(range(len(neurontypes)),neurontypes):
-            SynPlas[ntype]=addPlasticity(MSNsyn[ntype]['ampa'],highThresh,lowThresh,highfactor,lowfactor,MSNpop['pop'][nnum])
-#end if calcium
+if calcium and plasyesno:
+    SynPlas[ntype] = addPlasticity(MSNsyn[ntype]['ampa'],
+                                   highThresh, lowThresh, highfactor, lowfactor,
+                                   [] if single else MSNpop['pop'][nnum])
+
 #------------------Current Injection
 pg=setupinj(delay,width,curr1)
 
@@ -200,7 +196,7 @@ pg=setupinj(delay,width,curr1)
 data = moose.Neutral('/data')
 spiketab=[]
 ##spike generators created automatically for network, but not for single
-if (single==0):
+if not single:
     for neur in MSNpop['cells']:
         underscore=find(neur.path,'_')
         spikenum=int(neur.path[underscore+1:])
@@ -210,14 +206,14 @@ if (single==0):
         print ntype,spikenum,neur.path,sg.path,spiketab[spikenum].path
         m=moose.connect(sg, 'event', spiketab[spikenum],'spike')
 #
-if (showgraphs):
+if showgraphs:
     execfile('NetgraphSpine.py')
     [vmtab,syntab,catab,plastab,plasCumtab,spcatab]=graphtables(single,plotnet,graphplas,calcium,spineYN)
 #
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-if (single==1):
+if single:
     simpath=['/'+neurontypes[ii] for ii in range(len(neurontypes))]
 else:
     simpath=[networkname]
@@ -225,7 +221,7 @@ assign_clocks(simpath,'/data', inpath, simdt, plotdt,hsolve)
 
 #Make sure elements have been assigned clocks
 tk = moose.element('/clock/tick')
-if (showclocks):
+if showclocks:
     for ii in range(3,5):
         print 'Elements on tick ', ii
         for e in tk.neighbours['proc%s' % (ii)]:
@@ -238,12 +234,12 @@ for inj in arange(curr1,curr2,currinc):
     moose.start(simtime)
     #
     ######Now create the graphs
-    if (showgraphs):
+    if showgraphs:
         graphs(vmtab,syntab,catab,plastab,plasCumtab,spcatab,graphsyn,graphplas,calcium,spineYN)
     plt.show()
     #
 ###################### Write the spiketable (only for the final sim) to a file
-if (single==0):
+if not single:
     outvmfile='Vm'+outspikefile
     print "SPIKE FILE", outspikefile, "VM FILE", outvmfile
     outspiketab=list()
