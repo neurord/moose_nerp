@@ -127,7 +127,7 @@ if (calcium==1 and synYesNo==1):
     for neurtype in neurontypes:
         stimtab[neurtype]=moose.TimeTable('%s/TimTab' %(neurtype))
         stimtab[neurtype].vec=stimtimes
-        for key in SynChanDict.keys()[0:2]:
+        for key in ('ampa', 'nmda'):
             synchan=MSNsyn[neurtype][key][1]
             synap=moose.SynChan(synchan)
             synap.synapse.num=1

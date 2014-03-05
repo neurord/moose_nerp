@@ -26,9 +26,8 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
             ghkproto=moose.element('/library/ghk')
             ghk=moose.copy(ghkproto,comp,'ghk')[0]
             moose.connect(ghk,'channel',comp,'channel')
-        for key in ChanDict.keys():
-            chanpath=key
-            proto = moose.HHChannel('/library/'+key)
+        for chanpath in ChanDict:
+            proto = moose.HHChannel('/library/'+chanpath)
             chan = moose.copy(proto, comp, chanpath)[0]
             channame=chan.path[rfind(chan.path,'/')+1:]
             #If we are using GHK AND it is a calcium channel, connect it to GHK
@@ -40,7 +39,7 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
             #
             #Distance dependent conductances, change distTable[0] to distTable[prox]?
             #Then, just use some look up table function and probably don't need if statement
-            chan.Gbar = Cond[key][dist_num(distTable, dist)] * SA
+            chan.Gbar = Cond[chanpath][dist_num(distTable, dist)] * SA
 
     return {'comps': comps, 'cell': cellproto}
 

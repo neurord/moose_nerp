@@ -20,7 +20,6 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     plasCumtab=[]
     synlegend=[]
     if (pltplas):
-        keys=plas.keys()
         for ii,neurtype in zip(range(len(neurontypes)),neurontypes):
             plastab.append(moose.Table('/data/plas'+neurtype))
             plasCumtab.append(moose.Table('/data/plasCum'+neurtype))
@@ -35,10 +34,10 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     currtab={}
     for neurtype in neurontypes:
         currtab[neurtype]={}
-        for channame in ChanDict.keys():
+        for channame in ChanDict:
             currtab[neurtype][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))]
     for neurtype in neurontypes:
-        for channame in ChanDict.keys():
+        for channame in ChanDict:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
                 chan=moose.element(comp.path+'/'+channame)
                 moose.connect(tab, 'requestData', chan, curmsg)
@@ -79,8 +78,8 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
             print neurontypes[ii]
             figure(figsize=(6,12))
             plt.title('%s currents' %(neurontypes[ii]))
-            numplots=len(ChanDict.keys())
-            for channame,plotnum in zip(ChanDict.keys(),range(len(ChanDict.keys()))):
+            numplots=len(ChanDict)
+            for plotnum, channame in enumerate(sorted(ChanDict)):
                 subplot(numplots,1,plotnum)
                 for tab in currtab[neurontypes[ii]][channame]:
                     if (rfind(tab.path,'Ca')==10):

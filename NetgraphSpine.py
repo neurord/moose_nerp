@@ -12,7 +12,7 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                 vmtab.append(moose.Table('/data/comp%d_%s' % (ii,neurtype)))
                 if calyesno:
                     catab.append(moose.Table('/data/cal%d_%s' % (ii,neurtype)))
-                for chan in SynChanDict.keys():
+                for chan in SynChanDict:
                     syntab.append(moose.Table('/data/Gk%s%d_%s' % (chan,ii,neurtype)))
         if (pltplas):
             for ii,ntype in zip(range(len(neurontypes)),neurontypes):
@@ -33,12 +33,11 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                     if calyesno:
                         cal=comp.path+'/'+caName
                         moose.connect(catab[tabnum], 'requestData', cal, 'get_Ca')
-                    for chan in DendSynChans:
+                    for synnum, chan in enumerate(sorted(DendSynChans)):
                         syn=moose.element(comp.path+'/'+chan)
                         if chan=='nmda':
                             syn=moose.element(comp.path+'/'+chan+'/mgblock')
-                        synnum=SynChanDict.keys().index(chan)
-                        syntabnum=len(SynChanDict.keys())*tabnum+synnum
+                        syntabnum=len(SynChanDict)*tabnum+synnum
                         moose.connect(syntab[syntabnum], 'requestData', syn, Synmsg)
                     for chan in SpineSynChans:
                         for spcomp in moose.wildcardFind('%s/#[ISA=Compartment]' %(comp.path)):
@@ -46,8 +45,8 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                                 syn=moose.element(spcomp.path+'/'+chan)
                                 if chan=='nmda':
                                     syn=moose.element(spcomp.path+'/'+chan+'/mgblock')
-                                synnum=SynChanDict.keys().index(chan)
-                                syntabnum=len(SynChanDict.keys())*tabnum+synnum
+                                synnum=sorted(SynChanDict).index(chan)
+                                syntabnum=len(SynChanDict)*tabnum+synnum
                                 moose.connect(syntab[syntabnum], 'requestData', syn, Synmsg)
                     tabnum=tabnum+1
             if (pltplas):
@@ -69,11 +68,11 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                         cacomp=moose.element(MSNpop['pop'][neurnum][0]+'/'+comppath+'/'+caName)
                         moose.connect(catab[tabnum], 'requestData', cacomp, 'get_Ca')
                     #print "TABLES", vmtab[tabnum].path,plotcomp.path,catab[tabnum].path,cacomp.path
-                    for synnum,chan in zip(range(len(SynChanDict.keys())),SynChanDict.keys()):
+                    for synnum,chan in enumerate(sorted(SynChanDict)):
                         syn=moose.element(plotcomp.path+'/'+chan)
                         if chan=='nmda':
                             syn=moose.element(plotcomp.path+'/'+chan+'/mgblock')
-                        syntabnum=len(SynChanDict.keys())*tabnum+synnum
+                        syntabnum=len(SynChanDict)*tabnum+synnum
                         if (find(syntab[syntabnum].path,chan)==-1):
                             print "HOOKING UP SYN TABLES WRONG!"
                         else:
@@ -92,7 +91,7 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
             vmtab.append(moose.Table('/data/soma%d_%s'%(ii,neurtype)))
             if calyesno:
                 catab.append(moose.Table('/data/cal%d_%s' % (ii,neurtype)))
-            for chan in SynChanDict.keys():
+            for chan in SynChanDict:
                 syntab.append(moose.Table('/data/Gk%s%d_%s' % (chan,ii,neurtype)))
         for ii in range(len(MSNpop['cells'])):
             plotcomp=moose.element(MSNpop['cells'][ii].path+'/soma')
@@ -101,7 +100,7 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                 cacomp=moose.element(MSNpop['cells'][ii].path+'/soma/'+caName)
                 moose.connect(catab[ii], 'requestData', cacomp, 'get_Ca')
             #print "TABLES", vmtab[ii].path,plotcomp.path,catab[ii].path,cacomp.path
-            for synnum,chan in zip(range(len(SynChanDict)),SynChanDict.keys()):
+            for synnum,chan in enumerate(sorted(SynChanDict)):
                 plotsyn=moose.element(plotcomp.path+'/'+chan)
                 if chan=='nmda':
                     syn=moose.element(plotcomp.path+'/'+chan+'/mgblock')
@@ -134,7 +133,7 @@ def graphs(vmtab,syntab,catab,plastab,plasCumtab,spcaltab,grphsyn,pltplas,calyes
     #
     if (grphsyn):
         for neur in neurontypes:
-            for chan in SynChanDict.keys():
+            for chan in SynChanDict:
                 figure()
                 title=title1+neur+chan
                 plt.title(title)

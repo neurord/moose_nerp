@@ -116,7 +116,7 @@ def chanlib(plotchan,plotpow):
     #Either add special call for BK, or add condition for BK channel below
     #
     chan=list()
-    for key in ChanDict.keys():
+    for key in ChanDict:
         chanpath='/library/'+key
         if (ChanDict[key]['Zpow']==0):
             chan.append(chan_proto(chanpath,ChanDict[key],XChanDict[key],YChanDict[key]))

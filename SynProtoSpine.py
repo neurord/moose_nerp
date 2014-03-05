@@ -49,7 +49,7 @@ def synchanlib():
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     synchan=list()
-    for key in SynChanDict.keys():
+    for key in SynChanDict:
         chanpath='/library/'+key
         synchan.append(make_synchan(chanpath,SynChanDict[key]))
     print synchan
@@ -94,7 +94,7 @@ def add_synchans(container,calYN,ghkYN):
     #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
     for keynum in range(len(SynChanDict)):
         synchans.append([])
-    allkeys=SynChanDict.keys()
+    allkeys = sorted(SynChanDict)
 
     # i indexes compartment for array that stores number of synapses
     for i, comp in enumerate(moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))):
@@ -128,9 +128,7 @@ def add_synchans(container,calYN,ghkYN):
 
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
-    allsynchans={}
-    for key,keynum in zip(SynChanDict.keys(), range(len(SynChanDict.keys()))):
-        allsynchans.__setitem__(key,synchans[keynum])
-        
-    return SynPerComp,allsynchans
+    allsynchans={key:synchans[keynum]
+                 for keynum, key in enumerate(sorted(SynChanDict))}
 
+    return SynPerComp,allsynchans
