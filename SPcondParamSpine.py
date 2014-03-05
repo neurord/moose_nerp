@@ -25,7 +25,8 @@ ghKluge=0.35e-6        #set this = 1 if ghkYesNo=0, ~0.35e-6 for ghkYesNo=1
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 ConcOut=2e-3     # default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK object
-
+Farady=96485
+R=8.31
 #if spinesYN=0, no spines will be created (all synapses on dendrites)
 spineYN=1
 spineChanList=[] #['CaL13']

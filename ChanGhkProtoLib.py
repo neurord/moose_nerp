@@ -11,7 +11,7 @@ VMAX = 50e-3
 VDIVS = 3400
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
-CADIVS=3999 #10 nM steps
+CADIVS=4000 #10 nM steps
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
@@ -32,7 +32,7 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=[]):
     if (params['Zpow'] > 0):
         chan.Zpower = params['Zpow']
         zgate = moose.HHGate(chan.path + '/gateZ') 
-        ca_array = np.linspace(CAMIN, CAMAX, CADIVS+1)
+        ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
         zgate.min=CAMIN
         zgate.max=CAMAX
         caterm=(ca_array/Zparams[0])**Zparams[1]
@@ -47,10 +47,11 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=[]):
     return chan
 
 def NaFchan_proto(chanpath,params,Xparams,Yparams):
-    v_array = np.linspace(VMIN, VMAX, VDIVS+1)
+    v_array = np.linspace(VMIN, VMAX, VDIVS)
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params['Xpow'] #creates the m gate
     mgate = moose.HHGate(chan.path + '/gateX') 
+    #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=VMIN
     mgate.max=VMAX
     inf_x=Xparams['Arate']/(Xparams['A_C'] + exp(( v_array+Xparams['Avhalf'])/Xparams['Avslope']))
@@ -75,9 +76,36 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     chan.Ek=params['Erev']
     return chan
 
-#def BKchan_proto(chanpath,params,Zparams):
-#    #Need to implement 2D table
-#    return chan
+def BKchan_proto(chanpath,params,gateParams):
+    chan = moose.HHChannel2D('%s' % (chanpath))
+    chan.Xpower = params['Xpow']
+    xGate = moose.HHGate2D(chan.path + '/gateX')
+    #possible to put this into a loop over table A and table B
+    tableA=moose.element(xGate.path+'/tableA')
+    tableB=moose.element(xGate.path+'/tableB')
+    tableA.xmin=VMIN
+    tableA.xmax=VMAX
+    tableA.xdivs=VDIVS
+    tableA.ymin=CAMIN
+    tableA.ymax=CAMAX
+    tableA.ydivs=CADIVS
+    tableB.xmin=VMIN
+    tableB.xmax=VMAX
+    tableB.xdivs=VDIVS
+    tableB.ymin=CAMIN
+    tableB.ymax=CAMAX
+    tableB.ydivs=CADIVS
+    ZFbyRT=2*Farady/R*(Temp+273.15)
+    v_array = np.linspace(VMIN, VMAX, VDIVS)
+    ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
+    print v_array,ca_array
+    gatingMatrixA=480*ca_array/(ca_array+0.180*exp(-0.84*ZFbyRT*v_array))
+    print gatingMatrixA
+    tableA.tableVector2D=gatingMatrixA
+    gatingMatrixB=280/(1+ca_array/(0.011*exp(-1.0*ZFbyRT*v_array))) 
+    print gatingMatrixB
+    tableB.tableVector2D=gatingMatrixB
+    return chan
 
 def chanlib(plotchan,plotpow):
     if not moose.exists('/library'):
@@ -85,6 +113,7 @@ def chanlib(plotchan,plotpow):
     #na chan uses special format
     chanpath='/library/'+NaFparam['name']
     nachan=NaFchan_proto(chanpath,NaFparam,Na_m_params,Na_h_params)
+    #Either add special call for BK, or add condition for BK channel below
     #
     chan=list()
     for key in ChanDict.keys():

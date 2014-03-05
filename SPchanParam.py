@@ -273,6 +273,9 @@ SK_Z_params = [ 0.57e-3,           #Kd
                 5.2,               #power
                 4.9e-3             #tau
                 ]
+
+BKparam={'Xpow': 1, 'Ypow':0,'Zpow':0, 'Erev':krev,'name':'BKCa'}
+BK_X_params=[480,0.18,-0.84,280,0.011,-1.0]
 #These CDI params can be used with every channel, make ZpowCDI=2
 #If ZpowCDI=0 the CDI will not be used, power=-4 is to transform
 #(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow) 
