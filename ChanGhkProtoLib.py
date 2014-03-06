@@ -15,70 +15,68 @@ CADIVS=4000 #10 nM steps
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
-def chan_proto(chanpath,params,Xparams,Yparams,Zparams=[]):
+def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     #print params
     chan = moose.HHChannel('%s' % (chanpath))
-    chan.Xpower = params['Xpow']
-    if params['Xpow'] > 0:
+    chan.Xpower = params.Xpow
+    if params.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX') 
-        xGate.setupAlpha(Xparams +
-                      [VDIVS, VMIN, VMAX])
+        xGate.setupAlpha(Xparams + (VDIVS, VMIN, VMAX))
 #    moose.showfield(xGate)
-    chan.Ypower = params['Ypow']
-    if params['Ypow'] > 0:
+    chan.Ypower = params.Ypow
+    if params.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
-        yGate.setupAlpha(Yparams + 
-                      [VDIVS, VMIN, VMAX])
-    if params['Zpow'] > 0:
-        chan.Zpower = params['Zpow']
+        yGate.setupAlpha(Yparams + (VDIVS, VMIN, VMAX))
+    if params.Zpow > 0:
+        chan.Zpower = params.Zpow
         zgate = moose.HHGate(chan.path + '/gateZ') 
         ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
         zgate.min=CAMIN
         zgate.max=CAMAX
-        caterm=(ca_array/Zparams[0])**Zparams[1]
+        caterm=(ca_array/Zparams.Kd)**Zparams.power
         inf_z=caterm/(1+caterm)
-        tau_z=Zparams[2]*ones(len(ca_array))
+        tau_z=Zparams.tau*ones(len(ca_array))
         zgate.tableA=inf_z / tau_z
         zgate.tableB=1 / tau_z
         chan.useConcentration=True
         #moose.showfield(zgate)
     #end if Zpow
-    chan.Ek = params['Erev'] 
+    chan.Ek = params.Erev 
     return chan
 
 def NaFchan_proto(chanpath,params,Xparams,Yparams):
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     chan = moose.HHChannel('%s' % (chanpath))
-    chan.Xpower = params['Xpow'] #creates the m gate
+    chan.Xpower = params.Xpow #creates the m gate
     mgate = moose.HHGate(chan.path + '/gateX') 
     #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=VMIN
     mgate.max=VMAX
-    inf_x=Xparams['Arate']/(Xparams['A_C'] + exp(( v_array+Xparams['Avhalf'])/Xparams['Avslope']))
-    tau1=(Xparams['tauVdep']/(1+exp((v_array+Xparams['tauVhalf'])/Xparams['tauVslope'])))
-    tau2=(Xparams['tauVdep']/(1+exp((v_array+Xparams['tauVhalf'])/-Xparams['tauVslope'])))
-    tau_x=(Xparams['taumin']+1000*tau1*tau2)/qfactNaF
+    inf_x=Xparams.Arate/(Xparams.A_C + exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
+    tau1=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope)))
+    tau2=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope)))
+    tau_x=(Xparams.taumin+1000*tau1*tau2)/qfactNaF
 #    print  "mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x
 
     mgate.tableA = inf_x / tau_x
     mgate.tableB =  1 / tau_x
 #    moose.showfield(mgate)
 
-    chan.Ypower = params['Ypow'] #creates the h gate
+    chan.Ypower = params.Ypow #creates the h gate
     hgate = moose.HHGate(chan.path + '/gateY') 
     hgate.min=VMIN
     hgate.max=VMAX
-    tau_y=(Yparams['taumin']+(Yparams['tauVdep']/(1+exp((v_array+Yparams['tauVhalf'])/Yparams['tauVslope']))))/qfactNaF
-    inf_y=Yparams['Arate']/(Yparams['A_C'] + exp(( v_array+Yparams['Avhalf'])/Yparams['Avslope'])) 
+    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/qfactNaF
+    inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope)) 
 #    print  "hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y 
-    chan.Ek=params['Erev']
+    chan.Ek=params.Erev
     return chan
 
 def BKchan_proto(chanpath,params,gateParams):
     chan = moose.HHChannel2D('%s' % (chanpath))
-    chan.Xpower = params['Xpow']
+    chan.Xpower = params.Xpow
     xGate = moose.HHGate2D(chan.path + '/gateX')
     #possible to put this into a loop over table A and table B
     tableA=moose.element(xGate.path+'/tableA')
@@ -111,13 +109,13 @@ def chanlib(plotchan,plotpow):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     #na chan uses special format
-    chanpath='/library/'+NaFparam['name']
+    chanpath='/library/'+NaFparam.name
     nachan=NaFchan_proto(chanpath,NaFparam,Na_m_params,Na_h_params)
     #Either add special call for BK, or add condition for BK channel below
     #
     chan = [chan_proto('/library/'+key,
                        ChanDict[key], XChanDict[key], YChanDict[key],
-                       ZChanDict[key] if ChanDict[key]['Zpow'] > 0 else [])
+                       ZChanDict[key] if ChanDict[key].Zpow > 0 else [])
             for key in ChanDict]
     if ghkYesNo:
         ghk=moose.GHK('/library/ghk')
@@ -129,4 +127,3 @@ def chanlib(plotchan,plotpow):
         plot_gate_params(nachan,plotpow)
         for libchan in chan:
             plot_gate_params(libchan,plotpow)
-

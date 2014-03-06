@@ -14,7 +14,7 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
         SA=pi*length*diam
         #print "comp,dist,SA",comp.path,dist,SA
         #na channel - not in normal channel dictionary
-        chanpath=NaFparam['name']
+        chanpath=NaFparam.name
         proto = moose.HHChannel('/library/'+chanpath)
         nachan = moose.copy(proto, comp, chanpath)[0]
         moose.connect(nachan, 'channel', comp, 'channel')
