@@ -35,12 +35,10 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
 def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
     plaslist=[]
     print "PLAS", cells
-    if (cells == []):
+    if not cells:
         for synchan in synPop:
             plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
     else:
-        if (cells ==[]):
-            print "$$$$$$$$$ problem, network has only 1 type of cell"
         for cell in cells:
             for br in range(len(synPop)):
                 compstart=rfind(synPop[br].path,'/',0,rfind(synPop[br].path,'/'))
