@@ -4,9 +4,9 @@
 ## Can use ghk for calcium permeable channels if ghkYesNo=1
 ## Optional calcium concentration in compartments (calcium=1)
 ## Optional synaptic plasticity based on calcium (plasyesno=1)
-## Spines are optional (spineYN=1), but not allowed for network 
+## Spines are optional (spineYN=1), but not allowed for network
 ## The graphs won't work for multiple spines per compartment
-## Assumes spine head has name 'head', cell body called 'soma', 
+## Assumes spine head has name 'head', cell body called 'soma',
 ## nmda channel = 'nmda', MgBlock called 'mgblock', likewise for 'ampa' and 'gaba'
 ## calcium channels begin with 'Ca' and potassium dependent calcium channels end with 'KCa'.
 ## Also assumes that single neuron element tree is '/neurtype/compartment', and
@@ -21,7 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from string import *
 
-import moose 
+import moose
 from moose import utils
 
 from SPcondParamSpine import *
@@ -42,7 +42,7 @@ execfile('injectfunc.py')
 ############ Parameters for simulation control #################
 #determines whether to print various statements
 printinfo=0
-# set single=1 to create a single neuron of each type with synaptic input 
+# set single=1 to create a single neuron of each type with synaptic input
 single=0
 #calcium and plasyesno are originally defined in CaPlasParam.py
 calcium=0
@@ -159,7 +159,7 @@ if single:
 else:
     #create population
     MSNpop = create_population(moose.Neutral(networkname), neurontypes, netsizeX,netsizeY,spacing)
-    totaltt=sum(sum(numglu[i])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop']))) 
+    totaltt=sum(sum(numglu[i])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
     #read in the spike time tables
     timetab=alltables(infile,inpath,totaltt)
     #assign the timetables to synapses for each neuron, but don't re-use uniq
