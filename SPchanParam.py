@@ -8,12 +8,12 @@ from collections import namedtuple
 #
 # OR
 # y(x) = tau_min + tau_vdep / (1 + exp((x + vhalf) / vslope))
-# 
+#
 # where x is membrane voltage and y is the rate constant
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 krev=-87e-3
 narev=50e-3
-carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3 
+carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
 
 #mtau: Ogata fig 5, no qfactor accounted in mtau, 1.2 will improve spike shape
@@ -183,7 +183,7 @@ KaS_Y_params = XYChannelParams(A_rate = 2.5*qfactKaS,
                                B_vslope = -70.0e-3)
 
 #SS values from Churchill and MacVicar, assuming Xpow = 1
-##time constants extrapolated from scarce measurements - Song & Surmeier 
+##time constants extrapolated from scarce measurements - Song & Surmeier
 #SS values measured by Kasai and Neher are quite similar, except
 #they use Xpow=2 to fit, thus params would be different
 #they have nice time constant measurements which are ~2x slower than above
@@ -292,7 +292,7 @@ CaR_Y_params = XYChannelParams(A_rate = 1100*qfactCaR,
                                B_vslope = -30.0e-3)
 
 #Reference: Maylie Bond Herson Lee Adelman 2004, Fig 2 steady state
-#Fast component has tau~4 ms; not used: slow tau = 70 ms 
+#Fast component has tau~4 ms; not used: slow tau = 70 ms
 #Fast component, tau=4.9ms from Hirschberg et al., 1998 figure 13.
 SKparam = ChannelSettings(0, 0, 1, Erev=krev, name='SKCa')
 
@@ -315,43 +315,43 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
 XChanDict={'Krp':Krp_X_params,
-           'KaF':KaF_X_params, 
-           'KaS':KaS_X_params, 
-           'Kir': Kir_X_params, 
-           'CaL12': CaL12_X_params, 
-           'CaL13': CaL13_X_params, 
-           'CaN': CaN_X_params, 
+           'KaF':KaF_X_params,
+           'KaS':KaS_X_params,
+           'Kir': Kir_X_params,
+           'CaL12': CaL12_X_params,
+           'CaL13': CaL13_X_params,
+           'CaN': CaN_X_params,
            'CaR': CaR_X_params,
            'CaT': CaT_X_params,
            'SKCa': []}
 #
 YChanDict={'Krp':Krp_Y_params,
-           'KaF':KaF_Y_params, 
-           'KaS':KaS_Y_params, 
-           'Kir': [], 
-           'CaL12': [], 
-           'CaL13': [], 
-           'CaN': [], 
+           'KaF':KaF_Y_params,
+           'KaS':KaS_Y_params,
+           'Kir': [],
+           'CaL12': [],
+           'CaL13': [],
+           'CaN': [],
            'CaR': CaR_Y_params,
            'CaT': CaT_Y_params,
            'SKCa': []}
 #
 ZChanDict={'SKCa':SK_Z_params,
-           'CaL12': CDI_Z_params, 
-           'CaL13': CDI_Z_params, 
+           'CaL12': CDI_Z_params,
+           'CaL13': CDI_Z_params,
            'CaN': CDI_Z_params,
            'CaR': CDI_Z_params,
            'CaT': CDI_Z_params
            }
 #
 ChanDict={'Krp':Krpparam,
-          'KaF':KaFparam, 
-          'KaS':KaSparam, 
-          'Kir': Kirparam, 
-          'CaL12': CaL12param, 
-          'CaL13': CaL13param, 
-          'CaN': CaNparam, 
-          'CaR': CaRparam, 
+          'KaF':KaFparam,
+          'KaS':KaSparam,
+          'Kir': Kirparam,
+          'CaL12': CaL12param,
+          'CaL13': CaL13param,
+          'CaN': CaNparam,
+          'CaR': CaRparam,
           'CaT': CaTparam,
           'SKCa': SKparam
           }

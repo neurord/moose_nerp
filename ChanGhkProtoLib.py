@@ -20,7 +20,7 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params.Xpow
     if params.Xpow > 0:
-        xGate = moose.HHGate(chan.path + '/gateX') 
+        xGate = moose.HHGate(chan.path + '/gateX')
         xGate.setupAlpha(Xparams + (VDIVS, VMIN, VMAX))
 #    moose.showfield(xGate)
     chan.Ypower = params.Ypow
@@ -29,7 +29,7 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
         yGate.setupAlpha(Yparams + (VDIVS, VMIN, VMAX))
     if params.Zpow > 0:
         chan.Zpower = params.Zpow
-        zgate = moose.HHGate(chan.path + '/gateZ') 
+        zgate = moose.HHGate(chan.path + '/gateZ')
         ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
         zgate.min=CAMIN
         zgate.max=CAMAX
@@ -41,14 +41,14 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
         chan.useConcentration=True
         #moose.showfield(zgate)
     #end if Zpow
-    chan.Ek = params.Erev 
+    chan.Ek = params.Erev
     return chan
 
 def NaFchan_proto(chanpath,params,Xparams,Yparams):
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params.Xpow #creates the m gate
-    mgate = moose.HHGate(chan.path + '/gateX') 
+    mgate = moose.HHGate(chan.path + '/gateX')
     #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=VMIN
     mgate.max=VMAX
@@ -63,14 +63,14 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
 #    moose.showfield(mgate)
 
     chan.Ypower = params.Ypow #creates the h gate
-    hgate = moose.HHGate(chan.path + '/gateY') 
+    hgate = moose.HHGate(chan.path + '/gateY')
     hgate.min=VMIN
     hgate.max=VMAX
     tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/qfactNaF
-    inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope)) 
+    inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
 #    print  "hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y
     hgate.tableA = inf_y / tau_y
-    hgate.tableB = 1 / tau_y 
+    hgate.tableB = 1 / tau_y
     chan.Ek=params.Erev
     return chan
 
@@ -100,7 +100,7 @@ def BKchan_proto(chanpath,params,gateParams):
     gatingMatrixA=480*ca_array/(ca_array+0.180*exp(-0.84*ZFbyRT*v_array))
     print gatingMatrixA
     tableA.tableVector2D=gatingMatrixA
-    gatingMatrixB=280/(1+ca_array/(0.011*exp(-1.0*ZFbyRT*v_array))) 
+    gatingMatrixB=280/(1+ca_array/(0.011*exp(-1.0*ZFbyRT*v_array)))
     print gatingMatrixB
     tableB.tableVector2D=gatingMatrixB
     return chan
