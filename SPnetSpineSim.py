@@ -90,11 +90,12 @@ plotdt = 0.2e-3
 simdt = 2.0e-5 #try 2x simdt since using hsolve
 hsolve=1
 
-if not single:
-    execfile('PopFuncsSpine.py')
-    title1='network'
+if single:
+    title1 = 'single'
 else:
-    title1='single'
+    title1 = 'network'
+    execfile('PopFuncsSpine.py')
+
 
 ################### Clocks.  Note that there are no default clocks ##########
 inited = False
@@ -208,13 +209,13 @@ if not single:
 #
 if showgraphs:
     execfile('NetgraphSpine.py')
-    [vmtab,syntab,catab,plastab,plasCumtab,spcatab]=graphtables(single,plotnet,graphplas,calcium,spineYN)
+    vmtab,syntab,catab,plastab,plasCumtab,spcatab = graphtables(single,plotnet,graphplas,calcium,spineYN)
 #
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if single:
-    simpath=['/'+neurontypes[ii] for ii in range(len(neurontypes))]
+    simpath=['/'+neurontype for neurotype in neurontypes]
 else:
     simpath=[networkname]
 assign_clocks(simpath,'/data', inpath, simdt, plotdt,hsolve)
