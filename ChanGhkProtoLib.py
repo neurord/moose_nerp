@@ -103,7 +103,7 @@ def BKchan_proto(chanpath,params,gateParams):
             gatingMatrix=pars.alphabeta/(1+ca_array[None,:]/Vdepgating[:,None])
             table.tableVector2D=gatingMatrix
         if (VDIVS<=5 and CADIVS<=5):
-            print chan.path,tname,table.tabelVector2D
+            print chan.path,tname,table.tableVector2D
     return chan
 
 def chanlib(plotchan,plotpow):
