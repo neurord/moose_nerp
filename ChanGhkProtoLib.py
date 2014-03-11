@@ -8,10 +8,12 @@
 
 VMIN = -120e-3
 VMAX = 50e-3
-VDIVS = 3400
+#VDIVS = 3400
+VDIVS=3
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
-CADIVS=4000 #10 nM steps
+#CADIVS=4000 #10 nM steps
+CADIVS=3
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
@@ -78,31 +80,30 @@ def BKchan_proto(chanpath,params,gateParams):
     chan = moose.HHChannel2D('%s' % (chanpath))
     chan.Xpower = params.Xpow
     xGate = moose.HHGate2D(chan.path + '/gateX')
+    tablenames=['/tableA','/tableB']
     #possible to put this into a loop over table A and table B
-    tableA=moose.element(xGate.path+'/tableA')
-    tableB=moose.element(xGate.path+'/tableB')
-    tableA.xmin=VMIN
-    tableA.xmax=VMAX
-    tableA.xdivs=VDIVS
-    tableA.ymin=CAMIN
-    tableA.ymax=CAMAX
-    tableA.ydivs=CADIVS
-    tableB.xmin=VMIN
-    tableB.xmax=VMAX
-    tableB.xdivs=VDIVS
-    tableB.ymin=CAMIN
-    tableB.ymax=CAMAX
-    tableB.ydivs=CADIVS
-    ZFbyRT=2*Farady/R*(Temp+273.15)
+    ZFbyRT=2*Farady/(R*(Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
     print v_array,ca_array
-    gatingMatrixA=480*ca_array/(ca_array+0.180*exp(-0.84*ZFbyRT*v_array))
-    print gatingMatrixA
-    tableA.tableVector2D=gatingMatrixA
-    gatingMatrixB=280/(1+ca_array/(0.011*exp(-1.0*ZFbyRT*v_array)))
-    print gatingMatrixB
-    tableB.tableVector2D=gatingMatrixB
+   
+    for tname,pars in zip(tablenames,gateParams):
+        table=moose.element(xGate.path+tname)
+        table.xmin=VMIN
+        table.xmax=VMAX
+        table.xdivs=VDIVS
+        table.ymin=CAMIN
+        table.ymax=CAMAX
+        table.ydivs=CADIVS
+        Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
+        if tname=='/tableA':
+            gatingMatrix=pars.alphabeta*ca_array[None,:]/(ca_array[None,:]+Vdepgating[:,None])
+            table.tableVector2D=gatingMatrix
+        else:
+            gatingMatrix=pars.alphabeta/(1+ca_array[None,:]/Vdepgating[:,None])
+            table.tableVector2D=gatingMatrix
+        if (VDIVS<=5 and CADIVS<=5):
+            print chan.path,tname,table.tabelVector2D
     return chan
 
 def chanlib(plotchan,plotpow):
@@ -117,6 +118,7 @@ def chanlib(plotchan,plotpow):
                        ChanDict[key], XChanDict[key], YChanDict[key],
                        ZChanDict[key] if ChanDict[key].Zpow > 0 else [])
             for key in ChanDict]
+    bkchan=BKchan_proto('/library/'+BKparam.name,BKparam,BK_X_params)
     if ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=Temp

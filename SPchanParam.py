@@ -56,10 +56,10 @@ Na_h_params = SSTauChannelParams(Arate = 1.0,
                                  tauVslope = 3e-3)
 
 ChannelSettings = namedtuple('ChannelSettings', 'Xpow Ypow Zpow Erev name')
-NaFparam = ChannelSettings(3, 1, 0, Erev=narev, name='NaF')
+NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
-KDrparam = ChannelSettings(1, 0, 0, Erev=krev, name='KDr')
+KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 
 AlphaBetaChannelParams = namedtuple('AlphaBetaChannelParams', '''
                               A_rate
@@ -85,7 +85,7 @@ KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
                                       B_vslope = 33.5e-3)
 KDr_Y_params = []
 
-Krpparam = ChannelSettings(2, 1, 0, Erev=krev, name='Krp')
+Krpparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='Krp')
 
 #Act tuned to fit Nisenbaum 1996 fig6C (minf^2) and fig 8C (mtau)
 qfactKrp=3  #Used by RE
@@ -113,7 +113,7 @@ Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
                                       Bvhalf = 0.0,
                                       B_vslope = -18e-3)
 
-Kirparam = ChannelSettings(1, 0, 0, Erev=krev, name='Kir')
+Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
 qfactKir = 3
 
 Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
@@ -127,7 +127,7 @@ Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
                                       Bvhalf = -30e-3,
                                       B_vslope = -50e-3)
 
-KaFparam = ChannelSettings(2, 1, 0, Erev=krev, name='KaF')
+KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 
 # activation constants for alphas and betas (obtained by
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
@@ -158,7 +158,7 @@ KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.105e3/qfactKaF,
                                       Bvhalf = 55.0e-3,
                                       B_vslope = -11.0e-3)
 
-KaSparam = ChannelSettings(2, 1, 0, Erev=krev, name='KaS')
+KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
 qfactKaS = 2
 KaS_X_params = AlphaBetaChannelParams(A_rate = 250*qfactKaS,
                                       A_B = 0,
@@ -192,7 +192,7 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 2.5*qfactKaS,
 # CDI measured by Kasai
 #Note that CaL13 for D1 has mvhalf 10 mV more negative than for D2
 #CaL12 does not differ between D1 and D2.
-CaL12param = ChannelSettings(1, 0, ZpowCDI, Erev=carev, name='CaL12')
+CaL12param = ChannelSettings(Xpow=1, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL12')
 qfactCaL = 1
 CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                         A_B = -220e3*qfactCaL,
@@ -207,7 +207,7 @@ CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
 
 # Using Xpow=1 produced too high a basal calcium,
 # so used Xpow=2 and retuned params - much better basal calcium
-CaL13param = ChannelSettings(2, 0, ZpowCDI, Erev=carev, name='CaL13')
+CaL13param = ChannelSettings(Xpow=2, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL13')
 CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
                                         A_B = 0,
                                         A_C = 1.0,
@@ -220,7 +220,7 @@ CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
                                         B_vslope = 6.5e-3)
 
 #Params from McRory J Biol Chem, alpha1I subunit
-CaTparam = ChannelSettings(3, 1, ZpowCDI, Erev=carev, name='CaT')
+CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaT')
 qfactCaT = 2
 CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
                                       A_B = 0.0,
@@ -249,7 +249,7 @@ CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
 # CaN tau from kasai 1992.
 # Kasai measures calcium dependent inactivation
 #McNaughton has act and inact, tau and ss for human CaN
-CaNparam = ChannelSettings(2, 0, ZpowCDI, Erev=carev, name='CaN')
+CaNparam = ChannelSettings(Xpow=2, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaN')
 qfactCaN = 2
 CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
                                       A_B = 0,
@@ -267,7 +267,7 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
 # CaR tau from a few measurements from pyramidal neurons by Foerhing
 # CaR inact tau from Brevi 2001
 #Inact params are a bit too steep for ss, and not steep enough for tau
-CaRparam = ChannelSettings(3, 1, ZpowCDI, Erev=carev, name='CaN')
+CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaN')
 qfactCaR = 2
 CaR_X_params = AlphaBetaChannelParams(A_rate = 240*qfactCaR,
                                       A_B =    0,
@@ -294,7 +294,7 @@ CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100*qfactCaR,
 #Reference: Maylie Bond Herson Lee Adelman 2004, Fig 2 steady state
 #Fast component has tau~4 ms; not used: slow tau = 70 ms
 #Fast component, tau=4.9ms from Hirschberg et al., 1998 figure 13.
-SKparam = ChannelSettings(0, 0, 1, Erev=krev, name='SKCa')
+SKparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
 
 ZChannelParams = namedtuple('ZChannelParams', 'Kd power tau')
 
@@ -302,8 +302,11 @@ SK_Z_params = ZChannelParams(Kd = 0.57e-3,
                              power = 5.2,
                              tau = 4.9e-3)
 
-BKparam = ChannelSettings(1, 0, 0, Erev=krev, name='BKCa')
-BK_X_params=[480,0.18,-0.84,280,0.011,-1.0]
+BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
+BKChannelParams=namedtuple('BKChannelParams', 'alphabeta K delta')
+
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18,delta=-0.84),
+             BKChannelParams(alphabeta=280,K=0.011,delta=-1.0)]
 #These CDI params can be used with every channel, make ZpowCDI=2
 #If ZpowCDI=0 the CDI will not be used, power=-4 is to transform
 #(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow)
