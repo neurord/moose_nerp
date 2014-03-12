@@ -45,13 +45,26 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
                 moose.connect(tab, 'requestData', chan, curmsg)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab,synlegend
 
+try:
+    _GRAPHS
+except NameError:
+    _GRAPHS = {}
+def _get_graph(name, figsize=None):
+    try:
+        f = _GRAPHS[name]
+    except KeyError:
+        f = _GRAPHS[name] = pyplot.figure(figsize=figsize)
+        f.canvas.set_window_title(name)
+    else:
+        f.clear()
+        f.canvas.draw() # this is here to make it easier to see what changed
+    return f
+
 def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
     t = np.linspace(0, simtime, len(vmtab[0][0].vec))
 
     for ii in range(len(neurontypes)):
-        f = pyplot.figure(figsize=(6,6))
-        f.canvas.set_window_title(neurontypes[ii])
-
+        f = _get_graph('{} voltage'.format(neurontypes[ii]), figsize=(6,6))
         t = np.linspace(0, simtime, len(vmtab[ii][0].vec))
         if calyesno:
             axes = f.add_subplot(211)
@@ -68,23 +81,22 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
             axes.legend(fontsize=8, loc='best')
             axes.set_title('calcium vs. time')
         f.tight_layout()
+        f.canvas.draw()
 
         if plotplas:
-            f = plt.figure(figsize=(6,8))
-            f.canvas.set_window_title(neurontypes[ii]+'plas')
+            f = _get_graph('{} plasticity'.format(neurontypes[ii]), figsize=(6,8))
             for i, a, b in zip((1,2,3),
                                ('plas', 'syn', 'cum'),
                                ('plas', 'wt', 'cum')):
                 axes = f.add_subplot(3, 1, i)
                 axes.plot(t,syntab[a][ii].vec, label=b+legend[ii])
-                axes.legend(loc='upper left', fontsize=8)
+                axes.legend(loc='upper left', fontsize=10)
                 axes.set_title('something vs. time')
         f.tight_layout()
+        f.canvas.draw()
 
         if grphcurr:
-            print neurontypes[ii]
-            f = figure(figsize=(6,12))
-            f.canvas.set_window_title('{} currents'.format(neurontypes[ii]))
+            f = _get_graph('{} currents'.format(neurontypes[ii]), figsize=(6,12))
             numplots=len(ChanDict)
             for plotnum, channame in enumerate(sorted(ChanDict)):
                 axes = f.add_subplot(numplots,1,plotnum)
@@ -104,5 +116,4 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
                 if plotnum == 1:
                     axes.set_title('current vs. time')
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
-
-    plt.show()
+        f.canvas.draw()

@@ -14,6 +14,8 @@ os.environ['NUMPTHREADS'] = '1'
 from pylab import *
 import numpy as np
 import matplotlib.pyplot as plt
+plt.ion()
+
 from string import *
 from pprint import pprint
 
