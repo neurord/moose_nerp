@@ -185,6 +185,7 @@ for inj in arange(curr1,curr2,currinc):
     moose.start(simtime)
     #
     graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
+
 if spineYN:
     figure()
     t = np.linspace(0, simtime, len(spinevmtab[0].vec))

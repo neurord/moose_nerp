@@ -1,3 +1,5 @@
+from matplotlib import pyplot
+
 def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     print "GRAPH TABLES, plas=",pltplas,"curr=",pltcurr
     #Vm and Calcium
@@ -47,52 +49,60 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
     t = np.linspace(0, simtime, len(vmtab[0][0].vec))
 
     for ii in range(len(neurontypes)):
-        figure(figsize=(6,6))
-        title=neurontypes[ii]
-        plt.title(title)
+        f = pyplot.figure(figsize=(6,6))
+        f.canvas.set_window_title(neurontypes[ii])
+
         t = np.linspace(0, simtime, len(vmtab[ii][0].vec))
         if calyesno:
-            subplot(211)
+            axes = f.add_subplot(211)
         for oid in vmtab[ii]:
-            plt.plot(t, oid.vec, label=oid.path[-5:])
-        plt.ylabel('Vm %s' %(neurontypes[ii]))
+            axes.plot(t, oid.vec, label=oid.path[-5:])
+        axes.set_ylabel('Vm {}'.format(neurontypes[ii]))
+        axes.legend(fontsize=8, loc='best')
+        axes.set_title('voltage vs. time')
         if calyesno:
-            subplot(212)
+            axes = f.add_subplot(212)
             for oid in catab[ii]:
-                plt.plot(t, oid.vec*1e3, label=oid.path[-5:])
-            plt.ylabel('calcium, uM')
-        #plt.legend()
+                axes.plot(t, oid.vec*1e3, label=oid.path[-5:])
+            axes.set_ylabel('calcium, uM')
+            axes.legend(fontsize=8, loc='best')
+            axes.set_title('calcium vs. time')
+        f.tight_layout()
+
         if plotplas:
-            figure(figsize=(6,8))
-            plt.title(neurontypes[ii]+'plas')
-            subplot(311)
-            plt.plot(t,syntab['plas'][ii].vec,label='plas'+legend[ii])
-            plt.legend(loc='upper left')
-            subplot(312)
-            plt.plot(t,syntab['syn'][ii].vec,label='wt'+legend[ii])
-            plt.legend(loc='upper left')
-            subplot(313)
-            plt.plot(t,syntab['cum'][ii].vec,label='cum '+legend[ii])
-            plt.legend(loc='upper left')
+            f = plt.figure(figsize=(6,8))
+            f.canvas.set_window_title(neurontypes[ii]+'plas')
+            for i, a, b in zip((1,2,3),
+                               ('plas', 'syn', 'cum'),
+                               ('plas', 'wt', 'cum')):
+                axes = f.add_subplot(3, 1, i)
+                axes.plot(t,syntab[a][ii].vec, label=b+legend[ii])
+                axes.legend(loc='upper left', fontsize=8)
+                axes.set_title('something vs. time')
+        f.tight_layout()
+
         if grphcurr:
             print neurontypes[ii]
-            figure(figsize=(6,12))
-            plt.title('%s currents' %(neurontypes[ii]))
+            f = figure(figsize=(6,12))
+            f.canvas.set_window_title('{} currents'.format(neurontypes[ii]))
             numplots=len(ChanDict)
             for plotnum, channame in enumerate(sorted(ChanDict)):
-                subplot(numplots,1,plotnum)
+                axes = f.add_subplot(numplots,1,plotnum)
                 for tab in currtab[neurontypes[ii]][channame]:
                     if (rfind(tab.path,'Ca')==10):
                         fact=ghKluge
                     else:
                         fact=1
-                    if np.max(abs(tab.vec*1e12/fact))>1000:
-                        plt.plot(t,tab.vec*1e9/fact)
-                        labelstring='%s,n%s'%(channame,curlabl)
+                    if np.max(abs(tab.vec*1e9/fact)) > 1:
+                        unit, mult = 'n', 1e12
                     else:
-                        plt.plot(t,tab.vec*1e12/fact)
-                        labelstring='%s,p%s'%(channame,curlabl)
-                plt.ylabel(labelstring)
-        #
-        #end of for neurtype loop
+                        unit, mult = 'p', 1e9
+                    axes.plot(t, tab.vec*mult/fact)
+                # FIXME: unit can be wrong
+                labelstring='{},{}{}'.format(channame, unit, curlabl)
+                axes.set_ylabel(labelstring)
+                if plotnum == 1:
+                    axes.set_title('current vs. time')
+        f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
+
     plt.show()
