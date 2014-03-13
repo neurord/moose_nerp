@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 from string import *
 
 import moose
-from moose import utils
 
 from SPcondParamSpine import *
 from SPchanParam import *

@@ -1,11 +1,10 @@
-def setupinj(delay,width,inject):
+def setupinj(delay,width):
 #Note that the actual injected current is proportional to dt of the clock
 #So, you need to use the same dt for stimulation as for the model
 #Strangely, the pulse gen in compartment_net refers to  firstdelay, etc.
     pg = moose.PulseGen('pulse')
     pg.firstDelay = delay
     pg.firstWidth = width
-    pg.firstLevel = inject
     if single:
         for neurtype in neurontypes:
             print "INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0]

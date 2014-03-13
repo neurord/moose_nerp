@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 ######## SPspineNeuronSim.py ############
 ## Code to create two SP neuron classes 
 ##          using dictionaries for channels and synapses
@@ -20,8 +22,8 @@ from string import *
 from pprint import pprint
 
 import moose 
-from moose import utils
 
+import util
 from SPcondParamSpine import *
 from SPchanParam import *
 from SynParamSpine import *
@@ -70,9 +72,8 @@ showclocks=0
 
 #simulation time, current injection, and synaptic input
 simtime = 0.06 #0.4999
-curr1=0.20e-9
-curr2=curr1+0.09e-9
-currinc=0.1e-9
+currents = util.inclusive_range(-500e-12)
+
 #With these params, 1st PSP has no AP, 2nd PSP has AP after, 3d PSP has AP before
 delay=0.020
 width=0.1
@@ -146,7 +147,7 @@ if calcium and synYesNo:
             plas[neurtype]=plasticity(MSNsyn[neurtype]['ampa'][1],highThresh,lowThresh,highfactor,lowfactor)
 
 #------------------Current Injection
-pg=setupinj(delay,width,curr1)
+pg=setupinj(delay,width)
 
 ###############--------------output elements
 data = moose.Neutral('/data')
@@ -181,7 +182,8 @@ if showclocks:
 
 
 ###########Actually run the simulation
-for inj in arange(curr1,curr2,currinc):
+for inj in currents:
+    print u'◢◤◢◤◢◤◢◤ current = {} ◢◤◢◤◢◤◢◤'.format(inj)
     pg.firstLevel = inj
     moose.reinit()
     moose.start(simtime)
