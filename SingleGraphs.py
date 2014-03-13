@@ -1,4 +1,5 @@
 from matplotlib import pyplot
+from iso_scaling import iso_scaling
 
 def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     print "GRAPH TABLES, plas=",pltplas,"curr=",pltcurr
@@ -100,18 +101,13 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
             numplots=len(ChanDict)
             for plotnum, channame in enumerate(sorted(ChanDict)):
                 axes = f.add_subplot(numplots,1,plotnum)
-                for tab in currtab[neurontypes[ii]][channame]:
-                    if (rfind(tab.path,'Ca')==10):
-                        fact=ghKluge
-                    else:
-                        fact=1
-                    if np.max(abs(tab.vec*1e9/fact)) > 1:
-                        unit, mult = 'n', 1e12
-                    else:
-                        unit, mult = 'p', 1e9
-                    axes.plot(t, tab.vec*mult/fact)
-                # FIXME: unit can be wrong
-                labelstring='{},{}{}'.format(channame, unit, curlabl)
+                toplot = [tab.vec / (
+                    ghKluge if rfind(tab.path,'Ca')==10 else 1)
+                          for tab in currtab[neurontypes[ii]][channame]]
+                scaling = iso_scaling(*toplot)
+                for vec in toplot:
+                    axes.plot(t, vec / scaling.divisor)
+                labelstring=u'{}, {}{}'.format(channame, scaling.unit, curlabl)
                 axes.set_ylabel(labelstring)
                 if plotnum == 1:
                     axes.set_title('current vs. time')
