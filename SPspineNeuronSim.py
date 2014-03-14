@@ -28,6 +28,7 @@ from SPcondParamSpine import *
 from SPchanParam import *
 from SynParamSpine import *
 from CaPlasParam import *
+from ParamOverrides import *
 execfile('ChanGhkProtoLib.py')
 execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
