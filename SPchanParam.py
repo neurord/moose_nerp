@@ -114,7 +114,7 @@ Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
                                       B_vslope = -18e-3)
 
 Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
-qfactKir = 3
+qfactKir = 0.5
 
 Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
                                       A_B = 0,
