@@ -45,9 +45,9 @@ def create_neuron(p_file,container,GnaCond,Cond,ghkYN):
 
     return {'comps': comps, 'cell': cellproto}
 
-def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
+def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
     ##create channels in the library
-    chanlib(pltchan,pltpow)
+    chanlib(plotchan,plotpow)
     synchanlib()
     ##now create the neuron prototypes
     neuron={}

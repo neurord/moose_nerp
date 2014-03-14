@@ -67,8 +67,8 @@ currmsg='get_Gk'
 currlabel='S'
 
 #whether to plot the various ion channel activation and inactivation curves
-pltchan=0
-pltpow=1
+plotchan=1
+plotpow=1
 
 #showclocks=1 will show which elements are assigned to which clock
 showclocks=0
@@ -130,7 +130,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
 #################################-----------create the model
 ##create 2 neuron prototypes with synapses and calcium
 ##only create synapses to create plasticity, hence pass plasYesNo to function
-[MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(pltchan,pltpow,calcium,synYesNo,spineYN,ghkYesNo)
+MSNsyn,neuron,pathlist,capools,synarray = neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYN,ghkYesNo)
 
 #for testing, create one synaptic connection, a time table, and one plasticity device
 #No point doing this unless calcium has been implemented
