@@ -9,8 +9,7 @@
 ##This one should be used to tune parameters and channel kinetics (but using larger morphology)
 ##Presently, AHPs too deep, I don't know about spike width
 ##Also, fires too early with slightly higher current injection
-import sys
-sys.path.append('./')
+
 import os
 os.environ['NUMPTHREADS'] = '1'
 from pylab import *
@@ -28,7 +27,10 @@ from SPcondParamSpine import *
 from SPchanParam import *
 from SynParamSpine import *
 from CaPlasParam import *
-from ParamOverrides import *
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 execfile('ChanGhkProtoLib.py')
 execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
@@ -65,8 +67,8 @@ currmsg='get_Gk'
 currlabel='S'
 
 #whether to plot the various ion channel activation and inactivation curves
-pltchan=0
-pltpow=1
+plotchan=1
+plotpow=1
 
 #showclocks=1 will show which elements are assigned to which clock
 showclocks=0
@@ -84,6 +86,11 @@ stimtimes=[0.04,0.19,0.46]
 plotdt = 0.2e-3
 simdt = 0.25e-5
 hsolve=1
+
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 
 ################### Clocks.  Note that there are no default clocks ##########
 #Information on how to use clocks can be read by typing: help("moose") in python
@@ -123,7 +130,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
 #################################-----------create the model
 ##create 2 neuron prototypes with synapses and calcium
 ##only create synapses to create plasticity, hence pass plasYesNo to function
-[MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(pltchan,pltpow,calcium,synYesNo,spineYN,ghkYesNo)
+MSNsyn,neuron,pathlist,capools,synarray = neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYN,ghkYesNo)
 
 #for testing, create one synaptic connection, a time table, and one plasticity device
 #No point doing this unless calcium has been implemented
@@ -211,19 +218,6 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
     #End of inject loop
-    ###### Demonstration of loop with parameter adjustment ###
-    if plasYesNo == 2:
-        execfile('AdjustParams.py')
-        ChanList=['KaF','CaL12']
-        minfac=0.8
-        maxfac=0.7
-        incfac=0.5
-        for factor in arange(minfac,maxfac,incfac):
-            factorList=[factor,2*factor]
-            adjustParams('D1',GnaCondD1,CondD1,factorList,ChanList)
-            moose.reinit()
-            moose.start(simtime)
-        #
-            graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
+
     #Replace graphs with table output to files to inspection later
     #Add in comparison of results with a standard to further automate the parameter turning

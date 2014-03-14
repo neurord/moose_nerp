@@ -67,8 +67,7 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
     for ii in range(len(neurontypes)):
         f = _get_graph('{} voltage'.format(neurontypes[ii]), figsize=(6,6))
         t = np.linspace(0, simtime, len(vmtab[ii][0].vec))
-        if calyesno:
-            axes = f.add_subplot(211)
+        axes = f.add_subplot(211) if calyesno else f.gca()
         for oid in vmtab[ii]:
             axes.plot(t, oid.vec, label=oid.path[-5:])
         axes.set_ylabel('Vm {}'.format(neurontypes[ii]))

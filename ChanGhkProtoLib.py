@@ -8,12 +8,10 @@
 
 VMIN = -120e-3
 VMAX = 50e-3
-#VDIVS = 3400
-VDIVS=3
+VDIVS = 3400
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
-#CADIVS=4000 #10 nM steps
-CADIVS=3
+CADIVS=4000 #10 nM steps
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
