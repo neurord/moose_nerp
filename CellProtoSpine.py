@@ -56,9 +56,9 @@ def neuronclasses(pltchan,pltpow,calyesno,synYesNo,spYesNo,ghkYN):
     headarray={}
     for ntype in neurontypes:
         protoname='/library/'+ntype
-        #use pfile[ntype] for cell-type specific morphology
+        #use p_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(pfile,ntype,GnaCondset[ntype],Condset[ntype],ghkYN)
+        neuron[ntype]=create_neuron(p_file,ntype,GnaCondset[ntype],Condset[ntype],ghkYN)
         #optionally add spines
         if spYesNo:
             addSpines(ntype)
