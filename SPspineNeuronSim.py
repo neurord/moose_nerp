@@ -9,8 +9,7 @@
 ##This one should be used to tune parameters and channel kinetics (but using larger morphology)
 ##Presently, AHPs too deep, I don't know about spike width
 ##Also, fires too early with slightly higher current injection
-import sys
-sys.path.append('./')
+
 import os
 os.environ['NUMPTHREADS'] = '1'
 from pylab import *
@@ -28,7 +27,10 @@ from SPcondParamSpine import *
 from SPchanParam import *
 from SynParamSpine import *
 from CaPlasParam import *
-from ParamOverrides import *
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 execfile('ChanGhkProtoLib.py')
 execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
@@ -84,6 +86,11 @@ stimtimes=[0.04,0.19,0.46]
 plotdt = 0.2e-3
 simdt = 0.25e-5
 hsolve=1
+
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 
 ################### Clocks.  Note that there are no default clocks ##########
 #Information on how to use clocks can be read by typing: help("moose") in python
