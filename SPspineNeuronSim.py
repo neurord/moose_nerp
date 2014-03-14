@@ -211,19 +211,6 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
     #End of inject loop
-    ###### Demonstration of loop with parameter adjustment ###
-    if plasYesNo == 2:
-        execfile('AdjustParams.py')
-        ChanList=['KaF','CaL12']
-        minfac=0.8
-        maxfac=0.7
-        incfac=0.5
-        for factor in arange(minfac,maxfac,incfac):
-            factorList=[factor,2*factor]
-            adjustParams('D1',GnaCondD1,CondD1,factorList,ChanList)
-            moose.reinit()
-            moose.start(simtime)
-        #
-            graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
+
     #Replace graphs with table output to files to inspection later
     #Add in comparison of results with a standard to further automate the parameter turning
