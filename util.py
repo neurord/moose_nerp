@@ -9,3 +9,10 @@ def inclusive_range(start, stop=None, step=None):
     if step is None:
         step = stop - start
     return np.arange(start, stop + step/2, step)
+
+def dist_num(table, dist):
+    for num, val in enumerate(table):
+        if dist < val:
+            return num
+    else:
+        return num

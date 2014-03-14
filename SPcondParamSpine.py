@@ -11,13 +11,6 @@ def isCaChannel(channame):
 def isKCaChannel(channame):
     return channame.endswith('KCa')
 
-def dist_num(table, dist):
-    for num, val in enumerate(table):
-        if dist < val:
-            return num
-    else:
-        return num
-
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
 ghkYesNo=1

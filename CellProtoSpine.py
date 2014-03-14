@@ -1,3 +1,5 @@
+from util import dist_num
+
 #Cellproto.py
 #Other than the special NaF channel, this can be used to create any neuron type
 def create_neuron(p_file,container,GnaCond,Cond,ghkYN):

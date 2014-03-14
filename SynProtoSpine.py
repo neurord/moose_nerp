@@ -1,3 +1,5 @@
+from util import dist_num
+
 #Function definitions for making channels.
 
 def make_synchan(chanpath,synparams):

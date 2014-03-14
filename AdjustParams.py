@@ -1,3 +1,5 @@
+from util import dist_num
+
 #This adjusts conductance of several channels using multiplicative factor
 #List of factors contains the change to apply to each channel
 def adjustParams(container,GnaCond,Cond,factlist,chanlist):

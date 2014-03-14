@@ -86,7 +86,10 @@ hsolve=1
 
 ################### Clocks.  Note that there are no default clocks ##########
 #Information on how to use clocks can be read by typing: help("moose") in python
-inited = False
+try:
+    inited
+except NameError:
+    inited = False
 def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
     global inited
     # `inited` is for avoiding double scheduling of the same object
@@ -182,41 +185,44 @@ if showclocks:
 
 
 ###########Actually run the simulation
-for inj in currents:
-    print u'◢◤◢◤◢◤◢◤ current = {} ◢◤◢◤◢◤◢◤'.format(inj)
-    pg.firstLevel = inj
+def run_simulation(injection_current, simtime):
+    print u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current)
+    pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
-    #
-    graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
 
-if spineYN:
-    figure()
-    t = np.linspace(0, simtime, len(spinevmtab[0].vec))
-    if calcium:
-        subplot(211)
-    for neurnum in range(len(neurontypes)):
-        plt.plot(t,spinevmtab[neurnum].vec,label=neurontypes[neurnum])
-    if calcium:
-        subplot(212)
-        for neurnum in range(len(neurontypes)):
-            plt.plot(t,spinecatab[neurnum].vec,label=neurontypes[neurnum])
-    plt.legend()
-    plt.show()
-#End of inject loop
-###### Demonstration of loop with parameter adjustment ###
-if plasYesNo == 2:
-    execfile('AdjustParams.py')
-    ChanList=['KaF','CaL12']
-    minfac=0.8
-    maxfac=0.7
-    incfac=0.5
-    for factor in arange(minfac,maxfac,incfac):
-        factorList=[factor,2*factor]
-        adjustParams('D1',GnaCondD1,CondD1,factorList,ChanList)
-        moose.reinit()
-        moose.start(simtime)
-    #
+if __name__ == '__main__':
+    for inj in currents:
+        run_simulation(injection_current=inj, simtime=simtime)
         graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
-#Replace graphs with table output to files to inspection later
-#Add in comparison of results with a standard to further automate the parameter turning
+
+    if spineYN:
+        figure()
+        t = np.linspace(0, simtime, len(spinevmtab[0].vec))
+        if calcium:
+            subplot(211)
+        for neurnum in range(len(neurontypes)):
+            plt.plot(t,spinevmtab[neurnum].vec,label=neurontypes[neurnum])
+        if calcium:
+            subplot(212)
+            for neurnum in range(len(neurontypes)):
+                plt.plot(t,spinecatab[neurnum].vec,label=neurontypes[neurnum])
+        plt.legend()
+        plt.show()
+    #End of inject loop
+    ###### Demonstration of loop with parameter adjustment ###
+    if plasYesNo == 2:
+        execfile('AdjustParams.py')
+        ChanList=['KaF','CaL12']
+        minfac=0.8
+        maxfac=0.7
+        incfac=0.5
+        for factor in arange(minfac,maxfac,incfac):
+            factorList=[factor,2*factor]
+            adjustParams('D1',GnaCondD1,CondD1,factorList,ChanList)
+            moose.reinit()
+            moose.start(simtime)
+        #
+            graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
+    #Replace graphs with table output to files to inspection later
+    #Add in comparison of results with a standard to further automate the parameter turning
