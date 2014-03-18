@@ -347,14 +347,3 @@ ZChanDict={'SKCa':SK_Z_params,
            'CaT': CDI_Z_params
 }
 #
-ChanDict={'Krp':Krpparam,
-          'KaF':KaFparam,
-          'KaS':KaSparam,
-          'Kir': Kirparam,
-          'CaL12': CaL12param,
-          'CaL13': CaL13param,
-          'CaN': CaNparam,
-          'CaR': CaRparam,
-          'CaT': CaTparam,
-          'SKCa': SKparam
-}

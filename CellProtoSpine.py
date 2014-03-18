@@ -2,7 +2,7 @@ from util import dist_num
 
 #Cellproto.py
 #Other than the special NaF channel, this can be used to create any neuron type
-def create_neuron(p_file,container,GnaCond,Cond,GbkCond,ghkYN):
+def create_neuron(p_file,container,Cond,ghkYN):
     cellproto=moose.loadModel(p_file, container)
     comps=[]
     #######channels
@@ -15,21 +15,7 @@ def create_neuron(p_file,container,GnaCond,Cond,GbkCond,ghkYN):
         dist=sqrt(xloc*xloc+yloc*yloc)
         SA=pi*length*diam
         #print "comp,dist,SA",comp.path,dist,SA
-        #na channel - not in normal channel dictionary
-        if GnaCond[dist_num(distTable, dist)]:
-            chanpath=NaFparam.name
-            proto = moose.element('/library/'+chanpath)
-            nachan = moose.copy(proto, comp, chanpath)[0]
-            moose.connect(nachan, 'channel', comp, 'channel')
-            nachan.Gbar =GnaCond[dist_num(distTable, dist)] * SA
-        if GbkCond[dist_num(distTable, dist)]:
-            chanpath=BKparam.name
-            proto = moose.element('/library/'+chanpath)
-            bkchan = moose.copy(proto, comp, chanpath)[0]
-            moose.connect(bkchan, 'channel', comp, 'channel')
-            bkchan.Gbar =GbkCond[dist_num(distTable, dist)] * SA
 
-        #other Channels
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function
         if ghkYN:
@@ -70,7 +56,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
         protoname='/library/'+ntype
         #use p_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(p_file,ntype,GnaCondset[ntype],Condset[ntype],GbkCondset[ntype],ghkYN)
+        neuron[ntype]=create_neuron(p_file,ntype,Condset[ntype],ghkYN)
         #optionally add spines
         if spYesNo:
             addSpines(ntype)

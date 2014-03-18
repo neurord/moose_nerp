@@ -13,6 +13,8 @@ CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS=4000 #10 nM steps
 
+
+
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
@@ -103,20 +105,28 @@ def BKchan_proto(chanpath,params,gateParams):
         if (VDIVS<=5 and CADIVS<=5 and printinfo):
             print chan.path,tname,table.tableVector2D
     return chan
+#Moved ChanDict from SPChanParam.py to include channel function name in the dictionary
+
+ChanDict={'Krp':[chan_proto,Krpparam,Krp_X_params,Krp_Y_params],
+          'KaF':[chan_proto,KaFparam,KaF_X_params,KaF_Y_params],
+          'KaS':[chan_proto,KaSparam,KaS_X_params,KaS_Y_params],
+          'Kir': [chan_proto,Kirparam, Kir_X_params,[]],
+          'CaL12':[chan_proto,CaL12param,CaL12_X_params,[],CDI_Z_params],
+          'CaL13':[chan_proto,CaL13param,CaL13_X_params,[],CDI_Z_params],
+          'CaN': [chan_proto,CaNparam,CaN_X_params,[],CDI_Z_params],
+          'CaR': [chan_proto,CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
+          'CaT': [chan_proto,CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
+          'SKCa':[chan_proto,SKparam,[],[],SK_Z_params],
+          'NaF':[NaFchan_proto,NaFparam,Na_m_params,Na_h_params],
+          'BKCa':[BKchan_proto,BKparam,BK_X_params]
+}
 
 def chanlib(plotchan,plotpow):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
-    #na chan uses special format
-    chanpath='/library/'+NaFparam.name
-    nachan=NaFchan_proto(chanpath,NaFparam,Na_m_params,Na_h_params)
-    #Either add special call for BK, or add condition for BK channel below
-    #
-    chan = [chan_proto('/library/'+key,
-                       ChanDict[key], XChanDict[key], YChanDict[key],
-                       ZChanDict[key] if ChanDict[key].Zpow > 0 else [])
-            for key in ChanDict]
-    bkchan=BKchan_proto('/library/'+BKparam.name,BKparam,BK_X_params)
+    #Adding all the channels to the library. *list removes list elements from the list,
+    #so they can be used as function arguments
+    chan = [ChanDict[key][0]('/library/'+key,*ChanDict[key][1:])for key in ChanDict]
     if ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=Temp

@@ -38,12 +38,12 @@ p_file='MScell-primDend.p'
 
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
-GnaCondD1=[60.5e3, 1894, 927]
-GnaCondD2=[69.0e3, 2503, 1073]
-GnaCondset={'D1':GnaCondD1,'D2':GnaCondD2}
-GbkCondD1=[10, 10, 10]
-GbkCondD2=[10, 10, 10]
-GbkCondset={'D1':GbkCondD1,'D2':GbkCondD2}
+# GnaCondD1=[60.5e3, 1894, 927]
+# GnaCondD2=[69.0e3, 2503, 1073]
+# GnaCondset={'D1':GnaCondD1,'D2':GnaCondD2}
+# GbkCondD1=[10, 10, 10]
+# GbkCondD2=[10, 10, 10]
+# GbkCondset={'D1':GbkCondD1,'D2':GbkCondD2}
 #CaL values are taken from GHK model, with arbitrary 1e-6 incr conduct
 #
 #RE has much lower KaF prox: 300; sl lower KaS prox: 200
@@ -62,7 +62,10 @@ CondD1={'Krp': [7.25,7.25,7.25],
         'CaR': [20*ghKluge, 45*ghKluge, 44*ghKluge],
         'CaN': [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
         'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'SKCa':[0.5, 0.5, 0.5]}
+        'SKCa':[0.5, 0.5, 0.5],
+        'NaF':[60.5e3, 1894, 927],
+        'BKCa':[10, 10, 10]
+        }
 CondD2={'Krp': [7.25,7.25,7.25],
         #'KaF': [3214, 471, 234],
         'KaF':[641,300,200],
@@ -73,7 +76,10 @@ CondD2={'Krp': [7.25,7.25,7.25],
         'CaR': [20*ghKluge, 45*ghKluge, 45*ghKluge],
         'CaN': [1.5*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
         'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'SKCa':[0.5, 0.5, 0.5]}
+        'SKCa':[0.5, 0.5, 0.5],
+        'NaF':[69.0e3, 2503, 1073],
+        'BKCa':[10, 10, 10]
+        }
 chanvar={'KaF': 0.04,
          'KaS': 0.04,
          'Kir': 0.04,
