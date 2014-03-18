@@ -42,8 +42,11 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     for neurtype in neurontypes:
         for channame in ChanDict:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
-                chan=moose.element(comp.path+'/'+channame)
-                moose.connect(tab, 'requestData', chan, curmsg)
+                try:
+                    chan=moose.element(comp.path+'/'+channame)
+                    moose.connect(tab, 'requestData', chan, curmsg)
+                except:
+                    print 'no channel', comp.path+'/'+channame
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab,synlegend
 
 try:
@@ -99,16 +102,19 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
             f = _get_graph('{} currents'.format(neurontypes[ii]), figsize=(6,12))
             numplots=len(ChanDict)
             for plotnum, channame in enumerate(sorted(ChanDict)):
-                axes = f.add_subplot(numplots,1,plotnum)
-                toplot = [tab.vec / (
-                    ghKluge if rfind(tab.path,'Ca')==10 else 1)
-                          for tab in currtab[neurontypes[ii]][channame]]
-                scaling = iso_scaling(*toplot)
-                for vec in toplot:
-                    axes.plot(t, vec / scaling.divisor)
-                labelstring=u'{}, {}{}'.format(channame, scaling.unit, curlabl)
-                axes.set_ylabel(labelstring)
-                if plotnum == 1:
-                    axes.set_title('current vs. time')
+                try:
+                    axes = f.add_subplot(numplots,1,plotnum)
+                    toplot = [tab.vec / (
+                        ghKluge if rfind(tab.path,'Ca')==10 else 1)
+                            for tab in currtab[neurontypes[ii]][channame]]
+                    scaling = iso_scaling(*toplot)
+                    for vec in toplot:
+                        axes.plot(t, vec / scaling.divisor)
+                        labelstring=u'{}, {}{}'.format(channame, scaling.unit, curlabl)
+                    axes.set_ylabel(labelstring)
+                    if plotnum == 1:
+                        axes.set_title('current vs. time')
+                except:
+                    print "no channel", channame        
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
         f.canvas.draw()

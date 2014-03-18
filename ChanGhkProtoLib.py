@@ -79,11 +79,11 @@ def BKchan_proto(chanpath,params,gateParams):
     chan.Xpower = params.Xpow
     xGate = moose.HHGate2D(chan.path + '/gateX')
     tablenames=['/tableA','/tableB']
-    #possible to put this into a loop over table A and table B
     ZFbyRT=2*Farady/(R*(Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
-    print v_array,ca_array
+    if (VDIVS<=5 and CADIVS<=5 and printinfo):
+        print v_array,ca_array
    
     for tname,pars in zip(tablenames,gateParams):
         table=moose.element(xGate.path+tname)
@@ -100,7 +100,7 @@ def BKchan_proto(chanpath,params,gateParams):
         else:
             gatingMatrix=pars.alphabeta/(1+ca_array[None,:]/Vdepgating[:,None])
             table.tableVector2D=gatingMatrix
-        if (VDIVS<=5 and CADIVS<=5):
+        if (VDIVS<=5 and CADIVS<=5 and printinfo):
             print chan.path,tname,table.tableVector2D
     return chan
 

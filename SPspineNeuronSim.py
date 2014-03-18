@@ -62,20 +62,20 @@ plotplas=1
 if not plasYesNo:
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
-plotcurr=0
+plotcurr=1
 currmsg='get_Gk'
 currlabel='S'
 
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=1
+plotchan=0
 plotpow=1
 
 #showclocks=1 will show which elements are assigned to which clock
 showclocks=0
 
 #simulation time, current injection, and synaptic input
-simtime = 0.06 #0.4999
-currents = util.inclusive_range(-500e-12)
+simtime = 0.2 #0.4999
+currents = util.inclusive_range(300e-12)
 
 #With these params, 1st PSP has no AP, 2nd PSP has AP after, 3d PSP has AP before
 delay=0.020
@@ -119,7 +119,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
                 hsolve.dt=simdt
             moose.useClock(0, '%s/##[ISA=Compartment]' % (path), 'init')
             moose.useClock(1, '%s/##[ISA=Compartment],%s/##[TYPE=CaConc]' % (path,path), 'process')
-            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel]' % (path,path), 'process')
+            moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel],%s/##[TYPE=HHChannel2D]' % (path,path,path), 'process')
             moose.useClock(3, '%s/##[TYPE=Func],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' % (path,path,path), 'process')
             moose.useClock(4, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
         moose.useClock(5, '/##[TYPE=PulseGen]', 'process')

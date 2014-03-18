@@ -29,7 +29,10 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         moose.connect(ghk,'IkOut',capool,'current')
         #print "CONNECT ghk to ca",ghk.path,capool.path
         #connect them to the channels
-    for chan in moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)):
+    chan_list = []
+    chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)))
+    chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
+    for chan in chan_list:
         channame=chan.path[rfind(chan.path,'/')+1:]
         if isCaChannel(channame):
             if (ghkYN==0):
