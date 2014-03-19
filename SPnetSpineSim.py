@@ -43,7 +43,7 @@ execfile('injectfunc.py')
 printinfo=0
 # set single=1 to create a single neuron of each type with synaptic input
 spineYN=0
-single=0
+single=1
 #calcium and plasyesno are originally defined in CaPlasParam.py
 calcium=0
 plasyesno=0
@@ -163,7 +163,7 @@ else:
     #create population
     MSNpop = create_population(moose.Neutral(networkname), neurontypes, netsizeX,netsizeY,spacing)
     
-    totaltt=sum(sum(numglu[i])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
+    totaltt=sum(sum(numglu[neurontypes[i]])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
     #read in the spike time tables
     timetab=alltables(infile,inpath,totaltt)
     #assign the timetables to synapses for each neuron, but don't re-use uniq

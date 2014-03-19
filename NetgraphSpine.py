@@ -1,3 +1,4 @@
+#This got messed up - Syn Tables not being hooked up correctly for network case - single seems fine
 def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
     print "GRAPHS","single=",singl,"plotnet=",pltnet,"plotPlas=",pltplas, "cal=", calyesno, "spines=", spinesYN
     syntab=[]
@@ -103,8 +104,11 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                 if chan=='nmda':
                     syn=moose.element(plotcomp.path+'/'+chan+'/mgblock')
                 tabnum=len(SynChanDict)*ii+synnum
-                assert chan in syntab[tabnum].path
-                moose.connect(syntab[tabnum], 'requestData', plotsyn, Synmsg)
+                #assert chan in syntab[tabnum].path
+                if (find(syntab[tabnum].path,chan)==-1):
+                    print "HOOKING UP SYN TABLES WRONG!"
+                else:
+                    moose.connect(syntab[tabnum], 'requestData', plotsyn, Synmsg)
     return vmtab,syntab,catab,plastab,plasCumtab,spcatab
 
 def graphs(vmtab,syntab,catab,plastab,plasCumtab,spcaltab,grphsyn,pltplas,calyesno,spinesYN):

@@ -62,8 +62,8 @@ CondD1={'Krp': [7.25,7.25,7.25],
         'CaR': [20*ghKluge, 45*ghKluge, 44*ghKluge],
         'CaN': [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
         'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'SKCa':[0.5, 0.5, 0.5],
         'NaF':[60.5e3, 1894, 927],
+        'SKCa':[0.5, 0.5, 0.5],
         'BKCa':[10, 10, 10]
         }
 CondD2={'Krp': [7.25,7.25,7.25],
@@ -76,11 +76,12 @@ CondD2={'Krp': [7.25,7.25,7.25],
         'CaR': [20*ghKluge, 45*ghKluge, 45*ghKluge],
         'CaN': [1.5*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
         'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'SKCa':[0.5, 0.5, 0.5],
         'NaF':[69.0e3, 2503, 1073],
+        'SKCa':[0.5, 0.5, 0.5],
         'BKCa':[10, 10, 10]
         }
-chanvar={'KaF': 0.04,
+chanvar={'Krp': 0.04,
+         'KaF': 0.04,
          'KaS': 0.04,
          'Kir': 0.04,
          'CaL13': 0.04,
@@ -88,6 +89,8 @@ chanvar={'KaF': 0.04,
          'CaR': 0.04,
          'CaN': 0.04,
          'CaT': 0.04,
+         'NaF': 0.0,
+         'BKCa': 0.04,
          'SKCa': 0.04}
 
 Condset={'D1':CondD1,'D2':CondD2}

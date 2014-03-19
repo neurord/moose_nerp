@@ -12,6 +12,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
         diam=moose.Compartment(comp).diameter
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
+        #Possibly this should be replaced by pathlength
         dist=sqrt(xloc*xloc+yloc*yloc)
         SA=pi*length*diam
         #print "comp,dist,SA",comp.path,dist,SA
@@ -24,7 +25,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
             moose.connect(ghk,'channel',comp,'channel')
         for chanpath in ChanDict:
             if Cond[chanpath][dist_num(distTable, dist)]:
-                print "Testing Cond If", chanpath, Cond[chanpath][dist_num(distTable, dist)]
+                #print "Testing Cond If", chanpath, Cond[chanpath][dist_num(distTable, dist)]
                 proto = moose.element('/library/'+chanpath)
                 chan = moose.copy(proto, comp, chanpath)[0]
                 channame=chan.path[rfind(chan.path,'/')+1:]

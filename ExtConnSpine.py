@@ -43,11 +43,12 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
     comps=[]
     Duptt=ttab['Dup']
     Uniqtt=ttab['Uniq']
+
     for kk in range(len(synchans[synlist[0]])):
         compstart=find(synchans[synlist[0]][kk].path,'/',1)
         compend=rfind(synchans[synlist[0]][kk].path,'/')
         compname=synchans[synlist[0]][kk].path[compstart:compend]
-        print kk, SynPerComp[kk]
+        #print kk, SynPerComp[kk]
         for qq in range(SynPerComp[kk]):
             comps.append(compname)
     allcomps=tile(comps,(len(cells),1))

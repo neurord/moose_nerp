@@ -2,7 +2,6 @@
 #1. Creating the population
 #2. interconnecting the population
 #Note that connecting external Poisson trains is done in ExtConn.py
-#Adding variability in channel conductances might be own function for optimization routines
 
 def create_population(container, neurontypes, sizeX, sizeY, spacing):
     netpath = container.path
@@ -26,9 +25,11 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             comp.x=i*spacing
             comp.y=j*spacing
             #print "x,y", comp.x, comp.y, neurons[number].path
+            #This new assignment of x and y prevents dist_num from working anymore
+            #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
             for chan in ChanDict:
-                if Condset[neurontypes[neurnum]][chan][dist_num(distTable, dist)]:
+                if Condset[neurontypes[neurnum]][chan][0]>0 and chanvar[chan]>0:
                     chancomp=moose.element(comp.path+'/'+chan)
                     chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, chanvar[chan]))
             #spike generator
@@ -65,7 +66,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
         for ii in range(numSpikeGen):
             precomp=spikegen[ii].path[0:rfind(spikegen[ii].path,'/')]
             #################Can be expanded to determine whether an FS neuron also
-            fact=spaceConst['same' if posttype in precomp else 'diff']
+            fact=spaceConst['same' if postype in precomp else 'diff']
             xpre=moose.element(precomp).x
             ypre=moose.element(precomp).y
             #calculate distance between pre- and post-soma
@@ -74,7 +75,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             connect=np.random.uniform()
             #print precomp,postsoma,dist,fact,prob,connect
             #select a random number to determine whether a connection should occur
-            if connect < prob and dist > 0 and comps:
+            if connect < prob and dist > 0 and len(comps)>0:
                 #if so, randomly select a branch, and then eliminate that branch from the table.
                 #presently only a single synapse established.  Need to expand this to allow mutliple conns
                 branch=np.random.random_integers(0,len(comps)-1)
