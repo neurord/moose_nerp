@@ -26,26 +26,18 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             comp.x=i*spacing
             comp.y=j*spacing
             #print "x,y", comp.x, comp.y, neurons[number].path
+            #Channel Variance in soma only, for channels with non-zero conductance
+            for chan in ChanDict:
+                if Condset[neurontypes[neurnum]][chan][dist_num(distTable, dist)]:
+                    chancomp=moose.element(comp.path+'/'+chan)
+                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, chanvar[chan]))
             #spike generator
             spikegen = moose.SpikeGen(comp.path + '/spikegen')
             spikegen.threshold = 0.0
             spikegen.refractT=1e-3
             m = moose.connect(comp, 'VmOut', spikegen, 'Vm')
             spikegens.append(spikegen)
-       
-    #introduce variability in channel conductances
-    #Could also re-introduce the Em variability from the single (D1 only) population functions
-    for chan in chanvar.keys():
-        #single multiplier for Gbar for all the channels compartments
-        GbarArray=abs(np.random.normal(1.0, chanvar[chan],sizeX*sizeY))
-        for ii in range(sizeX*sizeY):
-            somapath=neurons[ii].path+'/soma'
-            if printinfo:
-            #possibly replace 'soma' with loop over compartments:
-                print somapath+'/'+chan, GbarArray[ii]
-            chancomp=moose.element(somapath+'/'+chan)
-            chancomp.Gbar=chancomp.Gbar*GbarArray[ii]
-    
+            
     return {'cells': neurons,
             'pop':neurXclass,
             'spikegen': spikegens}

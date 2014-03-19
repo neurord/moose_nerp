@@ -38,7 +38,7 @@ def alltables(fname,inpath,maxtt):
 
 def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
     #all synpases in synlist must in same compartment (e.g. both on spines or both on dendrites)
-    print "CELLS", len(cells),cells
+    print "CELLS", len(cells),cells, SynPerComp
     #create table of synapse compartments for each neuron
     comps=[]
     Duptt=ttab['Dup']
@@ -47,6 +47,7 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
         compstart=find(synchans[synlist[0]][kk].path,'/',1)
         compend=rfind(synchans[synlist[0]][kk].path,'/')
         compname=synchans[synlist[0]][kk].path[compstart:compend]
+        print kk, SynPerComp[kk]
         for qq in range(SynPerComp[kk]):
             comps.append(compname)
     allcomps=tile(comps,(len(cells),1))

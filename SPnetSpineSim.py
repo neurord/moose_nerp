@@ -42,6 +42,7 @@ execfile('injectfunc.py')
 #determines whether to print various statements
 printinfo=0
 # set single=1 to create a single neuron of each type with synaptic input
+spineYN=0
 single=0
 #calcium and plasyesno are originally defined in CaPlasParam.py
 calcium=0
@@ -78,7 +79,7 @@ pltpow=0
 showclocks=0
 
 #simulation time and current injection
-simtime = 4.0
+simtime = 0.05
 curr1=0.01e-9
 curr2=0.1e-9
 currinc=0.1e-9
@@ -134,14 +135,14 @@ def assign_clocks(model_container_list, dataName, inname, simdt, plotdt,hsolve):
 [MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(pltchan,pltpow,calcium,1,spineYN,ghkYesNo)
 
 #For synaptic input: extract number of synapses for glu and gaba
-numglu=[]
-numgaba=[]
+numglu = {}
+numgaba = {}
 for ntype in neurontypes:
-    numsynarray=np.array(synarray[ntype])
-    skip=np.shape(numsynarray)[1]
-    numglu.append(numsynarray.flatten()[GLU:size(numsynarray):skip])
-    numgaba.append(numsynarray.flatten()[GABA:size(numsynarray):skip])
-
+  
+    numglu[ntype] = synarray[ntype][:,GLU]
+    numgaba[ntype] = synarray[ntype][:,GABA]
+   
+  
 ##synaptic input: read in tables (create timetab - only as many as needed)
 ## assign timetables to synapses
 indata=moose.Neutral('/input')
@@ -149,16 +150,19 @@ inpath=indata.path
 networkname='/network'
 totaltt=0
 if single:
-    totaltt=sum(numglu)
+    totaltt = 0
+    for ntype in neurontypes:
+        totaltt += synarray[ntype].sum(axis=0)[GLU]
     #read in the spike time tables
     timetab=alltables(infile,inpath,totaltt)
     #assign the timetables to synapses for each neuron, but don't re-use uniq
     startt=0
-    for ii,ntype in zip(range(len(neurontypes)), neurontypes):
-        startt=addinput(timetab,MSNsyn[ntype],['ampa','nmda'],simtime,[neuron[ntype]['cell'].path],numglu[ii],startt)
+    for ntype in neurontypes:
+        startt=addinput(timetab,MSNsyn[ntype],['ampa','nmda'],simtime,[neuron[ntype]['cell'].path],numglu[ntype],startt)
 else:
     #create population
     MSNpop = create_population(moose.Neutral(networkname), neurontypes, netsizeX,netsizeY,spacing)
+    
     totaltt=sum(sum(numglu[i])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
     #read in the spike time tables
     timetab=alltables(infile,inpath,totaltt)
@@ -166,12 +170,12 @@ else:
     #this structure actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
     startt=0
     for ii,ntype in zip(range(len(neurontypes)), neurontypes):
-        startt=addinput(timetab,MSNsyn[ntype],['ampa', 'nmda'],simtime,MSNpop['pop'][ii],numglu[ii],startt)
+        startt=addinput(timetab,MSNsyn[ntype],['ampa', 'nmda'],simtime,MSNpop['pop'][ii],numglu[ntype],startt)
     #intrinsic connections, from all spikegens to each population
     #Different conn probs between populations is indicated in SpaceConst
     ######### Add FS['spikegen'] to MSNpop['spikegen'] once FS added to network
     for ii,ntype in zip(range(len(neurontypes)), neurontypes):
-        conn=connect_neurons(MSNpop['spikegen'],MSNpop['pop'][ii],MSNsyn[ntype]['gaba'],SpaceConst[ntype],numgaba[ii],ntype)
+        conn=connect_neurons(MSNpop['spikegen'],MSNpop['pop'][ii],MSNsyn[ntype]['gaba'],SpaceConst[ntype],numgaba[ntype],ntype)
     #need to save/write out the list of connections and location of each neuron
     locationlist=[]
     for neurlist in MSNpop['pop']:
@@ -190,7 +194,7 @@ if calcium and plasyesno:
                                    [] if single else MSNpop['pop'][nnum])
 
 #------------------Current Injection
-pg=setupinj(delay,width,curr1)
+pg=setupinj(delay,width)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
@@ -214,7 +218,7 @@ if showgraphs:
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if single:
-    simpath=['/'+neurontype for neurotype in neurontypes]
+    simpath=['/'+neurotype for neurotype in neurontypes]
 else:
     simpath=[networkname]
 assign_clocks(simpath,'/data', inpath, simdt, plotdt,hsolve)

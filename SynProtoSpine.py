@@ -91,7 +91,8 @@ def add_synchans(container,calYN,ghkYN):
     #synchans is 2D array, where each row has a single channel type
     #at the end they are concatenated into a dictionary
     synchans=[]
-    SynPerComp=[]
+    comp_list = moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))
+    SynPerComp=np.zeros((len(comp_list),NumSynClass),dtype=int)
     numspines=0
     #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
     for keynum in range(len(SynChanDict)):
@@ -99,9 +100,8 @@ def add_synchans(container,calYN,ghkYN):
     allkeys = sorted(SynChanDict)
 
     # i indexes compartment for array that stores number of synapses
-    for i, comp in enumerate(moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))):
-        #Store SynPerComp (GABA, Glu) for each comp (pair, and not triplet since AMPA=NMDA=Glu)
-        SynPerComp.append([0,0])
+    for i, comp in enumerate(comp_list):
+                
         #create each type of synchan in each compartment.  Add to 2D array
         for key in DendSynChans:
             keynum=allkeys.index(key)
@@ -125,8 +125,8 @@ def add_synchans(container,calYN,ghkYN):
         #Check in ExtConn - how is SynPerComp used
 
         num = dist_num(distTable, dist)
-        SynPerComp[i][GABA] = NumGaba[num]
-        SynPerComp[i][GLU] = NumGlu[num]
+        SynPerComp[i,GABA] = NumGaba[num]
+        SynPerComp[i,GLU] = NumGlu[num]
 
     #end of iterating over compartments
     #now, transform the synchans into a dictionary

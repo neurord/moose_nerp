@@ -29,7 +29,10 @@ GbarVar=0.05
 
 NumGaba=[3, 2, 1]
 NumGlu=[1, 2, 3]
-#indices to use in some arrays
+
+#number of synapse classes such as Gaba and Glutamate
+NumSynClass = 2
+#indices to use in arrays of dimension NumSynClass
 GABA=0
 GLU=1
 
