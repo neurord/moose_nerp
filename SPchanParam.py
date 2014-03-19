@@ -347,3 +347,16 @@ ZChanDict={'SKCa':SK_Z_params,
            'CaT': CDI_Z_params
 }
 #
+ChanDict={'Krp':['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
+          'KaF':['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
+          'KaS':['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
+          'Kir': ['typical_1D_alpha',Kirparam, Kir_X_params,[]],
+          'CaL12':['typical_1D_alpha',CaL12param,CaL12_X_params,[],CDI_Z_params],
+          'CaL13':['typical_1D_alpha',CaL13param,CaL13_X_params,[],CDI_Z_params],
+          'CaN': ['typical_1D_alpha',CaNparam,CaN_X_params,[],CDI_Z_params],
+          'CaR': ['typical_1D_alpha',CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
+          'CaT': ['typical_1D_alpha',CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
+          'SKCa':['typical_1D_alpha',SKparam,[],[],SK_Z_params],
+          'NaF':['untypical_1D',NaFparam,Na_m_params,Na_h_params],
+          'BKCa':['2D',BKparam,BK_X_params]
+}

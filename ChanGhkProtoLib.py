@@ -6,6 +6,7 @@
 # chan_proto quires alpha and beta params for both activation and inactivation
 #If no inactivation, just send in empty Yparam array
 
+
 VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3400
@@ -107,26 +108,23 @@ def BKchan_proto(chanpath,params,gateParams):
     return chan
 #Moved ChanDict from SPChanParam.py to include channel function name in the dictionary
 
-ChanDict={'Krp':[chan_proto,Krpparam,Krp_X_params,Krp_Y_params],
-          'KaF':[chan_proto,KaFparam,KaF_X_params,KaF_Y_params],
-          'KaS':[chan_proto,KaSparam,KaS_X_params,KaS_Y_params],
-          'Kir': [chan_proto,Kirparam, Kir_X_params,[]],
-          'CaL12':[chan_proto,CaL12param,CaL12_X_params,[],CDI_Z_params],
-          'CaL13':[chan_proto,CaL13param,CaL13_X_params,[],CDI_Z_params],
-          'CaN': [chan_proto,CaNparam,CaN_X_params,[],CDI_Z_params],
-          'CaR': [chan_proto,CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
-          'CaT': [chan_proto,CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
-          'SKCa':[chan_proto,SKparam,[],[],SK_Z_params],
-          'NaF':[NaFchan_proto,NaFparam,Na_m_params,Na_h_params],
-          'BKCa':[BKchan_proto,BKparam,BK_X_params]
-}
+
+def make_channel(chanpath,params):
+    if params[0] == 'typical_1D_alpha':
+        return chan_proto(chanpath,*params[1:])
+    elif params[0] == 'untypical_1D':
+        return NaFchan_proto(chanpath,*params[1:])
+    elif params[0] == '2D':
+        return BKchan_proto(chanpath,*params[1:])
+    else:
+        sys.exit('Exiting. Could not find channel '+params[0] +' proto function for channel '+chanpath)
 
 def chanlib(plotchan,plotpow):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     #Adding all the channels to the library. *list removes list elements from the list,
     #so they can be used as function arguments
-    chan = [ChanDict[key][0]('/library/'+key,*ChanDict[key][1:])for key in ChanDict]
+    chan = [make_channel('/library/'+key,ChanDict[key])for key in ChanDict]
     if ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=Temp
