@@ -15,7 +15,7 @@ caName='CaPool'
 #need to make this half of typical value
 nmdaCaFrac=0.05
 
-plasyesno=1
+plasYesNo=1
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 highThresh=0.3e-3
