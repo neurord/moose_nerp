@@ -9,21 +9,24 @@ import numpy as np
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
 #include or exclude plasticity based on calcium
-plasyesno=1
+plasYesNo=1
 #can't do plasticity without calcium
 if calcium==0:
-    plasyesno=0
+    plasYesNo=0
 #ghkYesNo and spineYN are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
-spineYN=1
-# This parameter used in SPnetSpineSim.py
+ghkYesNo=1
+spineYesNo=1
+#No point adding synapses unless they receive inputs
+synYesNo=1
+# The parameter single only used in SPnetSpineSim.py
 # set single=1 to create a single neuron of each type with synaptic input 
 # set single=0 to create a network (in which case spines are a bad idea)
 single=1
-# Don't create spines if creating a network of neurons
+# For now, don't create spines if creating a network of neurons
 if single==0:
-    spineYN=0
-if spineYN==0:
+    spineYesNo=0
+if not spineYesNo:
     #put all the synaptic channels in the dendrite.  
     #These lists are in SynParamSpine.py
     DendSynChans=list(set(DendSynChans+SpineSynChans))
@@ -32,7 +35,7 @@ if spineYN==0:
 #Second, specify which graphs of the simulation should be shown?
 plotplas=1
 #to prevent you from plotting plasticity if not created:
-if (plasyesno==0):
+if not plasYesNo:
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
@@ -43,8 +46,8 @@ graphsyn=0
 Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-pltchan=0
-pltpow=1
+plotchan=0
+plotpow=1
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only
 plotnet=1
@@ -59,8 +62,7 @@ clocka=3
 clockb=6
 
 #Third, specify values for somatic current injection and/or synaptic input
-curr1=0.50e-9
-curr2=curr1+0.09e-9
+current1=0.50e-9
 currinc=0.1e-9
 delay=0.20
 width=0.03
