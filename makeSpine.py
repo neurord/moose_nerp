@@ -1,18 +1,24 @@
-spineDensity=0.1e6      #should make this distance dependent
-necklen=0.3e-6          #define all these parameters elsewhere
-neckdia=0.1e-6
-headdia=0.5e-6
-nameneck='neck'
-namehead='head'
+#makeSpine.py
+
+def setSpineCompParams(comp,compdia,complen):
+    comp.diameter=compdia
+    comp.length=complen
+    XArea=math.pi*compdia*compdia/4
+    circumf=math.pi*compdia
+    if printinfo:
+        print "Xarea,circumf of",comp.path, XArea,circumf,"CM",CM*complen*circumf
+    comp.Ra=spineRA*complen/XArea
+    comp.Rm=spineRM/(complen*circumf)
+    cm=spineCM*compdia*circumf
+    if cm<1e-15:
+        cm=1e-15
+    comp.Cm=cm
+    comp.Em=spineELEAK
+    comp.initVm=spineEREST
 
 def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
-    RA=4*4    #additional factor of 4 due to exptl higher than expected Ra Spine
-    RM=2.8
-    CM=0.01
-    ELEAK=-50e-3
-    EREST=-80e-3
     neckName=compName+str(index)+nameneck
     neck=moose.Compartment(parentComp.path+'/'+neckName)
     if printinfo:
@@ -28,19 +34,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     neck.x=x
     neck.y=y + necklen
     neck.z=z
-    neck.diameter=neckdia
-    neck.length=necklen
-    XArea=math.pi*neckdia*neckdia/4
-    circumf=math.pi*neckdia
-    #print "NECK Xarea,circumf",XArea,circumf,"CM",CM*necklen*circumf
-    neck.Ra=RA*necklen/XArea
-    neck.Rm=RM/(necklen*circumf)
-    cm=CM*neckdia*circumf
-    if cm<1e-15:
-        cm=1e-15
-    neck.Cm=cm
-    neck.Em=ELEAK
-    neck.initVm=EREST
+    setSpineCompParams(neck,neckdia,necklen)
     
     headName=compName+str(index)+namehead
     head=moose.Compartment(parentComp.path+'/'+headName)
@@ -51,19 +45,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     head.x=head.x
     head.y=head.y+headdia
     head.z=head.z
-    head.diameter=headdia
-    head.length=headdia
-    XArea=math.pi*headdia*headdia/4
-    circumf=math.pi*headdia
-    #print "HEAD Xarea,circumf",XArea,circumf,"CM",CM*headdia*circumf
-    head.Ra=RA*headdia/XArea
-    head.Rm=RM/(headdia*circumf)
-    cm=CM*headdia*circumf
-    if cm<1e-15:
-        cm=1e-15
-    head.Cm=cm
-    head.Em=ELEAK
-    head.initVm=EREST
+    setSpineCompParams(head,neckdia,necklen)
     #
     return head
 
@@ -104,5 +86,6 @@ def addSpines(container):
                   addChansSpines(head,spineChanList,spineCond)
             #end for index
     #end for comp
-    print len(headarray),"spines created in",container
+    if printinfo:
+        print len(headarray),"spines created in",container
     return headarray

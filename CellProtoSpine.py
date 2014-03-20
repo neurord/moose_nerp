@@ -15,7 +15,8 @@ def create_neuron(p_file,container,Cond,ghkYN):
         #Possibly this should be replaced by pathlength
         dist=sqrt(xloc*xloc+yloc*yloc)
         SA=pi*length*diam
-        #print "comp,dist,SA",comp.path,dist,SA
+        if printinfo:
+            print "comp,dist,SA",comp.path,dist,SA
 
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function

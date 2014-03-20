@@ -46,7 +46,8 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
                     chan=moose.element(comp.path+'/'+channame)
                     moose.connect(tab, 'requestData', chan, curmsg)
                 except:
-                    print 'no channel', comp.path+'/'+channame
+                    if printinfo:
+                        print 'no channel', comp.path+'/'+channame
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab,synlegend
 
 try:

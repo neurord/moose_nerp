@@ -19,7 +19,8 @@ def make_synchan(chanpath,synparams):
         mgblock.CMg=mgparams['C']
         mgblock.Ek=synparams['Erev']
         mgblock.Zk=2
-        print 'nmda',blockname,mgblock,mgparams
+        if printinfo:
+            print 'nmda',blockname,mgblock,mgparams
         moose.connect(synchan,'channelOut', mgblock,'origChannel')
         if calcium:
         #This duplicate nmda current prevents reversal of calcium current
@@ -43,7 +44,8 @@ def make_synchan(chanpath,synparams):
                 ghk.T=Temp
                 ghk.Cout=ConcOut
                 ghk.valency=2
-                print "CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path
+                if printinfo:
+                    print "CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path
                 moose.connect(mgblock2,'ghk',ghk, 'ghk')
     return synchan
 
