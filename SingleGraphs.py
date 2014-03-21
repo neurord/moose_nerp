@@ -95,7 +95,7 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
                 axes = f.add_subplot(3, 1, i)
                 axes.plot(t,syntab[a][ii].vec, label=b+legend[ii])
                 axes.legend(loc='upper left', fontsize=10)
-                axes.set_title('something vs. time')
+                axes.set_title('Weight Change vs. time')
         f.tight_layout()
         f.canvas.draw()
 

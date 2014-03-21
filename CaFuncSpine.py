@@ -37,10 +37,12 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         if isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
-                moose.connect(chan, 'IkOut', capool, 'current')
+                m=moose.connect(chan, 'IkOut', capool, 'current')
         elif isKCaChannel(channame):
-            moose.connect(capool, 'concOut', chan, 'concen')
-
+            m=moose.connect(capool, 'concOut', chan, 'concen')
+            if printinfo:
+                print "channel message", chan.path,comp.path, m
+ 
 def connectNMDA(nmdachans,poolname,caFrac):
     #Note that ghk must receive input from SynChan and send output to MgBlock
     for chan in nmdachans:

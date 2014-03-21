@@ -33,9 +33,11 @@ def create_neuron(p_file,container,Cond,ghkYN):
                 #If we are using GHK AND it is a calcium channel, connect it to GHK
                 if (ghkYN and isCaChannel(channame)):
                     moose.connect(chan,'permeability',ghk,'addPermeability')
-                    moose.connect(comp,'VmOut',chan,'Vm')
+                    m=moose.connect(comp,'VmOut',chan,'Vm')
                 else:
-                    moose.connect(chan, 'channel', comp, 'channel')
+                    m=moose.connect(chan, 'channel', comp, 'channel')
+                if printinfo:
+                    print "channel message", chan.path,comp.path, m
                 #
                 #Distance dependent conductances, change distTable[0] to distTable[prox]?
                 #Then, just use some look up table function and probably don't need if statement

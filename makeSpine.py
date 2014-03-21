@@ -6,7 +6,7 @@ def setSpineCompParams(comp,compdia,complen):
     XArea=math.pi*compdia*compdia/4
     circumf=math.pi*compdia
     if printinfo:
-        print "Xarea,circumf of",comp.path, XArea,circumf,"CM",CM*complen*circumf
+        print "Xarea,circumf of",comp.path, XArea,circumf,"CM",spineCM*complen*circumf
     comp.Ra=spineRA*complen/XArea
     comp.Rm=spineRM/(complen*circumf)
     cm=spineCM*compdia*circumf

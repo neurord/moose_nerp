@@ -21,7 +21,7 @@ Temp=30         # Celsius, needed for GHK object
 Farady=96485
 R=8.31
 #if spinesYN=0, no spines will be created (all synapses on dendrites)
-spineYN=1
+spineYesNo=1
 spineChanList=[] #['CaL13']
 spineCond=[0.1*ghKluge]
 

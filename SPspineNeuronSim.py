@@ -2,13 +2,11 @@
 
 ######## SPspineNeuronSim.py ############
 ## Code to create two SP neuron classes 
-##          using dictionaries for channels and synapses
-##          calcium based learning rule/plasticity function
-##          spines, optionally with ion channels and synpases
-## Synapses implemented to test the plasticity function
-##This one should be used to tune parameters and channel kinetics (but using larger morphology)
-##Presently, AHPs too deep, I don't know about spike width
-##Also, fires too early with slightly higher current injection
+##      using dictionaries for channels and synapses
+##      calcium based learning rule/plasticity function, optional
+##      spines, optionally with ion channels and synpases
+##      Synapses to test the plasticity function, optional
+##      used to tune parameters and channel kinetics (but using larger morphology)
 
 import os
 os.environ['NUMPTHREADS'] = '1'

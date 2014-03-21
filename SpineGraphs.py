@@ -14,7 +14,7 @@ def spinetabs():
 
 def spineFig(spinecatab,spinevmtab):
     figure()
-    t = np.linspace(0, simtime, len(spinecatab[0].vec))
+    t = np.linspace(0, simtime, len(spinevmtab[0].vec))
     if calcium:
         subplot(211)
     for neurnum in range(len(neurontypes)):
