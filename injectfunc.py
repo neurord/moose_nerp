@@ -5,6 +5,7 @@ def setupinj(delay,width):
     pg = moose.PulseGen('pulse')
     pg.firstDelay = delay
     pg.firstWidth = width
+    pg.secondDelay = 1e9
     if single:
         for neurtype in neurontypes:
             print "INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0]
