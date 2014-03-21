@@ -78,17 +78,29 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     return chan
 
 def BKchan_proto(chanpath,params,gateParams):
-    chan = moose.HHChannel2D('%s' % (chanpath))
-    chan.Xpower = params.Xpow
-    xGate = moose.HHGate2D(chan.path + '/gateX')
-    tablenames=['/tableA','/tableB']
+
     ZFbyRT=2*Farady/(R*(Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
     if (VDIVS<=5 and CADIVS<=5 and printinfo):
         print v_array,ca_array
-   
-    for tname,pars in zip(tablenames,gateParams):
+    gatingMatrix = []
+    for i,pars in enumerate(gateParams):
+        Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
+        if i == 0:
+            gatingMatrix.append(pars.alphabeta*ca_array[None,:]/(ca_array[None,:]+pars.K*Vdepgating[:,None]))
+            #table.tableVector2D=gatingMatrix
+        else:
+            gatingMatrix.append(pars.alphabeta/(1+ca_array[None,:]/pars.K*Vdepgating[:,None]))
+            gatingMatrix[i] += gatingMatrix[0]
+            #table.tableVector2D=gatingMatrix
+
+
+    chan = moose.HHChannel2D('%s' % (chanpath))
+    chan.Xpower = params.Xpow
+    xGate = moose.HHGate2D(chan.path + '/gateX')
+    tablenames=['/tableA','/tableB']
+    for i,tname in enumerate(tablenames):
         table=moose.element(xGate.path+tname)
         table.xmin=VMIN
         table.xmax=VMAX
@@ -96,13 +108,8 @@ def BKchan_proto(chanpath,params,gateParams):
         table.ymin=CAMIN
         table.ymax=CAMAX
         table.ydivs=CADIVS
-        Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
-        if tname=='/tableA':
-            gatingMatrix=pars.alphabeta*ca_array[None,:]/(ca_array[None,:]+Vdepgating[:,None])
-            table.tableVector2D=gatingMatrix
-        else:
-            gatingMatrix=pars.alphabeta/(1+ca_array[None,:]/Vdepgating[:,None])
-            table.tableVector2D=gatingMatrix
+        table.tableVector2D = gatingMatrix[i]
+
         if (VDIVS<=5 and CADIVS<=5 and printinfo):
             print chan.path,tname,table.tableVector2D
     return chan
@@ -132,6 +139,5 @@ def chanlib(plotchan,plotpow):
         ghk.valency=2
     #
     if plotchan:
-        plot_gate_params(nachan,plotpow)
         for libchan in chan:
             plot_gate_params(libchan,plotpow)
