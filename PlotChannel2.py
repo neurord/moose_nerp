@@ -6,7 +6,6 @@ def plot_gate_params(chan,plotpow):
         if chan.className == 'HHChannel':
             ma = moose.element('%s/gateX' % (chan.path)).tableA
             mb = moose.element('%s/gateX' % (chan.path)).tableB
-            moose.showfield(chan.path)
             if chan.Ypower > 0:
                 ha = moose.element('%s/gateY' % (chan.path)).tableA
                 hb = moose.element('%s/gateY' % (chan.path)).tableB
