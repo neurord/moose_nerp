@@ -109,9 +109,8 @@ def graphs(vmtab,catab,plastab,currtab,grphsyn,grphcurr,calyesno,curlabl):
             for plotnum, channame in enumerate(sorted(ChanDict)):
                 try:
                     axes = f.add_subplot(numplots,1,plotnum)
-                    toplot = [tab.vec / (
-                        ghKluge if rfind(tab.path,'Ca')==10 else 1)
-                            for tab in currtab[neurtype][channame]]
+                    toplot = [tab.vec / (ghKluge if 'chanCa' in tab.path else 1)
+                              for tab in currtab[neurtype][channame]]
                     scaling = iso_scaling(*toplot)
                     for vec in toplot:
                         axes.plot(t, vec / scaling.divisor)

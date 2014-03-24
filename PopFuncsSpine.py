@@ -61,14 +61,15 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
         #set-up array of post-synapse compartments
         comps=[]
         for kk in range(len(synchans)):
-            compname=synchans[kk].path[rfind(synchans[kk].path,'/',0,rfind(synchans[kk].path,'/')):]
+            p = synchans[kk].path.split('/')
+            compname = '/' + p[-2] + '/' + p[-1]
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
         if printMoreInfo:
             print "SYN TABLE:", len(comps), comps, postsoma
         #loop over pre-synaptic neurons - all types
         for ii in range(numSpikeGen):
-            precomp=spikegen[ii].path[0:rfind(spikegen[ii].path,'/')]
+            precomp = os.path.dirname(spikegen[ii].path)
             #################Can be expanded to determine whether an FS neuron also
             fact=spaceConst['same' if postype in precomp else 'diff']
             xpre=moose.element(precomp).x

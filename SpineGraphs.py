@@ -27,13 +27,13 @@ def spineFig(spinecatab,spinevmtab):
         subplot(211)
     for neurnum in range(len(neurontypes)):
         for oid in spinevmtab[neurnum]:
-            plt.plot(t,oid.vec,label=oid.path[rfind(oid.path,'_')-2:])
+            plt.plot(t,oid.vec,label=oid.path[oid.path.rfind('_')-2:])
         plt.ylabel('Vm')
     if calcium:
         subplot(212)
         for neurnum in range(len(neurontypes)):
             for oid in spinecatab[neurnum]:
-                plt.plot(t,1000*oid.vec,label=oid.path[rfind(oid.path,'_')-2:])
+                plt.plot(t,1000*oid.vec,label=oid.path[oid.path.rfind('_')-2:])
             plt.ylabel('calcium, uM')
     plt.legend()
     plt.show()

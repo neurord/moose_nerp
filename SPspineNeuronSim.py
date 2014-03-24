@@ -15,7 +15,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
-from string import *
 from pprint import pprint
 
 import moose 

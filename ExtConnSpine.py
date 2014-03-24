@@ -51,11 +51,12 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
     Uniqtt=ttab['Uniq']
 
     for kk in range(len(synchans[synlist[0]])):
-        compname='/'+split(synchans[synlist[0]][kk].path,'/')[compNameNum]
+        p = synchans[synlist[0]][kk].path.split('/')
+        compname = '/' + p[compNameNum]
         if printMoreInfo:
             print kk, SynPerComp[kk]
         if spineYesNo:
-            comps.append(compname+'/'+split(synchans[synlist[0]][kk].path,'/')[spineNameNum])
+            comps.append(compname + '/' + p[spineNameNum])
         else:
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)

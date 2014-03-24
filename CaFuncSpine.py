@@ -35,7 +35,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)))
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
     for chan in chan_list:
-        channame=split(chan.path,'/')[chanNameNum]
+        channame = chan.path.split('/')[chanNameNum]
         if isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
@@ -53,7 +53,7 @@ def connectNMDA(nmdachans,poolname):
             nmdaCurr=moose.element(chan.path+'/CaCurr/ghk')
         else:
             nmdaCurr=moose.element(chan.path+'/CaCurr/mgblock')
-        caname=chan.path[0:rfind(chan.path,'/')+1]+poolname
+        caname = os.path.join(os.path.dirname(chan.path), poolname)
         capool=moose.element(caname)
         if printMoreInfo:
             print "CONNECT", nmdaCurr.path,'to',capool.path
