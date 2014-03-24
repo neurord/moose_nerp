@@ -1,3 +1,5 @@
+import os
+
 def spinetabs():
     spcatab=[]
     spvmtab=[]
@@ -6,7 +8,8 @@ def spinetabs():
         spvmtab.append([])
     for typenum, neurtype in enumerate(sorted(neurontypes)):
         for headnum,head in enumerate(spineHeads[neurtype]):
-            spinename=split(head.path,'/')[compNameNum]+split(head.path,'/')[spineNameNum][spineNumLoc]
+            p = head.path.split('/')
+            spinename = p[compNameNum] + p[spineNameNum][spineNumLoc]
             spvmtab[typenum].append(moose.Table('/data/SpVm%s_%s' % (neurtype,spinename)))
             if printinfo:
                 print headnum,head, spvmtab[typenum][headnum]
