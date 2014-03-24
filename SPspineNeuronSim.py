@@ -27,10 +27,6 @@ from SynParamSpine import *
 from SpineParams import *
 from CaPlasParam import *
 from SimParams import *
-try:
-    from ParamOverrides import *
-except ImportError:
-    pass
 execfile('ChanGhkProtoLib.py')
 execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
@@ -43,6 +39,10 @@ execfile('AssignClocks.py')
 execfile('TestSynPlas.py')
 execfile('SingleGraphs.py')
 execfile('SpineGraphs.py')
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
