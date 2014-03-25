@@ -19,7 +19,8 @@ def addCaPool(comp,poolname):
     capool = moose.copy(caproto, comp, poolname)[0]
     vol=SA*capool.thick
     capool.B = 1/(Faraday*vol*2)/BufCapacity
-    #print "CALCIUM", capool.path, length,diam,capool.thick,vol
+    if printMoreInfo:
+        print "CALCIUM", capool.path, length,diam,capool.thick,vol
     return capool
 
 def connectVDCC_KCa(ghkYN,comp,capool):
@@ -27,20 +28,21 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         ghk=moose.element('%s/ghk' %(comp.path))
         moose.connect(capool,'concOut',ghk,'set_Cin')
         moose.connect(ghk,'IkOut',capool,'current')
-        #print "CONNECT ghk to ca",ghk.path,capool.path
+        if printMoreInfo:
+            print "CONNECT ghk to ca",ghk.path,capool.path
         #connect them to the channels
     chan_list = []
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)))
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
     for chan in chan_list:
-        channame=chan.path[rfind(chan.path,'/')+1:]
+        channame=split(chan.path,'/')[chanNameNum]
         if isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
                 m=moose.connect(chan, 'IkOut', capool, 'current')
         elif isKCaChannel(channame):
             m=moose.connect(capool, 'concOut', chan, 'concen')
-            if printinfo:
+            if printMoreInfo:
                 print "channel message", chan.path,comp.path, m
  
 def connectNMDA(nmdachans,poolname,caFrac):
@@ -52,7 +54,8 @@ def connectNMDA(nmdachans,poolname,caFrac):
             nmdaCurr=moose.MgBlock(chan.path+'/CaCurr/mgblock')
         caname=chan.path[0:rfind(chan.path,'/')+1]+poolname
         capool=moose.CaConc(caname)
-        #print "CONNECT", nmdaCurr.path,'to',capool.path
+        if printMoreInfo:
+            print "CONNECT", nmdaCurr.path,'to',capool.path
         n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
 
 

@@ -49,28 +49,6 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #
     return head
 
-def addChansSpines(comp,chanlist,condlist):
-    #Note that this is mostly redundant with ~14 lines that add channels to compartments
-    #Consider merging them into a single addChans function
-    length=moose.Compartment(comp).length
-    diam=moose.Compartment(comp).diameter
-    SA=pi*length*diam
-    if ghkYN:
-        ghkproto=moose.element('/library/ghk')
-        ghk=moose.copy(ghkproto,comp,'ghk')[0]
-        moose.connect(ghk,'channel',comp,'channel')
-    for chanpath,cond in zip(chanlist,condlist):
-        proto = moose.HHChannel('/library/'+ chanpath)
-        chan = moose.copy(proto, comp, chanpath)[0]
-        chan.Gbar=cond*SA
-        channame=chan.path[rfind(chan.path,'/')+1:]
-            #If we are using GHK AND it is a calcium channel, connect it to GHK
-        if ghkYN and isCaChannel(channame):
-            moose.connect(chan,'permeability',ghk,'addPermeability')
-            moose.connect(comp,'VmOut',chan,'Vm')
-        else:
-            moose.connect(chan, 'channel', comp, 'channel')
-
 def addSpines(container):
     headarray=[]
     for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
@@ -83,7 +61,12 @@ def addSpines(container):
                 head=makeSpine (comp, 'spine',index, frac, necklen, neckdia, headdia)
                 headarray.append(head)
                 if spineChanList:
-                  addChansSpines(head,spineChanList,spineCond)
+                    if ghkYN:
+                        ghkproto=moose.element('/library/ghk')
+                        ghk=moose.copy(ghkproto,comp,'ghk')[0]
+                        moose.connect(ghk,'channel',comp,'channel')
+                    for chanpath,cond in zip(spineChanlist,spineCond):
+                        addOneChan(chanpath,cond,head,ghkYN)
             #end for index
     #end for comp
     if printinfo:

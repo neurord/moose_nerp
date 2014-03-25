@@ -19,7 +19,8 @@ CADIVS=4000 #10 nM steps
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
-    #print params
+    if printinfo:
+        print chanpath, ":", params
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params.Xpow
     if params.Xpow > 0:
@@ -59,7 +60,8 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     tau1=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope)))
     tau2=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope)))
     tau_x=(Xparams.taumin+1000*tau1*tau2)/qfactNaF
-#    print  "mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x
+    if printMoreInfo:
+        print  "NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x
 
     mgate.tableA = inf_x / tau_x
     mgate.tableB =  1 / tau_x
@@ -71,7 +73,8 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     hgate.max=VMAX
     tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/qfactNaF
     inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
-#    print  "hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y
+    if printMoreInfo:
+        print  "NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y
     chan.Ek=params.Erev

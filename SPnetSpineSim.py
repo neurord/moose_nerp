@@ -33,22 +33,25 @@ from CaPlasParam import *
 from NetParams import *
 from SimParams import *
 execfile('ChanGhkProtoLib.py')
-execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
+execfile('SynProtoSpine.py')
 execfile('makeSpine.py')
 execfile('CellProtoSpine.py')
-execfile('SynProtoSpine.py')
-execfile('ExtConnSpine.py')
 execfile('CaPlasFunc.py')
 execfile('injectfunc.py')
-execfile('PopFuncsSpine.py')
-execfile('AssignClocks.py')
 execfile('CreateNetwork.py')
-
+execfile('PopFuncsSpine.py')
+execfile('ExtConnSpine.py')
+execfile('AssignClocks.py')
+execfile('PlotChannel2.py')
+execfile('NetgraphSpine.py')
+execfile('NetOutput.py')
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-[MSNsyn,neuron,pathlist,capools,synarray]=neuronclasses(plotchan,plotpow,calcium,1,spineYesNo,ghkYesNo)
+MSNsyn,neuron,pathlist,capools,synarray=neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
+
+MSNpop,SynPlas=CreateNetwork(inputpath,networkname,infile+'.npz',calcium,plasYesNo,single,confile)
 
 ###------------------Current Injection
 currents = util.inclusive_range(current1)
@@ -56,21 +59,12 @@ pg=setupinj(delay,width)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
-spiketab=[]
-##spike generators created automatically for network, but not for single
-if not single:
-    for neur in MSNpop['cells']:
-        underscore=find(neur.path,'_')
-        spikenum=int(neur.path[underscore+1:])
-        ntype=neur.path[underscore-2:underscore]
-        sg=moose.element(neur.path+'/soma/spikegen')
-        spiketab.append(moose.Table('/data/outspike%d_%s' % (spikenum,ntype)))
-        print ntype,spikenum,neur.path,sg.path,spiketab[spikenum].path
-        m=moose.connect(sg, 'event', spiketab[spikenum],'spike')
-#
 if showgraphs:
-    execfile('NetgraphSpine.py')
     vmtab,syntab,catab,plastab,plasCumtab,spcatab = graphtables(single,plotnet,plotplas,calcium,spineYesNo)
+else:
+    vmtab=[]
+#
+spiketab, vmtab=SpikeTables(single,MSNpop,showgraphs,vmtab)
 #
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
@@ -78,8 +72,9 @@ if showgraphs:
 if single:
     simpath=['/'+neurotype for neurotype in neurontypes]
 else:
+    #possibly need to setup an hsolver separately for each cell in the network
     simpath=[networkname]
-assign_clocks(simpath,'/data', inputpath, simdt, plotdt,hsolve)
+assign_clocks(simpath,inputpath, '/data', simdt, plotdt,hsolve)
 
 #Make sure elements have been assigned clocks
 if (showclocks):
@@ -98,22 +93,5 @@ if __name__ == '__main__':
         if showgraphs:
             graphs(vmtab,syntab,catab,plastab,plasCumtab,spcatab,graphsyn,plotplas,calcium,spineYesNo)
             plt.show()
-
-###################### Write the spiketable (only for the final sim) to a file
-if not single:
-    outvmfile='Vm'+outspikefile
-    print "SPIKE FILE", outspikefile, "VM FILE", outvmfile
-    outspiketab=list()
-    outVmtab=list()
-    for tabindex in range(len(neurontypes)):
-        outspiketab.append([])
-        outVmtab.append([])
-        for neurname in MSNpop['pop'][tabindex]:
-            underscore=find(neurname,'_')
-            neurnum=int(neurname[underscore+1:])
-            ntype=neurname[underscore-2:underscore]
-            print neurname,"is", neurontypes[tabindex],"=",ntype,"num=",neurnum,spiketab[neurnum].path,vmtab[neurnum].path
-            outspiketab[tabindex].append(insert(spiketab[neurnum].vec,0, neurnum))
-            outVmtab[tabindex].append(insert(vmtab[neurnum].vec,0, neurnum))
-    savez(outspikefile,D1=outspiketab[0],D2=outspiketab[1])
-    savez(outvmfile,D1=outVmtab[0],D2=outVmtab[1])
+        if not single:
+            writeOutput(outfile+str(inj),spiketab,vmtab)

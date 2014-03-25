@@ -24,7 +24,8 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             comp=moose.Compartment(neurons[number].path+'/soma')
             comp.x=i*spacing
             comp.y=j*spacing
-            #print "x,y", comp.x, comp.y, neurons[number].path
+            if printMoreInfo:
+                print "x,y", comp.x, comp.y, neurons[number].path
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
@@ -44,12 +45,14 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             'spikegen': spikegens}
 
 def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
-    print 'CONNECT:', postype, spaceConst
+    if printinfo:
+        print 'CONNECT:', postype, spaceConst
     numSpikeGen = len(spikegen)
     prelist=list()
     postlist=list()
     distloclist=[]
-    #print "SYNAPSES:", numSpikeGen, cells, spikegen
+    if printinfo:
+        print "SYNAPSES:", numSpikeGen, cells, spikegen
     #loop over post-synaptic neurons
     for jj in range(len(cells)):
         postsoma=cells[jj]+'/soma'
@@ -61,7 +64,8 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             compname=synchans[kk].path[rfind(synchans[kk].path,'/',0,rfind(synchans[kk].path,'/')):]
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
-        #print "SYN TABLE:", len(comps), comps, postsoma
+        if printMoreInfo:
+            print "SYN TABLE:", len(comps), comps, postsoma
         #loop over pre-synaptic neurons - all types
         for ii in range(numSpikeGen):
             precomp=spikegen[ii].path[0:rfind(spikegen[ii].path,'/')]
@@ -73,7 +77,8 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             dist=sqrt((xpre-xpost)**2+(ypre-ypost)**2)
             prob=exp(-(dist/fact))
             connect=np.random.uniform()
-            #print precomp,postsoma,dist,fact,prob,connect
+            if printMoreInfo:
+                print precomp,postsoma,dist,fact,prob,connect
             #select a random number to determine whether a connection should occur
             if connect < prob and dist > 0 and len(comps)>0:
                 #if so, randomly select a branch, and then eliminate that branch from the table.

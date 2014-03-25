@@ -1,7 +1,7 @@
 #NetParams.py
-
-netsizeX=3
-netsizeY=3
+networkname='/network'
+netsizeX=2
+netsizeY=2
 fractionD1=0.5
 spacing=25e-6
 MSNconnSpaceConst=95e-6
@@ -14,6 +14,6 @@ SpaceConst={'D1':D1from,'D2':D2from}
 cond_vel=0.8
 mindelay=1e-3
 
-infile='A4B4jit1ms.npz'
+infile='A4B4jit1ms'
 confile='NetConn'+infile
-outspikefile='MSNout'+infile
+outfile='MSNout'+infile

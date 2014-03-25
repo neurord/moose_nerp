@@ -20,10 +20,6 @@ ConcOut=2e-3     # default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK object
 Farady=96485
 R=8.31
-#if spinesYN=0, no spines will be created (all synapses on dendrites)
-spineYesNo=1
-spineChanList=[] #['CaL13']
-spineCond=[0.1*ghKluge]
 
 #dictionary to index the Conductance and synapses with distance
 distTable=[26.1e-6,   # "prox"

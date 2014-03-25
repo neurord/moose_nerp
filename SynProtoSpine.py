@@ -4,7 +4,8 @@ from util import dist_num
 
 def make_synchan(chanpath,synparams):
     # for AMPA or GABA - just make the channel, no connections/messages
-    print 'synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev']
+    if printinfo:
+        print 'synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev']
     synchan=moose.SynChan(chanpath)
     synchan.tau1 = synparams['tau1']
     synchan.tau2 = synparams['tau2']
@@ -60,7 +61,7 @@ def synchanlib():
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
     proto=moose.SynChan('/library/' +chanpath)
-    if printinfo:
+    if printMoreInfo:
         print "adding channel",chanpath,"to",syncomp.path,"from",proto.path
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
@@ -97,7 +98,7 @@ def add_synchans(container,calYN,ghkYN):
     SynPerComp=np.zeros((len(comp_list),NumSynClass),dtype=int)
     numspines=0
     #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
-    for keynum in range(len(SynChanDict)):
+    for key in SynChanDict:
         synchans.append([])
     allkeys = sorted(SynChanDict)
 

@@ -9,7 +9,8 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
     global inited
     # `inited` is for avoiding double scheduling of the same object
     if not inited:
-        print 'SimDt=%g, PlotDt=%g' % (simdt, plotdt)
+        if printinfo:
+            print 'SimDt=%g, PlotDt=%g' % (simdt, plotdt)
         moose.setClock(0, simdt)
         moose.setClock(1, simdt)
         moose.setClock(2, simdt)
@@ -18,9 +19,11 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
         moose.setClock(5, simdt)
         moose.setClock(6, plotdt)
         for path in model_container_list:
-            print 'Scheduling elements under:', path
+            if printinfo:
+                print 'Scheduling elements under:', path
             if hsolve:
-                print "USING HSOLVE"
+                if printinfo:
+                    print "USING HSOLVE"
                 hsolve = moose.HSolve( '%s/hsolve' % (path))
                 moose.useClock( 1, '%s/hsolve' % (path), 'process' )
                 hsolve.dt=simdt
@@ -28,7 +31,7 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
             moose.useClock(1, '%s/##[ISA=Compartment],%s/##[TYPE=CaConc]' % (path,path), 'process')
             moose.useClock(2, '%s/##[TYPE=SynChan],%s/##[TYPE=HHChannel],%s/##[TYPE=HHChannel2D]' % (path,path,path), 'process')
             moose.useClock(3, '%s/##[TYPE=Func],%s/##[TYPE=MgBlock],%s/##[TYPE=GHK]' % (path,path,path), 'process')
-            moose.useClock(4, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,path), 'process')
+            moose.useClock(4, '%s/##[TYPE=SpikeGen],%s/##[TYPE=TimeTable]' % (path,inname), 'process')
         moose.useClock(5, '/##[TYPE=PulseGen]', 'process')
         moose.useClock(6, '%s/##[TYPE=Table]' % (dataName), 'process')
         inited = True
