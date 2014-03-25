@@ -51,23 +51,23 @@ plotcurr=0
 currmsg='get_Gk' # make this get_Ik to plot current
 currlabel='Cond, S'
 # graphsyn indicate whether to plot the synaptic inputs
-graphsyn=1
+graphsyn=0
 Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=0
+plotchan=1
 plotpow=1
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only
 plotnet=1
 showgraphs=1
 #whether to plot additional information during simulation set-up
-printinfo=1
+printinfo=0
 #printMoreInfo is compartment based - generates a lot
 printMoreInfo=0
 
 #showclocks=1 will show which elements are assigned to clocks between a and b
-showclocks=1
+showclocks=0
 clocka=4
 clockb=7
 

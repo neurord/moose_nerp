@@ -197,12 +197,12 @@ qfactCaL = 1
 CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                         A_B = -220e3*qfactCaL,
                                         A_C = -1.0,
-                                        Avhalf = 4.00003e-3,
+                                        Avhalf = 4.0003e-3,
                                         A_vslope = -7.5e-3,
                                         B_rate = -284*qfactCaL,
                                         B_B = 71e3*qfactCaL,
                                         B_C = -1.0,
-                                        Bvhalf = -4.00003e-3,
+                                        Bvhalf = -4.0003e-3,
                                         B_vslope = 5e-3)
 
 # Using Xpow=1 produced too high a basal calcium,
@@ -230,14 +230,14 @@ CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
                                       B_rate = 1340*qfactCaT,
                                       B_B = 16500*qfactCaT,
                                       B_C = -1.0,
-                                      Bvhalf = 81e-3,
+                                      Bvhalf = 81.0003e-3,
                                       B_vslope = 7.12e-3)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
 CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
                                       A_B = 34000*qfactCaT,
                                       A_C = -1.0,
-                                      Avhalf = 113.0e-3,
+                                      Avhalf = 113.0003e-3,
                                       A_vslope = 5.12e-3,
                                       B_rate = 320*qfactCaT,
                                       B_B = 0,
@@ -259,7 +259,7 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
                                       B_rate = 749*qfactCaN,
                                       B_B = 52800*qfactCaN,
                                       B_C = -1.0,
-                                      Bvhalf = 14.2e-3,
+                                      Bvhalf = 14.20003e-3,
                                       B_vslope = 10e-3)
 
 # CaR SS (Act and Inact) parameters from Foerhing et al., 2000

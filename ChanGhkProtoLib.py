@@ -9,10 +9,10 @@
 
 VMIN = -120e-3
 VMAX = 50e-3
-VDIVS = 3400
+VDIVS = 3401
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
-CADIVS=4000 #10 nM steps
+CADIVS=4001 #10 nM steps
 
 
 
@@ -26,7 +26,6 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     if params.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX')
         xGate.setupAlpha(Xparams + (VDIVS, VMIN, VMAX))
-#    moose.showfield(xGate)
     chan.Ypower = params.Ypow
     if params.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
