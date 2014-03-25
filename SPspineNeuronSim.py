@@ -47,7 +47,7 @@ execfile('SpineGraphs.py')
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,pathlist,capools,synarray = neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 syn,plas,stimtab=TestSynPlas(syncomp,calcium,plasYesNo,inputpath)
 
@@ -65,7 +65,8 @@ if spineYesNo:
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-assign_clocks(pathlist, inputpath, '/data', simdt, plotdt,hsolve)
+simpaths=['/'+neurotype for neurotype in neurontypes]
+assign_clocks(simpaths, inputpath, '/data', simdt, plotdt,hsolve)
 
 #Make sure elements have been assigned clocks
 if (showclocks):

@@ -55,7 +55,6 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
     neuron={}
     syn={}
     synarray={}
-    pathlist=[]
     caPools={}
     headarray={}
     for ntype in neurontypes:
@@ -65,30 +64,27 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
         neuron[ntype]=create_neuron(p_file,ntype,Condset[ntype],ghkYN)
         #optionally add spines
         if spYesNo:
-            addSpines(ntype)
-        pathlist=pathlist+['/'+ntype]
+            headarray[ntype]=addSpines(ntype)
         #optionally add synapses to dendrites, and possibly to spines
         if synYesNo:
             synarray[ntype], syn[ntype] = add_synchans(ntype, calyesno, ghkYN)
+        caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
     if calyesno:
         CaProto(CaThick,CaBasal,CaTau,caName)
         for ntype in neurontypes:
-            tempCaPools=[]
             for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(ntype)):
                 capool=addCaPool(comp,caName)
-                tempCaPools.append(capool)
+                caPools[ntype].append(capool)
                 connectVDCC_KCa(ghkYesNo,comp,capool)
-                #if there are spines, calcium will be added to the spine head
-                for spcomp in moose.wildcardFind('%s/#[ISA=Compartment]'%(comp.path)):
-                    if 'head' in spcomp.path:
-                        capool=addCaPool(spcomp,caName)
-                        if spineChanList:
-                            connectVDCC_KCa(ghkYesNo,spcomp,capool)
-            caPools[ntype]=tempCaPools
+           #if there are spines, calcium will be added to the spine head
+            for spcomp in headarray[ntype]:
+                capool=addCaPool(spcomp,caName)
+                if spineChanList:
+                    connectVDCC_KCa(ghkYesNo,spcomp,capool)
             #if there are synapses, NMDA will be connected to the appropriate calcium pool
             if synYesNo:
                 connectNMDA(syn[ntype]['nmda'],caName,nmdaCaFrac)
 
-    return syn,neuron,pathlist,caPools,synarray
+    return syn,neuron,caPools,synarray,headarray
