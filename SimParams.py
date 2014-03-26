@@ -10,7 +10,7 @@ from SynParamSpine import DendSynChans, SpineSynChans
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
 #include or exclude plasticity based on calcium
-plasYesNo=0
+plasYesNo=1
 #ghkYesNo are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 ghkYesNo=1
@@ -34,6 +34,8 @@ else:
 neurTypeNum=1
 compNameNum=2
 chanNameNum=3
+spineNameNum=3
+spineChanNum=4
 
 if not spineYesNo:
     #put all the synaptic channels in the dendrite.  
@@ -42,7 +44,7 @@ if not spineYesNo:
     del SpineSynChans[:]
 
 #Second, specify which graphs of the simulation should be shown?
-plotplas=0
+plotplas=1
 #to prevent you from plotting plasticity if not created:
 if not plasYesNo:
     plotplas=0
@@ -51,7 +53,7 @@ plotcurr=0
 currmsg='get_Gk' # make this get_Ik to plot current
 currlabel='Cond, S'
 # graphsyn indicate whether to plot the synaptic inputs
-graphsyn=0
+graphsyn=1
 Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves

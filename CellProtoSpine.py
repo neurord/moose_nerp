@@ -53,10 +53,10 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
     synchanlib()
     ##now create the neuron prototypes
     neuron={}
-    syn={}
-    synarray={}
+    synArray={}
+    numSynArray={}
     caPools={}
-    headarray={}
+    headArray={}
     for ntype in neurontypes:
         protoname='/library/'+ntype
         #use p_file[ntype] for cell-type specific morphology
@@ -64,10 +64,10 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
         neuron[ntype]=create_neuron(p_file,ntype,Condset[ntype],ghkYN)
         #optionally add spines
         if spYesNo:
-            headarray[ntype]=addSpines(ntype)
+            headArray[ntype]=addSpines(ntype)
         #optionally add synapses to dendrites, and possibly to spines
         if synYesNo:
-            synarray[ntype], syn[ntype] = add_synchans(ntype, calyesno, ghkYN)
+            numSynArray[ntype], synArray[ntype] = add_synchans(ntype, calyesno, ghkYN)
         caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
@@ -78,13 +78,13 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
                 capool=addCaPool(comp,caName)
                 caPools[ntype].append(capool)
                 connectVDCC_KCa(ghkYesNo,comp,capool)
-           #if there are spines, calcium will be added to the spine head
-            for spcomp in headarray[ntype]:
-                capool=addCaPool(spcomp,caName)
-                if spineChanList:
-                    connectVDCC_KCa(ghkYesNo,spcomp,capool)
-            #if there are synapses, NMDA will be connected to the appropriate calcium pool
+            #if there are spines, calcium will be added to the spine head
+            if spYesNo:
+                for spcomp in headArray[ntype]:
+                    capool=addCaPool(spcomp,caName)
+                    if spineChanList:
+                        connectVDCC_KCa(ghkYesNo,spcomp,capool)
+            #if there are synapses, NMDA will be connected to set of calcium pools
             if synYesNo:
-                connectNMDA(syn[ntype]['nmda'],caName,nmdaCaFrac)
-
-    return syn,neuron,caPools,synarray,headarray
+                connectNMDA(synArray[ntype]['nmda'],caName)
+    return synArray,neuron,caPools,numSynArray,headArray

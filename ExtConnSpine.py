@@ -52,8 +52,13 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
         compname='/'+split(synchans[synlist[0]][kk].path,'/')[compNameNum]
         if printMoreInfo:
             print kk, SynPerComp[kk]
-        for qq in range(SynPerComp[kk]):
-            comps.append(compname)
+        if spineYesNo:
+            comps.append(compname+'/'+split(synchans[synlist[0]][kk].path,'/')[spineNameNum])
+        else:
+            for qq in range(SynPerComp[kk]):
+                comps.append(compname)
+        if printMoreInfo:
+            print comps
     allcomps=tile(comps,(len(cells),1))
     remainingcomps=[len(comps) for ii in range(len(cells))]
     if printinfo:

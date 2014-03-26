@@ -1,5 +1,6 @@
 #CreateNetwork.py
 #Sets up time tables, then connects them after creating population
+#totaltt needs to be modified for when synapses in spines and more than one per comp
 
 def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile):
     #First, extract number of synapses per compartment for glu and gaba

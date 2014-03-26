@@ -1,16 +1,19 @@
 def spinetabs():
-    spinecatab=[]
-    spinevmtab=[]
-    for neurtype,neurnum in zip(neurontypes,range(len(neurontypes))):
-        spinecatab.append(moose.Table('/data/SpCa%s' % (neurtype)))
-        spinevmtab.append(moose.Table('/data/SpVm%s' % (neurtype)))
-        spname=MSNsyn[neurtype]['ampa'][1].path[0:rfind(MSNsyn[neurtype]['ampa'][1].path,'/')+1]
-        spine=moose.element(spname)
-        moose.connect(spinevmtab[neurnum], 'requestData', spine, 'get_Vm')
-        if calcium:
-            cal=moose.element(spname+caName)
-            moose.connect(spinecatab[neurnum], 'requestData', cal, 'get_Ca')
-    return spinecatab,spinevmtab
+    spcatab=[]
+    spvmtab=[]
+    for typenum, neurtype in enumerate(sorted(neurontypes)):
+        spcatab.append([])
+        spvmtab.append([])
+    for typenum, neurtype in enumerate(sorted(neurontypes)):
+        for headnum,head in enumerate(spineHeads[neurtype]):
+            print head.path, neurtype
+            spvmtab[neurtype].append(moose.Table('/data/SpVm%s_%s' % (neurtype,split(head.path,'/')[compNameNum])))
+            moose.connect(spvmtab[neurtype][headnum], 'requestData', head, 'get_Vm')
+            if calcium:
+                spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,split(head.path,'/')[compNameNum])))
+                spcal=moose.element(head.path+'/'+caName)
+                moose.connect(spcatab[typenum][headnum], 'requestData', spcal, 'get_Ca')
+    return spcatab,spvmtab
 
 def spineFig(spinecatab,spinevmtab):
     figure()

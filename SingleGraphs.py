@@ -6,10 +6,11 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     #Vm and Calcium
     vmtab=[]
     catab=[]
+    #
     for neurtype in neurontypes:
-        vmtab.append([moose.Table('/data/comp%s_%d' % (neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))])
+        vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(len(neuron[neurtype]['comps']))])
         if calyesno:
-            catab.append([moose.Table('/data/ca%s_%d' % (neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))])
+            catab.append([moose.Table('/data/Ca%s_%d' % (neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))])
     for neurnum,neurtype in zip(range(len(neurontypes)),neurontypes):
         for tab, comp in zip(vmtab[neurnum], neuron[neurtype]['comps']):
             moose.connect(tab, 'requestData', comp, 'get_Vm')
@@ -24,16 +25,15 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
     synlegend=[]
     if pltplas:
         for ii,neurtype in zip(range(len(neurontypes)),neurontypes):
-            plastab.append(moose.Table('/data/plas'+neurtype))
-            plasCumtab.append(moose.Table('/data/plasCum'+neurtype))
+            plastab.append(moose.Table('/data/plas%s' %neurtype))
+            plasCumtab.append(moose.Table('/data/plasCum%s' %neurtype))
+            syntab.append(moose.Table('/data/synwt%s' %neurtype))
             moose.connect(plastab[ii], 'requestData', plas[neurtype]['plas'], 'get_value')
             moose.connect(plasCumtab[ii], 'requestData', plas[neurtype]['cum'], 'get_value')
-        for ii,neurtype in zip(range(len(neurontypes)),neurontypes):
-            syntab.append(moose.Table('/data/%ssynwt' %neurtype))
             moose.connect(syntab[ii], 'requestData',syn[neurtype].synapse[0],'get_weight')
             synlegend.append(neurtype)
     #
-    #
+    #CHANNEL CURRENTS
     currtab={}
     for neurtype in neurontypes:
         currtab[neurtype]={}
@@ -73,14 +73,14 @@ def graphs(vmtab,catab,syntab,currtab,grphsyn,grphcurr,legend,calyesno,curlabl):
         t = np.linspace(0, simtime, len(vmtab[ii][0].vec))
         axes = f.add_subplot(211) if calyesno else f.gca()
         for oid in vmtab[ii]:
-            axes.plot(t, oid.vec, label=oid.path[-5:])
+            axes.plot(t, oid.vec, label=oid.path[-2:])
         axes.set_ylabel('Vm {}'.format(neurontypes[ii]))
         axes.legend(fontsize=8, loc='best')
         axes.set_title('voltage vs. time')
         if calyesno:
             axes = f.add_subplot(212)
             for oid in catab[ii]:
-                axes.plot(t, oid.vec*1e3, label=oid.path[-5:])
+                axes.plot(t, oid.vec*1e3, label=oid.path[-2:])
             axes.set_ylabel('calcium, uM')
             axes.legend(fontsize=8, loc='best')
             axes.set_title('calcium vs. time')

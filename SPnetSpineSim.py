@@ -60,7 +60,7 @@ pg=setupinj(delay,width)
 ##############--------------output elements
 data = moose.Neutral('/data')
 if showgraphs:
-    vmtab,syntab,catab,plastab,plasCumtab,spcatab = graphtables(single,plotnet,plotplas,calcium,spineYesNo)
+    vmtab,syntab,catab,plastab,plasCumtab,spcatab,spsyntab = graphtables(single,plotnet,plotplas,calcium,spineYesNo)
 else:
     vmtab=[]
 #

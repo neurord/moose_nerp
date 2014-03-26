@@ -3,10 +3,10 @@
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     compname=synchan.path[0:rfind(synchan.path,'/')]
     calname=compname+'/'+caName
-    cal=moose.CaConc(calname)
-    syn=moose.SynChan(synchan)
-    if printMoreInfo:
-        print "PLAS",syn, syn.path,syn.synapse[0],cal.path
+    cal=moose.element(calname)
+    syn=moose.element(synchan)
+    #if printMoreInfo:
+    print "PLAS",syn.path,syn.synapse[0],cal.path
     #
     plasname=compname+'/plas'
     plas=moose.Func(plasname)
