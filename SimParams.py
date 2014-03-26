@@ -15,7 +15,7 @@ plasYesNo=0
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 ghkYesNo=1
 #spineYesNo originally defined in SpineParams.py
-spineYesNo=0
+spineYesNo=1
 #No point adding synapses unless they receive inputs
 synYesNo=1
 
@@ -55,7 +55,7 @@ graphsyn=0
 Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=1
+plotchan=0
 plotpow=1
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only

@@ -49,7 +49,7 @@ execfile('NetOutput.py')
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,pathlist,capools,synarray=neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads=neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
 
 MSNpop,SynPlas=CreateNetwork(inputpath,networkname,infile+'.npz',calcium,plasYesNo,single,confile)
 
