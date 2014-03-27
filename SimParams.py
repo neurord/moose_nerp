@@ -10,10 +10,10 @@ from SynParamSpine import DendSynChans, SpineSynChans
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
 #include or exclude plasticity based on calcium
-plasYesNo=1
+plasYesNo=0
 #ghkYesNo are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
-ghkYesNo=1
+ghkYesNo=0
 #spineYesNo originally defined in SpineParams.py
 spineYesNo=1
 #No point adding synapses unless they receive inputs
@@ -36,7 +36,8 @@ compNameNum=2
 chanNameNum=3
 spineNameNum=3
 spineChanNum=4
-
+#within SpineName, character 5 has spine number
+spineNumLoc=5
 if not spineYesNo:
     #put all the synaptic channels in the dendrite.  
     #These lists are in SynParamSpine.py
@@ -46,7 +47,7 @@ if not spineYesNo:
 #Second, specify which graphs of the simulation should be shown?
 plotplas=1
 #to prevent you from plotting plasticity if not created:
-if not plasYesNo:
+if not plasYesNo or not calcium:
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
@@ -83,7 +84,7 @@ width=0.3
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
 inputpath='/input'
 stimtimes=[0.04,0.19,0.46]
-syncomp=5
+syncomp=4
 
 #Fourth, specify simulation time, time step:dt and solver
 simtime = 0.4999 #0.4999

@@ -58,7 +58,7 @@ pg=setupinj(delay,width)
 ###############--------------output elements
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab,plaslegend = graphtables(neuron,plotplas,plotcurr,calcium,capools,currmsg)
+vmtab,catab,plastab,currtab = graphtables(neuron,plotplas,plotcurr,calcium,capools,currmsg)
 if spineYesNo:
     spinecatab,spinevmtab=spinetabs()
 
@@ -82,7 +82,7 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=simtime)
-        graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,plaslegend,calcium,currlabel)
+        graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,calcium,currlabel)
         if spineYesNo:
             spineFig(spinecatab,spinevmtab)
     #End of inject loop

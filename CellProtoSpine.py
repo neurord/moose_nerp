@@ -40,6 +40,8 @@ def create_neuron(p_file,container,Cond,ghkYN):
             ghkproto=moose.element('/library/ghk')
             ghk=moose.copy(ghkproto,comp,'ghk')[0]
             moose.connect(ghk,'channel',comp,'channel')
+        else:
+            ghk=[]
         for chanpath in ChanDict:
             if Cond[chanpath][dist_num(distTable, dist)]:
                 if printMoreInfo:

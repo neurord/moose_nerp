@@ -1,17 +1,17 @@
 #CreateNetwork.py
 #Sets up time tables, then connects them after creating population
-#totaltt needs to be modified for when synapses in spines and more than one per comp
 
-def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile):
+def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile,spineYN):
     #First, extract number of synapses per compartment for glu and gaba
     numglu = {}
     numgaba = {}
     for ntype in neurontypes:
-        numglu[ntype] = synarray[ntype][:,GLU]
+        numglu[ntype] = synarray[ntype][:,GLU] 
         numgaba[ntype] = synarray[ntype][:,GABA]
     if printinfo:
-        print "synarray", synarray
-   
+        print "synarray", synarray[ntype]
+
+    
     indata=moose.Neutral(inputpath)
     inpath=indata.path
     totaltt=0
@@ -19,7 +19,8 @@ def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile):
     if single:
         MSNpop=[]
         for ntype in neurontypes:
-            totaltt += synarray[ntype].sum(axis=0)[GLU]
+            totaltt += len(spineHeads[ntype]) if spineYN else synarray[ntype].sum(axis=0)[GLU]
+            print "totaltt", totaltt
         #Second, read in the spike time tables
         timetab=alltables(infile,inpath,totaltt)
         #Third, assign the timetables to synapses for each neuron

@@ -5,8 +5,8 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     calname=compname+'/'+caName
     cal=moose.element(calname)
     syn=moose.element(synchan)
-    #if printMoreInfo:
-    print "PLAS",syn.path,syn.synapse[0],cal.path
+    if printMoreInfo:
+        print "PLAS",syn.path,syn.synapse[0],cal.path
     #
     plasname=compname+'/plas'
     plas=moose.Func(plasname)
@@ -39,7 +39,6 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
         print "PLAS", cells
     if not cells:
         for synchan in synPop:
-            print "addPlas", synchan
             plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
     else:
         for cell in cells:

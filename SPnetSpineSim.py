@@ -12,6 +12,10 @@
 ## Also assumes that single neuron element tree is '/neurtype/compartment', and
 ## network element tree is '/network/neurtype/compartment'
 
+####REMAINING ISSUE:
+#with spines, nmda and ampa currents appear, but no calcium in the spine head
+#---> possibly problem with  connecting spike input to nmda/CaCurr -> but I can't see that
+
 import os
 os.environ['NUMPTHREADS'] = '1'
 from pylab import *
@@ -51,7 +55,7 @@ execfile('NetOutput.py')
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads=neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
 
-MSNpop,SynPlas=CreateNetwork(inputpath,networkname,infile+'.npz',calcium,plasYesNo,single,confile)
+MSNpop,SynPlas=CreateNetwork(inputpath,networkname,infile+'.npz',calcium,plasYesNo,single,confile,spineYesNo)
 
 ###------------------Current Injection
 currents = util.inclusive_range(current1)
