@@ -14,7 +14,43 @@ CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS=4001 #10 nM steps
 
+def interpolate_values_in_table(tabA,V_0,l=40):
+    '''This function interpolates values in the table
+    around tabA[V_0]. '''
+    V = np.linspace(VMIN, VMAX, len(tabA))
+    idx =  abs(V-V_0).argmin()
+    A_min = tabA[idx-l]
+    V_min = V[idx-l]
+    A_max = tabA[idx+l]
+    V_max = V[idx+l]
+    a = (A_max-A_min)/(V_max-V_min)
+    b = A_max - a*V_max
+    tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
+    return tabA
 
+def fix_singularities(Params,Gate):
+    
+    if Params.A_C < 0:
+
+        V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.Avhalf
+
+        if V_0 > VMIN and V_0 < VMAX:
+            #change values in tableA and tableB, because tableB contains sum of alpha and beta
+            tabA = interpolate_values_in_table(Gate.tableA,V_0)
+            tabB = interpolate_values_in_table(Gate.tableB,V_0)
+            Gate.tableA = tabA
+            Gate.tableB = tabB
+
+    if Params.B_C < 0:
+
+        V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.Bvhalf
+
+        if V_0 > VMIN and V_0 < VMAX:
+            #change values in tableB
+            tabB = interpolate_values_in_table(Gate.tableB,V_0)
+            Gate.tableB = tabB
+
+    return Gate
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
@@ -26,99 +62,13 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     if params.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX')
         xGate.setupAlpha(Xparams + (VDIVS, VMIN, VMAX))
-        #Check for singularities
-        #Find if denominator might be 0, find where is the singularity, interpolate for crazy values
-        if Xparams.A_C < 0:
-            V_0 = Xparams.A_vslope*np.log(-Xparams.A_C)-Xparams.Avhalf
-            if V_0 > VMIN and V_0 < VMAX:
-                #change values in tableA
-                tabA = xGate.tableA
-                V = np.linspace(VMIN, VMAX, len(tabA))
-                idx =  abs(V-V_0).argmin()
-                A_min = tabA[idx-30]
-                V_min = V[idx-30]
-                A_max = tabA[idx+30]
-                V_max = V[idx+30]
-                a = (A_max-A_min)/(V_max-V_min)
-                b = A_max - a*V_max
-                tabA[idx-40:idx+40] = V[idx-40:idx+40]*a+b
-                xGate.tableA = tabA
-                #change values in tableB, because tableB contains sum of alpha and beta
-                tabB = xGate.tableB
-                tabB = xGate.tableB
-                B_min = tabB[idx-30]
-                V_min = V[idx-30]
-                B_max = tabB[idx+30]
-                V_max = V[idx+30]
-                a = (B_max-B_min)/(V_max-V_min)
-                b = B_max - a*V_max
-                tabB[idx-40:idx+40] = V[idx-40:idx+40]*a+b
-                xGate.tableB = tabB
-        if Xparams.B_C < 0:
-            V_0 = Xparams.B_vslope*np.log(-Xparams.B_C)-Xparams.Bvhalf
-            if V_0 > VMIN and V_0 < VMAX:
-                #change values in tableB
-                tabB = xGate.tableB
-                V = np.linspace(VMIN, VMAX, len(tabB))
-                idx =  abs(V-V_0).argmin()
-                B_min = tabB[idx-30]
-                V_min = V[idx-30]
-                B_max = tabB[idx+30]
-                V_max = V[idx+30]
-                a = (B_max-B_min)/(V_max-V_min)
-                b = B_max - a*V_max
-                tabB[idx-40:idx+40] = V[idx-40:idx+40]*a+b
-                xGate.tableB = tabB
+        xGate = fix_singularities(Xparams,xGate)
 
- 
     chan.Ypower = params.Ypow
     if params.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
         yGate.setupAlpha(Yparams + (VDIVS, VMIN, VMAX))
-        if Yparams.A_C < 0:
-            V_0 = Yparams.A_vslope*np.log(-Yparams.A_C)-Yparams.Avhalf
-
-            if V_0 > VMIN and V_0 < VMAX:
-                #change values in tableA
-                ytabA = yGate.tableA
-                V = np.linspace(VMIN, VMAX, len(ytabA))
-                idx =  abs(V-V_0).argmin()
-                A_min = ytabA[idx-30]
-                V_min = V[idx-30]
-                A_max = ytabA[idx+30]
-                V_max = V[idx+30]
-                a = (A_max-A_min)/(V_max-V_min)
-                b = A_max - a*V_max
-
-                ytabA[idx-30:idx+30] = V[idx-30:idx+30]*a+b
-                yGate.tableA = ytabA
-                #change values in tableB, because tableB contains sum of alpha and beta
-                ytabB = yGate.tableB
-                B_min = ytabB[idx-30]
-                V_min = V[idx-30]
-                B_max = ytabB[idx+30]
-                V_max = V[idx+30]
-                a = (B_max-B_min)/(V_max-V_min)
-                b = B_max - a*V_max
-                ytabB[idx-30:idx+30] = V[idx-30:idx+30]*a+b
-                yGate.tableB = ytabB
-
-        if Yparams.B_C < 0:
-            V_0 = Yparams.B_vslope*np.log(-Yparams.B_C)-Yparams.Bvhalf
-           
-            if V_0 > VMIN and V_0 < VMAX:
-                #change values in tableB
-                ytabB = yGate.tableB
-                V = np.linspace(VMIN, VMAX, len(ytabB))
-                idx =  abs(V-V_0).argmin()
-                B_min = ytabB[idx-30]
-                V_min = V[idx-30]
-                B_max = ytabB[idx+30]
-                V_max = V[idx+30]
-                a = (B_max-B_min)/(V_max-V_min)
-                b = B_max - a*V_max
-                ytabB[idx-30:idx+30] = V[idx-30:idx+30]*a+b
-                yGate.tableB = ytabB
+        yGate = fix_singularities(Yparams,yGate)
     if params.Zpow > 0:
         chan.Zpower = params.Zpow
         zgate = moose.HHGate(chan.path + '/gateZ')
