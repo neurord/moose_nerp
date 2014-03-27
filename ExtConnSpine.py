@@ -8,9 +8,11 @@ def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
     #It is possible to set the synaptic weight here.  
     m = moose.connect(presyn, 'event', moose.element(s.path + '/synapse'), 'addSpike')
     if 'nmda' in synpath and calcium:
-        synchanCa=moose.SynChan(s.path+'CaCurr')
+        synchanCa=moose.SynChan(s.path+'/CaCurr')
         synchanCa.synapse.num=s.synapse.num
         synchanCa.synapse[jj].delay=s.synapse[jj].delay
+        if printMoreInfo:
+            print "NMDA Syn", synchanCa.path, moose.element(synchanCa.path + '/synapse')
         m = moose.connect(presyn, 'event', moose.element(synchanCa.path + '/synapse'), 'addSpike')
 
 def filltimtable(spikeTime,simtime,name,path):

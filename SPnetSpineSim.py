@@ -12,10 +12,6 @@
 ## Also assumes that single neuron element tree is '/neurtype/compartment', and
 ## network element tree is '/network/neurtype/compartment'
 
-####REMAINING ISSUE:
-#with spines, nmda and ampa currents appear, but no calcium in the spine head
-#---> possibly problem with  connecting spike input to nmda/CaCurr -> but I can't see that
-
 import os
 os.environ['NUMPTHREADS'] = '1'
 from pylab import *
