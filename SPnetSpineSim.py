@@ -28,6 +28,7 @@ from pprint import pprint
 import moose 
 
 import util
+from util import execfile
 from SPcondParamSpine import *
 from SPchanParam import *
 from SynParamSpine import *
