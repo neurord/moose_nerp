@@ -1,11 +1,15 @@
-##------create general Channel Proto, pass in name, x and y power, and params
-#Also, create the library of channels
-#Might need a few other chan_proto types, such as
-#     inf-tau channels
-#     Ca dep channels
-# chan_proto quires alpha and beta params for both activation and inactivation
-#If no inactivation, just send in empty Yparam array
+"""\
+Create general Channel Proto, pass in name, x and y power, and params
 
+Also, create the library of channels
+Might need a few other chan_proto types, such as
+     inf-tau channels
+     Ca dep channels
+chan_proto quires alpha and beta params for both activation and inactivation
+If no inactivation, just send in empty Yparam array.
+"""
+
+from __future__ import print_function, division
 
 VMIN = -120e-3
 VMAX = 50e-3
@@ -56,7 +60,7 @@ def fix_singularities(Params,Gate):
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     if printinfo:
-        print chanpath, ":", params
+        print(chanpath, ":", params)
     chan = moose.HHChannel('%s' % (chanpath))
     chan.Xpower = params.Xpow
     if params.Xpow > 0:
@@ -99,7 +103,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     tau2=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope)))
     tau_x=(Xparams.taumin+1000*tau1*tau2)/qfactNaF
     if printMoreInfo:
-        print  "NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x
+        print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
     mgate.tableA = inf_x / tau_x
     mgate.tableB =  1 / tau_x
@@ -112,7 +116,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/qfactNaF
     inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
     if printMoreInfo:
-        print  "NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y
+        print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y
     chan.Ek=params.Erev
@@ -124,7 +128,7 @@ def BKchan_proto(chanpath,params,gateParams):
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
     if (VDIVS<=5 and CADIVS<=5 and printinfo):
-        print v_array,ca_array
+        print(v_array,ca_array)
     gatingMatrix = []
     for i,pars in enumerate(gateParams):
         Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
@@ -152,7 +156,7 @@ def BKchan_proto(chanpath,params,gateParams):
         table.tableVector2D = gatingMatrix[i]
 
         if (VDIVS<=5 and CADIVS<=5 and printinfo):
-            print chan.path,tname,table.tableVector2D
+            print(chan.path,tname,table.tableVector2D)
     return chan
 #Moved ChanDict from SPChanParam.py to include channel function name in the dictionary
 

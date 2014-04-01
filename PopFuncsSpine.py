@@ -1,7 +1,11 @@
-#Function definitions for making and connecting populations
-#1. Creating the population
-#2. interconnecting the population
-#Note that connecting external Poisson trains is done in ExtConn.py
+"""\
+Function definitions for making and connecting populations
+
+1. Creating the population
+2. interconnecting the population
+Note that connecting external Poisson trains is done in ExtConn.py
+"""
+from __future__ import print_function, division
 
 def create_population(container, neurontypes, sizeX, sizeY, spacing):
     netpath = container.path
@@ -25,7 +29,7 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             comp.x=i*spacing
             comp.y=j*spacing
             if printMoreInfo:
-                print "x,y", comp.x, comp.y, neurons[number].path
+                print("x,y", comp.x, comp.y, neurons[number].path)
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
@@ -46,13 +50,13 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
 
 def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
     if printinfo:
-        print 'CONNECT:', postype, spaceConst
+        print('CONNECT:', postype, spaceConst)
     numSpikeGen = len(spikegen)
     prelist=list()
     postlist=list()
     distloclist=[]
     if printinfo:
-        print "SYNAPSES:", numSpikeGen, cells, spikegen
+        print("SYNAPSES:", numSpikeGen, cells, spikegen)
     #loop over post-synaptic neurons
     for jj in range(len(cells)):
         postsoma=cells[jj]+'/soma'
@@ -66,7 +70,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
         if printMoreInfo:
-            print "SYN TABLE:", len(comps), comps, postsoma
+            print("SYN TABLE:", len(comps), comps, postsoma)
         #loop over pre-synaptic neurons - all types
         for ii in range(numSpikeGen):
             precomp = os.path.dirname(spikegen[ii].path)
@@ -79,7 +83,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             prob=exp(-(dist/fact))
             connect=np.random.uniform()
             if printMoreInfo:
-                print precomp,postsoma,dist,fact,prob,connect
+                print(precomp,postsoma,dist,fact,prob,connect)
             #select a random number to determine whether a connection should occur
             if connect < prob and dist > 0 and len(comps)>0:
                 #if so, randomly select a branch, and then eliminate that branch from the table.

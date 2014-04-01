@@ -1,11 +1,15 @@
-from util import dist_num
+"""\
+Function definitions for making channels.
+"""
 
-#Function definitions for making channels.
+from __future__ import print_function, division
+
+from util import dist_num
 
 def make_synchan(chanpath,synparams):
     # for AMPA or GABA - just make the channel, no connections/messages
     if printinfo:
-        print 'synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev']
+        print('synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev'])
     synchan=moose.SynChan(chanpath)
     synchan.tau1 = synparams['tau1']
     synchan.tau2 = synparams['tau2']
@@ -21,7 +25,7 @@ def make_synchan(chanpath,synparams):
         mgblock.Ek=synparams['Erev']
         mgblock.Zk=2
         if printinfo:
-            print 'nmda',blockname,mgblock,mgparams
+            print('nmda',blockname,mgblock,mgparams)
         moose.connect(synchan,'channelOut', mgblock,'origChannel')
         if calcium:
         #This duplicate nmda current prevents reversal of calcium current
@@ -46,7 +50,7 @@ def make_synchan(chanpath,synparams):
                 ghk.Cout=ConcOut
                 ghk.valency=2
                 if printinfo:
-                    print "CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path
+                    print("CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path)
                 moose.connect(mgblock2,'ghk',ghk, 'ghk')
     return synchan
 
@@ -57,12 +61,12 @@ def synchanlib():
     for key in SynChanDict:
         chanpath='/library/'+key
         synchan.append(make_synchan(chanpath,SynChanDict[key]))
-    print synchan
+    print(synchan)
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
     proto=moose.SynChan('/library/' +chanpath)
     if printMoreInfo:
-        print "adding channel",chanpath,"to",syncomp.path,"from",proto.path
+        print("adding channel",chanpath,"to",syncomp.path,"from",proto.path)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
     if chanpath=='nmda':

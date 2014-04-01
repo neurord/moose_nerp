@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import os
 
 def spinetabs():
@@ -12,7 +14,7 @@ def spinetabs():
             spinename = p[compNameNum] + p[spineNameNum][spineNumLoc]
             spvmtab[typenum].append(moose.Table('/data/SpVm%s_%s' % (neurtype,spinename)))
             if printinfo:
-                print headnum,head, spvmtab[typenum][headnum]
+                print(headnum,head, spvmtab[typenum][headnum])
             moose.connect(spvmtab[typenum][headnum], 'requestData', head, 'get_Vm')
             if calcium:
                 spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))

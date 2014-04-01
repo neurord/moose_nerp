@@ -1,16 +1,20 @@
 # -*- coding:utf-8 -*-
 
 ######## SPnetSpineSim.py ############
-## Code to create SP neuron using dictionaries for channels and synapses
-## This allows multiple channels to be added with minimal change to the code
-## Can use ghk for calcium permeable channels if ghkYesNo=1
-## Optional calcium concentration in compartments (calcium=1)
-## Optional synaptic plasticity based on calcium (plasyesno=1)
-## Spines are optional (spineYesNo=1), but not allowed for network
-## The graphs won't work for multiple spines per compartment
-## Assumes spine head has name 'head', cell body called 'soma',
-## Also assumes that single neuron element tree is '/neurtype/compartment', and
-## network element tree is '/network/neurtype/compartment'
+"""\
+Code to create SP neuron using dictionaries for channels and synapses
+
+This allows multiple channels to be added with minimal change to the code
+Can use ghk for calcium permeable channels if ghkYesNo=1
+Optional calcium concentration in compartments (calcium=1)
+Optional synaptic plasticity based on calcium (plasyesno=1)
+Spines are optional (spineYesNo=1), but not allowed for network
+The graphs won't work for multiple spines per compartment
+Assumes spine head has name 'head', cell body called 'soma',
+Also assumes that single neuron element tree is '/neurtype/compartment', and
+network element tree is '/network/neurtype/compartment'
+"""
+from __future__ import print_function, division
 
 import os
 os.environ['NUMPTHREADS'] = '1'
@@ -81,7 +85,7 @@ if (showclocks):
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
-    print u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current)
+    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)

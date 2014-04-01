@@ -1,8 +1,10 @@
+from __future__ import print_function, division
+
 from matplotlib import pyplot
 from iso_scaling import iso_scaling
 
 def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
-    print "GRAPH TABLES, plas=",pltplas,"curr=",pltcurr
+    print("GRAPH TABLES, plas=",pltplas,"curr=",pltcurr)
     #Vm and Calcium
     vmtab=[]
     catab=[]
@@ -45,7 +47,7 @@ def graphtables(neuron,pltplas,pltcurr,calyesno,capools,curmsg):
                     moose.connect(tab, 'requestData', chan, curmsg)
                 except:
                     if printinfo:
-                        print 'no channel', comp.path+'/'+channame
+                        print('no channel', comp.path+'/'+channame)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
 
 try:
@@ -119,6 +121,6 @@ def graphs(vmtab,catab,plastab,currtab,grphsyn,grphcurr,calyesno,curlabl):
                     if plotnum == 1:
                         axes.set_title('current vs. time')
                 except:
-                    print "no channel", channame        
+                    print("no channel", channame)
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
         f.canvas.draw()

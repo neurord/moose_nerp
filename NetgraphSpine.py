@@ -1,13 +1,14 @@
 #NetgraphSpine.py
+from __future__ import print_function, division
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
     if printinfo:
-        print "VTABLES", vtab[tabnum].path,vcomp.path
+        print("VTABLES", vtab[tabnum].path,vcomp.path)
     m=moose.connect(vtab[tabnum], 'requestData', vcomp, 'get_Vm')
     if calyn:
         cacomp=moose.element(vcomp.path+'/'+caName)
         if printinfo:
-            print "CTABLES", ctab[tabnum].path,cacomp.path
+            print("CTABLES", ctab[tabnum].path,cacomp.path)
         moose.connect(ctab[tabnum], 'requestData', cacomp, 'get_Ca')
     for synnum,chan in enumerate(DendSynChans):
         syn=moose.element(vcomp.path+'/'+chan)
@@ -15,7 +16,7 @@ def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
             syn=moose.element(syn.path+'/mgblock')
         syntabnum=len(DendSynChans)*tabnum+synnum
         if printinfo:
-            print stab[syntabnum].path, chan
+            print(stab[syntabnum].path, chan)
         assert chan in stab[syntabnum].path
         moose.connect(stab[syntabnum], 'requestData', syn, Synmsg)
     return vtab,ctab,stab
@@ -32,13 +33,13 @@ def spineTables(spineHeads,catab,syntab,calyn):
                     syn=moose.element(syn.path+'/mgblock')
                 syntabnum=len(SpineSynChans)*headnum+synnum
                 if printinfo:
-                    print syn.path,syntab[typenum][syntabnum].path, chan
+                    print(syn.path,syntab[typenum][syntabnum].path, chan)
                 assert chan in syntab[typenum][syntabnum].path
                 moose.connect(syntab[typenum][syntabnum], 'requestData', syn, Synmsg)
     return catab,syntab
 
 def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
-    print "GRAPHS","single=",singl,"plotnet=",pltnet,"plotPlas=",pltplas, "cal=", calyesno, "spines=", spinesYN
+    print("GRAPHS","single=",singl,"plotnet=",pltnet,"plotPlas=",pltplas, "cal=", calyesno, "spines=", spinesYN)
     message=["ONE FROM NETWORK","SINGLE"]
     syntab=[]
     vmtab=[]
@@ -84,7 +85,7 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
                     plastab[typenum].append(moose.Table('/data/plas%s_%s' % (neurtype,plasname))) 
                     plasCumtab[typenum].append(moose.Table('/data/plasCum%s_%s' % (neurtype,plasname))) 
         #Connect tables
-        print "***********PLOTTING",message[singl],"********************"
+        print("***********PLOTTING",message[singl],"********************")
         for typenum, neurtype in enumerate(sorted(neurontypes)):
             for tabnum,comp in enumerate(neuron[neurtype]['comps']):
                 if singl:
@@ -96,14 +97,14 @@ def graphtables(singl,pltnet,pltplas,calyesno,spinesYN):
             #tables for spines, or plasticity
             if pltplas:
                 for tabnum,plasObject in enumerate(SynPlas[neurtype]):
-                    print plasObject
+                    print(plasObject)
                     moose.connect(plastab[typenum][tabnum], 'requestData', plasObject['plas'], 'get_value')
                     moose.connect(plasCumtab[typenum][tabnum], 'requestData', plasObject['cum'], 'get_value')
         if spinesYN:
             spcatab,spsyntab=spineTables(spineHeads,spcatab,spsyntab,calyesno)
     else:
         #create and connect tables, one per cell soma.  
-        print "***********PLOTTING NETWORK SOMATA***************"
+        print("***********PLOTTING NETWORK SOMATA***************")
         for typenum,neurtype in enumerate(sorted(neurontypes)):
             for neurpath in MSNpop['pop'][typenum]:
                 neurnum = neurpath.partition('_')[2]

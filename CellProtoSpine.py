@@ -1,5 +1,8 @@
 #CellprotoSPine.py
-#Other than the special NaF channel, this can be used to create any neuron type
+"""\
+Other than the special NaF channel, this can be used to create any neuron type.
+"""
+from __future__ import print_function, division
 
 from util import dist_num
 
@@ -18,7 +21,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
     else:
         m=moose.connect(chan, 'channel', comp, 'channel')
     if printMoreInfo:
-        print "channel message", chan.path,comp.path, m
+        print("channel message", chan.path,comp.path, m)
     return
 
 def create_neuron(p_file,container,Cond,ghkYN):
@@ -32,7 +35,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
         #Possibly this should be replaced by pathlength
         dist=sqrt(xloc*xloc+yloc*yloc)
         if printMoreInfo:
-            print "comp,dist",comp.path,dist
+            print("comp,dist",comp.path,dist)
         #
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function
@@ -45,7 +48,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
         for chanpath in ChanDict:
             if Cond[chanpath][dist_num(distTable, dist)]:
                 if printMoreInfo:
-                    print "Testing Cond If", chanpath, Cond[chanpath][dist_num(distTable, dist)]
+                    print("Testing Cond If", chanpath, Cond[chanpath][dist_num(distTable, dist)])
                 addOneChan(chanpath,Cond[chanpath][dist_num(distTable, dist)],comp, ghkYN, ghk)
     return {'comps': comps, 'cell': cellproto}
 

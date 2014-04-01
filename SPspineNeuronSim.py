@@ -73,7 +73,7 @@ if (showclocks):
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
-    print u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current)
+    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
