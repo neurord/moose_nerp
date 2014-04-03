@@ -18,6 +18,7 @@ plt.ion()
 from pprint import pprint
 
 import moose 
+from util import execfile
 
 import util
 from SPcondParamSpine import *
