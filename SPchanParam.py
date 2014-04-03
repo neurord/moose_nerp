@@ -114,18 +114,18 @@ Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
                                       B_vslope = -18e-3)
 
 Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
-qfactKir = 0.5
+qfactKir = 1
 
-Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
+Kir_X_params = AlphaBetaChannelParams(A_rate = 0.004*qfactKir,
                                       A_B = 0,
                                       A_C = 0.0,
                                       Avhalf = 0,
-                                      A_vslope = 11e-3,
-                                      B_rate = 1.2e3*qfactKir,
+                                      A_vslope = 12.1e-3,
+                                      B_rate = 450*qfactKir,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = -30e-3,
-                                      B_vslope = -50e-3)
+                                      Bvhalf = -40e-3,
+                                      B_vslope = -65e-3)
 
 KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 
