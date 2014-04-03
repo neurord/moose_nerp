@@ -1,5 +1,9 @@
 #CreateNetwork.py
-#Sets up time tables, then connects them after creating population
+
+"""\
+Sets up time tables, then connects them after creating population
+"""
+from __future__ import print_function, division
 
 def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile,spineYN):
     #First, extract number of synapses per compartment for glu and gaba
@@ -9,7 +13,7 @@ def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile,spine
         numglu[ntype] = synarray[ntype][:,GLU] 
         numgaba[ntype] = synarray[ntype][:,GABA]
     if printinfo:
-        print "synarray", synarray[ntype]
+        print("synarray", synarray[ntype])
 
     
     indata=moose.Neutral(inputpath)
@@ -20,7 +24,7 @@ def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile,spine
         MSNpop=[]
         for ntype in neurontypes:
             totaltt += len(spineHeads[ntype]) if spineYN else synarray[ntype].sum(axis=0)[GLU]
-            print "totaltt", totaltt
+            print("totaltt", totaltt)
         #Second, read in the spike time tables
         timetab=alltables(infile,inpath,totaltt)
         #Third, assign the timetables to synapses for each neuron
@@ -47,7 +51,7 @@ def CreateNetwork(inputpath,networkname,infile,calYN,plasYN,single,confile,spine
         for neurlist in MSNpop['pop']:
             for jj in range(len(neurlist)):
                 neur=moose.element(neurlist[jj]+'/soma')
-                neurname=split(neurlist[jj],'/')[neurnameNum]
+                neurname = neurlist[jj].split('/')[neurnameNum]
                 locationlist.append([neurname,neur.x,neur.y])
         savez(confile,conn=conn,loc=locationlist)
 

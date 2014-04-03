@@ -16,3 +16,9 @@ def dist_num(table, dist):
             return num
     else:
         return num
+
+try:
+    from __builtin__ import execfile
+except ImportError:
+    def execfile(fn):
+        exec(compile(open(fn).read(), fn, 'exec'))

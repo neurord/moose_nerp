@@ -1,10 +1,12 @@
+from __future__ import print_function, division
+
 def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
     s=moose.SynChan(synpath)
     s.synapse.num = s.synapse.num+1
     jj=s.synapse.num-1
     s.synapse[jj].delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
     if printMoreInfo:
-        print "SYNAPSE:", synpath,jj,s.synapse.num,s.synapse[jj].delay
+        print("SYNAPSE:", synpath,jj,s.synapse.num,s.synapse[jj].delay)
     #It is possible to set the synaptic weight here.  
     m = moose.connect(presyn, 'event', moose.element(s.path + '/synapse'), 'addSpike')
     if 'nmda' in synpath and calcium:
@@ -12,7 +14,7 @@ def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
         synchanCa.synapse.num=s.synapse.num
         synchanCa.synapse[jj].delay=s.synapse[jj].delay
         if printMoreInfo:
-            print "NMDA Syn", synchanCa.path, moose.element(synchanCa.path + '/synapse')
+            print("NMDA Syn", synchanCa.path, moose.element(synchanCa.path + '/synapse'))
         m = moose.connect(presyn, 'event', moose.element(synchanCa.path + '/synapse'), 'addSpike')
 
 def filltimtable(spikeTime,simtime,name,path):
@@ -32,39 +34,40 @@ def alltables(fname,inpath,maxtt):
     DupSpikes=temp['Dup']
     UniqueSpikes=temp['Unique']
     if printinfo:
-        print "AVAILBLE Dup trains:", len(DupSpikes), DupSpikes,", Unique trains:", len(UniqueSpikes)
+        print("AVAILBLE Dup trains:", len(DupSpikes), DupSpikes,", Unique trains:", len(UniqueSpikes))
     #create Time tables
     Duptt=filltimtable(DupSpikes,simtime,'Dup',inpath)
     uniqnum=min(maxtt,len(UniqueSpikes))
     if printinfo:
-        print "TIME TABLES TO USE", maxtt, "Unique:", uniqnum
+        print("TIME TABLES TO USE", maxtt, "Unique:", uniqnum)
     Uniqtt=filltimtable(UniqueSpikes[0:maxtt],simtime,'Uniq',inpath)
     return {'Dup':Duptt,'Uniq':Uniqtt}
 
 def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
     #all synpases in synlist must in same compartment (e.g. both on spines or both on dendrites)
     if printinfo:
-        print "CELLS", len(cells),cells, "syn/Comp", SynPerComp
+        print("CELLS", len(cells),cells, "syn/Comp", SynPerComp)
     #create table of synapse compartments for each neuron
     comps=[]
     Duptt=ttab['Dup']
     Uniqtt=ttab['Uniq']
 
     for kk in range(len(synchans[synlist[0]])):
-        compname='/'+split(synchans[synlist[0]][kk].path,'/')[compNameNum]
+        p = synchans[synlist[0]][kk].path.split('/')
+        compname = '/' + p[compNameNum]
         if printMoreInfo:
-            print kk, SynPerComp[kk]
+            print(kk, SynPerComp[kk])
         if spineYesNo:
-            comps.append(compname+'/'+split(synchans[synlist[0]][kk].path,'/')[spineNameNum])
+            comps.append(compname + '/' + p[spineNameNum])
         else:
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
         if printMoreInfo:
-            print comps
+            print(comps)
     allcomps=tile(comps,(len(cells),1))
     remainingcomps=[len(comps) for ii in range(len(cells))]
     if printinfo:
-        print "Remaing COMPS TO CONNECT",remainingcomps, shape(allcomps)
+        print("Remaing COMPS TO CONNECT",remainingcomps, shape(allcomps))
     #
     #loop through duplicates and connect them to a compartment in each neuron
     for train in range(len(Duptt)):
@@ -77,8 +80,8 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
             allcomps[cell][branch]=allcomps[cell][remainingcomps[cell]]
             allcomps[cell][remainingcomps[cell]]=''
             if printMoreInfo:
-                print "CONNECT:", branch,tt.path,cells[cell].path,remainingcomps,synpath
-                print allcomps
+                print("CONNECT:", branch,tt.path,cells[cell].path,remainingcomps,synpath)
+                print(allcomps)
             for chan in synlist:
                 synconn(synpath+'/'+chan,dist,tt)
     #loop through unique trains and connect them to one comp in one neuron
@@ -96,13 +99,13 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
             else:
                 branch=br
             if printMoreInfo:
-                print br, sum(remainingcomps), cumcomps, where(cumcomps>br), cell, branch,allcomps[cell][branch]
+                print(br, sum(remainingcomps), cumcomps, where(cumcomps>br), cell, branch,allcomps[cell][branch])
             synpath=postneur+allcomps[cell][branch]
             remainingcomps[cell]=remainingcomps[cell]-1
             allcomps[cell][branch]=allcomps[cell][remainingcomps[cell]]
             allcomps[cell][remainingcomps[cell]]=''
             if printMoreInfo:
-                print "CONNECT:", br, branch, cumcomps, remainingcomps, tt.path, synpath
+                print("CONNECT:", br, branch, cumcomps, remainingcomps, tt.path, synpath)
             for chan in synlist:
                 synconn(synpath+'/'+chan,0,tt)
         else:
@@ -110,6 +113,6 @@ def addinput(ttab,synchans,synlist,simtime,cells,SynPerComp,startt):
             break
             #don't do anything. I don't think this break is exiting the loop
     if printinfo:
-        print "LastTrainNum:",train
+        print("LastTrainNum:",train)
     return train
 

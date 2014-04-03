@@ -1,12 +1,16 @@
 #PlasFunc.py
-####make a plasticity device in that compartment/synapse
+"""\
+Make a plasticity device in that compartment/synapse
+"""
+from __future__ import print_function, division
+
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
-    compname=synchan.path[0:rfind(synchan.path,'/')]
-    calname=compname+'/'+caName
+    compname = os.path.dirname(synchan.path)
+    calname = compname + '/' + caName
     cal=moose.element(calname)
     syn=moose.element(synchan)
     if printMoreInfo:
-        print "PLAS",syn.path,syn.synapse[0],cal.path
+        print("PLAS",syn.path,syn.synapse[0],cal.path)
     #
     plasname=compname+'/plas'
     plas=moose.Func(plasname)
@@ -36,16 +40,17 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
 def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
     plaslist=[]
     if printinfo:
-        print "PLAS", cells
+        print("PLAS", cells)
     if not cells:
         for synchan in synPop:
             plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
     else:
         for cell in cells:
             for br in range(len(synPop)):
-                compname=split(synPop[br].path,'/')[compNameNum]+'/'+split(synPop[br].path,'/')[chanNameNum]
+                p = synPop[br].path.split('/')
+                compname = p[compNameNum] + '/' + p[chanNameNum]
                 synchan=moose.element(cell+'/'+compname)
                 if printMoreInfo:
-                    print "ADDPLAS",cell,compname,synchan
+                    print("ADDPLAS",cell,compname,synchan)
                 plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
     return plaslist

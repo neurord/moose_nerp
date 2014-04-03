@@ -1,4 +1,5 @@
 #makeSpine.py
+from __future__ import print_function, division
 
 def setSpineCompParams(comp,compdia,complen):
     comp.diameter=compdia
@@ -6,7 +7,7 @@ def setSpineCompParams(comp,compdia,complen):
     XArea=math.pi*compdia*compdia/4
     circumf=math.pi*compdia
     if printinfo:
-        print "Xarea,circumf of",comp.path, XArea,circumf,"CM",spineCM*complen*circumf
+        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",spineCM*complen*circumf)
     comp.Ra=spineRA*complen/XArea
     comp.Rm=spineRM/(complen*circumf)
     cm=spineCM*compdia*circumf
@@ -22,7 +23,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     neckName=compName+str(index)+nameneck
     neck=moose.Compartment(parentComp.path+'/'+neckName)
     if printinfo:
-        print neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z
+        print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
     y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
@@ -70,5 +71,5 @@ def addSpines(container):
             #end for index
     #end for comp
     if printinfo:
-        print len(headarray),"spines created in",container
+        print(len(headarray),"spines created in",container)
     return headarray

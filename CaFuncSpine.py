@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
@@ -20,7 +22,7 @@ def addCaPool(comp,poolname):
     vol=SA*capool.thick
     capool.B = 1/(Faraday*vol*2)/BufCapacity
     if printMoreInfo:
-        print "CALCIUM", capool.path, length,diam,capool.thick,vol
+        print("CALCIUM", capool.path, length,diam,capool.thick,vol)
     return capool
 
 def connectVDCC_KCa(ghkYN,comp,capool):
@@ -29,13 +31,13 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         moose.connect(capool,'concOut',ghk,'set_Cin')
         moose.connect(ghk,'IkOut',capool,'current')
         if printMoreInfo:
-            print "CONNECT ghk to ca",ghk.path,capool.path
+            print("CONNECT ghk to ca",ghk.path,capool.path)
         #connect them to the channels
     chan_list = []
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)))
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
     for chan in chan_list:
-        channame=split(chan.path,'/')[chanNameNum]
+        channame = chan.path.split('/')[chanNameNum]
         if isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
@@ -43,7 +45,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         elif isKCaChannel(channame):
             m=moose.connect(capool, 'concOut', chan, 'concen')
             if printMoreInfo:
-                print "channel message", chan.path,comp.path, m
+                print("channel message", chan.path,comp.path, m)
     return
  
 def connectNMDA(nmdachans,poolname):
@@ -53,9 +55,9 @@ def connectNMDA(nmdachans,poolname):
             nmdaCurr=moose.element(chan.path+'/CaCurr/ghk')
         else:
             nmdaCurr=moose.element(chan.path+'/CaCurr/mgblock')
-        caname=chan.path[0:rfind(chan.path,'/')+1]+poolname
+        caname = os.path.join(os.path.dirname(chan.path), poolname)
         capool=moose.element(caname)
         if printMoreInfo:
-            print "CONNECT", nmdaCurr.path,'to',capool.path
+            print("CONNECT", nmdaCurr.path,'to',capool.path)
         n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
     return

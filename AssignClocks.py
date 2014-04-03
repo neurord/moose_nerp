@@ -1,6 +1,12 @@
 #AssignClocks.py
-############## Simulation time step. Note that there are no default clocks ##########
-#Information on how to use clocks can be read by typing: help("moose") in python
+"""\
+Simulation time step. Note that there are no default clocks.
+
+Information on how to use clocks can be read by typing: help("moose") in python.
+"""
+
+from __future__ import print_function, division
+
 try:
     inited
 except NameError:
@@ -10,7 +16,7 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
     # `inited` is for avoiding double scheduling of the same object
     if not inited:
         if printinfo:
-            print 'SimDt=%g, PlotDt=%g' % (simdt, plotdt)
+            print('SimDt=%g, PlotDt=%g' % (simdt, plotdt))
         moose.setClock(0, simdt)
         moose.setClock(1, simdt)
         moose.setClock(2, simdt)
@@ -20,10 +26,10 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
         moose.setClock(6, plotdt)
         for path in model_container_list:
             if printinfo:
-                print 'Scheduling elements under:', path
+                print('Scheduling elements under:', path)
             if hsolve:
                 if printinfo:
-                    print "USING HSOLVE"
+                    print("USING HSOLVE")
                 hsolve = moose.HSolve( '%s/hsolve' % (path))
                 moose.useClock( 1, '%s/hsolve' % (path), 'process' )
                 hsolve.dt=simdt
@@ -40,6 +46,6 @@ def assign_clocks(model_container_list, inname, dataName, simdt, plotdt,hsolve):
 def printclocks(begin,end):
     tk = moose.element('/clock/tick')
     for ii in range(begin,end):
-        print 'Elements on tick ', ii
+        print('Elements on tick ', ii)
         for e in tk.neighbours['proc%s' % (ii)]:
-            print ' ->', e.path
+            print(' ->', e.path)

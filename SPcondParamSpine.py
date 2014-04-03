@@ -30,7 +30,7 @@ distTable=[26.1e-6,   # "prox"
 neurontypes=['D1', 'D2']
 
 #will eventually use different morphologies also
-p_file='MScell-primDend.p'
+p_file = 'MScell-Entire.p'
 
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa

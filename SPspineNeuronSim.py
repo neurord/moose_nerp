@@ -15,7 +15,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
-from string import *
 from pprint import pprint
 
 import moose 
@@ -27,10 +26,6 @@ from SynParamSpine import *
 from SpineParams import *
 from CaPlasParam import *
 from SimParams import *
-try:
-    from ParamOverrides import *
-except ImportError:
-    pass
 execfile('ChanGhkProtoLib.py')
 execfile('PlotChannel2.py')
 execfile('CaFuncSpine.py')
@@ -43,6 +38,10 @@ execfile('AssignClocks.py')
 execfile('TestSynPlas.py')
 execfile('SingleGraphs.py')
 execfile('SpineGraphs.py')
+try:
+    from ParamOverrides import *
+except ImportError:
+    pass
 
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
@@ -74,7 +73,7 @@ if (showclocks):
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
-    print u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current)
+    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
