@@ -15,9 +15,9 @@ plasYesNo=0
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 ghkYesNo=0
 #spineYesNo originally defined in SpineParams.py
-spineYesNo=1
+spineYesNo=0
 #No point adding synapses unless they receive inputs
-synYesNo=1
+synYesNo=0
 
 # The parameter single only used in SPnetSpineSim.py
 # set single=1 to create a single neuron of each type with synaptic input 
@@ -77,8 +77,8 @@ clockb=7
 #Third, specify values for somatic current injection and/or synaptic input
 current1=0.20e-9
 currinc=0.1e-9
-delay=0.1
-width=0.3
+delay=0.08
+width=0.35
 
 #For single neuron, provide synaptic input at specified times, to compartment specified
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
