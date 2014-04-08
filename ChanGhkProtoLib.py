@@ -65,13 +65,13 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     chan.Xpower = params.Xpow
     if params.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX')
-        xGate.setupAlpha(Xparams + (VDIVS, VMIN, VMAX))
+        xGate.setupAlpha(Xparams + [VDIVS, VMIN, VMAX])
         xGate = fix_singularities(Xparams,xGate)
 
     chan.Ypower = params.Ypow
     if params.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
-        yGate.setupAlpha(Yparams + (VDIVS, VMIN, VMAX))
+        yGate.setupAlpha(Yparams + [VDIVS, VMIN, VMAX])
         yGate = fix_singularities(Yparams,yGate)
     if params.Zpow > 0:
         chan.Zpower = params.Zpow

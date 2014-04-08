@@ -1,4 +1,4 @@
-from collections import namedtuple
+from util import NamedList
 
 #chanDictSP.py
 #contains all gating parameters and reversal potentials
@@ -22,7 +22,7 @@ ZpowCDI=2
 #htau fits the main -50 through -10 slope of Ogata figure 9 (log tau), but a qfact of 2 is already taken into account.
 
 qfactNaF = 1.3
-SSTauChannelParams = namedtuple('SSTauChannelParams', '''
+SSTauChannelParams = NamedList('SSTauChannelParams', '''
                                 Arate
                                 A_B
                                 A_C
@@ -55,13 +55,13 @@ Na_h_params = SSTauChannelParams(Arate = 1.0,
                                  tauVhalf = 42e-3,
                                  tauVslope = 3e-3)
 
-ChannelSettings = namedtuple('ChannelSettings', 'Xpow Ypow Zpow Erev name')
+ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
 KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 
-AlphaBetaChannelParams = namedtuple('AlphaBetaChannelParams', '''
+AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                               A_rate
                               A_B
                               A_C
@@ -296,14 +296,14 @@ CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100*qfactCaR,
 #Fast component, tau=4.9ms from Hirschberg et al., 1998 figure 13.
 SKparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
 
-ZChannelParams = namedtuple('ZChannelParams', 'Kd power tau')
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
 
 SK_Z_params = ZChannelParams(Kd = 0.57e-3,
                              power = 5.2,
                              tau = 4.9e-3)
 
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
-BKChannelParams=namedtuple('BKChannelParams', 'alphabeta K delta')
+BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 BK_X_params=[BKChannelParams(alphabeta=480, K=0.18,delta=-0.84),
              BKChannelParams(alphabeta=280,K=0.011,delta=-1.0)]
