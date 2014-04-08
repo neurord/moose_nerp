@@ -317,36 +317,6 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #Dictionary of "standard" channels, to create channels using a loop
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
-XChanDict={'Krp':Krp_X_params,
-           'KaF':KaF_X_params,
-           'KaS':KaS_X_params,
-           'Kir': Kir_X_params,
-           'CaL12': CaL12_X_params,
-           'CaL13': CaL13_X_params,
-           'CaN': CaN_X_params,
-           'CaR': CaR_X_params,
-           'CaT': CaT_X_params,
-           'SKCa': []}
-#
-YChanDict={'Krp':Krp_Y_params,
-           'KaF':KaF_Y_params,
-           'KaS':KaS_Y_params,
-           'Kir': [],
-           'CaL12': [],
-           'CaL13': [],
-           'CaN': [],
-           'CaR': CaR_Y_params,
-           'CaT': CaT_Y_params,
-           'SKCa': []}
-#
-ZChanDict={'SKCa':SK_Z_params,
-           'CaL12': CDI_Z_params,
-           'CaL13': CDI_Z_params,
-           'CaN': CDI_Z_params,
-           'CaR': CDI_Z_params,
-           'CaT': CDI_Z_params
-}
-#
 ChanDict={'Krp':['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
           'KaF':['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
           'KaS':['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
