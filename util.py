@@ -26,6 +26,11 @@ except ImportError:
     def execfile(fn):
         exec(compile(open(fn).read(), fn, 'exec'))
 
+def _itemsetter(index):
+    def helper(where, value):
+        where[index] = value
+    return helper
+
 _class_template = '''\
 class {typename}(list):
     '{typename}({arg_list})'
@@ -46,7 +51,8 @@ class {typename}(list):
 _repr_template = '{name}=%r'
 
 _field_template = '''\
-    {name} = _property(_itemgetter({index:d}), doc='Alias for field number {index:d}')
+    {name} = _property(_itemgetter({index:d}), _itemsetter({index:d}),
+                       doc='Alias for field number {index:d}')
 '''
 
 def NamedList(typename, field_names, verbose=False):
@@ -72,7 +78,8 @@ def NamedList(typename, field_names, verbose=False):
 
     # Execute the template string in a temporary namespace and support
     # tracing utilities by setting a value for frame.f_globals['__name__']
-    namespace = dict(_itemgetter=_itemgetter, __name__='NamedList_%s' % typename,
+    namespace = dict(_itemgetter=_itemgetter, _itemsetter=_itemsetter,
+                     __name__='NamedList_%s' % typename,
                      OrderedDict=_OrderedDict, _property=property, _list=list)
     try:
         exec class_definition in namespace
