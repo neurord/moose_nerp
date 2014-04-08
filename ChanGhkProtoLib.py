@@ -61,7 +61,7 @@ def fix_singularities(Params,Gate):
 def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
     if printinfo:
         print(chanpath, ":", params)
-    chan = moose.HHChannel('%s' % (chanpath))
+    chan = moose.HHChannel(chanpath)
     chan.Xpower = params.Xpow
     if params.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX')
@@ -92,16 +92,16 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
 
 def NaFchan_proto(chanpath,params,Xparams,Yparams):
     v_array = np.linspace(VMIN, VMAX, VDIVS)
-    chan = moose.HHChannel('%s' % (chanpath))
+    chan = moose.HHChannel(chanpath)
     chan.Xpower = params.Xpow #creates the m gate
     mgate = moose.HHGate(chan.path + '/gateX')
     #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=VMIN
     mgate.max=VMAX
-    inf_x=Xparams.Arate/(Xparams.A_C + exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
-    tau1=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope)))
-    tau2=(Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope)))
-    tau_x=(Xparams.taumin+1000*tau1*tau2)/qfactNaF
+    inf_x = Xparams.Arate/(Xparams.A_C + exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
+    tau1 = Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
+    tau2 = Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
+    tau_x = (Xparams.taumin+1000*tau1*tau2)/qfactNaF
     if printMoreInfo:
         print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
@@ -127,7 +127,7 @@ def BKchan_proto(chanpath,params,gateParams):
     ZFbyRT=2*Farady/(R*(Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
-    if (VDIVS<=5 and CADIVS<=5 and printinfo):
+    if VDIVS<=5 and CADIVS<=5 and printinfo:
         print(v_array,ca_array)
     gatingMatrix = []
     for i,pars in enumerate(gateParams):
@@ -141,7 +141,7 @@ def BKchan_proto(chanpath,params,gateParams):
             #table.tableVector2D=gatingMatrix
 
 
-    chan = moose.HHChannel2D('%s' % (chanpath))
+    chan = moose.HHChannel2D(chanpath)
     chan.Xpower = params.Xpow
     xGate = moose.HHGate2D(chan.path + '/gateX')
     tablenames=['/tableA','/tableB']
@@ -155,7 +155,7 @@ def BKchan_proto(chanpath,params,gateParams):
         table.ydivs=CADIVS
         table.tableVector2D = gatingMatrix[i]
 
-        if (VDIVS<=5 and CADIVS<=5 and printinfo):
+        if VDIVS<=5 and CADIVS<=5 and printinfo:
             print(chan.path,tname,table.tableVector2D)
     return chan
 #Moved ChanDict from SPChanParam.py to include channel function name in the dictionary
