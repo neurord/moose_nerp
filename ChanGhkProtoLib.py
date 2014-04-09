@@ -143,6 +143,8 @@ def BKchan_proto(chanpath,params,gateParams):
 
     chan = moose.HHChannel2D('%s' % (chanpath))
     chan.Xpower = params.Xpow
+    chan.Ek=params.Erev
+    chan.Xindex="VOLT_C1_INDEX"
     xGate = moose.HHGate2D(chan.path + '/gateX')
     tablenames=['/tableA','/tableB']
     for i,tname in enumerate(tablenames):

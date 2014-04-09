@@ -51,7 +51,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = neuronclasses(plotchan,plotpow,calci
 syn,plas,stimtab=TestSynPlas(syncomp,calcium,plasYesNo,inputpath)
 
 ####---------------Current Injection
-currents = util.inclusive_range(-0.5e-9,-0.1e-9,0.05e-9)
+currents = util.inclusive_range(current1,current2,currinc)
 pg=setupinj(delay,width)
 
 ###############--------------output elements
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     Alltraces=[]
     for inj in currents:
         run_simulation(injection_current=inj, simtime=simtime)
-        #graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,calcium,currlabel)
+        graphs(vmtab,catab,plastab,currtab,plotplas,plotcurr,calcium,currlabel)
         Alltraces.append(vmtab[0][0].vec)
         if spineYesNo:
             spineFig(spinecatab,spinevmtab)

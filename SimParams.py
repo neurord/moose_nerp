@@ -13,7 +13,7 @@ calcium=1
 plasYesNo=0
 #ghkYesNo are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
-ghkYesNo=0
+ghkYesNo=1
 #spineYesNo originally defined in SpineParams.py
 spineYesNo=0
 #No point adding synapses unless they receive inputs
@@ -50,11 +50,11 @@ plotplas=1
 if not plasYesNo or not calcium:
     plotplas=0
 #plotcurr indicates whether to plot time dependent currents (or conductances)
-plotcurr=0
+plotcurr=1
 currmsg='get_Gk' # make this get_Ik to plot current
 currlabel='Cond, S'
 # graphsyn indicate whether to plot the synaptic inputs
-graphsyn=1
+graphsyn=0
 Synmsg='get_Gk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
@@ -75,7 +75,8 @@ clocka=4
 clockb=7
 
 #Third, specify values for somatic current injection and/or synaptic input
-current1=0.20e-9
+current1=0.50e-9
+current2=0.50e-9
 currinc=0.1e-9
 delay=0.08
 width=0.35
@@ -87,7 +88,7 @@ stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
 #Fourth, specify simulation time, time step:dt and solver
-simtime = 0.4999 #0.4999
+simtime = 0.1999 #0.4999
 plotdt = 0.2e-3
 simdt = 2.5e-5
 hsolve=1
