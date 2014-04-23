@@ -48,19 +48,19 @@ p_file = 'MScell-Entire.p'
 #CaL13=0.3e-6 soma,0.005e-6 dend
 #CaL12=0.6e-6 soma, 0.1e-6 dend
 #CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
-CondD1={'Krp': [7.25,7.25,7.25],
+CondD1={'Krp': [7.963,7.25,7.25],
         #'KaF': [3214, 571, 314],
-        'KaF':[1281,500,200],
-        'KaS': [277, 32.9, 0],
-        'Kir': [10.25, 10.25, 10.25],
+        'KaF':[1157,500,200],
+        'KaS': [372, 32.9, 0],
+        'Kir': [9.4644, 9.4644, 9.4644],
         'CaL13': [12*ghKluge, 5.6*ghKluge, 5.6*ghKluge],
         'CaL12': [8*ghKluge, 4*ghKluge, 4*ghKluge],
         'CaR': [20*ghKluge, 45*ghKluge, 44*ghKluge],
         'CaN': [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
         'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'NaF':[60.5e3, 1894, 927],
+        'NaF':[157890, 1894, 927],
         'SKCa':[0.5, 0.5, 0.5],
-        'BKCa':[10, 10, 10]
+        'BKCa':[10.32, 10, 10]
         }
 CondD2={'Krp': [7.25,7.25,7.25],
         #'KaF': [3214, 471, 234],

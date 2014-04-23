@@ -3,10 +3,10 @@
 *cartesian
 *asymmetric
 
-*set_global RA 2.0 
+*set_global RA 3.2599
 //change Cm to account for no spines - make 3x higher?
-*set_global CM 0.009 
-*set_global RM 2.0
+*set_global CM 0.030612
+*set_global RM 2.135
 *set_global EREST_ACT -80e-3
 *set_global ELEAK -70e-3
 
