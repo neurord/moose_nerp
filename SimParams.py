@@ -5,7 +5,7 @@
 import numpy as np
 from SynParamSpine import DendSynChans, SpineSynChans
 
-#First, optionally override parameters specifying model detail
+##############33First, optionally override parameters specifying model detail
 #calcium and plasyesno are originally defined in CaPlasParam.py
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
@@ -30,7 +30,7 @@ if not single:
     neurnameNum=2
 else:
     title1 = 'single'
-#These numbers are used with split to extract channel and compartment names
+####These numbers are used with split to extract channel and compartment names
 neurTypeNum=1
 compNameNum=2
 chanNameNum=3
@@ -49,8 +49,8 @@ plotplas=1
 #to prevent you from plotting plasticity if not created:
 if not plasYesNo or not calcium:
     plotplas=0
-#plotcurr indicates whether to plot time dependent currents (or conductances)
-plotcurr=1
+######################plotcurr indicates whether to plot time dependent currents (or conductances)
+plotcurr=0
 currmsg='get_Gk' # make this get_Ik to plot current
 currlabel='Cond, S'
 # graphsyn indicate whether to plot the synaptic inputs
@@ -74,12 +74,12 @@ showclocks=0
 clocka=4
 clockb=7
 
-#Third, specify values for somatic current injection and/or synaptic input
-current1=0.50e-9
-current2=0.50e-9
-currinc=0.1e-9
+#####################Third, specify values for somatic current injection and/or synaptic input
+current1=0.25e-9
+current2=0.35e-9
+currinc=0.05e-9
 delay=0.08
-width=0.35
+width=0.4
 
 #For single neuron, provide synaptic input at specified times, to compartment specified
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
@@ -87,8 +87,8 @@ inputpath='/input'
 stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
-#Fourth, specify simulation time, time step:dt and solver
-simtime = 0.1999 #0.4999
+###################Fourth, specify simulation time, time step:dt and solver
+simtime = 0.4999 #0.4999
 plotdt = 0.2e-3
 simdt = 2.5e-5
 hsolve=1
