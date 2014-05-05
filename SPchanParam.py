@@ -94,12 +94,12 @@ Krp_X_params = AlphaBetaChannelParams(A_rate = 16*qfactKrp,
                                       A_B = 0,
                                       A_C = 0.0,
                                       Avhalf = 0,
-                                      A_vslope = -24e-3,
+                                      A_vslope = -20e-3,
                                       B_rate = 2.4*qfactKrp,
                                       B_B = 0.0,
                                       B_C = 0.0,
                                       Bvhalf = 0.0,
-                                      B_vslope = 45e-3)
+                                      B_vslope = 40e-3)
 
 # tuned to fit Nisenbaum 1996 fig 9D (hinf, 87% inactivating) and 9B (htau)
 Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
