@@ -3,18 +3,19 @@
 Make a plasticity device in that compartment/synapse
 """
 from __future__ import print_function, division
+import os
 from param_sim import printinfo, printMoreInfo
-import moose 
 import param_cond as parcond
-import param_ca_plas as parcal
+import moose 
 
-def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
+def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/' + parplas.caName
+    calname = compname + '/' + caName
     cal=moose.element(calname)
-    syn=moose.element(synchan)
-    if printMoreInfo:
-        print("PLAS",syn.path,syn.synapse[0],cal.path)
+    shname=synchan.path+'/SH'
+    sh=moose.element(shname)
+    if printinfo:
+        print("PLAS",synchan.path,sh.synapse[0],cal.path)
     #
     plasname=compname+'/plas'
     plas=moose.Func(plasname)
@@ -35,19 +36,19 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     moose.connect(plas,'valueOut',plasCum,'xIn')
     moose.connect(plasCum,'valueOut',plasCum, 'yIn')
     plasCum.expr="(x+1.0)*y*z"
-    plasCum.z=syn.synapse[0].weight
+    plasCum.z=sh.synapse[0].weight
     plasCum.y=1.0
-    moose.connect(plasCum,'valueOut',syn.synapse[0],'set_weight')
+    moose.connect(plasCum,'valueOut',sh.synapse[0],'setWeight')
     
     return {'cum':plasCum,'plas':plas}
 
-def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
+def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
     plaslist=[]
     if printinfo:
         print("PLAS", cells)
     if not cells:
         for synchan in synPop:
-            plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
+            plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
     else:
         for cell in cells:
             for br in range(len(synPop)):
@@ -56,5 +57,5 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
                 synchan=moose.element(cell+'/'+compname)
                 if printMoreInfo:
                     print("ADDPLAS",cell,compname,synchan)
-                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
+                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
     return plaslist

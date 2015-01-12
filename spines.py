@@ -1,14 +1,17 @@
 #spines.py
 from __future__ import print_function, division
+import moose 
 import param_spine as parsp
+from param_sim import printinfo, printMoreInfo
+import numpy as np
 
 def setSpineCompParams(comp,compdia,complen):
     comp.diameter=compdia
     comp.length=complen
-    XArea=math.pi*compdia*compdia/4
-    circumf=math.pi*compdia
-    if printinfo:
-        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",spineCM*complen*circumf)
+    XArea=np.pi*compdia*compdia/4
+    circumf=np.pi*compdia
+    if printMoreInfo:
+        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",parsp.spineCM*complen*circumf)
     comp.Ra=parsp.spineRA*complen/XArea
     comp.Rm=parsp.spineRM/(complen*circumf)
     cm=parsp.spineCM*compdia*circumf
@@ -23,7 +26,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #unfortunately, these values specified in the .p file are not accessible
     neckName=compName+str(index)+parsp.nameneck
     neck=moose.Compartment(parentComp.path+'/'+neckName)
-    if printinfo:
+    if printMoreInfo:
         print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
@@ -54,7 +57,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
 def addSpines(container,ghkYN):
     headarray=[]
     for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
-        if 'soma' not in comp:
+        if 'soma' not in comp.path:
             numSpines=int(np.round(parsp.spineDensity*comp.length))
             spineSpace=comp.length/(numSpines+1)
             for index in range(numSpines):

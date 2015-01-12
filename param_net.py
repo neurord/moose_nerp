@@ -1,5 +1,5 @@
 #NetParams.py
-networkname='/network'
+netname='/network'
 netsizeX=2
 netsizeY=2
 fractionD1=0.5

@@ -6,7 +6,9 @@ Function definitions for making and connecting populations
 Note that connecting external Poisson trains is done in ExtConn.py
 """
 from __future__ import print_function, division
-from param_sim import printinfo
+from param_sim import printinfo,calcium
+import param_cond as parcond
+from param_chan import ChanDict
 import numpy as np
 import moose
 
@@ -37,7 +39,7 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
             for chan in ChanDict:
-                if Condset[neurontypes[neurnum]][chan][0]>0 and chanvar[chan]>0:
+                if parcond.Condset[neurontypes[neurnum]][chan][0]>0 and parcond.chanvar[chan]>0:
                     chancomp=moose.element(comp.path+'/'+chan)
                     chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, chanvar[chan]))
             #spike generator
@@ -100,5 +102,5 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
                 prelist.append((precomp,xpre,xpost))
                 distloclist.append((dist,prob))
                 #connect the synapse
-                synconn(synpath,dist,spikegen[ii],mindelay,cond_vel)
+                synconn(synpath,dist,spikegen[ii],calcium,mindelay,cond_vel)
     return {'post': postlist, 'pre': prelist, 'dist': distloclist}

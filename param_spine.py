@@ -1,5 +1,5 @@
 #SpineParams.py
-from SPcondParamSpine import ghKluge
+from param_cond import ghKluge
 
 spineDensity=0.1e6      #should make this distance dependent
 necklen=0.3e-6          #define all these parameters elsewhere
@@ -17,3 +17,10 @@ spineEREST=-80e-3
 spineYesNo=1
 spineChanList=[] #['CaL13']
 spineCond=[0.1*ghKluge]
+
+####These numbers are used with split to extract channel and compartment names
+spineNameNum=3
+spineChanNum=4
+#within SpineName, character 5 has spine number
+spineNumLoc=5
+

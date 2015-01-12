@@ -1,7 +1,11 @@
 #calcium.py
 from __future__ import print_function, division
-import param_ca_plas as parca
+import param_ca_plas as parcal
 import param_cond as parcond
+from param_sim import printMoreInfo
+import moose 
+import numpy as np
+import os
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
@@ -18,12 +22,12 @@ def CaProto(thick,basal,ctau,poolname):
 def addCaPool(comp,poolname):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
-    SA=pi*length*diam
+    SA=np.pi*length*diam
         #create the calcium pools in each compartment
     caproto=moose.element('/library/'+poolname)
     capool = moose.copy(caproto, comp, poolname)[0]
     vol=SA*capool.thick
-    capool.B = 1/(Faraday*vol*2)/parca.BufCapacity
+    capool.B = 1/(parcond.Faraday*vol*2)/parcal.BufCapacity
     if printMoreInfo:
         print("CALCIUM", capool.path, length,diam,capool.thick,vol)
     return capool
@@ -41,11 +45,11 @@ def connectVDCC_KCa(ghkYN,comp,capool):
     chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
     for chan in chan_list:
         channame = chan.path.split('/')[parcond.chanNameNum]
-        if isCaChannel(channame):
+        if parcond.isCaChannel(channame):
             if (ghkYN==0):
                     #do nothing if ghkYesNo==1, since already connected the single GHK object 
                 m=moose.connect(chan, 'IkOut', capool, 'current')
-        elif isKCaChannel(channame):
+        elif parcond.isKCaChannel(channame):
             m=moose.connect(capool, 'concOut', chan, 'concen')
             if printMoreInfo:
                 print("channel message", chan.path,comp.path, m)

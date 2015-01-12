@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-######## SPnetSpineSim.py ############
+######## SPnetSim.py ############
 """\
 Code to create SP neuron using dictionaries for channels and synapses
 
@@ -24,38 +24,26 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-
 import moose 
 
 import util
-from util import execfile
-from SPcondParamSpine import *
-from SPchanParam import *
-from SynParamSpine import *
-from SpineParams import *
-from CaPlasParam import *
-from NetParams import *
-from SimParams import *
-execfile('ChanGhkProtoLib.py')
-execfile('CaFuncSpine.py')
-execfile('SynProtoSpine.py')
-execfile('makeSpine.py')
-execfile('CellProtoSpine.py')
-execfile('CaPlasFunc.py')
-execfile('injectfunc.py')
-execfile('CreateNetwork.py')
-execfile('PopFuncsSpine.py')
-execfile('ExtConnSpine.py')
-execfile('AssignClocks.py')
-execfile('PlotChannel2.py')
-execfile('NetgraphSpine.py')
-execfile('NetOutput.py')
+import param_sim as sim
+from param_cond import neurontypes
+import cell_proto as cell
+import param_net as netpar
+import create_network as net
+import clocks as clock
+import inject_func as inj
+import net_graph as graph
+#Not yet converted/debugged
+#execfile('NetgraphSpine.py')
+#execfile('NetOutput.py')
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads=neuronclasses(plotchan,plotpow,calcium,synYesNo,spineYesNo,ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
 
-MSNpop,SynPlas=CreateNetwork(inputpath,networkname,infile+'.npz',calcium,plasYesNo,single,confile,spineYesNo)
+MSNpop,SynPlas=net.CreateNetwork(sim.inpath,netpar.netname,netpar.infile+'.npz',netpar.confile,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
 
 ###------------------Current Injection
 currents = util.inclusive_range(current1)
@@ -64,7 +52,7 @@ pg=setupinj(delay,width)
 ##############--------------output elements
 data = moose.Neutral('/data')
 if showgraphs:
-    vmtab,syntab,catab,plastab,plasCumtab,spcatab,spsyntab = graphtables(single,plotnet,plotplas,calcium,spineYesNo)
+    vmtab,syntab,catab,plastab,plasCumtab,spcatab,spsyntab = graphtables(neuron,single,plotnet,SynPlas,calcium,spineHeads,MSNpop)
 else:
     vmtab=[]
 #
@@ -73,16 +61,12 @@ spiketab, vmtab=SpikeTables(single,MSNpop,showgraphs,vmtab)
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-if single:
+if sim.single:
     simpath=['/'+neurotype for neurotype in neurontypes]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
-    simpath=[networkname]
-assign_clocks(simpath,inputpath, '/data', simdt, plotdt,hsolve)
-
-#Make sure elements have been assigned clocks
-if (showclocks):
-    printclocks(clocka,clockb)
+    simpath=[netpar.netname]
+clock.assign_clocks(simpath, '/data', sim.simdt, sim.plotdt, sim.hsolve)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -93,9 +77,9 @@ def run_simulation(injection_current, simtime):
 
 if __name__ == '__main__':
     for inj in currents:
-        run_simulation(injection_current=inj, simtime=simtime)
+        run_simulation(injection_current=inj, simtime=sim.simtime)
         if showgraphs:
-            graphs(vmtab,syntab,catab,plastab,plasCumtab,spcatab,graphsyn,plotplas,calcium,spineYesNo)
+            graph.graphs(vmtab,syntab,catab,plastab,plasCumtab,spcatab,graphsyn,sim.plotplas,sim.calcium,sim.spineYesNo)
             plt.show()
-        if not single:
-            writeOutput(outfile+str(inj),spiketab,vmtab)
+        if not sim.single:
+            writeOutput(netpar.outfile+str(inj),spiketab,vmtab)

@@ -12,6 +12,10 @@ SynChanDict={'ampa': SynAMPA,
              'gaba': SynGaba,
              'nmda': SynNMDA}
 
+#fraction of nmda current carried by calcium
+#Note that since Ca reversal produces ~2x driving potential,
+#need to make this half of typical value
+nmdaCaFrac=0.05
 
 #C is concentration of Mg, A is 1/eta and B is 1/gamma, 
 #Rebekah's:

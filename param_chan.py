@@ -11,6 +11,7 @@ from util import NamedList
 #
 # where x is membrane voltage and y is the rate constant
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
+#Parameters for Ca channels may need to be shifted - see Dorman model
 krev=-87e-3
 narev=50e-3
 carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3

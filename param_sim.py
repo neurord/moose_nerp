@@ -3,21 +3,21 @@
 #plas=plasticity elements and synaptic input, curr=ionic currents
 
 import numpy as np
-from SynParamSpine import DendSynChans, SpineSynChans
+from param_syn import DendSynChans, SpineSynChans
 
-##############33First, optionally override parameters specifying model detail
+############## First, optionally override parameters specifying model detail
 #calcium and plasyesno are originally defined in CaPlasParam.py
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
 #include or exclude plasticity based on calcium
-plasYesNo=0
+plasYesNo=1
 #ghkYesNo are originally defined in SPcondparams.py
 #note that if ghkYesNo=0, make sure that ghKluge = 1
-ghkYesNo=1
+ghkYesNo=0
 #spineYesNo originally defined in SpineParams.py
-spineYesNo=0
+spineYesNo=1
 #No point adding synapses unless they receive inputs
-synYesNo=0
+synYesNo=1
 
 # The parameter single only used in SPnetSpineSim.py
 # set single=1 to create a single neuron of each type with synaptic input 
@@ -30,14 +30,7 @@ if not single:
     neurnameNum=2
 else:
     title1 = 'single'
-####These numbers are used with split to extract channel and compartment names
-neurTypeNum=1
-compNameNum=2
-chanNameNum=3
-spineNameNum=3
-spineChanNum=4
-#within SpineName, character 5 has spine number
-spineNumLoc=5
+
 if not spineYesNo:
     #put all the synaptic channels in the dendrite.  
     #These lists are in SynParamSpine.py
@@ -51,11 +44,11 @@ if not plasYesNo or not calcium:
     plotplas=0
 ######################plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
-currmsg='get_Gk' # make this get_Ik to plot current
+currmsg='getGk' # make this get_Ik to plot current
 currlabel='Cond, S'
 # graphsyn indicate whether to plot the synaptic inputs
 graphsyn=0
-Synmsg='get_Gk'  # make this get_Ik to plot current
+Synmsg='getGk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
 plotchan=0
@@ -65,25 +58,25 @@ plotpow=1
 plotnet=1
 showgraphs=1
 #whether to plot additional information during simulation set-up
-printinfo=0
+printinfo=1
 #printMoreInfo is compartment based - generates a lot
 printMoreInfo=0
 
 #showclocks=1 will show which elements are assigned to clocks between a and b
-showclocks=0
-clocka=4
-clockb=7
+showclocks=1
+clocka=3
+clockb=6
 
 #####################Third, specify values for somatic current injection and/or synaptic input
 current1=0.25e-9
 current2=0.35e-9
-currinc=0.05e-9
-delay=0.08
+currinc=0.1e-9
+delay=0.1
 width=0.4
 
 #For single neuron, provide synaptic input at specified times, to compartment specified
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
-inputpath='/input'
+inpath='/input'
 stimtimes=[0.04,0.19,0.46]
 syncomp=4
 

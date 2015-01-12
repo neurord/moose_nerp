@@ -20,7 +20,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
     moose.setClock(3, simdt)
     moose.setClock(4, simdt)
     moose.setClock(5, simdt)
-    moose.setClock(6, plotdt)
+    moose.setClock(9, plotdt)
     for path in model_container_list:
         if hsolve:
             hsolve = moose.HSolve( '%s/hsolve' % (path))
@@ -29,6 +29,6 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
                 print("hsolve clock", hsolve.path, hsolve.dt,hsolve.tick)
             moose.useClock( 1, '%s/hsolve' % (path), 'process' )
             hsolve.dt=simdt
-    moose.useClock(6, '%s/##[TYPE=Table]' % (dataName), 'process')
+    moose.useClock(9, '%s/##[TYPE=Table]' % (dataName), 'process')
     moose.reinit()
 

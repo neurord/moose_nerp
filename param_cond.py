@@ -4,6 +4,7 @@
 # such as whether to use GHK, or whether to have real spines
 
 import numpy as np
+from param_sim import ghkYesNo
 
 def isCaChannel(channame):
     return channame.startswith('Ca')
@@ -13,12 +14,15 @@ def isKCaChannel(channame):
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
-ghkYesNo=1
-ghKluge=0.35e-6        #set this = 1 if ghkYesNo=0, ~0.35e-6 for ghkYesNo=1
+if ghkYesNo:
+    ghKluge=0.35e-6
+else:
+    ghKluge=1
+
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 ConcOut=2e-3     # default for GHK is 2e-3
-Temp=30         # Celsius, needed for GHK object
-Farady=96485
+Temp=30         # Celsius, needed for GHK objects, some channels
+Faraday=96485.3415
 R=8.31
 
 #dictionary to index the Conductance and synapses with distance
@@ -29,8 +33,13 @@ distTable=[26.1e-6,   # "prox"
 #neurontype of each neuron created, with set of conductances
 neurontypes=['D1', 'D2']
 
+####These numbers are used with split to extract channel and compartment names
+neurTypeNum=1
+compNameNum=2
+chanNameNum=3
+
 #will eventually use different morphologies also
-p_file = 'MScell-Entire.p'
+morph_file = 'MScell-Entire.p'
 
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa

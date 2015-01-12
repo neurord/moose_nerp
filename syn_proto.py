@@ -1,13 +1,19 @@
+#syn_proto.py
 """\
 Function definitions for making channels.
 """
 
 from __future__ import print_function, division
+import numpy as np
 
 from util import dist_num
+import moose 
 import param_syn as parsyn
+import param_chan as parchan
+import param_cond as parcond
+from param_sim import printinfo, printMoreInfo
 
-def make_synchan(chanpath,synparams):
+def make_synchan(chanpath,synparams,ghkYN,calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
     if printinfo:
         print('synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev'])
@@ -20,48 +26,48 @@ def make_synchan(chanpath,synparams):
     if synparams['name']=='nmda':
         blockname=synchan.path+'/mgblock'
         mgblock=moose.MgBlock(blockname)
-        mgblock.KMg_A=mgparams['A']
-        mgblock.KMg_B=mgparams['B']
-        mgblock.CMg=mgparams['C']
+        mgblock.KMg_A=parsyn.mgparams['A']
+        mgblock.KMg_B=parsyn.mgparams['B']
+        mgblock.CMg=parsyn.mgparams['C']
         mgblock.Ek=synparams['Erev']
         mgblock.Zk=2
         if printinfo:
-            print('nmda',blockname,mgblock,mgparams)
+            print('nmda',blockname,mgblock,parsyn.mgparams)
         moose.connect(synchan,'channelOut', mgblock,'origChannel')
-        if calcium:
+        if calYN:
         #This duplicate nmda current prevents reversal of calcium current
         #It needs its own Mg Block, since the output will only go to the calcium pool
         #If necessary, can make the decay time faster for the calcium part of NMDA
             synchan2=moose.SynChan(synchan.path+'/CaCurr')
             synchan2.tau1 = synparams['tau1']
             synchan2.tau2 = synparams['tau2']
-            synchan2.Ek = carev
+            synchan2.Ek = parchan.carev
             blockname=synchan2.path+'/mgblock'
             mgblock2=moose.MgBlock(blockname)
-            mgblock2.KMg_A=mgparams['A']
-            mgblock2.KMg_B=mgparams['B']
-            mgblock2.CMg=mgparams['C']
-            mgblock2.Ek=carev
+            mgblock2.KMg_A=parsyn.mgparams['A']
+            mgblock2.KMg_B=parsyn.mgparams['B']
+            mgblock2.CMg=parsyn.mgparams['C']
+            mgblock2.Ek=parchan.carev
             mgblock2.Zk=2
             moose.connect(synchan2,'channelOut', mgblock2,'origChannel')
-            if ghkYesNo:
+            if ghkYN:
                 #Note that ghk must receive input from MgBlock, NOT MgBLock to ghk
                 ghk=moose.GHK(synchan2.path+'/ghk')
-                ghk.T=Temp
-                ghk.Cout=ConcOut
+                ghk.T=parcond.Temp
+                ghk.Cout=parcond.ConcOut
                 ghk.valency=2
                 if printinfo:
                     print("CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path)
                 moose.connect(mgblock2,'ghk',ghk, 'ghk')
     return synchan
 
-def synchanlib():
+def synchanlib(ghkYN,calYN):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     synchan=list()
     for key in parsyn.SynChanDict:
         chanpath='/library/'+key
-        synchan.append(make_synchan(chanpath,parsyn.SynChanDict[key]))
+        synchan.append(make_synchan(chanpath,parsyn.SynChanDict[key],ghkYN,calYN))
     print(synchan)
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
@@ -69,7 +75,7 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
     if printMoreInfo:
         print("adding channel",chanpath,"to",syncomp.path,"from",proto.path)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
-    synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
+    synchan.Gbar = np.random.normal(gbar,gbar*parsyn.GbarVar)
     if chanpath=='nmda':
         #mgblock, CaCurr, and ghk were copied above if they exist
         mgblock=moose.element(synchan.path+'/mgblock')
@@ -85,11 +91,11 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
             moose.connect(syncomp,'VmOut',mgblock2, 'Vm')
             if ghkYN:
                 ghk=moose.element(synchan2.path+'/ghk')
-                synchan2.Gbar=synchan.Gbar*nmdaCaFrac*ghKluge
+                synchan2.Gbar=synchan.Gbar*parsyn.nmdaCaFrac*parcond.ghKluge
                 #unidirectional connection from comp to ghk
                 moose.connect(syncomp, 'VmOut', ghk,'handleVm')
             else:
-                synchan2.Gbar=synchan.Gbar*nmdaCaFrac
+                synchan2.Gbar=synchan.Gbar*parsyn.nmdaCaFrac
     else:
         #bidirectional connection from synchan to compartment when not NMDA:
         m = moose.connect(syncomp, 'channel', synchan, 'channel')
@@ -127,14 +133,14 @@ def add_synchans(container,calYN,ghkYN):
         #calculate distance from soma
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
-        dist=sqrt(xloc*xloc+yloc*yloc)
+        dist=np.sqrt(xloc*xloc+yloc*yloc)
         #create array of number of synapses per compartment based on distance
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
         #Check in ExtConn - how is SynPerComp used
 
-        num = dist_num(distTable, dist)
-        SynPerComp[i,GABA] = parsyn.NumGaba[num]
-        SynPerComp[i,GLU] = parsyn.NumGlu[num]
+        num = dist_num(parcond.distTable, dist)
+        SynPerComp[i,parsyn.GABA] = parsyn.NumGaba[num]
+        SynPerComp[i,parsyn.GLU] = parsyn.NumGlu[num]
 
     #end of iterating over compartments
     #now, transform the synchans into a dictionary

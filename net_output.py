@@ -1,4 +1,4 @@
-#NetOutput.py
+#net_output.py
 """\
 Create table for spike generators of network, and Vm when not graphing.
 """
@@ -19,7 +19,7 @@ def SpikeTables(single,MSNpop,showgraphs,vmtab):
                 if not showgraphs:
                     vmtab[typenum].append(moose.Table('/data/soma%s_%s'%(neurtype,neurnum)))
                     plotcomp=moose.element(neurpath+'/soma')
-                    m=moose.connect(vmtab[typenum][tabnum], 'requestData', plotcomp, 'get_Vm')
+                    m=moose.connect(vmtab[typenum][tabnum], 'requestOut', plotcomp, 'getVm')
     return spiketab, vmtab
 
 def writeOutput(outfilename,spiketab,vmtab):
@@ -37,7 +37,7 @@ def writeOutput(outfilename,spiketab,vmtab):
             neurnum=int(neurname[underscore+1:])
             if printinfo:
                 print(neurname,"is", neurtype,", num=",neurnum,spiketab[typenum][tabnum].path,vmtab[typenum][tabnum])
-            outspiketab[typenum].append(insert(spiketab[typenum][tabnum].vec,0, neurnum))
-            outVmtab[typenum].append(insert(vmtab[typenum][tabnum].vec,0, neurnum))
+            outspiketab[typenum].append(insert(spiketab[typenum][tabnum].vector,0, neurnum))
+            outVmtab[typenum].append(insert(vmtab[typenum][tabnum].vector,0, neurnum))
     savez(outspikefile,D1=outspiketab[0],D2=outspiketab[1])
     savez(outvmfile,D1=outVmtab[0],D2=outVmtab[1])

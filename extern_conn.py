@@ -1,24 +1,32 @@
 from __future__ import print_function, division
-from param_sim import printinfo
+from param_sim import printinfo, printMoreInfo
 import numpy as np
 import moose
 
-def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
-    s=moose.SynChan(synpath)
-    s.synapse.num = s.synapse.num+1
-    jj=s.synapse.num-1
-    s.synapse[jj].delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
+def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
+    synchan=moose.element(synpath)
+    shname=synchan.path+'/SH'
+    sh=moose.SimpleSynHandler(shname)
+    if sh.synapse.num==1:
+        moose.connect(sh, 'activationOut', synchan, 'activation')
+    jj=sh.synapse.num
+    sh.synapse.num = sh.synapse.num+1
+    sh.synapse[jj].delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
     if printMoreInfo:
-        print("SYNAPSE:", synpath,jj,s.synapse.num,s.synapse[jj].delay)
+        print("SYNAPSE:", synpath,jj,sh.synapse.num,sh.synapse[jj].delay)
     #It is possible to set the synaptic weight here.  
-    m = moose.connect(presyn, 'event', moose.element(s.path + '/synapse'), 'addSpike')
-    if 'nmda' in synpath and calcium:
-        synchanCa=moose.SynChan(s.path+'/CaCurr')
-        synchanCa.synapse.num=s.synapse.num
-        synchanCa.synapse[jj].delay=s.synapse[jj].delay
+    m = moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
+    if 'nmda' in synchan.path and cal:
+        synchanCa=moose.SynChan(synchan.path+'/CaCurr')
+        shnameCa=synchanCa.path+'/SH'
+        shca=moose.SimpleSynHandler(shnameCa)
+        if shca.synapse.num==1:
+            moose.connect(shca, 'activationOut', synchan, 'activation')
+        shca.synapse.num=sh.synapse.num
+        shca.synapse[jj].delay=sh.synapse[jj].delay
         if printMoreInfo:
-            print("NMDA Syn", synchanCa.path, moose.element(synchanCa.path + '/synapse'))
-        m = moose.connect(presyn, 'event', moose.element(synchanCa.path + '/synapse'), 'addSpike')
+            print("NMDA Syn", synchanCa.path, moose.element(shca))
+        m = moose.connect(presyn, 'eventOut', shca.synapse[jj], 'addSpike')
 
 def filltimtable(spikeTime,simtime,name,path):
     stimtab=[]
@@ -27,7 +35,7 @@ def filltimtable(spikeTime,simtime,name,path):
         stimtimes=spikeTime[ii][spikeTime[ii]<simtime]
     #create stimtab and fille it with the 0-1 vector
         stimtab.append(moose.TimeTable(path+'/%sTimTab%s' % (name,ii)))
-        stimtab[ii].vec=stimtimes
+        stimtab[ii].vector=stimtimes
     #
     return stimtab
 

@@ -10,15 +10,19 @@ If no inactivation, just send in empty Yparam array.
 """
 
 from __future__ import print_function, division
+import moose 
 import param_chan as parchan
 import param_cond as parcond
+from param_sim import printinfo, printMoreInfo
+import numpy as np
 
 VMIN = -120e-3
 VMAX = 50e-3
-VDIVS = 3401
+VDIVS = 3401 #0.5 mV steps
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS=4001 #10 nM steps
+import plot_channel as plot
 
 def interpolate_values_in_table(tabA,V_0,l=40):
     '''This function interpolates values in the table
@@ -83,7 +87,7 @@ def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
         zgate.max=CAMAX
         caterm=(ca_array/Zparams.Kd)**Zparams.power
         inf_z=caterm/(1+caterm)
-        tau_z=Zparams.tau*ones(len(ca_array))
+        tau_z=Zparams.tau*np.ones(len(ca_array))
         zgate.tableA=inf_z / tau_z
         zgate.tableB=1 / tau_z
         chan.useConcentration=True
@@ -100,10 +104,10 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=VMIN
     mgate.max=VMAX
-    inf_x = Xparams.Arate/(Xparams.A_C + exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
-    tau1 = Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
-    tau2 = Xparams.tauVdep/(1+exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
-    tau_x = (Xparams.taumin+1000*tau1*tau2)/qfactNaF
+    inf_x = Xparams.Arate/(Xparams.A_C + np.exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
+    tau1 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
+    tau2 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
+    tau_x = (Xparams.taumin+1000*tau1*tau2)/parchan.qfactNaF
     if printMoreInfo:
         print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
@@ -115,8 +119,8 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     hgate = moose.HHGate(chan.path + '/gateY')
     hgate.min=VMIN
     hgate.max=VMAX
-    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/qfactNaF
-    inf_y=Yparams.Arate/(Yparams.A_C + exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
+    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+np.exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/parchan.qfactNaF
+    inf_y=Yparams.Arate/(Yparams.A_C + np.exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
     if printMoreInfo:
         print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
     hgate.tableA = inf_y / tau_y
@@ -126,7 +130,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
 
 def BKchan_proto(chanpath,params,gateParams):
 
-    ZFbyRT=2*Farady/(R*(Temp+273.15))
+    ZFbyRT=2*parcond.Faraday/(parcond.R*(parcond.Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
     if VDIVS<=5 and CADIVS<=5 and printinfo:
@@ -148,19 +152,20 @@ def BKchan_proto(chanpath,params,gateParams):
     chan.Ek=params.Erev
     chan.Xindex="VOLT_C1_INDEX"
     xGate = moose.HHGate2D(chan.path + '/gateX')
-    tablenames=['/tableA','/tableB']
-    for i,tname in enumerate(tablenames):
-        table=moose.element(xGate.path+tname)
-        table.xmin=VMIN
-        table.xmax=VMAX
-        table.xdivs=VDIVS
-        table.ymin=CAMIN
-        table.ymax=CAMAX
-        table.ydivs=CADIVS
-        table.tableVector2D = gatingMatrix[i]
-
-        if VDIVS<=5 and CADIVS<=5 and printinfo:
-            print(chan.path,tname,table.tableVector2D)
+    xGate.xminA=xGate.xminB=VMIN
+    xGate.xmaxA=xGate.xmaxB=VMAX
+    xGate.xdivsA=xGate.xdivsB=VDIVS
+    xGate.yminA=xGate.yminB=CAMIN
+    xGate.ymaxA=xGate.ymaxB=CAMAX
+    xGate.ydivsA=xGate.ydivsB=CADIVS
+    xGate.tableA=gatingMatrix[0]
+    xGate.tableB=gatingMatrix[1]
+    if printinfo:
+        print(chan.path)
+        for ii in np.arange(0, VDIVS,1000):
+            print("V=", VMIN+ii*(VMAX-VMIN)/(VDIVS-1))
+            for jj in np.arange(0,CADIVS,1000):
+                print("    Ca=", CAMIN+jj*(CAMAX-CAMIN)/(CADIVS-1), "A,B=", xGate.tableA[ii][jj],xGate.tableB[ii][jj])
     return chan
 #ChanDict (param_chan.py) includes channel function name in the dictionary
 
@@ -185,9 +190,9 @@ def chanlib(plotchan,plotpow):
     if parcond.ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=parcond.Temp
-        ghk.Cout=parond.ConcOut
+        ghk.Cout=parcond.ConcOut
         ghk.valency=2
     #
     if plotchan:
         for libchan in chan:
-            plot_gate_params(libchan,plotpow)
+            plot.plot_gate_params(libchan,plotpow, VMIN, VMAX, CAMIN, CAMAX)

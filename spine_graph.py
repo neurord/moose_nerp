@@ -1,3 +1,4 @@
+#spine_graph.py
 from __future__ import print_function, division
 
 import os
@@ -24,18 +25,18 @@ def spinetabs():
 
 def spineFig(spinecatab,spinevmtab):
     figure()
-    t = np.linspace(0, simtime, len(spinevmtab[0][0].vec))
+    t = np.linspace(0, simtime, len(spinevmtab[0][0].vector))
     if calcium:
         subplot(211)
     for neurnum in range(len(neurontypes)):
         for oid in spinevmtab[neurnum]:
-            plt.plot(t,oid.vec,label=oid.path[oid.path.rfind('_')-2:])
+            plt.plot(t,oid.vector,label=oid.path[oid.path.rfind('_')-2:])
         plt.ylabel('Vm')
     if calcium:
         subplot(212)
         for neurnum in range(len(neurontypes)):
             for oid in spinecatab[neurnum]:
-                plt.plot(t,1000*oid.vec,label=oid.path[oid.path.rfind('_')-2:])
+                plt.plot(t,1000*oid.vector,label=oid.path[oid.path.rfind('_')-2:])
             plt.ylabel('calcium, uM')
     plt.legend()
     plt.show()
