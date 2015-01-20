@@ -39,9 +39,12 @@ except ImportError:
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
 MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
+
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 syn,plas,stimtab=test.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
 
+#print number of GLU inputs, information for synaptic activation
+print(len(spineheads[ntype]) if len(spineheads) else synarray[ntype].sum(axis=0)[GLU])
 ####---------------Current Injection
 currents = util.inclusive_range(sim.current1,sim.current2,sim.currinc)
 pg=inj.setupinj(sim.delay,sim.width,neuron)

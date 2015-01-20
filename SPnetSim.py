@@ -35,28 +35,26 @@ import create_network as net
 import clocks as clock
 import inject_func as inj
 import net_graph as graph
-#Not yet converted/debugged
-#execfile('NetgraphSpine.py')
-#execfile('NetOutput.py')
+import net_output as netout
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
 
-MSNpop,SynPlas=net.CreateNetwork(sim.inpath,netpar.netname,netpar.infile+'.npz',netpar.confile,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
+MSNpop,SynPlas=net.CreateNetwork(sim.inpath,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
 
 ###------------------Current Injection
-currents = util.inclusive_range(current1)
-pg=setupinj(delay,width)
+currents = util.inclusive_range(sim.current1)
+pg=inj.setupinj(sim.delay,sim.width,neuron)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
-if showgraphs:
-    vmtab,syntab,catab,plastab,plasCumtab,spcatab,spsyntab = graphtables(neuron,single,plotnet,SynPlas,calcium,spineHeads,MSNpop)
+if sim.showgraphs:
+    vmtab,syntab,catab,plastab,sptab = graph.graphtables(neuron,sim.single,sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
 else:
     vmtab=[]
 #
-spiketab, vmtab=SpikeTables(single,MSNpop,showgraphs,vmtab)
+spiketab, vmtab=SpikeTables(sim.single,MSNpop,sim.showgraphs,vmtab)
 #
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
@@ -78,8 +76,8 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=sim.simtime)
-        if showgraphs:
-            graph.graphs(vmtab,syntab,catab,plastab,plasCumtab,spcatab,graphsyn,sim.plotplas,sim.calcium,sim.spineYesNo)
+        if sim.showgraphs:
+            graph.graphs(vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not sim.single:
-            writeOutput(netpar.outfile+str(inj),spiketab,vmtab)
+            writeOutput(netpar.outfile+str(inj),spiketab,vmtab,MSNpop)

@@ -3,11 +3,15 @@
 Create table for spike generators of network, and Vm when not graphing.
 """
 from __future__ import print_function, division
+import numpy as np
+import moose 
+import param_cond as parcond
+from param_sim import printinfo, simtime
 
 def SpikeTables(single,MSNpop,showgraphs,vmtab):
     spiketab=[]
     if not single:
-        for typenum,neurtype in enumerate(neurontypes):
+        for typenum,neurtype in enumerate(parcond.neurontypes):
             spiketab.append([])
             for tabnum,neurpath in enumerate(MSNpop['pop'][typenum]):
                 neurnum=int(neurpath[find(neurpath,'_')+1:])
@@ -22,19 +26,20 @@ def SpikeTables(single,MSNpop,showgraphs,vmtab):
                     m=moose.connect(vmtab[typenum][tabnum], 'requestOut', plotcomp, 'getVm')
     return spiketab, vmtab
 
-def writeOutput(outfilename,spiketab,vmtab):
+def writeOutput(outfilename,spiketab,vmtab,MSNpop):
     outvmfile='Vm'+outfilename
     outspikefile='Spike'+outfilename
     if printinfo:
         print("SPIKE FILE", outspikefile, "VM FILE", outvmfile)
     outspiketab=list()
     outVmtab=list()
-    for typenum,neurtype in enumerate(neurontypes):
+    for typenum,neurtype in enumerate(parcond.neurontypes):
         outspiketab.append([])
         outVmtab.append([])
         for tabnum,neurname in enumerate(MSNpop['pop'][typenum]):
             underscore=find(neurname,'_')
             neurnum=int(neurname[underscore+1:])
+            print(neurname.split('_')[1])
             if printinfo:
                 print(neurname,"is", neurtype,", num=",neurnum,spiketab[typenum][tabnum].path,vmtab[typenum][tabnum])
             outspiketab[typenum].append(insert(spiketab[typenum][tabnum].vector,0, neurnum))

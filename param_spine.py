@@ -13,8 +13,6 @@ spineCM=0.01
 spineELEAK=-50e-3
 spineEREST=-80e-3
 
-#if spinesYN=0, no spines will be created (all synapses on dendrites)
-spineYesNo=1
 spineChanList=[] #['CaL13']
 spineCond=[0.1*ghKluge]
 
