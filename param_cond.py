@@ -23,7 +23,7 @@ else:
 ConcOut=2e-3     # default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 Faraday=96485.3415
-R=8.31
+R=8.314
 
 #dictionary to index the Conductance and synapses with distance
 distTable=[26.1e-6,   # "prox"
