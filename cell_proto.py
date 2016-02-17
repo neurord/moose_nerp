@@ -3,7 +3,8 @@
 Other than the special NaF channel, this can be used to create any neuron type.
 """
 from __future__ import print_function, division
-from util import dist_num
+import os as _os
+import util as _util
 import moose 
 import numpy as np
 from param_sim import printMoreInfo
@@ -35,6 +36,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
     return
 
 def create_neuron(p_file,container,Cond,ghkYN):
+    p_file = _util.maybe_find_file(p_file, _os.path.dirname(__file__))
     cellproto=moose.loadModel(p_file, container)
     comps=[]
     #######channels
@@ -56,10 +58,10 @@ def create_neuron(p_file,container,Cond,ghkYN):
         else:
             ghk=[]
         for chanpath in parchan.ChanDict:
-            if Cond[chanpath][dist_num(parcond.distTable, dist)]:
+            if Cond[chanpath][_util.dist_num(parcond.distTable, dist)]:
                 if printMoreInfo:
-                    print("Testing Cond If", chanpath, Cond[chanpath][dist_num(parcond.distTable, dist)])
-                addOneChan(chanpath,Cond[chanpath][dist_num(parcond.distTable, dist)],comp, ghkYN, ghk)
+                    print("Testing Cond If", chanpath, Cond[chanpath][_util.dist_num(parcond.distTable, dist)])
+                addOneChan(chanpath,Cond[chanpath][_util.dist_num(parcond.distTable, dist)],comp, ghkYN, ghk)
     return {'comps': comps, 'cell': cellproto}
 
 def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):

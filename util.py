@@ -1,17 +1,18 @@
-from __future__ import division, print_function
+from __future__ import division as _, print_function as _
 import sys as _sys
+import os as _os
 from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
-import numpy as np
+import numpy as _np
 
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
         stop = start
     if stop == start:
-        return np.array([start])
+        return _np.array([start])
     if step is None:
         step = stop - start
-    return np.arange(start, stop + step/2, step)
+    return _np.arange(start, stop + step/2, step)
 
 def dist_num(table, dist):
     for num, val in enumerate(table):
@@ -103,3 +104,11 @@ def block_if_noninteractive():
         print('Simulation finished. Close all windows to exit.')
         import matplotlib.pyplot as plt
         plt.show(block=True)
+
+def maybe_find_file(name, *paths):
+    if not _os.path.isabs(name):
+        for path in paths:
+            p = _os.path.join(path, name)
+            if _os.path.exists(p):
+                return p
+    return name

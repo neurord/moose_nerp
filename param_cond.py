@@ -100,5 +100,3 @@ chanvar={'Krp': 0.04,
          'SKCa': 0.04}
 
 Condset={'D1':CondD1,'D2':CondD2}
-
-
