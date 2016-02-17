@@ -1,4 +1,3 @@
-#SimParams.py
 #Simulation and plotting parameters, as well as parameter overrides
 #plas=plasticity elements and synaptic input, curr=ionic currents
 
@@ -6,16 +5,17 @@ import numpy as np
 from param_syn import DendSynChans, SpineSynChans
 
 ############## First, optionally override parameters specifying model detail
-#calcium and plasyesno are originally defined in CaPlasParam.py
 #calcium: include or exclude calcium concentration dynamics, single tau
 calcium=1
+
 #include or exclude plasticity based on calcium
 plasYesNo=1
-#ghkYesNo are originally defined in SPcondparams.py
+
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 ghkYesNo=0
-#spineYesNo originally defined in SpineParams.py
+
 spineYesNo=1
+
 #No point adding synapses unless they receive inputs
 synYesNo=1
 
@@ -33,15 +33,17 @@ else:
 
 if not spineYesNo:
     #put all the synaptic channels in the dendrite.  
-    #These lists are in SynParamSpine.py
+    #These lists are in param_spine.py
     DendSynChans += SpineSynChans
     del SpineSynChans[:]
 
 #Second, specify which graphs of the simulation should be shown?
 plotplas=1
+
 #to prevent you from plotting plasticity if not created:
 if not plasYesNo or not calcium:
     plotplas=0
+
 ######################plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
 currmsg='getGk' # make this get_Ik to plot current

@@ -2,8 +2,7 @@
 Function definitions for making and connecting populations
 
 1. Creating the population
-2. interconnecting the population
-Note that connecting external Poisson trains is done in ExtConn.py
+2. Interconnecting the population
 """
 from __future__ import print_function, division
 from param_sim import printinfo,calcium

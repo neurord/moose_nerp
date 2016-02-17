@@ -28,7 +28,6 @@ import clocks as clock
 import inject_func as inj
 import test_plas as test
 import neuron_graph as graph
-#execfile('SpineGraphs.py')
 
 try:
     from ParamOverrides import *

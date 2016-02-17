@@ -1,4 +1,3 @@
-# SPcondParam.py
 #Do not define EREST_ACT or ELEAK here - they are in the .p file
 # Contains maximal conductances, name of .p file, and some other parameters
 # such as whether to use GHK, or whether to have real spines

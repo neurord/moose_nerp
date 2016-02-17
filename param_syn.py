@@ -29,7 +29,6 @@ mgparams={'A':(1/6.0), 'B':(1/80.0), 'C': 1.4}
 GbarVar=0.05
 
 #dictionary of synapses at each distance
-#distances defined in configSPdict.py
 
 NumGaba=[3, 2, 1]
 NumGlu=[1, 2, 3]
