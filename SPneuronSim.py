@@ -19,14 +19,14 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-import util
 import param_sim as sim
-from param_cond import neurontypes
-import cell_proto as cell
-import clocks as clock
-import inject_func as inj
-import test_plas as test
-import neuron_graph as graph
+import param_cond
+import cell_proto
+import clocks
+import inject_func
+import test_plas
+import neuron_graph
+import util
 
 try:
     from ParamOverrides import *
@@ -36,25 +36,25 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-syn,plas,stimtab=test.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
+syn,plas,stimtab=test_plas.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
 
 ####---------------Current Injection
 currents = util.inclusive_range(sim.current1,sim.current2,sim.currinc)
-pg=inj.setupinj(sim.delay,sim.width,neuron)
+pg=inject_func.setupinj(sim.delay,sim.width,neuron)
 
 ###############--------------output elements
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = graph.graphtables(neuron,sim.plotcurr,sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = neuron_graph.graphtables(neuron,sim.plotcurr,sim.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 
 ########## clocks are critical
-simpaths=['/'+neurotype for neurotype in neurontypes]
-clock.assign_clocks(simpaths, '/data', sim.simdt, sim.plotdt, sim.hsolve)
+simpaths=['/'+neurotype for neurotype in param_cond.neurontypes]
+clocks.assign_clocks(simpaths, '/data', sim.simdt, sim.plotdt, sim.hsolve)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -67,11 +67,11 @@ if __name__ == '__main__':
     Alltraces=[]
     for inj in currents:
         run_simulation(injection_current=inj, simtime=sim.simtime)
-        graph.graphs(vmtab,sim.plotcurr,currtab,sim.currlabel,catab,plastab)
+        neuron_graph.graphs(vmtab,sim.plotcurr,currtab,sim.currlabel,catab,plastab)
         Alltraces.append(vmtab[0][0].vector)
         #if sim.spineYesNo:
         #    spineFig(spinecatab,spinevmtab)
-    graph.SingleGraphSet(Alltraces,currents)
+    neuron_graph.SingleGraphSet(Alltraces,currents)
 
     # block in non-interactive mode
     util.block_if_noninteractive()
