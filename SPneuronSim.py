@@ -39,7 +39,10 @@ except ImportError:
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-syn,plas,stimtab=test_plas.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
+if sim.synYesNo:
+    syn,plas,stimtab=test_plas.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
+else:
+    syn,plas = {}, {}
 
 ####---------------Current Injection
 currents = util.inclusive_range(sim.current1,sim.current2,sim.currinc)
