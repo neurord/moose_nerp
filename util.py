@@ -97,3 +97,9 @@ def NamedList(typename, field_names, verbose=False):
         pass
 
     return result
+
+def block_if_noninteractive():
+    if not hasattr(_sys, 'ps1'):
+        print('Simulation finished. Close all windows to exit.')
+        import matplotlib.pyplot as plt
+        plt.show(block=True)

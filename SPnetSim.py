@@ -81,3 +81,6 @@ if __name__ == '__main__':
             plt.show()
         if not sim.single:
             writeOutput(netpar.outfile+str(inj),spiketab,vmtab,MSNpop)
+
+    # block in non-interactive mode
+    util.block_if_noninteractive()

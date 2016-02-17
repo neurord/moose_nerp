@@ -73,5 +73,8 @@ if __name__ == '__main__':
         #if sim.spineYesNo:
         #    spineFig(spinecatab,spinevmtab)
     graph.SingleGraphSet(Alltraces,currents)
-    
+
+    # block in non-interactive mode
+    util.block_if_noninteractive()
+
     #End of inject loop
