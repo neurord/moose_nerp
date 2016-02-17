@@ -6,8 +6,8 @@ Function definitions for making and connecting populations
 """
 from __future__ import print_function, division
 from param_sim import printinfo,calcium
-import param_cond as parcond
-from param_chan import ChanDict
+import param_cond
+import param_chan
 import numpy as np
 import moose
 
@@ -37,8 +37,9 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in ChanDict:
-                if parcond.Condset[neurontypes[neurnum]][chan][0]>0 and parcond.chanvar[chan]>0:
+            for chan in param_chan.ChanDict:
+                if (param_cond.Condset[neurontypes[neurnum]][chan][0] > 0
+                    and param_cond.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)
                     chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, chanvar[chan]))
             #spike generator
