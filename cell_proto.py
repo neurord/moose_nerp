@@ -37,7 +37,11 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
 
 def create_neuron(p_file,container,Cond,ghkYN):
     p_file = _util.maybe_find_file(p_file, _os.path.dirname(__file__))
-    cellproto=moose.loadModel(p_file, container)
+    try:
+        cellproto=moose.loadModel(p_file, container)
+    except IOError:
+        print('could not load model from {!r}'.format(p_file))
+        raise
     comps=[]
     #######channels
     for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
