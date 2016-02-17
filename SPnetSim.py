@@ -2,7 +2,7 @@
 
 ######## SPnetSim.py ############
 """\
-Code to create SP neuron using dictionaries for channels and synapses
+Create a SP neuron using dictionaries for channels and synapses
 
 This allows multiple channels to be added with minimal change to the code
 Can use ghk for calcium permeable channels if ghkYesNo=1
@@ -18,7 +18,6 @@ from __future__ import print_function, division
 
 import os
 os.environ['NUMPTHREADS'] = '1'
-from pylab import *
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()

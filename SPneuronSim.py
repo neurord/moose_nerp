@@ -12,7 +12,6 @@ from __future__ import print_function, division
 
 import os
 os.environ['NUMPTHREADS'] = '1'
-from pylab import *
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()

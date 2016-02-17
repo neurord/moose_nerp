@@ -84,8 +84,8 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             xpre=moose.element(precomp).x
             ypre=moose.element(precomp).y
             #calculate distance between pre- and post-soma
-            dist=sqrt((xpre-xpost)**2+(ypre-ypost)**2)
-            prob=exp(-(dist/fact))
+            dist=np.sqrt((xpre-xpost)**2+(ypre-ypost)**2)
+            prob=np.exp(-(dist/fact))
             connect=np.random.uniform()
             if printMoreInfo:
                 print(precomp,postsoma,dist,fact,prob,connect)
