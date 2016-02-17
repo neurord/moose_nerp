@@ -36,7 +36,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
     return
 
 def create_neuron(p_file,container,Cond,ghkYN):
-    p_file = _util.maybe_find_file(p_file, _os.path.dirname(__file__))
+    p_file = _util.maybe_find_file(p_file, '.', _os.path.dirname(__file__))
     try:
         cellproto=moose.loadModel(p_file, container)
     except IOError:
