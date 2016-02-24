@@ -83,7 +83,7 @@ def NamedList(typename, field_names, verbose=False):
                      __name__='NamedList_%s' % typename,
                      OrderedDict=_OrderedDict, _property=property, _list=list)
     try:
-        exec class_definition in namespace
+        exec(class_definition, namespace)
     except SyntaxError as e:
         raise SyntaxError(e.message + ':\n' + class_definition)
     result = namespace[typename]
