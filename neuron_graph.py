@@ -109,7 +109,7 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
             else:
                 title=plastype
                 scaling=1
-            axes = f.add_subplot(3, 1, plasnum)
+            axes = f.add_subplot(3, 1, plasnum + 1)
             for oid in plastab[plastype]:
                 name=oid.path.split('/')[-1]
                 neurnum=name.split('_')[-1].split('[')[0]
@@ -125,7 +125,7 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
         numplots=len(ChanDict)
         for plotnum, channame in enumerate(sorted(ChanDict)):
             try:
-                axes = f.add_subplot(numplots,1,plotnum)
+                axes = f.add_subplot(numplots, 1, plotnum + 1)
                 toplot = [tab.vector / (parcond.ghKluge if 'chanCa' in tab.path else 1)
                           for tab in currtab[neurtype][channame]]
                 scaling = iso_scaling(*toplot)
