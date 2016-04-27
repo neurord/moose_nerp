@@ -6,7 +6,7 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
     #print "PLOT POWER", plotpow, chan.path,chan.Xpower
     """Plot the gate parameters like m and h of the channel."""
     if chan.Xpower > 0:
-        plt.figure()
+        f = plt.figure()
         if chan.className == 'HHChannel':
             ma = moose.element(chan.path + '/gateX').tableA
             mb = moose.element(chan.path + '/gateX').tableB
@@ -80,5 +80,4 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
                 plt.xlabel('Ca [nM]')
                 plt.ylabel('Vm [V]')
                 plt.colorbar()
-
-        plt.show()
+        return f
