@@ -8,11 +8,11 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
     if chan.Xpower > 0:
         plt.figure()
         if chan.className == 'HHChannel':
-            ma = moose.element('%s/gateX' % (chan.path)).tableA
-            mb = moose.element('%s/gateX' % (chan.path)).tableB
+            ma = moose.element(chan.path + '/gateX').tableA
+            mb = moose.element(chan.path + '/gateX').tableB
             if chan.Ypower > 0:
-                ha = moose.element('%s/gateY' % (chan.path)).tableA
-                hb = moose.element('%s/gateY' % (chan.path)).tableB
+                ha = moose.element(chan.path + '/gateY').tableA
+                hb = moose.element(chan.path + '/gateY').tableB
         #
             varray=np.linspace(VMIN,VMAX,len(ma))
             plt.subplot(211)
@@ -25,63 +25,60 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
 
             plt.subplot(212)
             if plotpow:
-                "INF RAISED TO POWER", chan.path,chan.Xpower
-                inf=(ma/mb)**chan.Xpower
+                label = '(ma/mb)**{}'.format(chan.Xpower)
+                inf = (ma/mb)**chan.Xpower
             else:
-                inf=(ma/mb)
-            plt.plot(varray,inf, label='m ' + chan.path)
+                label = 'ma/mb'
+                inf = ma/mb
+            plt.plot(varray, inf, label=label)
             plt.axis([-0.12,0.05,0,1])
             if chan.Ypower > 0:
                 plt.plot(varray,ha/hb, label='h ' + chan.path)
-                plt.legend(loc='best', fontsize=8)
+            plt.legend(loc='best', fontsize=8)
         else:
-            
-            ma = moose.element('%s/gateX/tableA' % (chan.path))
-            mb = moose.element('%s/gateX/tableB' % (chan.path))
+
+            ma = moose.element(chan.path + '/gateX').tableA
+            mb = moose.element(chan.path + '/gateX').tableB
+            ma = np.array(ma)
+            mb = np.array(mb)
 
             plt.subplot(211)
-            
+
             plt.title(chan.path+'/gateX tau')
-            new_ma = np.array(ma.tableVector2D)
-            new_mb = np.array(mb.tableVector2D)
-            plt.imshow(1e3/new_mb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
-          
+            plt.imshow(1e3/mb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
+
             plt.colorbar()
             plt.subplot(212)
             if plotpow:
-                inf = (new_ma/new_mb)**chan.Xpower
-                "INF RAISED TO POWER", chan.path,chan.Xpower
-
+                inf = (ma/mb)**chan.Xpower
             else:
-                inf = new_ma/new_mb
+                inf = ma/mb
 
             plt.imshow(inf,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
             plt.xlabel('Ca [nM]')
             plt.ylabel('Vm [V]')
             plt.colorbar()
             if chan.Ypower > 0:
-                ha = moose.element('%s/gateY/tableA' % (chan.path))
-                hb = moose.element('%s/gateY/tableB' % (chan.path))
+                ha = moose.element(chan.path + '/gateY').tableA
+                hb = moose.element(chan.path + '/gateY').tableB
+                ha = np.array(ha)
+                hb = np.array(hb)
+
                 plt.figure()
                 plt.subplot(211)
                 plt.title(chan.path+'/gateY tau')
-                new_ha = np.array(ha.tableVector2D)
-                new_hb = np.array(hb.tableVector2D)
-                plt.imshow(1e3/new_hb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
+                plt.imshow(1e3/hb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
 
                 plt.colorbar()
                 plt.subplot(212)
                 if plotpow:
-                    inf = (new_ha/new_hb)**chan.Ypower
+                    inf = (ha/hb)**chan.Ypower
                 else:
-                    inf = new_ha/new_hb
+                    inf = ha/hb
 
                 plt.imshow(inf,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
                 plt.xlabel('Ca [nM]')
                 plt.ylabel('Vm [V]')
                 plt.colorbar()
-                
-        plt.show()
-    #
 
-    
+        plt.show()
