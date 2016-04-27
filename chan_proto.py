@@ -11,10 +11,12 @@ If no inactivation, just send in empty Yparam array.
 
 from __future__ import print_function, division
 import moose 
-import param_chan as parchan
-import param_cond as parcond
 from param_sim import printinfo, printMoreInfo
 import numpy as np
+
+import plot_channel
+import param_chan
+import param_cond
 
 VMIN = -120e-3
 VMAX = 50e-3
@@ -22,7 +24,6 @@ VDIVS = 3401 #0.5 mV steps
 CAMIN=0.01e-3   #10 nM
 CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS=4001 #10 nM steps
-import plot_channel as plot
 
 def interpolate_values_in_table(tabA,V_0,l=40):
     '''This function interpolates values in the table
@@ -107,7 +108,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     inf_x = Xparams.Arate/(Xparams.A_C + np.exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
     tau1 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
     tau2 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
-    tau_x = (Xparams.taumin+1000*tau1*tau2)/parchan.qfactNaF
+    tau_x = (Xparams.taumin+1000*tau1*tau2)/param_chan.qfactNaF
     if printMoreInfo:
         print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
@@ -119,7 +120,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     hgate = moose.HHGate(chan.path + '/gateY')
     hgate.min=VMIN
     hgate.max=VMAX
-    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+np.exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/parchan.qfactNaF
+    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+np.exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/param_chan.qfactNaF
     inf_y=Yparams.Arate/(Yparams.A_C + np.exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
     if printMoreInfo:
         print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
@@ -130,7 +131,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
 
 def BKchan_proto(chanpath,params,gateParams):
 
-    ZFbyRT=2*parcond.Faraday/(parcond.R*(parcond.Temp+273.15))
+    ZFbyRT=2*param_cond.Faraday/(param_cond.R*(param_cond.Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
     if VDIVS<=5 and CADIVS<=5 and printinfo:
@@ -183,16 +184,16 @@ def make_channel(chanpath,params):
 
 def chanlib(plotchan,plotpow):
     if not moose.exists('/library'):
-        lib = moose.Neutral('/library')
+        moose.Neutral('/library')
     #Adding all the channels to the library. *list removes list elements from the list,
     #so they can be used as function arguments
-    chan = [make_channel('/library/'+key, value) for key, value in parchan.ChanDict.items()]
-    if parcond.ghkYesNo:
+    chan = [make_channel('/library/'+key, value) for key, value in param_chan.ChanDict.items()]
+    if param_cond.ghkYesNo:
         ghk=moose.GHK('/library/ghk')
-        ghk.T=parcond.Temp
-        ghk.Cout=parcond.ConcOut
+        ghk.T=param_cond.Temp
+        ghk.Cout=param_cond.ConcOut
         ghk.valency=2
     #
     if plotchan:
         for libchan in chan:
-            plot.plot_gate_params(libchan,plotpow, VMIN, VMAX, CAMIN, CAMAX)
+            plot_channel.plot_gate_params(libchan,plotpow, VMIN, VMAX, CAMIN, CAMAX)
