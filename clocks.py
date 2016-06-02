@@ -31,4 +31,3 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
             hsolve.dt=simdt
     moose.useClock(9, '%s/##[TYPE=Table]' % (dataName), 'process')
     moose.reinit()
-

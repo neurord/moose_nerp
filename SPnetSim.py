@@ -28,33 +28,33 @@ import moose
 import util
 import param_sim as sim
 from param_cond import neurontypes
-import cell_proto as cell
-import param_net as netpar
-import create_network as net
 import clocks as clock
-import inject_func as inj
-import net_graph as graph
-import net_output as netout
+import cell_proto
+import param_net
+import create_network
+import inject_func
+import net_graph
+import net_output
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
 
-MSNpop,SynPlas=net.CreateNetwork(sim.inpath,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
+MSNpop,SynPlas=create_network.CreateNetwork(sim.inpath,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
 
 ###------------------Current Injection
 currents = util.inclusive_range(sim.current1)
-pg=inj.setupinj(sim.delay,sim.width,neuron)
+pg=inject_func.setupinj(sim.delay,sim.width,neuron)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
 if sim.showgraphs:
-    vmtab,syntab,catab,plastab,sptab = graph.graphtables(neuron,sim.single,sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
+    vmtab,syntab,catab,plastab,sptab = net_graph.graphtables(neuron,sim.single,sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
 else:
     vmtab=[]
-#
-spiketab, vmtab=SpikeTables(sim.single,MSNpop,sim.showgraphs,vmtab)
-#
+
+spiketab, vmtab = net_output.SpikeTables(sim.single,MSNpop,sim.showgraphs,vmtab)
+
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
@@ -76,10 +76,10 @@ if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=sim.simtime)
         if sim.showgraphs:
-            graph.graphs(vmtab,syntab,graphsyn,catab,plastab,sptab)
+            net_graph.graphs(vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not sim.single:
-            writeOutput(netpar.outfile+str(inj),spiketab,vmtab,MSNpop)
+            writeOutput(param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
 
     # block in non-interactive mode
     util.block_if_noninteractive()
