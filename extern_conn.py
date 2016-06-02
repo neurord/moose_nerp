@@ -130,7 +130,4 @@ def addinput(ttab,synchans,synlist,cells,SynPerComp,startt):
             #print "out of synpases"
             break
             #don't do anything. I don't think this break is exiting the loop
-    if printinfo:
-        print("LastTrainNum:",train)
-    return train
-
+    return len(Uniqtt)
