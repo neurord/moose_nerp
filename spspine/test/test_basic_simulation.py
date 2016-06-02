@@ -24,7 +24,7 @@ def test_single_injection(calcium, synapses, spines, ghk, remove_objects):
     "Create the neuron and run a very short simulation"
 
     if ghk and not hasattr(moose, 'GHK'):
-        pytest.xfail("GHK is missing")
+        pytest.skip("GHK is missing")
 
     MSNsyn,neuron,capools,synarray,spineHeads = \
         cell_proto.neuronclasses(False, False, calcium, synapses, spines, ghk)
