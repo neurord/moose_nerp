@@ -25,7 +25,7 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-import util
+from spspine import util as _util
 import param_sim as sim
 from param_cond import neurontypes
 import clocks as clock
@@ -43,7 +43,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(sim.plotcha
 MSNpop,SynPlas=create_network.CreateNetwork(sim.inpath,sim.calcium,sim.plasYesNo,sim.single,spineHeads,synarray,MSNsyn,neuron)
 
 ###------------------Current Injection
-currents = util.inclusive_range(sim.current1)
+currents = _util.inclusive_range(sim.current1)
 pg=inject_func.setupinj(sim.delay,sim.width,neuron)
 
 ##############--------------output elements
@@ -82,4 +82,4 @@ if __name__ == '__main__':
             writeOutput(param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
 
     # block in non-interactive mode
-    util.block_if_noninteractive()
+    _util.block_if_noninteractive()

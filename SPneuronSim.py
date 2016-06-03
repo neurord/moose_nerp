@@ -26,7 +26,7 @@ import clocks
 import inject_func
 import test_plas
 import neuron_graph
-import util
+from spspine import util as _util
 
 try:
     from ParamOverrides import *
@@ -45,7 +45,7 @@ else:
     syn,plas = {}, {}
 
 ####---------------Current Injection
-currents = util.inclusive_range(sim.current1,sim.current2,sim.currinc)
+currents = _util.inclusive_range(sim.current1,sim.current2,sim.currinc)
 pg=inject_func.setupinj(sim.delay,sim.width,neuron)
 
 ###############--------------output elements
@@ -77,6 +77,6 @@ if __name__ == '__main__':
     neuron_graph.SingleGraphSet(Alltraces,currents)
 
     # block in non-interactive mode
-    util.block_if_noninteractive()
+    _util.block_if_noninteractive()
 
     #End of inject loop

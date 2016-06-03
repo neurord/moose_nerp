@@ -1,4 +1,4 @@
-from util import NamedList
+from spspine.util import NamedList
 
 #chanDictSP.py
 #contains all gating parameters and reversal potentials

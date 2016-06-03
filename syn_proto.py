@@ -6,7 +6,7 @@ Function definitions for making channels.
 from __future__ import print_function, division
 import numpy as np
 
-from util import dist_num
+from spspine.util import dist_num
 import moose 
 import param_syn as parsyn
 import param_chan as parchan

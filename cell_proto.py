@@ -4,7 +4,7 @@ Other than the special NaF channel, this can be used to create any neuron type.
 """
 from __future__ import print_function, division
 import os as _os
-import util as _util
+from spspine import util as _util
 import moose 
 import numpy as np
 from param_sim import printMoreInfo
