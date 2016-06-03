@@ -99,6 +99,24 @@ def NamedList(typename, field_names, verbose=False):
 
     return result
 
+class NamedDict(dict):
+    def __init__(self, name, **kwargs):
+        super(NamedDict, self).__init__(**kwargs)
+        self.__name__ = name
+
+    def __repr__(self):
+        items = ('{}={}'.format(k,v) for (k,v) in self.items())
+        return '{}({})'.format(self.__name__, ', '.join(items))
+
+    def __setitem__(self, k, v):
+        raise ValueError('Assignment is not allowed')
+
+    def __getattribute__(self, k):
+        return super(NamedDict, self).__getitem__(k)
+
+    def __setattribute__(self, k, v):
+        raise ValueError('Assignment is not allowed')
+
 def block_if_noninteractive():
     if not hasattr(_sys, 'ps1'):
         print('Simulation finished. Close all windows to exit.')

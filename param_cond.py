@@ -4,6 +4,7 @@
 
 import numpy as np
 from param_sim import ghkYesNo
+import spspine.util as _util
 
 def isCaChannel(channame):
     return channame.startswith('Ca')
@@ -56,47 +57,60 @@ morph_file = 'MScell-Entire.p'
 #CaL13=0.3e-6 soma,0.005e-6 dend
 #CaL12=0.6e-6 soma, 0.1e-6 dend
 #CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
-CondD1={#'Krp': [77.963,77.25,7.25],
-        'Krp': [150.963,70.25,77.25],
-        #'KaF': [3214, 571, 314],
-        #'KaF':[1157,500,200],
-        'KaF':[600,500,100],
-        'KaS': [404.7, 35.2, 0],
-        'Kir': [9.4644, 9.4644, 9.4644],
-        'CaL13': [12*ghKluge, 5.6*ghKluge, 5.6*ghKluge],
-        'CaL12': [8*ghKluge, 4*ghKluge, 4*ghKluge],
-        'CaR': [20*ghKluge, 45*ghKluge, 44*ghKluge],
-        'CaN': [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
-        'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'NaF':[130e3, 1894, 927],
-        'SKCa':[0.5, 0.5, 0.5],
-        'BKCa':[10.32, 10, 10]
-        }
-CondD2={'Krp': [177.25,177.25,27.25],
-        #'KaF': [3214, 471, 234],
-        'KaF':[641,300,100],
-        'KaS': [372, 32.9, 0],
-        'Kir': [6.2, 6.2, 6.2],
-        'CaL13': [10*ghKluge, 4*ghKluge, 4*ghKluge],
-        'CaL12': [4*ghKluge, 2.2*ghKluge, 2.2*ghKluge],
-        'CaR': [20*ghKluge, 45*ghKluge, 45*ghKluge],
-        'CaN': [1.5*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
-        'CaT': [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-        'NaF':[150.0e3, 2503, 1073],
-        'SKCa':[0.5, 0.5, 0.5],
-        'BKCa':[10, 10, 10]
-        }
-chanvar={'Krp': 0.04,
-         'KaF': 0.04,
-         'KaS': 0.04,
-         'Kir': 0.04,
-         'CaL13': 0.04,
-         'CaL12': 0.04,
-         'CaR': 0.04,
-         'CaN': 0.04,
-         'CaT': 0.04,
-         'NaF': 0.0,
-         'BKCa': 0.04,
-         'SKCa': 0.04}
 
-Condset={'D1':CondD1,'D2':CondD2}
+_D1 = _util.NamedDict(
+    'D1',
+    #Krp = [77.963,77.25,7.25],
+    Krp = [150.963,70.25,77.25],
+    #KaF = [3214, 571, 314],
+    #KaF =[1157,500,200],
+    KaF =[600,500,100],
+    KaS = [404.7, 35.2, 0],
+    Kir = [9.4644, 9.4644, 9.4644],
+    CaL13 = [12*ghKluge, 5.6*ghKluge, 5.6*ghKluge],
+    CaL12 = [8*ghKluge, 4*ghKluge, 4*ghKluge],
+    CaR = [20*ghKluge, 45*ghKluge, 44*ghKluge],
+    CaN = [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
+    CaT = [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
+    NaF =[130e3, 1894, 927],
+    SKCa =[0.5, 0.5, 0.5],
+    BKCa =[10.32, 10, 10],
+)
+_D2 = _util.NamedDict(
+    'D2',
+    Krp = [177.25,177.25,27.25],
+    #KaF = [3214, 471, 234],
+    KaF =[641,300,100],
+    KaS = [372, 32.9, 0],
+    Kir = [6.2, 6.2, 6.2],
+    CaL13 = [10*ghKluge, 4*ghKluge, 4*ghKluge],
+    CaL12 = [4*ghKluge, 2.2*ghKluge, 2.2*ghKluge],
+    CaR = [20*ghKluge, 45*ghKluge, 45*ghKluge],
+    CaN = [1.5*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
+    CaT = [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
+    NaF =[150.0e3, 2503, 1073],
+    SKCa =[0.5, 0.5, 0.5],
+    BKCa =[10, 10, 10],
+)
+
+chanvar = _util.NamedDict(
+    'chanvar',
+    Krp = 0.04,
+    KaF = 0.04,
+    KaS = 0.04,
+    Kir = 0.04,
+    CaL13 = 0.04,
+    CaL12 = 0.04,
+    CaR = 0.04,
+    CaN = 0.04,
+    CaT = 0.04,
+    NaF = 0.0,
+    BKCa = 0.04,
+    SKCa = 0.04,
+)
+
+Condset  = _util.NamedDict(
+    'Condset',
+    D1 = _D1,
+    D2 = _D2,
+)
