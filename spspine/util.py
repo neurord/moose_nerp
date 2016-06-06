@@ -38,7 +38,7 @@ class {typename}(list):
 
     __slots__ = ()
 
-    def __init__(self, {arg_list}):
+    def __init__(self, {init_args}):
         'Create new instance of {typename}({arg_list})'
         return _list.__init__(self, ({arg_list}))
 
@@ -60,7 +60,8 @@ def NamedList(typename, field_names, verbose=False):
     "Returns a new subclass of list with named fields."
 
     # Validate the field names.
-    field_names = field_names.replace(',', ' ').split()
+    init_args = field_names.replace(',', ' ').split()
+    field_names = [name.partition('=')[0] for name in init_args]
     if sorted(set(field_names)) != sorted(field_names):
         raise ValueError('Duplicate field names')
 
@@ -68,6 +69,7 @@ def NamedList(typename, field_names, verbose=False):
     class_definition = _class_template.format(
         typename = typename,
         num_fields = len(field_names),
+        init_args = ', '.join(init_args),
         arg_list = ', '.join(field_names),
         repr_fmt = ', '.join(_repr_template.format(name=name)
                              for name in field_names),
