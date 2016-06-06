@@ -116,7 +116,11 @@ class NamedDict(dict):
         raise ValueError('Assignment is not allowed')
 
     def __getattribute__(self, k):
-        return super(NamedDict, self).__getitem__(k)
+        # attributes have higher priority
+        try:
+            return super(NamedDict, self).__getattribute__(k)
+        except AttributeError:
+            return super(NamedDict, self).__getitem__(k)
 
     def __setattribute__(self, k, v):
         raise ValueError('Assignment is not allowed')
