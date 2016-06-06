@@ -1,4 +1,4 @@
-from spspine.util import NamedList
+from spspine.util import NamedList, NamedDict
 
 #chanDictSP.py
 #contains all gating parameters and reversal potentials
@@ -306,8 +306,8 @@ SK_Z_params = ZChannelParams(Kd = 0.57e-3,
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
-BK_X_params=[BKChannelParams(alphabeta=480, K=0.18,delta=-0.84),
-             BKChannelParams(alphabeta=280,K=0.011,delta=-1.0)]
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
+             BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 #These CDI params can be used with every channel, make ZpowCDI=2
 #If ZpowCDI=0 the CDI will not be used, power=-4 is to transform
 #(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow)
@@ -318,16 +318,18 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #Dictionary of "standard" channels, to create channels using a loop
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
-ChanDict={'Krp':['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
-          'KaF':['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
-          'KaS':['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
-          'Kir': ['typical_1D_alpha',Kirparam, Kir_X_params,[]],
-          'CaL12':['typical_1D_alpha',CaL12param,CaL12_X_params,[],CDI_Z_params],
-          'CaL13':['typical_1D_alpha',CaL13param,CaL13_X_params,[],CDI_Z_params],
-          'CaN': ['typical_1D_alpha',CaNparam,CaN_X_params,[],CDI_Z_params],
-          'CaR': ['typical_1D_alpha',CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
-          'CaT': ['typical_1D_alpha',CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
-          'SKCa':['typical_1D_alpha',SKparam,[],[],SK_Z_params],
-          'NaF':['atypical_1D',NaFparam,Na_m_params,Na_h_params],
-          'BKCa':['2D',BKparam,BK_X_params]
-}
+ChanDict = NamedDict(
+    'ChannelParams',
+    Krp =   ['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
+    KaF =   ['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
+    KaS =   ['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
+    Kir =   ['typical_1D_alpha',Kirparam, Kir_X_params,[]],
+    CaL12 = ['typical_1D_alpha',CaL12param,CaL12_X_params,[],CDI_Z_params],
+    CaL13 = ['typical_1D_alpha',CaL13param,CaL13_X_params,[],CDI_Z_params],
+    CaN =   ['typical_1D_alpha',CaNparam,CaN_X_params,[],CDI_Z_params],
+    CaR =   ['typical_1D_alpha',CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
+    CaT =   ['typical_1D_alpha',CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
+    SKCa =  ['typical_1D_alpha',SKparam,[],[],SK_Z_params],
+    NaF =   ['atypical_1D',NaFparam,Na_m_params,Na_h_params],
+    BKCa =  ['2D',BKparam,BK_X_params],
+)

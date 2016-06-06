@@ -8,74 +8,72 @@ import numpy as np
 
 from spspine.util import dist_num
 import moose 
-import param_syn as parsyn
-import param_chan as parchan
-import param_cond as parcond
+import param_syn
+import param_chan
+import param_cond
 from param_sim import printinfo, printMoreInfo
 
 def make_synchan(chanpath,synparams,ghkYN,calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
     if printinfo:
-        print('synparams:', chanpath, synparams['tau1'], synparams['tau2'], synparams['Erev'])
-    synchan=moose.SynChan(chanpath)
-    synchan.tau1 = synparams['tau1']
-    synchan.tau2 = synparams['tau2']
-    synchan.Ek = synparams['Erev']
+        print('synparams:', chanpath, synparams)
+    synchan = moose.SynChan(chanpath)
+    synchan.tau1 = synparams.tau1
+    synchan.tau2 = synparams.tau2
+    synchan.Ek = synparams.Erev
     #for NMDA, create Mg block and set up bi-directional messages
     #if mgblock is below nmda on element tree, it will be copied into compartment with nmda
-    if synparams['name']=='nmda':
-        blockname=synchan.path+'/mgblock'
-        mgblock=moose.MgBlock(blockname)
-        mgblock.KMg_A=parsyn.mgparams['A']
-        mgblock.KMg_B=parsyn.mgparams['B']
-        mgblock.CMg=parsyn.mgparams['C']
-        mgblock.Ek=synparams['Erev']
-        mgblock.Zk=2
+    if synparams.MgBlock:
+        mgblock = moose.MgBlock(synchan.path + '/mgblock')
+        mgblock.KMg_A = synparams.MgBlock.A
+        mgblock.KMg_B = synparams.MgBlock.B
+        mgblock.CMg = synparams.MgBlock.C
+        mgblock.Ek = synparams.Erev
+        mgblock.Zk = 2
         if printinfo:
-            print('nmda',blockname,mgblock,parsyn.mgparams)
+            print('nmda', mgblock, synparams.MgBlock)
         moose.connect(synchan,'channelOut', mgblock,'origChannel')
         if calYN:
         #This duplicate nmda current prevents reversal of calcium current
         #It needs its own Mg Block, since the output will only go to the calcium pool
         #If necessary, can make the decay time faster for the calcium part of NMDA
-            synchan2=moose.SynChan(synchan.path+'/CaCurr')
-            synchan2.tau1 = synparams['tau1']
-            synchan2.tau2 = synparams['tau2']
-            synchan2.Ek = parchan.carev
-            blockname=synchan2.path+'/mgblock'
-            mgblock2=moose.MgBlock(blockname)
-            mgblock2.KMg_A=parsyn.mgparams['A']
-            mgblock2.KMg_B=parsyn.mgparams['B']
-            mgblock2.CMg=parsyn.mgparams['C']
-            mgblock2.Ek=parchan.carev
-            mgblock2.Zk=2
+            synchan2 = moose.SynChan(synchan.path + '/CaCurr')
+            synchan2.tau1 = synparams.tau1
+            synchan2.tau2 = synparams.tau2
+            synchan2.Ek = param_chan.carev
+            mgblock2 = moose.MgBlock(synchan2.path+'/mgblock')
+            mgblock2.KMg_A = synparams.MgBlock.A
+            mgblock2.KMg_B = synparams.MgBlock.B
+            mgblock2.CMg = synparams.MgBlock.C
+            mgblock2.Ek = param_chan.carev
+            mgblock2.Zk = 2
             moose.connect(synchan2,'channelOut', mgblock2,'origChannel')
             if ghkYN:
                 #Note that ghk must receive input from MgBlock, NOT MgBLock to ghk
-                ghk=moose.GHK(synchan2.path+'/ghk')
-                ghk.T=parcond.Temp
-                ghk.Cout=parcond.ConcOut
-                ghk.valency=2
+                ghk = moose.GHK(synchan2.path + '/ghk')
+                ghk.T = param_cond.Temp
+                ghk.Cout = param_cond.ConcOut
+                ghk.valency = 2
                 if printinfo:
                     print("CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path)
-                moose.connect(mgblock2,'ghk',ghk, 'ghk')
+                moose.connect(mgblock2,'ghk', ghk,'ghk')
     return synchan
 
 def synchanlib(ghkYN,calYN):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
-    synchan=list()
-    for key in parsyn.SynChanDict:
-        chanpath='/library/'+key
-        synchan.append(make_synchan(chanpath,parsyn.SynChanDict[key],ghkYN,calYN))
-    print(synchan)
+
+    for name, params in param_syn.SynChanParams.items():
+        synchan = make_synchan('/library/' + name,
+                               params, ghkYN, calYN)
+        print(synchan)
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
     proto=moose.SynChan('/library/' +chanpath)
     if printMoreInfo:
         print("adding channel",chanpath,"to",syncomp.path,"from",proto.path)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
-    synchan.Gbar = np.random.normal(gbar,gbar*parsyn.GbarVar)
+    synchan.Gbar = np.random.normal(gbar,gbar*param_syn.GbarVar)
     if chanpath=='nmda':
         #mgblock, CaCurr, and ghk were copied above if they exist
         mgblock=moose.element(synchan.path+'/mgblock')
@@ -91,11 +89,11 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
             moose.connect(syncomp,'VmOut',mgblock2, 'Vm')
             if ghkYN:
                 ghk=moose.element(synchan2.path+'/ghk')
-                synchan2.Gbar=synchan.Gbar*parsyn.nmdaCaFrac*parcond.ghKluge
+                synchan2.Gbar=synchan.Gbar*param_syn.nmdaCaFrac*param_cond.ghKluge
                 #unidirectional connection from comp to ghk
                 moose.connect(syncomp, 'VmOut', ghk,'handleVm')
             else:
-                synchan2.Gbar=synchan.Gbar*parsyn.nmdaCaFrac
+                synchan2.Gbar=synchan.Gbar*param_syn.nmdaCaFrac
     else:
         #bidirectional connection from synchan to compartment when not NMDA:
         m = moose.connect(syncomp, 'channel', synchan, 'channel')
@@ -105,30 +103,27 @@ def add_synchans(container,calYN,ghkYN):
     #synchans is 2D array, where each row has a single channel type
     #at the end they are concatenated into a dictionary
     synchans=[]
-    comp_list = moose.wildcardFind('%s/#[TYPE=Compartment]' %(container))
-    SynPerComp=np.zeros((len(comp_list),parsyn.NumSynClass),dtype=int)
-    numspines=0
+    comp_list = moose.wildcardFind(container + '/#[TYPE=Compartment]')
+    SynPerComp=np.zeros((len(comp_list),param_syn.NumSynClass),dtype=int)
     #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
-    for key in parsyn.SynChanDict:
+    for key in param_syn.SynChanParams:
         synchans.append([])
-    allkeys = sorted(parsyn.SynChanDict)
+    allkeys = sorted(param_syn.SynChanParams)
 
     # i indexes compartment for array that stores number of synapses
     for i, comp in enumerate(comp_list):
                 
         #create each type of synchan in each compartment.  Add to 2D array
-        for key in parsyn.DendSynChans:
-            keynum=allkeys.index(key)
-            Gbar=parsyn.SynChanDict[key]['Gbar']
+        for key in param_syn.DendSynChans:
+            keynum = allkeys.index(key)
+            Gbar = param_syn.SynChanParams[key].Gbar
             synchans[keynum].append(addoneSynChan(key,comp,Gbar,calYN,ghkYN))
-        for key in parsyn.SpineSynChans:
-            keynum=allkeys.index(key)
-            Gbar=parsyn.SynChanDict[key]['Gbar']
-            numspines=0   #count number of spines in each compartment
-            for spcomp in moose.wildcardFind('%s/#[ISA=Compartment]'%(comp.path)):
+        for key in param_syn.SpineSynChans:
+            keynum = allkeys.index(key)
+            Gbar = param_syn.SynChanParams[key].Gbar
+            for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
                 if 'head' in spcomp.path:
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar,calYN,ghkYN))
-                    numspines=numspines+1
         #
         #calculate distance from soma
         xloc=moose.Compartment(comp).x
@@ -138,13 +133,13 @@ def add_synchans(container,calYN,ghkYN):
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
         #Check in ExtConn - how is SynPerComp used
 
-        num = dist_num(parcond.distTable, dist)
-        SynPerComp[i,parsyn.GABA] = parsyn.NumGaba[num]
-        SynPerComp[i,parsyn.GLU] = parsyn.NumGlu[num]
+        num = dist_num(param_cond.distTable, dist)
+        SynPerComp[i,param_syn.GABA] = param_syn.NumGaba[num]
+        SynPerComp[i,param_syn.GLU] = param_syn.NumGlu[num]
 
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
     allsynchans={key:synchans[keynum]
-                 for keynum, key in enumerate(sorted(parsyn.SynChanDict))}
+                 for keynum, key in enumerate(sorted(param_syn.SynChanParams))}
 
     return SynPerComp,allsynchans

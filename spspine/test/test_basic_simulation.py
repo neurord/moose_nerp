@@ -62,6 +62,8 @@ def test_single_injection(calcium, synapses, spines, ghk):
 def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     "Create the neuron and run a very short simulation"
 
+    pytest.skip("skipping network tests")
+
     if ghk and not hasattr(moose, 'GHK'):
         pytest.skip("GHK is missing")
 
@@ -96,3 +98,13 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     assert 0.00 < vm1[499] < 0.05
     assert 0.00 < vm2[499] < 0.05
     return vm1, vm2
+
+def test_param_access():
+    "Just test that the accessors work"
+    import param_chan
+    param_chan.ChanDict.Krp
+    param_chan.ChanDict.CaT
+    param_chan.ChanDict['Krp']
+    param_chan.ChanDict['CaT']
+    assert 'CaT' in param_chan.ChanDict.keys()
+    assert 'Krp' in param_chan.ChanDict.keys()
