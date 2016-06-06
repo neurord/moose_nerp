@@ -108,7 +108,9 @@ class NamedDict(dict):
 
     def __repr__(self):
         items = ('{}={}'.format(k,v) for (k,v) in self.items())
-        return '{}({})'.format(self.__name__, ', '.join(items))
+        l = len(self.__name__) + 1
+        sep = ',\n' + ' '*l
+        return '{}({})'.format(self.__name__, sep.join(items))
 
     def __setitem__(self, k, v):
         raise ValueError('Assignment is not allowed')
