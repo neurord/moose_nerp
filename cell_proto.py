@@ -11,7 +11,7 @@ from param_sim import printMoreInfo
 import param_cond
 import param_chan
 import param_ca_plas
-import param_spine
+from param_spine import SpineParams
 import chan_proto
 import syn_proto
 import spines
@@ -109,7 +109,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
             if spYesNo:
                 for spcomp in headArray[ntype]:
                     capool=calcium.addCaPool(spcomp,param_ca_plas.caName)
-                    if param_spine.spineChanList:
+                    if SpineParams.spineChanList:
                         calcium.connectVDCC_KCa(ghkYN,spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if synYesNo:

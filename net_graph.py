@@ -4,7 +4,7 @@ import numpy as np
 import moose 
 import param_cond as parcond
 import param_sim as parsim
-import param_spine as parsp
+from param_spine import SpineParams
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
     if printinfo:
@@ -79,14 +79,14 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
                 for head in spineheads[neurtype]:
                     if len(capools[neurtype]):
                         p = head.path.split('/')
-                        spinename = p[parcond.compNameNum] + p[parsp.spineNameNum][parsp.spineNumLoc]
+                        spinename = p[parcond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
                         spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))
                     for chan in parsim.SpineSynChans:
                          spsyntab[typenum].append(moose.Table('/data/SpGk%s_%s_%s' % (chan,neurtype,spinename)))
             if SynPlas[neurtype]:
                 for plas in SynPlas[neurtype]: 
                     p = plas['plas'].path.split('/')
-                    plasname = p[parcond.compNameNum] + p[parsp.spineNameNum][parsp.spineNumLoc]
+                    plasname = p[parcond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
                     plastab[typenum].append(moose.Table('/data/plas%s_%s' % (neurtype,plasname))) 
                     plasCumtab[typenum].append(moose.Table('/data/plasCum%s_%s' % (neurtype,plasname))) 
         #Connect tables

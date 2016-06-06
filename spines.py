@@ -1,7 +1,7 @@
 #spines.py
 from __future__ import print_function, division
 import moose 
-import param_spine as parsp
+from param_spine import SpineParams
 from param_sim import printinfo, printMoreInfo
 import numpy as np
 
@@ -11,20 +11,20 @@ def setSpineCompParams(comp,compdia,complen):
     XArea=np.pi*compdia*compdia/4
     circumf=np.pi*compdia
     if printMoreInfo:
-        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",parsp.spineCM*complen*circumf)
-    comp.Ra=parsp.spineRA*complen/XArea
-    comp.Rm=parsp.spineRM/(complen*circumf)
-    cm=parsp.spineCM*compdia*circumf
+        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",SpineParams.spineCM*complen*circumf)
+    comp.Ra=SpineParams.spineRA*complen/XArea
+    comp.Rm=SpineParams.spineRM/(complen*circumf)
+    cm=SpineParams.spineCM*compdia*circumf
     if cm<1e-15:
         cm=1e-15
     comp.Cm=cm
-    comp.Em=parsp.spineELEAK
-    comp.initVm=parsp.spineEREST
+    comp.Em=SpineParams.spineELEAK
+    comp.initVm=SpineParams.spineEREST
 
 def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
-    neckName=compName+str(index)+parsp.nameneck
+    neckName=compName+str(index)+SpineParams.nameneck
     neck=moose.Compartment(parentComp.path+'/'+neckName)
     if printMoreInfo:
         print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
@@ -41,7 +41,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     neck.z=z
     setSpineCompParams(neck,neckdia,necklen)
     
-    headName=compName+str(index)+parsp.namehead
+    headName=compName+str(index)+SpineParams.namehead
     head=moose.Compartment(parentComp.path+'/'+headName)
     moose.connect(neck, 'raxial', head, 'axial', 'Single' )
     head.x0=neck.x
@@ -58,19 +58,19 @@ def addSpines(container,ghkYN):
     headarray=[]
     for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
         if 'soma' not in comp.path:
-            numSpines=int(np.round(parsp.spineDensity*comp.length))
+            numSpines=int(np.round(SpineParams.spineDensity*comp.length))
             spineSpace=comp.length/(numSpines+1)
             for index in range(numSpines):
                 frac=(index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
-                head=makeSpine (comp, 'spine',index, frac, parsp.necklen, parsp.neckdia, parsp.headdia)
+                head=makeSpine (comp, 'spine',index, frac, SpineParams.necklen, SpineParams.neckdia, SpineParams.headdia)
                 headarray.append(head)
-                if parsp.spineChanList:
+                if SpineParams.spineChanList:
                     if ghkYN:
                         ghkproto=moose.element('/library/ghk')
                         ghk=moose.copy(ghkproto,comp,'ghk')[0]
                         moose.connect(ghk,'channel',comp,'channel')
-                    for chanpath,cond in zip(parsp.spineChanlist,parsp.spineCond):
+                    for chanpath,cond in zip(SpineParams.spineChanlist,SpineParams.spineCond):
                         addOneChan(chanpath,cond,head,ghkYN)
             #end for index
     #end for comp

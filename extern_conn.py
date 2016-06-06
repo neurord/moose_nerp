@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 from param_sim import printinfo, printMoreInfo, spineYesNo, calcium
 from param_cond import compNameNum
-from param_spine import spineNameNum
+from param_spine import SpineParams
 import numpy as np
 import moose
 
@@ -76,7 +76,7 @@ def addinput(ttab,synchans,synlist,cells,SynPerComp,startt):
         if printMoreInfo:
             print(kk, SynPerComp[kk])
         if spineYesNo:
-            comps.append(compname + '/' + p[spineNameNum])
+            comps.append(compname + '/' + p[SpineParams.spineNameNum])
         else:
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
