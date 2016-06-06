@@ -47,8 +47,8 @@ def test_single_injection(calcium, synapses, spines, ghk):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    assert 0.15 < vm1[250] < 0.25
-    assert 0.15 < vm2[250] < 0.25
+    assert 0.20 < vm1[250] < 0.30
+    assert 0.20 < vm2[250] < 0.30
     assert 0.00 < vm1[499] < 0.05
     assert 0.00 < vm2[499] < 0.05
 
@@ -91,8 +91,8 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    assert 0.15 < vm1[250] < 0.25
-    assert 0.15 < vm2[250] < 0.25
+    assert 0.20 < vm1[250] < 0.30
+    assert 0.20 < vm2[250] < 0.30
     assert 0.00 < vm1[499] < 0.05
     assert 0.00 < vm2[499] < 0.05
     return vm1, vm2
