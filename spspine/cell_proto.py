@@ -1,4 +1,3 @@
-#cell_proto.py
 """\
 Other than the special NaF channel, this can be used to create any neuron type.
 """
