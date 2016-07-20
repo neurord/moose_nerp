@@ -1,4 +1,3 @@
-#spine_graph.py
 from __future__ import print_function, division
 
 import os
