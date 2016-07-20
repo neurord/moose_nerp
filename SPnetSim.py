@@ -26,12 +26,12 @@ from pprint import pprint
 import moose 
 
 from spspine import (cell_proto,
+                     clocks,
                      create_network,
                      inject_func,
                      util as _util)
 import param_sim as sim
 from param_cond import neurontypes
-import clocks as clock
 import param_net
 import net_graph
 import net_output
@@ -63,7 +63,7 @@ if sim.single:
 else:
     #possibly need to setup an hsolver separately for each cell in the network
     simpath=[netpar.netname]
-clock.assign_clocks(simpath, '/data', sim.simdt, sim.plotdt, sim.hsolve)
+clocks.assign_clocks(simpath, '/data', sim.simdt, sim.plotdt, sim.hsolve)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):

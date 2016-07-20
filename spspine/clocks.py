@@ -1,4 +1,3 @@
-#clocks.py
 #This is simplified clocks/hsolve setup for Moose 3.0.  
 #No need to assign clocks except for output elements
 """\
