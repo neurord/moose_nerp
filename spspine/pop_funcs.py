@@ -8,8 +8,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-import param_sim
-from spspine import param_cond
+from spspine import param_cond, param_sim
 import param_chan
 import param_net
 

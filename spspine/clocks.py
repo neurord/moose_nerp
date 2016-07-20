@@ -7,12 +7,13 @@ Information on how to use clocks can be read by typing: help("moose") in python.
 """
 
 from __future__ import print_function, division
-import param_sim as sim
+
 import moose 
+from spspine import param_sim
 
 def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
-    if sim.printinfo:
-        print('SimDt=%g, PlotDt=%g' % (sim.simdt, sim.plotdt))
+    if param_sim.printinfo:
+        print('SimDt=%g, PlotDt=%g' % (param_sim.simdt, param_sim.plotdt))
     moose.setClock(0, simdt)
     moose.setClock(1, simdt)
     moose.setClock(2, simdt)
@@ -23,10 +24,10 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolve):
     for path in model_container_list:
         if hsolve:
             hsolve = moose.HSolve( '%s/hsolve' % (path))
-            if sim.printinfo:
+            if param_sim.printinfo:
                 print("USING HSOLVE")
                 print("hsolve clock", hsolve.path, hsolve.dt,hsolve.tick)
-            moose.useClock( 1, '%s/hsolve' % (path), 'process' )
+            moose.useClock( 1, path + '/hsolve', 'process' )
             hsolve.dt=simdt
-    moose.useClock(9, '%s/##[TYPE=Table]' % (dataName), 'process')
+    moose.useClock(9, dataName + '/##[TYPE=Table]', 'process')
     moose.reinit()

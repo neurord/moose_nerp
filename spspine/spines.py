@@ -3,14 +3,14 @@ import numpy as np
 import moose
 
 from param_spine import SpineParams
-from param_sim import printinfo, printMoreInfo
+from spspine import param_sim
 
 def setSpineCompParams(comp,compdia,complen):
     comp.diameter=compdia
     comp.length=complen
     XArea=np.pi*compdia*compdia/4
     circumf=np.pi*compdia
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("Xarea,circumf of",comp.path, XArea,circumf,"CM",SpineParams.spineCM*complen*circumf)
     comp.Ra=SpineParams.spineRA*complen/XArea
     comp.Rm=SpineParams.spineRM/(complen*circumf)
@@ -26,7 +26,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #unfortunately, these values specified in the .p file are not accessible
     neckName=compName+str(index)+SpineParams.nameneck
     neck=moose.Compartment(parentComp.path+'/'+neckName)
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
@@ -74,6 +74,6 @@ def addSpines(container,ghkYN):
                         addOneChan(chanpath,cond,head,ghkYN)
             #end for index
     #end for comp
-    if printinfo:
+    if param_sim.printinfo:
         print(len(headarray),"spines created in",container)
     return headarray

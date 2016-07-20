@@ -10,8 +10,7 @@ from spspine import (calcium,
                      util as _util)
 import moose 
 import numpy as np
-from param_sim import printMoreInfo
-from spspine import param_cond
+from spspine import param_cond, param_sim
 import param_chan
 import param_ca_plas
 from param_spine import SpineParams
@@ -30,7 +29,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
         m=moose.connect(chan, 'channel', comp, 'channel')
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("channel message", chan.path,comp.path, m)
     return
 
@@ -49,7 +48,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
         yloc=moose.Compartment(comp).y
         #Possibly this should be replaced by pathlength
         dist=np.sqrt(xloc*xloc+yloc*yloc)
-        if printMoreInfo:
+        if param_sim.printMoreInfo:
             print("comp,dist",comp.path,dist)
         #
         #If we are using GHK, just create one GHK per compartment, connect it to comp
@@ -62,7 +61,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
             ghk=[]
         for chanpath in param_chan.ChanDict:
             if Cond[chanpath][_util.dist_num(param_cond.distTable, dist)]:
-                if printMoreInfo:
+                if param_sim.printMoreInfo:
                     print("Testing Cond If", chanpath, Cond[chanpath][_util.dist_num(param_cond.distTable, dist)])
                 addOneChan(chanpath,Cond[chanpath][_util.dist_num(param_cond.distTable, dist)],comp, ghkYN, ghk)
     return {'comps': comps, 'cell': cellproto}

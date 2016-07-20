@@ -5,8 +5,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond
-from param_sim import printinfo, simtime
+from spspine import param_cond, param_sim
 
 def SpikeTables(single,MSNpop,showgraphs,vmtab):
     spiketab=[]
@@ -17,7 +16,7 @@ def SpikeTables(single,MSNpop,showgraphs,vmtab):
                 neurnum=int(neurpath[find(neurpath,'_')+1:])
                 sg=moose.element(neurpath+'/soma/spikegen')
                 spiketab[typenum].append(moose.Table('/data/outspike%s_%d' % (neurtype,neurnum)))
-                if printinfo:
+                if param_sim.printinfo:
                     print(neurtype,neurnum,neurpath,sg.path,spiketab[typenum][tabnum])
                 m=moose.connect(sg, 'event', spiketab[typenum][tabnum],'spike')
                 if not showgraphs:
@@ -29,7 +28,7 @@ def SpikeTables(single,MSNpop,showgraphs,vmtab):
 def writeOutput(outfilename,spiketab,vmtab,MSNpop):
     outvmfile='Vm'+outfilename
     outspikefile='Spike'+outfilename
-    if printinfo:
+    if param_sim.printinfo:
         print("SPIKE FILE", outspikefile, "VM FILE", outvmfile)
     outspiketab=list()
     outVmtab=list()
@@ -40,7 +39,7 @@ def writeOutput(outfilename,spiketab,vmtab,MSNpop):
             underscore=find(neurname,'_')
             neurnum=int(neurname[underscore+1:])
             print(neurname.split('_')[1])
-            if printinfo:
+            if param_sim.printinfo:
                 print(neurname,"is", neurtype,", num=",neurnum,spiketab[typenum][tabnum].path,vmtab[typenum][tabnum])
             outspiketab[typenum].append(insert(spiketab[typenum][tabnum].vector,0, neurnum))
             outVmtab[typenum].append(insert(vmtab[typenum][tabnum].vector,0, neurnum))

@@ -2,8 +2,7 @@
 
 from __future__ import print_function, division
 import moose 
-from spspine import param_cond
-import param_sim as parsim
+from spspine import param_cond, param_sim
 
 def setupinj(delay,width,neuron):
     """Setup injections
@@ -16,7 +15,7 @@ def setupinj(delay,width,neuron):
     pg.firstDelay = delay
     pg.firstWidth = width
     pg.secondDelay = 1e9
-    if parsim.single:
+    if param_sim.single:
         for neurtype in param_cond.neurontypes():
             print("INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0])
             moose.connect(pg, 'output', neuron[neurtype]['comps'][0], 'injectMsg')  

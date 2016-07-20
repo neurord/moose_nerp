@@ -3,8 +3,7 @@ Sets up time tables, then connects them after creating population
 """
 from __future__ import print_function, division
 import moose
-from param_sim import printinfo, simtime
-from spspine import param_cond
+from spspine import param_cond, param_sim
 import param_ca_plas as parcal
 import param_net
 from param_syn import GLU,GABA
@@ -24,7 +23,7 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
     else:
         numglu = {ntype:[] for ntype in _types}
         numgaba = {ntype:[] for ntype in _types}
-    if printinfo:
+    if param_sim.printinfo:
         print("synarray", synarray)
 
     indata=moose.Neutral(inputpath)
@@ -42,7 +41,7 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
                 totaltt += synarray[ntype].sum(axis=0)[GLU]
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,param_sim.simtime)
         #Third, assign the timetables to synapses for each neuron
         for ntype in _types:
             synapses = MSNsyn[ntype] if synarray else {'ampa':[], 'nmda':[]}
@@ -57,7 +56,7 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
         totaltt=sum(sum(numglu[_types[i]])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,param_sim.simtime)
         #Third, assign the timetables to synapses for each neuron, but don't re-use uniq
         for ii,ntype in enumerate(_types):
             startt=extern_conn.addinput(timetab,MSNsyn[ntype],['ampa', 'nmda'],MSNpop['pop'][ii],numglu[ntype],startt)

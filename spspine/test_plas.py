@@ -2,12 +2,13 @@
 Can add single synapse to single neuron model to test calcium and plasticity
 """
 from __future__ import print_function, division
-from spspine import param_cond
-import param_sim
+import moose
+
+from spspine import (param_cond,
+                     param_sim,
+                     extern_conn,
+                     plasticity)
 import param_ca_plas as parcal
-import plasticity
-from spspine import extern_conn
-import moose 
 
 def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
     syn={}

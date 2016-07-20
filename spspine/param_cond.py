@@ -3,8 +3,8 @@
 # such as whether to use GHK, or whether to have real spines
 
 import numpy as np
-from param_sim import ghkYesNo
-import spspine.util as _util
+
+from spspine import param_sim, util as _util
 
 def isCaChannel(channame):
     return channame.startswith('Ca')
@@ -14,7 +14,7 @@ def isKCaChannel(channame):
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
-if ghkYesNo:
+if param_sim.ghkYesNo:
     ghKluge=0.35e-6
 else:
     ghKluge=1

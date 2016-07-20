@@ -10,13 +10,12 @@ If no inactivation, just send in empty Yparam array.
 """
 
 from __future__ import print_function, division
-import moose 
-from param_sim import printinfo, printMoreInfo
+import moose
 import numpy as np
 
 from spspine.graph import plot_channel
 import param_chan
-from spspine import param_cond
+from spspine import param_cond, param_sim
 
 VMIN = -120e-3
 VMAX = 50e-3
@@ -66,7 +65,7 @@ def fix_singularities(Params,Gate):
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
-    if printinfo:
+    if param_sim.printinfo:
         print(chanpath, ":", params)
     chan = moose.HHChannel(chanpath)
     chan.Xpower = params.Xpow
@@ -109,7 +108,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     tau1 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
     tau2 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
     tau_x = (Xparams.taumin+1000*tau1*tau2)/param_chan.qfactNaF
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
     mgate.tableA = inf_x / tau_x
@@ -122,7 +121,7 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     hgate.max=VMAX
     tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+np.exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/param_chan.qfactNaF
     inf_y=Yparams.Arate/(Yparams.A_C + np.exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y
@@ -134,7 +133,7 @@ def BKchan_proto(chanpath,params,gateParams):
     ZFbyRT=2*param_cond.Faraday/(param_cond.R*(param_cond.Temp+273.15))
     v_array = np.linspace(VMIN, VMAX, VDIVS)
     ca_array = np.linspace(CAMIN, CAMAX, CADIVS)
-    if VDIVS<=5 and CADIVS<=5 and printinfo:
+    if VDIVS<=5 and CADIVS<=5 and param_sim.printinfo:
         print(v_array,ca_array)
     gatingMatrix = []
     for i,pars in enumerate(gateParams):
@@ -161,7 +160,7 @@ def BKchan_proto(chanpath,params,gateParams):
     xGate.ydivsA=xGate.ydivsB=CADIVS
     xGate.tableA=gatingMatrix[0]
     xGate.tableB=gatingMatrix[1]
-    if printinfo:
+    if param_sim.printinfo:
         print(chan.path)
         for ii in np.arange(0, VDIVS,1000):
             print("V=", VMIN+ii*(VMAX-VMIN)/(VDIVS-1))
@@ -188,7 +187,7 @@ def chanlib(plotchan,plotpow):
     #Adding all the channels to the library. *list removes list elements from the list,
     #so they can be used as function arguments
     chan = [make_channel('/library/'+key, value) for key, value in param_chan.ChanDict.items()]
-    if param_cond.ghkYesNo:
+    if param_sim.ghkYesNo:
         ghk=moose.GHK('/library/ghk')
         ghk.T=param_cond.Temp
         ghk.Cout=param_cond.ConcOut

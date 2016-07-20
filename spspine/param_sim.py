@@ -1,7 +1,8 @@
-#Simulation and plotting parameters, as well as parameter overrides
-#plas=plasticity elements and synaptic input, curr=ionic currents
+"""\
+Simulation and plotting parameters, as well as parameter overrides
 
-import numpy as np
+plas=plasticity elements and synaptic input, curr=ionic currents
+"""
 
 ############## First, optionally override parameters specifying model detail
 #calcium: include or exclude calcium concentration dynamics, single tau

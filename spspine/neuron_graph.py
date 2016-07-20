@@ -2,11 +2,11 @@ from __future__ import print_function, division
 
 import moose 
 from matplotlib import pyplot
-from spspine.iso_scaling import iso_scaling
 import numpy as np
-from spspine import param_cond
+
+from spspine.iso_scaling import iso_scaling
+from spspine import param_cond, param_sim
 from param_chan import ChanDict
-from param_sim import printMoreInfo, simtime
 
 def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     print("GRAPH TABLES, ca=", len(capools),"plas=",len(plas),"curr=",pltcurr)
@@ -53,7 +53,7 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
                     chan=moose.element(comp.path+'/'+channame)
                     moose.connect(tab, 'requestOut', chan, curmsg)
                 except:
-                    if printMoreInfo:
+                    if param_sim.printMoreInfo:
                         print('no channel', comp.path+'/'+channame)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
 
@@ -73,11 +73,11 @@ def _get_graph(name, figsize=None):
     return f
 
 def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
-    t = np.linspace(0, simtime, len(vmtab[0][0].vector))
+    t = np.linspace(0, param_sim.simtime, len(vmtab[0][0].vector))
 
     for typenum,neurtype in enumerate(param_cond.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
-        t = np.linspace(0, simtime, len(vmtab[typenum][0].vector))
+        t = np.linspace(0, param_sim.simtime, len(vmtab[typenum][0].vector))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:
             name=oid.path.split('/')[-1]
@@ -140,7 +140,7 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
         f.canvas.draw()
 
 def SingleGraphSet(traces,currents):
-    t = np.linspace(0, simtime, len(traces[0]))
+    t = np.linspace(0, param_sim.simtime, len(traces[0]))
     f=pyplot.figure()
     f.canvas.set_window_title('Voltage')
     axes=f.add_subplot(1,1,1)

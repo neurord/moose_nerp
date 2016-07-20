@@ -1,6 +1,5 @@
 from spspine.util import NamedList, NamedDict
-
-import param_sim
+from spspine import param_sim
 
 #Parameters for inhibitory synpases:
 #Erev, tau1, tau2  (SI units)

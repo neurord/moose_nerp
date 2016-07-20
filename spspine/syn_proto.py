@@ -9,12 +9,11 @@ import moose
 from spspine.util import dist_num
 import param_syn
 import param_chan
-from spspine import param_cond
-from param_sim import printinfo, printMoreInfo
+from spspine import param_cond, param_sim
 
 def make_synchan(chanpath,synparams,ghkYN,calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
-    if printinfo:
+    if param_sim.printinfo:
         print('synparams:', chanpath, synparams)
     synchan = moose.SynChan(chanpath)
     synchan.tau1 = synparams.tau1
@@ -29,7 +28,7 @@ def make_synchan(chanpath,synparams,ghkYN,calYN):
         mgblock.CMg = synparams.MgBlock.C
         mgblock.Ek = synparams.Erev
         mgblock.Zk = 2
-        if printinfo:
+        if param_sim.printinfo:
             print('nmda', mgblock, synparams.MgBlock)
         moose.connect(synchan,'channelOut', mgblock,'origChannel')
         if calYN:
@@ -53,7 +52,7 @@ def make_synchan(chanpath,synparams,ghkYN,calYN):
                 ghk.T = param_cond.Temp
                 ghk.Cout = param_cond.ConcOut
                 ghk.valency = 2
-                if printinfo:
+                if param_sim.printinfo:
                     print("CONNECT nmdaCa", synchan2.path, "TO", mgblock2.path, "TO", ghk.path)
                 moose.connect(mgblock2,'ghk', ghk,'ghk')
     return synchan
@@ -69,7 +68,7 @@ def synchanlib(ghkYN,calYN):
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,ghkYN):
     proto=moose.SynChan('/library/' +chanpath)
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("adding channel",chanpath,"to",syncomp.path,"from",proto.path)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*param_syn.GbarVar)

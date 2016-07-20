@@ -4,8 +4,7 @@ import numpy as np
 import moose
 
 import param_ca_plas
-from spspine import param_cond
-from param_sim import printMoreInfo
+from spspine import param_cond, param_sim
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
@@ -28,7 +27,7 @@ def addCaPool(comp,poolname):
     capool = moose.copy(caproto, comp, poolname)[0]
     vol = SA * capool.thick
     capool.B = 1 / (param_cond.Faraday*vol*2) / param_ca_plas.BufCapacity
-    if printMoreInfo:
+    if param_sim.printMoreInfo:
         print("CALCIUM", capool.path, length,diam,capool.thick,vol)
     return capool
 
@@ -37,7 +36,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         ghk=moose.element('%s/ghk' %(comp.path))
         moose.connect(capool,'concOut',ghk,'set_Cin')
         moose.connect(ghk,'IkOut',capool,'current')
-        if printMoreInfo:
+        if param_sim.printMoreInfo:
             print("CONNECT ghk to ca",ghk.path,capool.path)
         #connect them to the channels
     chan_list = []
@@ -51,7 +50,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
                 m=moose.connect(chan, 'IkOut', capool, 'current')
         elif param_cond.isKCaChannel(channame):
             m=moose.connect(capool, 'concOut', chan, 'concen')
-            if printMoreInfo:
+            if param_sim.printMoreInfo:
                 print("channel message", chan.path,comp.path, m)
  
 def connectNMDA(nmdachans,poolname,ghkYesNo):
@@ -63,6 +62,6 @@ def connectNMDA(nmdachans,poolname,ghkYesNo):
             nmdaCurr=moose.element(chan.path+'/CaCurr/mgblock')
         caname = os.path.join(os.path.dirname(chan.path), poolname)
         capool=moose.element(caname)
-        if printMoreInfo:
+        if param_sim.printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)
         n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
