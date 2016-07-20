@@ -3,7 +3,8 @@ Other than the special NaF channel, this can be used to create any neuron type.
 """
 from __future__ import print_function, division
 import os as _os
-from spspine import util as _util
+from spspine import (spines,
+                     util as _util)
 import moose 
 import numpy as np
 from param_sim import printMoreInfo
@@ -13,7 +14,6 @@ import param_ca_plas
 from param_spine import SpineParams
 import chan_proto
 import syn_proto
-import spines
 import calcium
 
 def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):

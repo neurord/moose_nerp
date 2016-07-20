@@ -1,9 +1,9 @@
-#spines.py
 from __future__ import print_function, division
-import moose 
+import numpy as np
+import moose
+
 from param_spine import SpineParams
 from param_sim import printinfo, printMoreInfo
-import numpy as np
 
 def setSpineCompParams(comp,compdia,complen):
     comp.diameter=compdia
