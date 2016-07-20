@@ -23,10 +23,10 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      neuron_graph,
+                     test_plas,
                      util as _util)
 import param_sim as sim
 import param_cond
-import test_plas
 
 try:
     from ParamOverrides import *

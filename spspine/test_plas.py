@@ -1,14 +1,13 @@
-######TestSynPlas.py##########
 """\
 Can add single synapse to single neuron model to test calcium and plasticity
 """
 from __future__ import print_function, division
-import plasticity as plas
 import param_cond
 import param_sim
 import param_ca_plas as parcal
 import plasticity
 from extern_conn import synconn 
+import plasticity
 import moose 
 
 def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
@@ -34,5 +33,10 @@ def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
             ###Synaptic Plasticity
             if plasYN:
                 print(syn_pop[neurtype]['ampa'][syncomp],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor,parcal.caName)
-                plast[neurtype]=plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor,parcal.caName)
+                plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
+                                                        parcal.highThresh,
+                                                        parcal.lowThresh,
+                                                        parcal.highfactor,
+                                                        parcal.lowfactor,
+                                                        parcal.caName)
     return syn, plast, stimtab
