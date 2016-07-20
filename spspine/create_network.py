@@ -1,5 +1,3 @@
-#CreateNetwork.py
-
 """\
 Sets up time tables, then connects them after creating population
 """
