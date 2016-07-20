@@ -9,10 +9,9 @@ import param_ca_plas as parcal
 import param_net
 import plasticity as plas
 from param_syn import GLU,GABA
-from spspine import extern_conn
+from spspine import (extern_conn,
+                     pop_funcs)
 
-#Debugging not yet finished for these functions
-import pop_funcs as pop
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
 
@@ -50,9 +49,9 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
             startt=extern_conn.addinput(timetab,synapses,['ampa','nmda'], neuronpaths, numglu[ntype], startt)
     else:
         #Create network of neurons
-        MSNpop = pop.create_population(moose.Neutral(param_net.netname), neurontypes,
-                                       param_net.netsizeX, param_net.netsizeY,
-                                       param_net.spacing)
+        MSNpop = pop_funcs.create_population(moose.Neutral(param_net.netname), neurontypes,
+                                             param_net.netsizeX, param_net.netsizeY,
+                                             param_net.spacing)
         #First, determine how many synaptic inputs (assume not spines for network)
         totaltt=sum(sum(numglu[neurontypes[i]])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
         print("totaltt GLU", ntype, totaltt)
@@ -65,8 +64,13 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
         #Different conn probs between populations is indicated in SpaceConst
         ######### Add FS['spikegen'] to MSNpop['spikegen'] once FS added to network
         for ii,ntype in zip(range(len(neurontypes)), neurontypes):
-            connect=pop.connect_neurons(MSNpop['spikegen'],MSNpop['pop'][ii],MSNsyn[ntype]['gaba'],param_net.SpaceConst[ntype],numgaba[ntype],ntype)
-        
+            connect=pop_funcs.connect_neurons(MSNpop['spikegen'],
+                                              MSNpop['pop'][ii],
+                                              MSNsyn[ntype]['gaba'],
+                                              param_net.SpaceConst[ntype],
+                                              numgaba[ntype],
+                                              ntype)
+
         #Last, save/write out the list of connections and location of each neuron
         locationlist=[]
         for neurlist in MSNpop['pop']:
