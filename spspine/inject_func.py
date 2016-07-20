@@ -1,4 +1,3 @@
-#inject_func.py
 #Eventually, update this for trains and bursts from Sriram's genesis functions
 
 from __future__ import print_function, division

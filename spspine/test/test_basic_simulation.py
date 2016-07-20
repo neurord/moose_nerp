@@ -1,5 +1,5 @@
 import moose
-import inject_func
+from spspine import inject_func
 import cell_proto
 import neuron_graph
 import create_network

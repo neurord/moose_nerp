@@ -26,13 +26,13 @@ from pprint import pprint
 import moose 
 
 from spspine import util as _util
+from spspine import inject_func
 import param_sim as sim
 from param_cond import neurontypes
 import clocks as clock
 import cell_proto
 import param_net
 import create_network
-import inject_func
 import net_graph
 import net_output
 #################################-----------create the model

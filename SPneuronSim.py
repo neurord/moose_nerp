@@ -19,11 +19,11 @@ plt.ion()
 from pprint import pprint
 import moose 
 
+from spspine import inject_func
 import param_sim as sim
 import param_cond
 import cell_proto
 import clocks
-import inject_func
 import test_plas
 import neuron_graph
 from spspine import util as _util
