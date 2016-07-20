@@ -2,9 +2,8 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond
-import param_sim
-from param_spine import SpineParams
+from spspine import param_cond, param_sim
+from spspine.param_spine import SpineParams
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
     if printinfo:

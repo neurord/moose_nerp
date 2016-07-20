@@ -11,8 +11,7 @@ from spspine import (calcium,
                      spines,
                      syn_proto,
                      util as _util)
-from spspine import param_chan, param_cond, param_sim, param_ca_plas
-from param_spine import SpineParams
+from spspine import param_chan, param_cond, param_sim, param_ca_plas, param_spine
 
 def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
     length=moose.Compartment(comp).length
@@ -106,7 +105,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
             if spYesNo:
                 for spcomp in headArray[ntype]:
                     capool=calcium.addCaPool(spcomp,param_ca_plas.caName)
-                    if SpineParams.spineChanList:
+                    if param_spine.SpineParams.spineChanList:
                         calcium.connectVDCC_KCa(ghkYN,spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if synYesNo:

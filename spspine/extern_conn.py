@@ -2,8 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim
-from param_spine import SpineParams
+from spspine import param_cond, param_sim, param_spine
 
 def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
     synchan=moose.element(synpath)
@@ -76,7 +75,7 @@ def addinput(ttab,synchans,synlist,cells,SynPerComp,startt):
         if param_sim.printMoreInfo:
             print(kk, SynPerComp[kk])
         if param_sim.spineYesNo:
-            comps.append(compname + '/' + p[SpineParams.spineNameNum])
+            comps.append(compname + '/' + p[param_spine.SpineParams.spineNameNum])
         else:
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
