@@ -3,10 +3,9 @@ Sets up time tables, then connects them after creating population
 """
 from __future__ import print_function, division
 import moose
-from spspine import param_cond, param_sim
+from spspine import param_cond, param_sim, param_syn
 import param_ca_plas as parcal
 import param_net
-from param_syn import GLU,GABA
 from spspine import (extern_conn,
                      pop_funcs,
                      plasticity)
@@ -18,8 +17,8 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
     #First, extract number of synapses per compartment for glu and gaba
     _types = param_cond.neurontypes()
     if synarray:
-        numglu = {ntype:synarray[ntype][:,GLU] for ntype in _types}
-        numgaba = {ntype:synarray[ntype][:,GABA] for ntype in _types}
+        numglu = {ntype:synarray[ntype][:,param_syn.GLU] for ntype in _types}
+        numgaba = {ntype:synarray[ntype][:,param_syn.GABA] for ntype in _types}
     else:
         numglu = {ntype:[] for ntype in _types}
         numgaba = {ntype:[] for ntype in _types}
@@ -38,7 +37,7 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
             if spineheads:
                 totaltt += len(spineheads[ntype])
             elif synarray:
-                totaltt += synarray[ntype].sum(axis=0)[GLU]
+                totaltt += synarray[ntype].sum(axis=0)[param_syn.GLU]
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
         timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,param_sim.simtime)
