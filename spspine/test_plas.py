@@ -37,5 +37,6 @@ def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
                                                         parcal.lowThresh,
                                                         parcal.highfactor,
                                                         parcal.lowfactor,
+                                                        # FIXME: param missing?
                                                         parcal.caName)
     return syn, plast, stimtab

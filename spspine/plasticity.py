@@ -1,12 +1,12 @@
-#PlasFunc.py
 """\
 Make a plasticity device in that compartment/synapse
 """
 from __future__ import print_function, division
 import os
+import moose
+
 from param_sim import printinfo, printMoreInfo
 import param_cond as parcond
-import moose 
 
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     compname = os.path.dirname(synchan.path)

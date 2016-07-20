@@ -7,10 +7,10 @@ from param_sim import printinfo, simtime
 from param_cond import neurontypes
 import param_ca_plas as parcal
 import param_net
-import plasticity as plas
 from param_syn import GLU,GABA
 from spspine import (extern_conn,
-                     pop_funcs)
+                     pop_funcs,
+                     plasticity)
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
@@ -87,10 +87,22 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
         SynPlas={}
         if (single==1):
             for ntype in neurontypes:
-                SynPlas[ntype]=plas.addPlasticity(MSNsyn[ntype]['ampa'],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor,[],parcal.caName)
+                SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
+                                                        parcal.highThresh,
+                                                        parcal.lowThresh,
+                                                        parcal.highfactor,
+                                                        parcal.lowfactor,
+                                                        [],
+                                                        parcal.caName)
         else:
             for nnum,ntype in zip(range(len(neurontypes)),neurontypes):
-                SynPlas[ntype]=plas.addPlasticity(MSNsyn[ntype]['ampa'],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor,MSNpop['pop'][nnum],parcal.caName)
+                SynPlas[ntype]=plas.addPlasticity(MSNsyn[ntype]['ampa'],
+                                                  parcal.highThresh,
+                                                  parcal.lowThresh,
+                                                  parcal.highfactor,
+                                                  parcal.lowfactor,
+                                                  MSNpop['pop'][nnum],
+                                                  parcal.caName)
     else:
         SynPlas=[]
     return MSNpop, SynPlas
