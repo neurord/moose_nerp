@@ -1,11 +1,11 @@
-#calcium.py
 from __future__ import print_function, division
+import os
+import numpy as np
+import moose
+
 import param_ca_plas as parcal
 import param_cond as parcond
 from param_sim import printMoreInfo
-import moose 
-import numpy as np
-import os
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
@@ -53,7 +53,6 @@ def connectVDCC_KCa(ghkYN,comp,capool):
             m=moose.connect(capool, 'concOut', chan, 'concen')
             if printMoreInfo:
                 print("channel message", chan.path,comp.path, m)
-    return
  
 def connectNMDA(nmdachans,poolname,ghkYesNo):
     #Note that ghk must receive input from SynChan and send output to MgBlock
@@ -67,4 +66,3 @@ def connectNMDA(nmdachans,poolname,ghkYesNo):
         if printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)
         n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
-    return
