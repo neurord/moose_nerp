@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import moose 
 from matplotlib import pyplot
-from iso_scaling import iso_scaling
+from spspine.iso_scaling import iso_scaling
 import numpy as np
 import param_cond as parcond
 from param_chan import ChanDict
