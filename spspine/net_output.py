@@ -5,13 +5,13 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-import param_cond as parcond
+import param_cond
 from param_sim import printinfo, simtime
 
 def SpikeTables(single,MSNpop,showgraphs,vmtab):
     spiketab=[]
     if not single:
-        for typenum,neurtype in enumerate(parcond.neurontypes):
+        for typenum,neurtype in enumerate(param_cond.neurontypes()):
             spiketab.append([])
             for tabnum,neurpath in enumerate(MSNpop['pop'][typenum]):
                 neurnum=int(neurpath[find(neurpath,'_')+1:])
@@ -33,7 +33,7 @@ def writeOutput(outfilename,spiketab,vmtab,MSNpop):
         print("SPIKE FILE", outspikefile, "VM FILE", outvmfile)
     outspiketab=list()
     outVmtab=list()
-    for typenum,neurtype in enumerate(parcond.neurontypes):
+    for typenum,neurtype in enumerate(param_cond.neurontypes()):
         outspiketab.append([])
         outVmtab.append([])
         for tabnum,neurname in enumerate(MSNpop['pop'][typenum]):

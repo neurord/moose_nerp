@@ -4,7 +4,7 @@ import moose
 from matplotlib import pyplot
 from spspine.iso_scaling import iso_scaling
 import numpy as np
-import param_cond as parcond
+import param_cond
 from param_chan import ChanDict
 from param_sim import printMoreInfo, simtime
 
@@ -14,11 +14,11 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     vmtab=[]
     catab=[]
     #
-    for neurtype in parcond.neurontypes:
+    for neurtype in param_cond.neurontypes():
         vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(len(neuron[neurtype]['comps']))])
         if len(capools[neurtype]):
             catab.append([moose.Table('/data/Ca%s_%d' % (neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))])
-    for num,neurtype in enumerate(parcond.neurontypes):
+    for num,neurtype in enumerate(param_cond.neurontypes()):
         for tab, comp in zip(vmtab[num], neuron[neurtype]['comps']):
             moose.connect(tab, 'requestOut', comp, 'getVm')
         if len(capools[neurtype]):
@@ -30,7 +30,7 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     plastab=[]
     plasCumtab=[]
     if len(plas):
-        for num,neurtype in enumerate(parcond.neurontypes):
+        for num,neurtype in enumerate(param_cond.neurontypes()):
             plastab.append(moose.Table('/data/plas%s' %neurtype))
             plasCumtab.append(moose.Table('/data/plasCum%s' %neurtype))
             syntab.append(moose.Table('/data/synwt%s' %neurtype))
@@ -42,11 +42,11 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     #
     #CHANNEL CURRENTS
     currtab={}
-    for neurtype in parcond.neurontypes:
+    for neurtype in param_cond.neurontypes():
         currtab[neurtype]={}
         for channame in ChanDict:
             currtab[neurtype][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))]
-    for neurtype in parcond.neurontypes:
+    for neurtype in param_cond.neurontypes():
         for channame in ChanDict:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
                 try:
@@ -75,7 +75,7 @@ def _get_graph(name, figsize=None):
 def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
     t = np.linspace(0, simtime, len(vmtab[0][0].vector))
 
-    for typenum,neurtype in enumerate(parcond.neurontypes):
+    for typenum,neurtype in enumerate(param_cond.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         t = np.linspace(0, simtime, len(vmtab[typenum][0].vector))
         axes = f.add_subplot(211) if len(catab) else f.gca()
@@ -125,7 +125,7 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
         for plotnum, channame in enumerate(sorted(ChanDict)):
             try:
                 axes = f.add_subplot(numplots, 1, plotnum + 1)
-                toplot = [tab.vector / (parcond.ghKluge if 'chanCa' in tab.path else 1)
+                toplot = [tab.vector / (param_cond.ghKluge if 'chanCa' in tab.path else 1)
                           for tab in currtab[neurtype][channame]]
                 scaling = iso_scaling(*toplot)
                 for vec in toplot:

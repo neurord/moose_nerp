@@ -77,7 +77,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
     numSynArray={}
     caPools={}
     headArray={}
-    for ntype in param_cond.neurontypes:
+    for ntype in param_cond.neurontypes():
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
@@ -99,7 +99,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
     #      this will require many additional function definitions
     if calyesno:
         calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau,param_ca_plas.caName)
-        for ntype in param_cond.neurontypes:
+        for ntype in param_cond.neurontypes():
             for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(ntype)):
                 capool=calcium.addCaPool(comp,param_ca_plas.caName)
                 caPools[ntype].append(capool)

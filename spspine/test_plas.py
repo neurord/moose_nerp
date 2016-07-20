@@ -15,7 +15,7 @@ def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
     stimtab={}
     if calYN and plasYN:
         moose.Neutral(inpath)
-        for neurtype in param_cond.neurontypes:
+        for neurtype in param_cond.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' %(inpath,neurtype))
             stimtab[neurtype].vector = param_sim.stimtimes
             for syntype in ('ampa','nmda'):

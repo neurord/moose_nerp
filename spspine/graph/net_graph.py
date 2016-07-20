@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-import param_cond as parcond
+import param_cond
 import param_sim as parsim
 from param_spine import SpineParams
 
@@ -27,7 +27,7 @@ def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
     return vtab,ctab,stab
 
 def spineTables(spineHeads,catab,syntab,calyn):
-    for typenum, neurtype in enumerate(sorted(parcond.neurontypes)):
+    for typenum, neurtype in enumerate(param_cond.neurontypes()):
         for headnum,head in enumerate(spineHeads[neurtype]):
             if calyn:
                 spcal=head.path+'/'+caName
@@ -53,7 +53,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
     spsyntab=[]
     plastab=[]
     plasCumtab=[]
-    for typenum,neurtype in enumerate(sorted(parcond.neurontypes)):
+    for typenum,neurtype in enumerate(param_cond.neurontypes()):
         vmtab.append([])
         catab.append([])
         syntab.append([])
@@ -66,9 +66,9 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
     #
     if singl or not pltnet:
         #create tables, one per neuron compartment
-        for typenum, neurtype in enumerate(sorted(parcond.neurontypes)):
+        for typenum, neurtype in enumerate(param_cond.neurontypes()):
             for comp in neuron[neurtype]['comps']:
-                compname = comp.path.split('/')[parcond.compNameNum]
+                compname = comp.path.split('/')[param_cond.compNameNum]
                 #print "Single",comp.path,neurtype,split(comp.path,'/')[compNameNum],'/data/Vm%s_%s' % (neurtype,split(comp.path,'/')[compNameNum])
                 vmtab[typenum].append(moose.Table('/data/Vm%s_%s' % (neurtype, compname)))
                 if len(capools[neurtype]):
@@ -79,24 +79,24 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
                 for head in spineheads[neurtype]:
                     if len(capools[neurtype]):
                         p = head.path.split('/')
-                        spinename = p[parcond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
+                        spinename = p[param_cond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
                         spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))
                     for chan in parsim.SpineSynChans:
                          spsyntab[typenum].append(moose.Table('/data/SpGk%s_%s_%s' % (chan,neurtype,spinename)))
             if SynPlas[neurtype]:
                 for plas in SynPlas[neurtype]: 
                     p = plas['plas'].path.split('/')
-                    plasname = p[parcond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
+                    plasname = p[param_cond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
                     plastab[typenum].append(moose.Table('/data/plas%s_%s' % (neurtype,plasname))) 
                     plasCumtab[typenum].append(moose.Table('/data/plasCum%s_%s' % (neurtype,plasname))) 
         #Connect tables
         print("***********PLOTTING",message[singl],"********************")
-        for typenum, neurtype in enumerate(sorted(parcond.neurontypes)):
+        for typenum, neurtype in enumerate(param_cond.neurontypes()):
             for tabnum,comp in enumerate(neuron[neurtype]['comps']):
                 if singl:
                     plotcomp=comp
                 else:
-                    comppath= comp.path.split('/')[parcond.compNameNum]
+                    comppath= comp.path.split('/')[param_cond.compNameNum]
                     plotcomp=moose.element(msn_pop['pop'][typenum][0]+'/'+comppath)
                 vmtab[typenum],catab[typenum],syntab[typenum]=connectTables(plotcomp,vmtab[typenum],catab[typenum],syntab[typenum],tabnum, calyesno)
             #tables for spines, or plasticity
@@ -110,7 +110,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
     else:
         #create and connect tables, one per cell soma.  
         print("***********PLOTTING NETWORK SOMATA***************")
-        for typenum,neurtype in enumerate(sorted(parcond.neurontypes)):
+        for typenum,neurtype in enumerate(param_cond.neurontypes()):
             for neurpath in msn_pop['pop'][typenum]:
                 neurnum = neurpath.partition('_')[2]
                 vmtab[typenum].append(moose.Table('/data/soma%s_%s' % (neurtype,neurnum)))
@@ -125,7 +125,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
 
 def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
     t = np.linspace(0, sim.simtime, len(vmtab[0][0].vector))
-    for typenum,neur in enumerate(sorted(parcond.neurontypes)):
+    for typenum,neur in enumerate(param_cond.neurontypes()):
         f=figure()
         f.canvas.set_window_title(neur+' Vm')
         if len(catab):
@@ -143,7 +143,7 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
             plt.ylabel('calcium, uM')
     #
     if grphsyn:
-        for typenum,neur in enumerate(sorted(parcond.neurontypes)):
+        for typenum,neur in enumerate(param_cond.neurontypes()):
             f=figure()
             f.canvas.set_window_title(neur+' Dend SynChans')
             for i,chan in enumerate(parsim.DendSynChans):
@@ -165,13 +165,13 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
             for typenum in range(len(plastab[plastype])):
                 t=np.linspace(0, simtime, len(plastab[typenum][0].vector))
                 f = plt.figure(figsize=(6,6))
-                f.canvas.set_window_title(parcond.neurontypes[typenum]+plastype)
+                f.canvas.set_window_title(param_cond.neurontypes()[typenum]+plastype)
                 axes=f.add_subplot(numplots,1,plasnum+1)
                 for oid in plastab[plastype][typenum]:
                     axes.plot(t,oid.vector*scaling, label=oid.path.rpartition('_')[2])
                 axes.legend(fontsize=8,loc='best')
     if len(sptab['cal']):
-        for typenum,neur in enumerate(sorted(parcond.neurontypes)):
+        for typenum,neur in enumerate(param_cond.neurontypes()):
             f = plt.figure()
             f.canvas.set_window_title("Spines {}".format(neur))
             numplots = len(parsim.SpineSynChans)+1

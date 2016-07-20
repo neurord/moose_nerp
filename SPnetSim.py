@@ -33,7 +33,7 @@ from spspine import (cell_proto,
                      util as _util)
 from spspine.graph import net_graph
 import param_sim as sim
-from param_cond import neurontypes
+import param_cond
 import param_net
 
 #################################-----------create the model
@@ -60,7 +60,7 @@ spiketab, vmtab = net_output.SpikeTables(sim.single,MSNpop,sim.showgraphs,vmtab)
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if sim.single:
-    simpath=['/'+neurotype for neurotype in neurontypes]
+    simpath=['/'+neurotype for neurotype in param_cond.neurontypes()]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
     simpath=[netpar.netname]

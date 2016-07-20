@@ -30,8 +30,9 @@ distTable=[26.1e-6,   # "prox"
            50e-6,     # "mid"
            1000e-6]   # "dist"
 
-#neurontype of each neuron created, with set of conductances
-neurontypes=['D1', 'D2']
+def neurontypes():
+    "Names of neurontypes of each neuron created"
+    return sorted(Condset.keys())
 
 ####These numbers are used with split to extract channel and compartment names
 neurTypeNum=1
