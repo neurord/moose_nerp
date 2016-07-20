@@ -28,9 +28,10 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
     for i in range(sizeX):
         for j in range(sizeY):
             number=i*sizeY+j
-            neurnum=int(choices[number])
-            neurons.append(moose.copy(proto[neurnum],netpath,neurontypes[neurnum]+'_%s' %(number)))
-            neurXclass[neurnum].append(container.path+'/'+neurontypes[neurnum]+'_%s' %(number))
+            neurnum = int(choices[number])
+            typename = neurontypes[neurnum]
+            neurons.append(moose.copy(proto[neurnum],netpath, typename + '_%s' %(number)))
+            neurXclass[neurnum].append(container.path+'/'+ typename +'_%s' %(number))
             comp=moose.Compartment(neurons[number].path+'/soma')
             comp.x=i*spacing
             comp.y=j*spacing
@@ -40,7 +41,7 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
             for chan in param_chan.ChanDict:
-                if (param_cond.Condset[neurontypes[neurnum]][chan][0] > 0
+                if (param_cond.Condset[typename][chan][0] > 0
                         and param_cond.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)
                     chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, param_cond.chanvar[chan]))
