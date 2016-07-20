@@ -3,11 +3,11 @@ Sets up time tables, then connects them after creating population
 """
 from __future__ import print_function, division
 import moose
-import param_net
+
 from spspine import (extern_conn,
                      pop_funcs,
                      plasticity)
-from spspine import param_cond, param_sim, param_syn, param_ca_plas
+from spspine import param_cond, param_sim, param_syn, param_ca_plas, param_net
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
