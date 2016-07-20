@@ -5,8 +5,7 @@ from matplotlib import pyplot
 import numpy as np
 
 from spspine.iso_scaling import iso_scaling
-from spspine import param_cond, param_sim
-from param_chan import ChanDict
+from spspine import param_chan, param_cond, param_sim
 
 def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     print("GRAPH TABLES, ca=", len(capools),"plas=",len(plas),"curr=",pltcurr)
@@ -44,10 +43,10 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     currtab={}
     for neurtype in param_cond.neurontypes():
         currtab[neurtype]={}
-        for channame in ChanDict:
+        for channame in param_chan.ChanDict:
             currtab[neurtype][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))]
     for neurtype in param_cond.neurontypes():
-        for channame in ChanDict:
+        for channame in param_chan.ChanDict:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
                 try:
                     chan=moose.element(comp.path+'/'+channame)
@@ -121,8 +120,8 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
 
     if plotcurr:
         f = _get_graph('D1/D2 currents', figsize=(6,12))
-        numplots=len(ChanDict)
-        for plotnum, channame in enumerate(sorted(ChanDict)):
+        numplots=len(param_chan.ChanDict)
+        for plotnum, channame in enumerate(sorted(param_chan.ChanDict)):
             try:
                 axes = f.add_subplot(numplots, 1, plotnum + 1)
                 toplot = [tab.vector / (param_cond.ghKluge if 'chanCa' in tab.path else 1)

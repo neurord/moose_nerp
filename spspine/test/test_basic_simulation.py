@@ -2,7 +2,8 @@ import moose
 from spspine import (cell_proto,
                      create_network,
                      inject_func,
-                     neuron_graph)
+                     neuron_graph,
+                     param_chan)
 
 import pytest
 
@@ -101,7 +102,6 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
 def test_param_access():
     "Just test that the accessors work"
-    import param_chan
     param_chan.ChanDict.Krp
     param_chan.ChanDict.CaT
     param_chan.ChanDict['Krp']

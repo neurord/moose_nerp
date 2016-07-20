@@ -7,8 +7,7 @@ import numpy as np
 import moose
 
 from spspine.util import dist_num
-import param_chan
-from spspine import param_cond, param_sim, param_syn
+from spspine import param_chan, param_cond, param_sim, param_syn
 
 def make_synchan(chanpath,synparams,ghkYN,calYN):
     # for AMPA or GABA - just make the channel, no connections/messages

@@ -14,8 +14,7 @@ import moose
 import numpy as np
 
 from spspine.graph import plot_channel
-import param_chan
-from spspine import param_cond, param_sim
+from spspine import param_cond, param_chan, param_sim
 
 VMIN = -120e-3
 VMAX = 50e-3

@@ -3,15 +3,15 @@ Other than the special NaF channel, this can be used to create any neuron type.
 """
 from __future__ import print_function, division
 import os as _os
+import moose 
+import numpy as np
+
 from spspine import (calcium,
                      chan_proto,
                      spines,
                      syn_proto,
                      util as _util)
-import moose 
-import numpy as np
-from spspine import param_cond, param_sim
-import param_chan
+from spspine import param_cond, param_sim, param_chan
 import param_ca_plas
 from param_spine import SpineParams
 

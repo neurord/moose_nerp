@@ -8,8 +8,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim
-import param_chan
+from spspine import param_chan, param_cond, param_sim
 import param_net
 
 def create_population(container, neurontypes, sizeX, sizeY, spacing):
