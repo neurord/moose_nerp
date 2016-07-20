@@ -3,12 +3,11 @@ Sets up time tables, then connects them after creating population
 """
 from __future__ import print_function, division
 import moose
-from spspine import param_cond, param_sim, param_syn
-import param_ca_plas as parcal
 import param_net
 from spspine import (extern_conn,
                      pop_funcs,
                      plasticity)
+from spspine import param_cond, param_sim, param_syn, param_ca_plas
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
@@ -87,21 +86,21 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
         if (single==1):
             for ntype in _types:
                 SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                        parcal.highThresh,
-                                                        parcal.lowThresh,
-                                                        parcal.highfactor,
-                                                        parcal.lowfactor,
+                                                        param_ca_plas.highThresh,
+                                                        param_ca_plas.lowThresh,
+                                                        param_ca_plas.highfactor,
+                                                        param_ca_plas.lowfactor,
                                                         [],
-                                                        parcal.caName)
+                                                        param_ca_plas.caName)
         else:
             for nnum,ntype in _enumerate(_types):
                 SynPlas[ntype]=plas.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                  parcal.highThresh,
-                                                  parcal.lowThresh,
-                                                  parcal.highfactor,
-                                                  parcal.lowfactor,
+                                                  param_ca_plas.highThresh,
+                                                  param_ca_plas.lowThresh,
+                                                  param_ca_plas.highfactor,
+                                                  param_ca_plas.lowfactor,
                                                   MSNpop['pop'][nnum],
-                                                  parcal.caName)
+                                                  param_ca_plas.caName)
     else:
         SynPlas=[]
     return MSNpop, SynPlas

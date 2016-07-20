@@ -3,8 +3,7 @@ import os
 import numpy as np
 import moose
 
-import param_ca_plas
-from spspine import param_cond, param_sim
+from spspine import param_cond, param_sim, param_ca_plas
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):

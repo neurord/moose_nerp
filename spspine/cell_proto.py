@@ -11,8 +11,7 @@ from spspine import (calcium,
                      spines,
                      syn_proto,
                      util as _util)
-from spspine import param_cond, param_sim, param_chan
-import param_ca_plas
+from spspine import param_chan, param_cond, param_sim, param_ca_plas
 from param_spine import SpineParams
 
 def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
