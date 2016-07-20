@@ -6,8 +6,7 @@ import param_cond
 import param_sim
 import param_ca_plas as parcal
 import plasticity
-from extern_conn import synconn 
-import plasticity
+from spspine import extern_conn
 import moose 
 
 def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
@@ -23,12 +22,12 @@ def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
                 if param_sim.printinfo:
                     print("Synapse added to", synchan.path)
-                synconn(synchan,0,stimtab[neurtype],calYN)
+                extern_conn.synconn(synchan,0,stimtab[neurtype],calYN)
                 if syntype=='nmda':
                     synchanCa=moose.element(syn_pop[neurtype][syntype][syncomp].path+'/CaCurr')
                     if param_sim.printinfo:
                         print("Synapse added to", synchanCa.path)
-                    synconn(synchanCa,0,stimtab[neurtype],calYN)
+                    extern_conn.synconn(synchanCa,0,stimtab[neurtype],calYN)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
             if plasYN:

@@ -9,9 +9,9 @@ import param_ca_plas as parcal
 import param_net
 import plasticity as plas
 from param_syn import GLU,GABA
+from spspine import extern_conn
 
 #Debugging not yet finished for these functions
-import extern_conn as conn
 import pop_funcs as pop
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
@@ -42,12 +42,12 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
                 totaltt += synarray[ntype].sum(axis=0)[GLU]
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=conn.alltables(param_net.infile,inpath,totaltt,simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
         #Third, assign the timetables to synapses for each neuron
         for ntype in neurontypes:
             synapses = MSNsyn[ntype] if synarray else {'ampa':[], 'nmda':[]}
             neuronpaths = [neuron[ntype]['cell'].path]
-            startt=conn.addinput(timetab,synapses,['ampa','nmda'], neuronpaths, numglu[ntype], startt)
+            startt=extern_conn.addinput(timetab,synapses,['ampa','nmda'], neuronpaths, numglu[ntype], startt)
     else:
         #Create network of neurons
         MSNpop = pop.create_population(moose.Neutral(param_net.netname), neurontypes,
@@ -57,10 +57,10 @@ def CreateNetwork(inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuro
         totaltt=sum(sum(numglu[neurontypes[i]])*len(MSNpop['pop'][i]) for i in range(len(MSNpop['pop'])))
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=conn.alltables(param_net.infile,inpath,totaltt,simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
         #Third, assign the timetables to synapses for each neuron, but don't re-use uniq
         for ii,ntype in zip(range(len(neurontypes)), neurontypes):
-            startt=conn.addinput(timetab,MSNsyn[ntype],['ampa', 'nmda'],MSNpop['pop'][ii],numglu[ntype],startt)
+            startt=extern_conn.addinput(timetab,MSNsyn[ntype],['ampa', 'nmda'],MSNpop['pop'][ii],numglu[ntype],startt)
         #Fourth, intrinsic connections, from all spikegens to each population
         #Different conn probs between populations is indicated in SpaceConst
         ######### Add FS['spikegen'] to MSNpop['spikegen'] once FS added to network
