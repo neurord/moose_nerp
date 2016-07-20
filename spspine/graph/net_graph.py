@@ -1,7 +1,7 @@
-#net_graph.py
 from __future__ import print_function, division
 import numpy as np
-import moose 
+import moose
+
 import param_cond as parcond
 import param_sim as parsim
 from param_spine import SpineParams
