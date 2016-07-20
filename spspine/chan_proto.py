@@ -14,7 +14,7 @@ import moose
 from param_sim import printinfo, printMoreInfo
 import numpy as np
 
-import plot_channel
+from spspine.graph import plot_channel
 import param_chan
 import param_cond
 
