@@ -4,7 +4,7 @@ import numpy as np
 import moose
 
 import param_ca_plas
-import param_cond
+from spspine import param_cond
 from param_sim import printMoreInfo
 
 def CaProto(thick,basal,ctau,poolname):

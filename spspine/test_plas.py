@@ -2,7 +2,7 @@
 Can add single synapse to single neuron model to test calcium and plasticity
 """
 from __future__ import print_function, division
-import param_cond
+from spspine import param_cond
 import param_sim
 import param_ca_plas as parcal
 import plasticity

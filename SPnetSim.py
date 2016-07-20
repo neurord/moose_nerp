@@ -33,7 +33,7 @@ from spspine import (cell_proto,
                      util as _util)
 from spspine.graph import net_graph
 import param_sim as sim
-import param_cond
+from spspine import param_cond
 import param_net
 
 #################################-----------create the model

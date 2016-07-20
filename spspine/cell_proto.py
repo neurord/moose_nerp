@@ -11,7 +11,7 @@ from spspine import (calcium,
 import moose 
 import numpy as np
 from param_sim import printMoreInfo
-import param_cond
+from spspine import param_cond
 import param_chan
 import param_ca_plas
 from param_spine import SpineParams

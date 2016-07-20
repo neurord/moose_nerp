@@ -26,7 +26,7 @@ from spspine import (cell_proto,
                      test_plas,
                      util as _util)
 import param_sim as sim
-import param_cond
+from spspine import param_cond
 
 try:
     from ParamOverrides import *

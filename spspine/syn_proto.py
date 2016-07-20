@@ -9,7 +9,7 @@ import moose
 from spspine.util import dist_num
 import param_syn
 import param_chan
-import param_cond
+from spspine import param_cond
 from param_sim import printinfo, printMoreInfo
 
 def make_synchan(chanpath,synparams,ghkYN,calYN):

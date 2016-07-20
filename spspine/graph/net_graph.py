@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-import param_cond
+from spspine import param_cond
 import param_sim as parsim
 from param_spine import SpineParams
 

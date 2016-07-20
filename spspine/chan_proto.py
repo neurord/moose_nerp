@@ -16,7 +16,7 @@ import numpy as np
 
 from spspine.graph import plot_channel
 import param_chan
-import param_cond
+from spspine import param_cond
 
 VMIN = -120e-3
 VMAX = 50e-3

@@ -4,7 +4,7 @@ Sets up time tables, then connects them after creating population
 from __future__ import print_function, division
 import moose
 from param_sim import printinfo, simtime
-import param_cond
+from spspine import param_cond
 import param_ca_plas as parcal
 import param_net
 from param_syn import GLU,GABA

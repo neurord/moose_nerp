@@ -4,7 +4,7 @@ import moose
 from matplotlib import pyplot
 from spspine.iso_scaling import iso_scaling
 import numpy as np
-import param_cond
+from spspine import param_cond
 from param_chan import ChanDict
 from param_sim import printMoreInfo, simtime
 
