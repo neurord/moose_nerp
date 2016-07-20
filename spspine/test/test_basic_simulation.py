@@ -1,7 +1,7 @@
 import moose
-from spspine import inject_func
+from spspine import (inject_func,
+                     neuron_graph)
 import cell_proto
-import neuron_graph
 import create_network
 
 import pytest
