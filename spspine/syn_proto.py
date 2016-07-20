@@ -113,11 +113,11 @@ def add_synchans(container,calYN,ghkYN):
     for i, comp in enumerate(comp_list):
                 
         #create each type of synchan in each compartment.  Add to 2D array
-        for key in param_syn.DendSynChans:
+        for key in param_syn.DendSynChans():
             keynum = allkeys.index(key)
             Gbar = param_syn.SynChanParams[key].Gbar
             synchans[keynum].append(addoneSynChan(key,comp,Gbar,calYN,ghkYN))
-        for key in param_syn.SpineSynChans:
+        for key in param_syn.SpineSynChans():
             keynum = allkeys.index(key)
             Gbar = param_syn.SynChanParams[key].Gbar
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):

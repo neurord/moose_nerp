@@ -1,10 +1,9 @@
 from spspine.util import NamedList, NamedDict
 
+import param_sim
+
 #Parameters for inhibitory synpases:
 #Erev, tau1, tau2  (SI units)
-
-DendSynChans=['gaba']
-SpineSynChans=['ampa', 'nmda']
 
 _SynChannelParams = NamedList('SynChannelParams',
                               '''Erev
@@ -12,6 +11,7 @@ _SynChannelParams = NamedList('SynChannelParams',
                                  tau2
                                  Gbar
                                  MgBlock=None
+                                 synaptic=False
                               ''')
 _MgParams = NamedList('MgParams',
                       '''A
@@ -37,12 +37,14 @@ _SynGaba = _SynChannelParams(Erev = -60e-3,
 _SynAMPA = _SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
                              tau2 = 5.75e-3,
-                             Gbar = 2e-9)
+                             Gbar = 2e-9,
+                             synaptic = True)
 _SynNMDA = _SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
                              tau2 = 37.5e-3,
                              Gbar = 2e-9,
-                             MgBlock = _NMDA_MgParams)
+                             MgBlock = _NMDA_MgParams,
+                             synaptic = True)
 SynChanParams = NamedDict(
     'SynChanParams',
     ampa =  _SynAMPA,
@@ -66,3 +68,12 @@ NumSynClass = 2
 #indices to use in arrays of dimension NumSynClass
 GABA=0
 GLU=1
+
+def SpineSynChans():
+    return sorted(key for key,val in SynChanParams.items()
+                  if val.synaptic and param_sim.spineYesNo)
+
+def DendSynChans():
+    # If synapses are disabled, put all synaptic channels in the dendrite
+    return sorted(key for key,val in SynChanParams.items()
+                  if not (val.synaptic and param_sim.spineYesNo))

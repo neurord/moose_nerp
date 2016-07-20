@@ -2,7 +2,6 @@
 #plas=plasticity elements and synaptic input, curr=ionic currents
 
 import numpy as np
-from param_syn import DendSynChans, SpineSynChans
 
 ############## First, optionally override parameters specifying model detail
 #calcium: include or exclude calcium concentration dynamics, single tau
@@ -30,12 +29,6 @@ if not single:
     neurnameNum=2
 else:
     title1 = 'single'
-
-if not spineYesNo:
-    #put all the synaptic channels in the dendrite.  
-    #These lists are in param_spine.py
-    DendSynChans += SpineSynChans
-    del SpineSynChans[:]
 
 #Second, specify which graphs of the simulation should be shown?
 plotplas=1
