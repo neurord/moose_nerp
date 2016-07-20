@@ -29,12 +29,13 @@ from spspine import (cell_proto,
                      clocks,
                      create_network,
                      inject_func,
+                     net_output,
                      util as _util)
 from spspine.graph import net_graph
 import param_sim as sim
 from param_cond import neurontypes
 import param_net
-import net_output
+
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium

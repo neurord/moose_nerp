@@ -1,10 +1,10 @@
-#net_output.py
 """\
 Create table for spike generators of network, and Vm when not graphing.
 """
 from __future__ import print_function, division
 import numpy as np
-import moose 
+import moose
+
 import param_cond as parcond
 from param_sim import printinfo, simtime
 
