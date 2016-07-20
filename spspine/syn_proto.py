@@ -1,13 +1,12 @@
-#syn_proto.py
 """\
 Function definitions for making channels.
 """
 
 from __future__ import print_function, division
 import numpy as np
+import moose
 
 from spspine.util import dist_num
-import moose 
 import param_syn
 import param_chan
 import param_cond

@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import os as _os
 from spspine import (chan_proto,
                      spines,
+                     syn_proto,
                      util as _util)
 import moose 
 import numpy as np
@@ -13,7 +14,6 @@ import param_cond
 import param_chan
 import param_ca_plas
 from param_spine import SpineParams
-import syn_proto
 import calcium
 
 def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
