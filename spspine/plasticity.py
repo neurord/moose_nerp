@@ -6,7 +6,7 @@ import os
 import moose
 
 from param_sim import printinfo, printMoreInfo
-import param_cond as parcond
+import param_cond
 
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     compname = os.path.dirname(synchan.path)
@@ -53,7 +53,7 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
         for cell in cells:
             for br in range(len(synPop)):
                 p = synPop[br].path.split('/')
-                compname = p[parcond.compNameNum] + '/' + p[parcond.chanNameNum]
+                compname = p[param_cond.compNameNum] + '/' + p[param_cond.chanNameNum]
                 synchan=moose.element(cell+'/'+compname)
                 if printMoreInfo:
                     print("ADDPLAS",cell,compname,synchan)
