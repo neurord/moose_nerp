@@ -22,6 +22,7 @@ import moose
 from spspine import (cell_proto,
                      clocks,
                      inject_func,
+                     tables,
                      neuron_graph,
                      test_plas,
                      util as _util)
@@ -56,7 +57,7 @@ if param_sim.plotchan:
 
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = neuron_graph.graphtables(neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = tables.graphtables(neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver

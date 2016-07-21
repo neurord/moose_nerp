@@ -2,7 +2,7 @@ import moose
 from spspine import (cell_proto,
                      create_network,
                      inject_func,
-                     neuron_graph,
+                     tables,
                      param_chan)
 
 import pytest
@@ -38,7 +38,7 @@ def test_single_injection(calcium, synapses, spines, ghk):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        neuron_graph.graphtables(neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(neuron, False, 'getGk', capools, {}, {})
 
     moose.reinit()
     moose.start(0.05)
@@ -84,7 +84,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        neuron_graph.graphtables(neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(neuron, False, 'getGk', capools, {}, {})
 
     moose.reinit()
     moose.start(0.05)
