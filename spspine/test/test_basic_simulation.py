@@ -30,7 +30,7 @@ def test_single_injection(calcium, synapses, spines, ghk):
         pytest.skip("GHK is missing")
 
     MSNsyn,neuron,capools,synarray,spineHeads = \
-        cell_proto.neuronclasses(False, False, calcium, synapses, spines, ghk)
+        cell_proto.neuronclasses(calcium, synapses, spines, ghk, False)
 
     pg = inject_func.setupinj(0.02, 0.01, neuron)
     pg.firstLevel = 1e-8
@@ -72,7 +72,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
         pytest.skip("spines are too much with multiple neurons")
 
     MSNsyn,neuron,capools,synarray,spineHeads = \
-        cell_proto.neuronclasses(False, False, calcium, synapses, spines, ghk)
+        cell_proto.neuronclasses(calcium, synapses, spines, ghk, False)
 
     MSNpop, SynPlas = \
         create_network.CreateNetwork('/input', calcium, plasticity, single,
