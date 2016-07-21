@@ -14,9 +14,10 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     catab=[]
     #
     for neurtype in param_cond.neurontypes():
-        vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(len(neuron[neurtype]['comps']))])
+        ncomps = len(neuron[neurtype]['comps'])
+        vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(ncomps)])
         if len(capools[neurtype]):
-            catab.append([moose.Table('/data/Ca%s_%d' % (neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))])
+            catab.append([moose.Table('/data/Ca%s_%d' % (neurtype,ii)) for ii in range(ncomps)])
     for num,neurtype in enumerate(param_cond.neurontypes()):
         for tab, comp in zip(vmtab[num], neuron[neurtype]['comps']):
             moose.connect(tab, 'requestOut', comp, 'getVm')
