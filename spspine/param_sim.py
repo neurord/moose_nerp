@@ -6,18 +6,18 @@ plas=plasticity elements and synaptic input, curr=ionic currents
 
 ############## First, optionally override parameters specifying model detail
 #calcium: include or exclude calcium concentration dynamics, single tau
-calcium=1
+calcium=0
 
 #include or exclude plasticity based on calcium
-plasYesNo=1
+plasYesNo=0
 
 #note that if ghkYesNo=0, make sure that ghKluge = 1
 ghkYesNo=0
 
-spineYesNo=1
+spineYesNo=0
 
 #No point adding synapses unless they receive inputs
-synYesNo=1
+synYesNo=0
 
 # The parameter single only used in SPnetSpineSim.py
 # set single=1 to create a single neuron of each type with synaptic input 
@@ -47,7 +47,7 @@ graphsyn=0
 Synmsg='getGk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=0
+plotchan=1
 plotpow=1
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only
@@ -79,5 +79,5 @@ syncomp=4
 ###################Fourth, specify simulation time, time step:dt and solver
 simtime = 0.4999 #0.4999
 plotdt = 0.2e-3
-simdt = 2.5e-5
+simdt = 10e-6
 hsolve=1

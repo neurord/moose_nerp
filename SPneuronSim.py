@@ -25,7 +25,8 @@ from spspine import (cell_proto,
                      neuron_graph,
                      test_plas,
                      util as _util)
-from spspine import param_cond, param_sim
+from spspine import param_chan,param_cond, param_sim
+from spspine.graph import plot_channel
 
 try:
     from ParamOverrides import *
@@ -35,7 +36,7 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.plotchan,param_sim.plotpow,param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo,param_sim.printMoreInfo)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if param_sim.synYesNo:
@@ -48,15 +49,19 @@ currents = _util.inclusive_range(param_sim.current1,param_sim.current2,param_sim
 pg=inject_func.setupinj(param_sim.delay,param_sim.width,neuron)
 
 ###############--------------output elements
+if param_sim.plotchan:
+    for chan in param_chan.ChanDict.keys():
+        libchan=moose.element('/library/'+chan)
+        plot_channel.plot_gate_params(libchan,param_sim.plotpow, param_chan.VMIN, param_chan.VMAX, param_chan.CAMIN, param_chan.CAMAX)
+
 data = moose.Neutral('/data')
 
 vmtab,catab,plastab,currtab = neuron_graph.graphtables(neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
-
-########## clocks are critical
+########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in param_cond.neurontypes()]
-clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve, param_sim.printinfo)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):

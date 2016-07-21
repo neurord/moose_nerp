@@ -17,6 +17,13 @@ narev=50e-3
 carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
 
+VMIN = -120e-3
+VMAX = 50e-3
+VDIVS = 3401 #0.5 mV steps
+CAMIN=0.01e-3   #10 nM
+CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
+CADIVS=4001 #10 nM steps
+
 #mtau: Ogata fig 5, no qfactor accounted in mtau, 1.2 will improve spike shape
 #activation minf fits Ogata 1990 figure 3C (which is cubed root)
 #inactivation hinf fits Ogata 1990 figure 6B

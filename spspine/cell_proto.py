@@ -11,9 +11,9 @@ from spspine import (calcium,
                      spines,
                      syn_proto,
                      util as _util)
-from spspine import param_chan, param_cond, param_sim, param_ca_plas, param_spine
+from spspine import param_chan, param_cond, param_ca_plas, param_spine
 
-def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
+def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo,ghk=None):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
@@ -27,11 +27,11 @@ def addOneChan(chanpath,gbar,comp,ghkYN,ghk=None):
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
         m=moose.connect(chan, 'channel', comp, 'channel')
-    if param_sim.printMoreInfo:
+    if prnInfo:
         print("channel message", chan.path,comp.path, m)
     return
 
-def create_neuron(p_file,container,Cond,ghkYN):
+def create_neuron(p_file,container,Cond,ghkYN,prnInfo):
     p_file = _util.maybe_find_file(p_file, '.', _os.path.dirname(__file__))
     try:
         cellproto=moose.loadModel(p_file, container)
@@ -46,7 +46,7 @@ def create_neuron(p_file,container,Cond,ghkYN):
         yloc=moose.Compartment(comp).y
         #Possibly this should be replaced by pathlength
         dist=np.sqrt(xloc*xloc+yloc*yloc)
-        if param_sim.printMoreInfo:
+        if prnInfo:
             print("comp,dist",comp.path,dist)
         #
         #If we are using GHK, just create one GHK per compartment, connect it to comp
@@ -59,14 +59,14 @@ def create_neuron(p_file,container,Cond,ghkYN):
             ghk=[]
         for chanpath in param_chan.ChanDict:
             if Cond[chanpath][_util.dist_num(param_cond.distTable, dist)]:
-                if param_sim.printMoreInfo:
+                if prnInfo:
                     print("Testing Cond If", chanpath, Cond[chanpath][_util.dist_num(param_cond.distTable, dist)])
-                addOneChan(chanpath,Cond[chanpath][_util.dist_num(param_cond.distTable, dist)],comp, ghkYN, ghk)
+                addOneChan(chanpath,Cond[chanpath][_util.dist_num(param_cond.distTable, dist)],comp, ghkYN, ghk,prnInfo)
     return {'comps': comps, 'cell': cellproto}
 
-def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
+def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
     ##create channels in the library
-    chan_proto.chanlib(plotchan,plotpow)
+    chan_proto.chanlib()
     syn_proto.synchanlib(ghkYN,calyesno)
     ##now create the neuron prototypes
     neuron={}
@@ -78,7 +78,7 @@ def neuronclasses(plotchan,plotpow,calyesno,synYesNo,spYesNo,ghkYN):
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(param_cond.morph_file,ntype,param_cond.Condset[ntype],ghkYN)
+        neuron[ntype]=create_neuron(param_cond.morph_file,ntype,param_cond.Condset[ntype],ghkYN,prnInfo)
         #optionally add spines
         if spYesNo:
             headArray[ntype]=spines.addSpines(ntype,ghkYN)
