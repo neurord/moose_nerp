@@ -55,50 +55,48 @@ def fix_singularities(Params,Gate):
 
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
-def chan_proto(chanpath,params,Xparams,Yparams,Zparams=None):
+def chan_proto(chanpath, params):
     if param_sim.printinfo:
         print(chanpath, ":", params)
     chan = moose.HHChannel(chanpath)
-    chan.Xpower = params.Xpow
-    if params.Xpow > 0:
+    chan.Xpower = params.channel.Xpow
+    if params.channel.Xpow > 0:
         xGate = moose.HHGate(chan.path + '/gateX')
-        xGate.setupAlpha(Xparams + [param_chan.VDIVS, param_chan.VMIN, param_chan.VMAX])
-        xGate = fix_singularities(Xparams,xGate)
+        xGate.setupAlpha(params.X + [param_chan.VDIVS, param_chan.VMIN, param_chan.VMAX])
+        xGate = fix_singularities(params.X, xGate)
 
-    chan.Ypower = params.Ypow
-    if params.Ypow > 0:
+    chan.Ypower = params.channel.Ypow
+    if params.channel.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
-        yGate.setupAlpha(Yparams + [param_chan.VDIVS, param_chan.VMIN, param_chan.VMAX])
-        yGate = fix_singularities(Yparams,yGate)
-    if params.Zpow > 0:
-        chan.Zpower = params.Zpow
+        yGate.setupAlpha(params.Y + [param_chan.VDIVS, param_chan.VMIN, param_chan.VMAX])
+        yGate = fix_singularities(params.Y, yGate)
+    if params.channel.Zpow > 0:
+        chan.Zpower = params.channel.Zpow
         zgate = moose.HHGate(chan.path + '/gateZ')
         ca_array = np.linspace(param_chan.CAMIN, param_chan.CAMAX, param_chan.CADIVS)
-        zgate.min=param_chan.CAMIN
-        zgate.max=param_chan.CAMAX
-        caterm=(ca_array/Zparams.Kd)**Zparams.power
-        inf_z=caterm/(1+caterm)
-        tau_z=Zparams.tau*np.ones(len(ca_array))
-        zgate.tableA=inf_z / tau_z
-        zgate.tableB=1 / tau_z
-        chan.useConcentration=True
-        #moose.showfield(zgate)
-    #end if Zpow
-    chan.Ek = params.Erev
+        zgate.min = param_chan.CAMIN
+        zgate.max = param_chan.CAMAX
+        caterm = (ca_array/params.Z.Kd) ** params.Z.power
+        inf_z = caterm / (1 + caterm)
+        tau_z = params.Z.tau * np.ones(len(ca_array))
+        zgate.tableA = inf_z / tau_z
+        zgate.tableB = 1 / tau_z
+        chan.useConcentration = True
+    chan.Ek = params.channel.Erev
     return chan
 
-def NaFchan_proto(chanpath,params,Xparams,Yparams):
+def NaFchan_proto(chanpath, params):
     v_array = np.linspace(param_chan.VMIN, param_chan.VMAX, param_chan.VDIVS)
     chan = moose.HHChannel(chanpath)
-    chan.Xpower = params.Xpow #creates the m gate
+    chan.Xpower = params.channel.Xpow #creates the m gate
     mgate = moose.HHGate(chan.path + '/gateX')
     #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
     mgate.min=param_chan.VMIN
     mgate.max=param_chan.VMAX
-    inf_x = Xparams.Arate/(Xparams.A_C + np.exp(( v_array+Xparams.Avhalf)/Xparams.Avslope))
-    tau1 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/Xparams.tauVslope))
-    tau2 = Xparams.tauVdep/(1+np.exp((v_array+Xparams.tauVhalf)/-Xparams.tauVslope))
-    tau_x = (Xparams.taumin+1000*tau1*tau2)/param_chan.qfactNaF
+    inf_x = params.X.Arate/(params.X.A_C + np.exp(( v_array+params.X.Avhalf)/params.X.Avslope))
+    tau1 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/params.X.tauVslope))
+    tau2 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/-params.X.tauVslope))
+    tau_x = (params.X.taumin+1000*tau1*tau2)/param_chan.qfactNaF
     if param_sim.printMoreInfo:
         print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
 
@@ -106,28 +104,27 @@ def NaFchan_proto(chanpath,params,Xparams,Yparams):
     mgate.tableB =  1 / tau_x
 #    moose.showfield(mgate)
 
-    chan.Ypower = params.Ypow #creates the h gate
+    chan.Ypower = params.channel.Ypow #creates the h gate
     hgate = moose.HHGate(chan.path + '/gateY')
-    hgate.min=param_chan.VMIN
-    hgate.max=param_chan.VMAX
-    tau_y=(Yparams.taumin+(Yparams.tauVdep/(1+np.exp((v_array+Yparams.tauVhalf)/Yparams.tauVslope))))/param_chan.qfactNaF
-    inf_y=Yparams.Arate/(Yparams.A_C + np.exp(( v_array+Yparams.Avhalf)/Yparams.Avslope))
+    hgate.min = param_chan.VMIN
+    hgate.max = param_chan.VMAX
+    tau_y = (params.Y.taumin + (params.Y.tauVdep/(1+np.exp((v_array+params.Y.tauVhalf)/params.Y.tauVslope)))) / param_chan.qfactNaF
+    inf_y = params.Y.Arate / (params.Y.A_C + np.exp(( v_array+params.Y.Avhalf)/params.Y.Avslope))
     if param_sim.printMoreInfo:
         print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y
-    chan.Ek=params.Erev
+    chan.Ek=params.channel.Erev
     return chan
 
-def BKchan_proto(chanpath,params,gateParams):
-
+def BKchan_proto(chanpath, params):
     ZFbyRT=2*param_cond.Faraday/(param_cond.R*(param_cond.Temp+273.15))
     v_array = np.linspace(param_chan.VMIN, param_chan.VMAX, param_chan.VDIVS)
     ca_array = np.linspace(param_chan.CAMIN, param_chan.CAMAX, param_chan.CADIVS)
     if param_chan.VDIVS<=5 and param_chan.CADIVS<=5 and param_sim.printinfo:
         print(v_array,ca_array)
     gatingMatrix = []
-    for i,pars in enumerate(gateParams):
+    for i,pars in enumerate(params.X):
         Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
         if i == 0:
             gatingMatrix.append(pars.alphabeta*ca_array[None,:]/(ca_array[None,:]+pars.K*Vdepgating[:,None]))
@@ -139,8 +136,8 @@ def BKchan_proto(chanpath,params,gateParams):
 
 
     chan = moose.HHChannel2D(chanpath)
-    chan.Xpower = params.Xpow
-    chan.Ek=params.Erev
+    chan.Xpower = params.channel.Xpow
+    chan.Ek=params.channel.Erev
     chan.Xindex="VOLT_C1_INDEX"
     xGate = moose.HHGate2D(chan.path + '/gateX')
     xGate.xminA=xGate.xminB=param_chan.VMIN
@@ -160,17 +157,16 @@ def BKchan_proto(chanpath,params,gateParams):
     return chan
 #ChanDict (param_chan.py) includes channel function name in the dictionary
 
+_FUNCTIONS = {
+    param_chan.TypicalOneDalpha: chan_proto,
+    param_chan.AtypicalOneD: NaFchan_proto,
+    param_chan.TwoD: BKchan_proto,
+}
 
 #*params... passes the set of values not as a list but as individuals
-def make_channel(chanpath,params):
-    if params[0] == 'typical_1D_alpha':
-        return chan_proto(chanpath,*params[1:])
-    elif params[0] == 'atypical_1D':
-        return NaFchan_proto(chanpath,*params[1:])
-    elif params[0] == '2D':
-        return BKchan_proto(chanpath,*params[1:])
-    else:
-        sys.exit('Exiting. Could not find channel '+params[0] +' proto function for channel '+chanpath)
+def make_channel(chanpath, params):
+    func = _FUNCTIONS[params.__class__]
+    return func(chanpath, params)
 
 def chanlib():
     if not moose.exists('/library'):

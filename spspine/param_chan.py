@@ -321,22 +321,27 @@ BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
 CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
                               power = -4,
                               tau = 142e-3)
-#
+
 #Dictionary of "standard" channels, to create channels using a loop
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
+
+TypicalOneDalpha = NamedList('TypicalOneDalpha', '''channel X Y Z=[]''')
+AtypicalOneD     = NamedList('AtypicalOneD',     '''channel X Y''')
+TwoD             = NamedList('TwoD',             '''channel X''')
+
 ChanDict = NamedDict(
     'ChannelParams',
-    Krp =   ['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
-    KaF =   ['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
-    KaS =   ['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
-    Kir =   ['typical_1D_alpha',Kirparam, Kir_X_params,[]],
-    CaL12 = ['typical_1D_alpha',CaL12param,CaL12_X_params,[],CDI_Z_params],
-    CaL13 = ['typical_1D_alpha',CaL13param,CaL13_X_params,[],CDI_Z_params],
-    CaN =   ['typical_1D_alpha',CaNparam,CaN_X_params,[],CDI_Z_params],
-    CaR =   ['typical_1D_alpha',CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
-    CaT =   ['typical_1D_alpha',CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
-    SKCa =  ['typical_1D_alpha',SKparam,[],[],SK_Z_params],
-    NaF =   ['atypical_1D',NaFparam,Na_m_params,Na_h_params],
-    BKCa =  ['2D',BKparam,BK_X_params],
+    Krp =   TypicalOneDalpha(Krpparam, Krp_X_params, Krp_Y_params),
+    KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
+    KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),
+    Kir =   TypicalOneDalpha(Kirparam,  Kir_X_params, []),
+    CaL12 = TypicalOneDalpha(CaL12param, CaL12_X_params, [], CDI_Z_params),
+    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params, [], CDI_Z_params),
+    CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, [], CDI_Z_params),
+    CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params),
+    CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params),
+    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params),
+    NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
+    BKCa =  TwoD(BKparam, BK_X_params),
 )
