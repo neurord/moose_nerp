@@ -3,7 +3,7 @@ import os
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim, param_ca_plas
+from spspine import param_cond, param_chan, param_sim, param_ca_plas
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
@@ -38,9 +38,8 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         if param_sim.printMoreInfo:
             print("CONNECT ghk to ca",ghk.path,capool.path)
         #connect them to the channels
-    chan_list = []
-    chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel]' %(comp.path)))
-    chan_list.extend(moose.wildcardFind('%s/#[TYPE=HHChannel2D]' %(comp.path)))
+    chan_list = (moose.wildcardFind('{}/#[TYPE=HHChannel]'.format(comp.path)) +
+                 moose.wildcardFind('{}/#[TYPE=HHChannel2D]'.format(comp.path)))
     for chan in chan_list:
         channame = chan.path.split('/')[param_cond.chanNameNum]
         if param_cond.isCaChannel(channame):
@@ -50,7 +49,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
         elif param_cond.isKCaChannel(channame):
             m=moose.connect(capool, 'concOut', chan, 'concen')
             if param_sim.printMoreInfo:
-                print("channel message", chan.path,comp.path, m)
+                print("channel message", chan.path, comp.path, m)
  
 def connectNMDA(nmdachans,poolname,ghkYesNo):
     #Note that ghk must receive input from SynChan and send output to MgBlock
