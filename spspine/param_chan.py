@@ -328,9 +328,12 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
 
-TypicalOneDalpha = NamedList('TypicalOneDalpha', '''channel X Y Z=[] calciumPermeable=False''')
-AtypicalOneD     = NamedList('AtypicalOneD',     '''channel X Y      calciumPermeable=False''')
-TwoD             = NamedList('TwoD',             '''channel X        calciumPermeable=False''')
+TypicalOneDalpha = NamedList('TypicalOneDalpha',
+                             '''channel X Y Z=[] calciumPermeable=False calciumPermeable2=False''')
+AtypicalOneD     = NamedList('AtypicalOneD',
+                             '''channel X Y      calciumPermeable=False calciumPermeable2=False''')
+TwoD             = NamedList('TwoD',
+                             '''channel X        calciumPermeable=False calciumPermeable2=False''')
 
 ChanDict = NamedDict(
     'ChannelParams',
@@ -343,7 +346,7 @@ ChanDict = NamedDict(
     CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, [], CDI_Z_params, calciumPermeable=True),
     CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
     CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params, calciumPermeable=True),
-    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params),
+    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumPermeable2=True),
     NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
     BKCa =  TwoD(BKparam, BK_X_params),
 )

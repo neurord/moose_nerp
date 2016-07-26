@@ -6,9 +6,6 @@ import numpy as np
 
 from spspine import param_sim, util as _util
 
-def isKCaChannel(channame):
-    return channame.endswith('KCa')
-
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
 if param_sim.ghkYesNo:

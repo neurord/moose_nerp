@@ -48,7 +48,7 @@ def connectVDCC_KCa(ghkYN,comp,capool):
             if ghkYN == 0:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
                 m = moose.connect(chan, 'IkOut', capool, 'current')
-        elif param_cond.isKCaChannel(channame):
+        elif param_chan.ChanDict[channame].calciumPermeable2:
             m = moose.connect(capool, 'concOut', chan, 'concen')
             if param_sim.printMoreInfo:
                 print("channel message", chan.path, comp.path, m)
