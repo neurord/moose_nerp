@@ -13,7 +13,7 @@ from spspine import (calcium,
                      util as _util)
 from spspine import param_chan, param_cond, param_ca_plas, param_spine
 
-def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo,ghk=None):
+def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
@@ -21,7 +21,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo,ghk=None):
     chan = moose.copy(proto, comp, chanpath)[0]
     chan.Gbar = gbar * SA
     #If we are using GHK AND it is a calcium channel, connect it to GHK
-    if ghkYN and param_cond.isCaChannel(chanpath):
+    if ghkYN and calciumPermeable:
         ghk=moose.element(comp.path+'/ghk')
         moose.connect(chan,'permeability',ghk,'addPermeability')
         m=moose.connect(comp,'VmOut',chan,'Vm')
@@ -31,16 +31,16 @@ def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo,ghk=None):
         print("channel message", chan.path,comp.path, m)
     return
 
-def create_neuron(p_file,container,Cond,ghkYN,prnInfo):
-    p_file = _util.maybe_find_file(p_file, '.', _os.path.dirname(__file__))
+def create_neuron(param_cond, ntype, ghkYN, prnInfo):
+    p_file = _util.maybe_find_file(param_cond.morph_file, '.', _os.path.dirname(__file__))
     try:
-        cellproto=moose.loadModel(p_file, container)
+        cellproto=moose.loadModel(p_file, ntype)
     except IOError:
         print('could not load model from {!r}'.format(p_file))
         raise
     comps=[]
     #######channels
-    for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(container)):
+    for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
         comps.append(comp)
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
@@ -57,11 +57,14 @@ def create_neuron(p_file,container,Cond,ghkYN,prnInfo):
             moose.connect(ghk,'channel',comp,'channel')
         else:
             ghk=[]
-        for chanpath in param_chan.ChanDict:
-            if Cond[chanpath][_util.dist_num(param_cond.distTable, dist)]:
+        Cond = param_cond.Condset[ntype]
+        for channame, chanparams in param_chan.ChanDict.items():
+            c = Cond[channame][_util.dist_num(param_cond.distTable, dist)]
+            if c:
                 if prnInfo:
-                    print("Testing Cond If", chanpath, Cond[chanpath][_util.dist_num(param_cond.distTable, dist)])
-                addOneChan(chanpath,Cond[chanpath][_util.dist_num(param_cond.distTable, dist)],comp, ghkYN, ghk,prnInfo)
+                    print("Testing Cond If", channame, c)
+                calciumPermeable = chanparams.calciumPermeable
+                addOneChan(channame, c, comp, ghkYN, ghk, prnInfo, calciumPermeable=calciumPermeable)
     return {'comps': comps, 'cell': cellproto}
 
 def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
@@ -78,7 +81,7 @@ def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(param_cond.morph_file,ntype,param_cond.Condset[ntype],ghkYN,prnInfo)
+        neuron[ntype]=create_neuron(param_cond, ntype, ghkYN, prnInfo)
         #optionally add spines
         if spYesNo:
             headArray[ntype]=spines.addSpines(ntype,ghkYN)

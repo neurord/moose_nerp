@@ -47,8 +47,10 @@ def test_single_injection(calcium, synapses, spines, ghk):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    assert 0.15 < vm1[250] < 0.25
-    assert 0.15 < vm2[250] < 0.25
+    exp = 0.149306 if spines else 0.1736
+    assert exp - 0.01 < vm1[250] < exp + 0.02
+    assert exp - 0.01 < vm2[250] < exp + 0.02
+
     assert 0.00 < vm1[499] < 0.05
     assert 0.00 < vm2[499] < 0.05
 

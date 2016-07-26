@@ -6,9 +6,6 @@ import numpy as np
 
 from spspine import param_sim, util as _util
 
-def isCaChannel(channame):
-    return channame.startswith('Ca')
-
 def isKCaChannel(channame):
     return channame.endswith('KCa')
 
