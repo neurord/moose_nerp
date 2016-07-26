@@ -84,10 +84,7 @@ def NamedList(typename, field_names, verbose=False):
     namespace = dict(_itemgetter=_itemgetter, _itemsetter=_itemsetter,
                      __name__='NamedList_%s' % typename,
                      OrderedDict=_OrderedDict, _property=property, _list=list)
-    try:
-        exec(class_definition, namespace)
-    except SyntaxError as e:
-        raise SyntaxError(e.message + ':\n' + class_definition)
+    exec(class_definition, namespace)
     result = namespace[typename]
 
     # For pickling to work, the __module__ variable needs to be set to the frame
