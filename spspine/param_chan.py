@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from spspine.util import NamedList, NamedDict
 
 #chanDictSP.py
@@ -275,7 +277,7 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
 # CaR tau from a few measurements from pyramidal neurons by Foerhing
 # CaR inact tau from Brevi 2001
 #Inact params are a bit too steep for ss, and not steep enough for tau
-CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaN')
+CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaR')
 qfactCaR = 2
 CaR_X_params = AlphaBetaChannelParams(A_rate = 240*qfactCaR,
                                       A_B =    0,

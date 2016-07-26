@@ -2,8 +2,7 @@ import moose
 from spspine import (cell_proto,
                      create_network,
                      inject_func,
-                     tables,
-                     param_chan)
+                     tables)
 
 import pytest
 
@@ -99,12 +98,3 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     assert 0.00 < vm1[499] < 0.05
     assert 0.00 < vm2[499] < 0.05
     return vm1, vm2
-
-def test_param_access():
-    "Just test that the accessors work"
-    param_chan.ChanDict.Krp
-    param_chan.ChanDict.CaT
-    param_chan.ChanDict['Krp']
-    param_chan.ChanDict['CaT']
-    assert 'CaT' in param_chan.ChanDict.keys()
-    assert 'Krp' in param_chan.ChanDict.keys()
