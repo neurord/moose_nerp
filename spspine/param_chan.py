@@ -321,7 +321,7 @@ ChanDict = NamedDict(
     CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, [], CDI_Z_params, calciumPermeable=True),
     CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
     CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params, calciumPermeable=True),
-    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumPermeable2=True),
+    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumDependent=True),
     NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
-    BKCa =  TwoD(BKparam, BK_X_params, calciumPermeable2=True),
+    BKCa =  TwoD(BKparam, BK_X_params, calciumDependent=True),
 )

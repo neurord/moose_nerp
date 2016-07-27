@@ -22,7 +22,6 @@ def neurontypes():
     return sorted(Condset.keys())
 
 ####These numbers are used with split to extract channel and compartment names
-neurTypeNum=1
 compNameNum=2
 chanNameNum=3
 

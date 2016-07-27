@@ -193,11 +193,11 @@ def BKchan_proto(chanpath, params):
 #ChanDict (param_chan.py) includes channel function name in the dictionary
 
 TypicalOneDalpha = NamedList('TypicalOneDalpha',
-                             '''channel X Y Z=[] calciumPermeable=False calciumPermeable2=False''')
+                             '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
 AtypicalOneD     = NamedList('AtypicalOneD',
-                             '''channel X Y      calciumPermeable=False calciumPermeable2=False''')
+                             '''channel X Y      calciumPermeable=False calciumDependent=False''')
 TwoD             = NamedList('TwoD',
-                             '''channel X        calciumPermeable=False calciumPermeable2=False''')
+                             '''channel X        calciumPermeable=False calciumDependent=False''')
 
 _FUNCTIONS = {
     TypicalOneDalpha: chan_proto,
