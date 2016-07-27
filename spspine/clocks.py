@@ -24,7 +24,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolveYN, printi
     moose.setClock(6, simdt) #hsolver
     for path in model_container_list:
         if hsolveYN:
-            hsolve = moose.HSolve( '%s/hsolve' % (path))
+            hsolve = moose.HSolve(path + '/hsolve')
             #hsolve.dt=simdt
             if printinfo:
                 print("USING HSOLVE for", hsolve.path, "clock", hsolve.dt,hsolve.tick)

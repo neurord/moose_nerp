@@ -29,9 +29,9 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     plasCumtab=[]
     if len(plas):
         for num,neurtype in enumerate(param_cond.neurontypes()):
-            plastab.append(moose.Table('/data/plas%s' %neurtype))
-            plasCumtab.append(moose.Table('/data/plasCum%s' %neurtype))
-            syntab.append(moose.Table('/data/synwt%s' %neurtype))
+            plastab.append(moose.Table('/data/plas' + neurtype))
+            plasCumtab.append(moose.Table('/data/plasCum' + neurtype))
+            syntab.append(moose.Table('/data/synwt' + neurtype))
             moose.connect(plastab[num], 'requestOut', plas[neurtype]['plas'], 'getValue')
             moose.connect(plasCumtab[num], 'requestOut', plas[neurtype]['cum'], 'getValue')
             shname=syn[neurtype].path+'/SH'

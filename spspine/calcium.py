@@ -32,14 +32,14 @@ def addCaPool(comp,poolname):
 
 def connectVDCC_KCa(ghkYN,comp,capool):
     if ghkYN:
-        ghk=moose.element('%s/ghk' %(comp.path))
+        ghk=moose.element(comp.path + '/ghk')
         moose.connect(capool,'concOut',ghk,'set_Cin')
         moose.connect(ghk,'IkOut',capool,'current')
         if param_sim.printMoreInfo:
             print("CONNECT ghk to ca",ghk.path,capool.path)
         #connect them to the channels
-    chan_list = (moose.wildcardFind('{}/#[TYPE=HHChannel]'.format(comp.path)) +
-                 moose.wildcardFind('{}/#[TYPE=HHChannel2D]'.format(comp.path)))
+    chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
+                 moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
     for chan in chan_list:
         channame = chan.path.split('/')[param_cond.chanNameNum]
         if channame.endswith('[0]'):

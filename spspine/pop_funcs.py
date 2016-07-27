@@ -27,9 +27,10 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             number=i*sizeY+j
             neurnum = int(choices[number])
             typename = neurontypes[neurnum]
-            neurons.append(moose.copy(proto[neurnum],netpath, typename + '_%s' %(number)))
-            neurXclass[neurnum].append(container.path+'/'+ typename +'_%s' %(number))
-            comp=moose.Compartment(neurons[number].path+'/soma')
+            tag = '{}_{}'.format(typename, number)
+            neurons.append(moose.copy(proto[neurnum],netpath, tag))
+            neurXclass[neurnum].append(container.path + '/' + tag)
+            comp=moose.Compartment(neurons[number].path + '/soma')
             comp.x=i*spacing
             comp.y=j*spacing
             if param_sim.printMoreInfo:

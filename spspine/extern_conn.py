@@ -35,12 +35,11 @@ def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
 def filltimtable(spikeTime,simtime,name,path):
     stimtab=[]
     for ii in range(len(spikeTime)):
-    #convert spiketimes into form that can be used
+        #convert spiketimes into form that can be used
         stimtimes=spikeTime[ii][spikeTime[ii]<simtime]
-    #create stimtab and fille it with the 0-1 vector
-        stimtab.append(moose.TimeTable(path+'/%sTimTab%s' % (name,ii)))
+        #create stimtab and fille it with the 0-1 vector
+        stimtab.append(moose.TimeTable('{}/{}TimTab{}'.format(path, name, ii)))
         stimtab[ii].vector=stimtimes
-    #
     return stimtab
 
 def alltables(fname,inpath,maxtt,simtime):

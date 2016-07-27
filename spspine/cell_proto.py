@@ -100,7 +100,7 @@ def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
     if calyesno:
         calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau,param_ca_plas.caName)
         for ntype in param_cond.neurontypes():
-            for comp in moose.wildcardFind('%s/#[TYPE=Compartment]' %(ntype)):
+            for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
                 capool=calcium.addCaPool(comp,param_ca_plas.caName)
                 caPools[ntype].append(capool)
                 calcium.connectVDCC_KCa(ghkYN,comp,capool)
