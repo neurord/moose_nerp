@@ -16,8 +16,6 @@ else:
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 ConcOut=2e-3     # default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
-Faraday=96485.3415
-R=8.314
 
 def neurontypes():
     "Names of neurontypes of each neuron created"

@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_cond, param_chan, param_sim
+from spspine import param_cond, param_chan, param_sim, constants
 
 def interpolate_values_in_table(tabA,V_0,l=40):
     '''This function interpolates values in the table
@@ -118,7 +118,7 @@ def NaFchan_proto(chanpath, params):
     return chan
 
 def BKchan_proto(chanpath, params):
-    ZFbyRT=2*param_cond.Faraday/(param_cond.R*(param_cond.Temp+273.15))
+    ZFbyRT= 2 * constants.Faraday / (constants.R * constants.celsius_to_kelvin(param_cond.Temp))
     v_array = np.linspace(param_chan.VMIN, param_chan.VMAX, param_chan.VDIVS)
     ca_array = np.linspace(param_chan.CAMIN, param_chan.CAMAX, param_chan.CADIVS)
     if param_chan.VDIVS<=5 and param_chan.CADIVS<=5 and param_sim.printinfo:

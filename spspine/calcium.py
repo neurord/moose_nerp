@@ -3,7 +3,7 @@ import os
 import numpy as np
 import moose
 
-from spspine import param_cond, param_chan, param_sim, param_ca_plas
+from spspine import param_cond, param_chan, param_sim, param_ca_plas, constants
 
 def CaProto(thick,basal,ctau,poolname):
     if not moose.exists('/library'):
@@ -25,7 +25,7 @@ def addCaPool(comp,poolname):
     caproto=moose.element('/library/'+poolname)
     capool = moose.copy(caproto, comp, poolname)[0]
     vol = SA * capool.thick
-    capool.B = 1 / (param_cond.Faraday*vol*2) / param_ca_plas.BufCapacity
+    capool.B = 1 / (constants.Faraday*vol*2) / param_ca_plas.BufCapacity
     if param_sim.printMoreInfo:
         print("CALCIUM", capool.path, length,diam,capool.thick,vol)
     return capool
