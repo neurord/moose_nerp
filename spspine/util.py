@@ -1,6 +1,7 @@
 from __future__ import division as _, print_function as _
 import sys as _sys
 import os as _os
+import numbers as _numbers
 from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
@@ -19,8 +20,13 @@ def distance_mapping(mapping, dist):
     for k, v in mapping.items():
         left, right = k
         if left <= dist < right:
-            return v
-    return 0
+            break
+    else:
+        return 0
+
+    if isinstance(v, _numbers.Number):
+        return v
+    return v(dist)
 
 try:
     from __builtin__ import execfile
