@@ -19,6 +19,7 @@ ISO = {-1:u'm',
        6:u'E',
        7:u'Z',
        8:u'Y'}
+
 def iso_scaling(*arrays):
     extent = max(np.abs(array).max() for array in arrays)
     magn = np.log10(extent) // 3 if extent > 0 else 0
@@ -26,12 +27,3 @@ def iso_scaling(*arrays):
         return IsoScaling(ISO[magn], 10**(magn*3))
     except KeyError:
         return IsoScaling(u'', 1)
-
-def test1():
-    assert iso_scaling([0]) == (u'', 1)
-    assert iso_scaling([999]) == (u'', 1)
-    assert iso_scaling([1000]) == (u'k', 1e3)
-    assert iso_scaling([999999]) == (u'k', 1e3)
-    assert iso_scaling([-1000]) == (u'k', 1e3)
-    assert iso_scaling([-999999]) == (u'k', 1e3)
-    assert iso_scaling([-1e-6]) == (u'µ', 1e-6)

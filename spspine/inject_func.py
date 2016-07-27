@@ -1,10 +1,8 @@
-#inject_func.py
 #Eventually, update this for trains and bursts from Sriram's genesis functions
 
 from __future__ import print_function, division
 import moose 
-import param_cond as parcond
-import param_sim as parsim
+from spspine import param_cond, param_sim
 
 def setupinj(delay,width,neuron):
     """Setup injections
@@ -17,14 +15,14 @@ def setupinj(delay,width,neuron):
     pg.firstDelay = delay
     pg.firstWidth = width
     pg.secondDelay = 1e9
-    if parsim.single:
-        for neurtype in parcond.neurontypes:
+    if param_sim.single:
+        for neurtype in param_cond.neurontypes():
             print("INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0])
             moose.connect(pg, 'output', neuron[neurtype]['comps'][0], 'injectMsg')  
     else:
-        for neurnum in range(len(parcond.neurontypes)):
-            for ii in range(len(MSNpop['pop'][neurnum])):
-                injectcomp=moose.element(MSNpop['pop'][neurnum][ii]+'/soma')
-                print("INJECT:", parcond.neurontypes[neurnum],injectcomp.path)
+        for num, name in enumerate(param_cond.neurontypes()):
+            for ii in range(len(MSNpop['pop'][num])):
+                injectcomp=moose.element(MSNpop['pop'][num][ii]+'/soma')
+                print("INJECT:", name, injectcomp.path)
                 moose.connect(pg, 'outputOut', injectcomp, 'injectMsg')  
     return pg

@@ -2,15 +2,13 @@
 Function definitions for making and connecting populations
 
 1. Creating the population
-2. interconnecting the population
-Note that connecting external Poisson trains is done in ExtConn.py
+2. Interconnecting the population
 """
 from __future__ import print_function, division
-from param_sim import printinfo,calcium
-import param_cond as parcond
-from param_chan import ChanDict
 import numpy as np
 import moose
+
+from spspine import param_chan, param_cond, param_sim, param_net
 
 def create_population(container, neurontypes, sizeX, sizeY, spacing):
     netpath = container.path
@@ -23,25 +21,28 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
         neurXclass.append([])
     #Decide whether to implement a D1 or D2 neuron
     #count how many of each is implemented
-    choices=ceil(np.random.uniform(0,1,sizeX*sizeY)-fractionD1)
+    choices = np.ceil(np.random.uniform(0,1,sizeX*sizeY) - param_net.fractionD1)
     for i in range(sizeX):
         for j in range(sizeY):
             number=i*sizeY+j
-            neurnum=int(choices[number])
-            neurons.append(moose.copy(proto[neurnum],netpath,neurontypes[neurnum]+'_%s' %(number)))
-            neurXclass[neurnum].append(container.path+'/'+neurontypes[neurnum]+'_%s' %(number))
-            comp=moose.Compartment(neurons[number].path+'/soma')
+            neurnum = int(choices[number])
+            typename = neurontypes[neurnum]
+            tag = '{}_{}'.format(typename, number)
+            neurons.append(moose.copy(proto[neurnum],netpath, tag))
+            neurXclass[neurnum].append(container.path + '/' + tag)
+            comp=moose.Compartment(neurons[number].path + '/soma')
             comp.x=i*spacing
             comp.y=j*spacing
-            if printMoreInfo:
+            if param_sim.printMoreInfo:
                 print("x,y", comp.x, comp.y, neurons[number].path)
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in ChanDict:
-                if parcond.Condset[neurontypes[neurnum]][chan][0]>0 and parcond.chanvar[chan]>0:
+            for chan in param_chan.ChanDict:
+                if (param_cond.Condset[typename][chan][0] > 0
+                        and param_cond.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)
-                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, chanvar[chan]))
+                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, param_cond.chanvar[chan]))
             #spike generator
             spikegen = moose.SpikeGen(comp.path + '/spikegen')
             spikegen.threshold = 0.0
@@ -54,13 +55,13 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             'spikegen': spikegens}
 
 def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
-    if printinfo:
+    if param_sim.printinfo:
         print('CONNECT:', postype, spaceConst)
     numSpikeGen = len(spikegen)
     prelist=list()
     postlist=list()
     distloclist=[]
-    if printinfo:
+    if param_sim.printinfo:
         print("SYNAPSES:", numSpikeGen, cells, spikegen)
     #loop over post-synaptic neurons
     for jj in range(len(cells)):
@@ -74,7 +75,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             compname = '/' + p[-2] + '/' + p[-1]
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
-        if printMoreInfo:
+        if param_sim.printMoreInfo:
             print("SYN TABLE:", len(comps), comps, postsoma)
         #loop over pre-synaptic neurons - all types
         for ii in range(numSpikeGen):
@@ -84,10 +85,10 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             xpre=moose.element(precomp).x
             ypre=moose.element(precomp).y
             #calculate distance between pre- and post-soma
-            dist=sqrt((xpre-xpost)**2+(ypre-ypost)**2)
-            prob=exp(-(dist/fact))
+            dist=np.sqrt((xpre-xpost)**2+(ypre-ypost)**2)
+            prob=np.exp(-(dist/fact))
             connect=np.random.uniform()
-            if printMoreInfo:
+            if param_sim.printMoreInfo:
                 print(precomp,postsoma,dist,fact,prob,connect)
             #select a random number to determine whether a connection should occur
             if connect < prob and dist > 0 and len(comps)>0:
@@ -102,5 +103,5 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
                 prelist.append((precomp,xpre,xpost))
                 distloclist.append((dist,prob))
                 #connect the synapse
-                synconn(synpath,dist,spikegen[ii],calcium,mindelay,cond_vel)
+                synconn(synpath,dist,spikegen[ii],param_sim.calcium,mindelay,cond_vel)
     return {'post': postlist, 'pre': prelist, 'dist': distloclist}

@@ -12,7 +12,6 @@ from __future__ import print_function, division
 
 import os
 os.environ['NUMPTHREADS'] = '1'
-from pylab import *
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
@@ -20,15 +19,15 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-import util
-import param_sim as sim
-from param_cond import neurontypes
-import cell_proto as cell
-import clocks as clock
-import inject_func as inj
-import test_plas as test
-import neuron_graph as graph
-#execfile('SpineGraphs.py')
+from spspine import (cell_proto,
+                     clocks,
+                     inject_func,
+                     tables,
+                     neuron_graph,
+                     test_plas,
+                     util as _util)
+from spspine import param_chan,param_cond, param_sim
+from spspine.graph import plot_channel
 
 try:
     from ParamOverrides import *
@@ -38,27 +37,32 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell.neuronclasses(sim.plotchan,sim.plotpow,sim.calcium,sim.synYesNo,sim.spineYesNo,sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo,param_sim.printMoreInfo)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-syn,plas,stimtab=test.test_plas(sim.syncomp,sim.calcium,sim.plasYesNo,sim.inpath,MSNsyn)
+if param_sim.synYesNo:
+    syn,plas,stimtab=test_plas.test_plas(param_sim.syncomp,param_sim.calcium,param_sim.plasYesNo,param_sim.inpath,MSNsyn)
+else:
+    syn,plas = {}, {}
 
-#print number of GLU inputs, information for synaptic activation
-print(len(spineheads[ntype]) if len(spineheads) else synarray[ntype].sum(axis=0)[GLU])
 ####---------------Current Injection
-currents = util.inclusive_range(sim.current1,sim.current2,sim.currinc)
-pg=inj.setupinj(sim.delay,sim.width,neuron)
+currents = _util.inclusive_range(param_sim.current1,param_sim.current2,param_sim.currinc)
+pg=inject_func.setupinj(param_sim.delay,param_sim.width,neuron)
 
 ###############--------------output elements
+if param_sim.plotchan:
+    for chan in param_chan.ChanDict.keys():
+        libchan=moose.element('/library/'+chan)
+        plot_channel.plot_gate_params(libchan,param_sim.plotpow, param_chan.VMIN, param_chan.VMAX, param_chan.CAMIN, param_chan.CAMAX)
+
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = graph.graphtables(neuron,sim.plotcurr,sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = tables.graphtables(neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
-
-########## clocks are critical
-simpaths=['/'+neurotype for neurotype in neurontypes]
-clock.assign_clocks(simpaths, '/data', sim.simdt, sim.plotdt, sim.hsolve)
+########## clocks are critical. assign_clocks also sets up the hsolver
+simpaths=['/'+neurotype for neurotype in param_cond.neurontypes()]
+clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve, param_sim.printinfo)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -70,11 +74,14 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     Alltraces=[]
     for inj in currents:
-        run_simulation(injection_current=inj, simtime=sim.simtime)
-        graph.graphs(vmtab,sim.plotcurr,currtab,sim.currlabel,catab,plastab)
+        run_simulation(injection_current=inj, simtime=param_sim.simtime)
+        neuron_graph.graphs(vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
         Alltraces.append(vmtab[0][0].vector)
-        #if sim.spineYesNo:
+        #if param_sim.spineYesNo:
         #    spineFig(spinecatab,spinevmtab)
-    graph.SingleGraphSet(Alltraces,currents)
-    
+    neuron_graph.SingleGraphSet(Alltraces,currents)
+
+    # block in non-interactive mode
+    _util.block_if_noninteractive()
+
     #End of inject loop

@@ -1,12 +1,11 @@
-#PlasFunc.py
 """\
 Make a plasticity device in that compartment/synapse
 """
 from __future__ import print_function, division
 import os
-from param_sim import printinfo, printMoreInfo
-import param_cond as parcond
-import moose 
+import moose
+
+from spspine import param_cond, param_sim
 
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     compname = os.path.dirname(synchan.path)
@@ -14,7 +13,7 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
-    if printinfo:
+    if param_sim.printinfo:
         print("PLAS",synchan.path,sh.synapse[0],cal.path)
     #
     plasname=compname+'/plas'
@@ -44,7 +43,7 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
 
 def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
     plaslist=[]
-    if printinfo:
+    if param_sim.printinfo:
         print("PLAS", cells)
     if not cells:
         for synchan in synPop:
@@ -53,9 +52,9 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
         for cell in cells:
             for br in range(len(synPop)):
                 p = synPop[br].path.split('/')
-                compname = p[parcond.compNameNum] + '/' + p[parcond.chanNameNum]
+                compname = p[param_cond.compNameNum] + '/' + p[param_cond.chanNameNum]
                 synchan=moose.element(cell+'/'+compname)
-                if printMoreInfo:
+                if param_sim.printMoreInfo:
                     print("ADDPLAS",cell,compname,synchan)
                 plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
     return plaslist

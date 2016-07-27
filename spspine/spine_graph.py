@@ -1,14 +1,10 @@
-#spine_graph.py
 from __future__ import print_function, division
 
-import os
+from collections import defaultdict
 
 def spinetabs():
-    spcatab=[]
-    spvmtab=[]
-    for typenum, neurtype in enumerate(sorted(neurontypes)):
-        spcatab.append([])
-        spvmtab.append([])
+    spcatab = defaultdict(list)
+    spvmtab = defaultdict(list)
     for typenum, neurtype in enumerate(sorted(neurontypes)):
         for headnum,head in enumerate(spineHeads[neurtype]):
             p = head.path.split('/')

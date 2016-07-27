@@ -1,4 +1,15 @@
-from util import NamedList
+# -*- coding: utf-8 -*-
+
+from spspine.util import NamedDict
+from spspine.chan_proto import (
+    SSTauChannelParams,
+    AlphaBetaChannelParams,
+    ZChannelParams,
+    BKChannelParams,
+    ChannelSettings,
+    TypicalOneDalpha,
+    AtypicalOneD,
+    TwoD)
 
 #chanDictSP.py
 #contains all gating parameters and reversal potentials
@@ -17,23 +28,19 @@ narev=50e-3
 carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
 
+VMIN = -120e-3
+VMAX = 50e-3
+VDIVS = 3401 #0.5 mV steps
+CAMIN=0.01e-3   #10 nM
+CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
+CADIVS=4001 #10 nM steps
+
 #mtau: Ogata fig 5, no qfactor accounted in mtau, 1.2 will improve spike shape
 #activation minf fits Ogata 1990 figure 3C (which is cubed root)
 #inactivation hinf fits Ogata 1990 figure 6B
 #htau fits the main -50 through -10 slope of Ogata figure 9 (log tau), but a qfact of 2 is already taken into account.
 
 qfactNaF = 1.3
-SSTauChannelParams = NamedList('SSTauChannelParams', '''
-                                Arate
-                                A_B
-                                A_C
-                                Avhalf
-                                Avslope
-                                taumin
-                                tauVdep
-                                tauPow
-                                tauVhalf
-                                tauVslope''')
 
 Na_m_params = SSTauChannelParams(Arate = 1.0,
                                  A_B = 0.0,
@@ -56,23 +63,10 @@ Na_h_params = SSTauChannelParams(Arate = 1.0,
                                  tauVhalf = 42e-3,
                                  tauVslope = 3e-3)
 
-ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
 KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
-
-AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
-                              A_rate
-                              A_B
-                              A_C
-                              Avhalf
-                              A_vslope
-                              B_rate
-                              B_B
-                              B_C
-                              Bvhalf
-                              B_vslope''')
 
 KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
                                       A_B = 0,
@@ -268,7 +262,7 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
 # CaR tau from a few measurements from pyramidal neurons by Foerhing
 # CaR inact tau from Brevi 2001
 #Inact params are a bit too steep for ss, and not steep enough for tau
-CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaN')
+CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaR')
 qfactCaR = 2
 CaR_X_params = AlphaBetaChannelParams(A_rate = 240*qfactCaR,
                                       A_B =    0,
@@ -297,37 +291,37 @@ CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100*qfactCaR,
 #Fast component, tau=4.9ms from Hirschberg et al., 1998 figure 13.
 SKparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
-
 SK_Z_params = ZChannelParams(Kd = 0.57e-3,
                              power = 5.2,
                              tau = 4.9e-3)
 
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
-BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
-BK_X_params=[BKChannelParams(alphabeta=480, K=0.18,delta=-0.84),
-             BKChannelParams(alphabeta=280,K=0.011,delta=-1.0)]
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
+             BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 #These CDI params can be used with every channel, make ZpowCDI=2
 #If ZpowCDI=0 the CDI will not be used, power=-4 is to transform
 #(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow)
 CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
                               power = -4,
                               tau = 142e-3)
-#
+
 #Dictionary of "standard" channels, to create channels using a loop
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
-ChanDict={'Krp':['typical_1D_alpha',Krpparam,Krp_X_params,Krp_Y_params],
-          'KaF':['typical_1D_alpha',KaFparam,KaF_X_params,KaF_Y_params],
-          'KaS':['typical_1D_alpha',KaSparam,KaS_X_params,KaS_Y_params],
-          'Kir': ['typical_1D_alpha',Kirparam, Kir_X_params,[]],
-          'CaL12':['typical_1D_alpha',CaL12param,CaL12_X_params,[],CDI_Z_params],
-          'CaL13':['typical_1D_alpha',CaL13param,CaL13_X_params,[],CDI_Z_params],
-          'CaN': ['typical_1D_alpha',CaNparam,CaN_X_params,[],CDI_Z_params],
-          'CaR': ['typical_1D_alpha',CaRparam,CaR_X_params,CaR_Y_params,CDI_Z_params],
-          'CaT': ['typical_1D_alpha',CaTparam,CaT_X_params,CaT_Y_params,CDI_Z_params],
-          'SKCa':['typical_1D_alpha',SKparam,[],[],SK_Z_params],
-          'NaF':['atypical_1D',NaFparam,Na_m_params,Na_h_params],
-          'BKCa':['2D',BKparam,BK_X_params]
-}
+
+ChanDict = NamedDict(
+    'ChannelParams',
+    Krp =   TypicalOneDalpha(Krpparam, Krp_X_params, Krp_Y_params),
+    KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
+    KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),
+    Kir =   TypicalOneDalpha(Kirparam,  Kir_X_params, []),
+    CaL12 = TypicalOneDalpha(CaL12param, CaL12_X_params, [], CDI_Z_params, calciumPermeable=True),
+    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params, [], CDI_Z_params, calciumPermeable=True),
+    CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, [], CDI_Z_params, calciumPermeable=True),
+    CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params, calciumPermeable=True),
+    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumPermeable2=True),
+    NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
+    BKCa =  TwoD(BKparam, BK_X_params, calciumPermeable2=True),
+)

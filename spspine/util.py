@@ -1,24 +1,32 @@
-from __future__ import division, print_function
+from __future__ import division as _, print_function as _
 import sys as _sys
+import os as _os
+import numbers as _numbers
 from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
-import numpy as np
+import numpy as _np
 
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
         stop = start
     if stop == start:
-        return np.array([start])
+        return _np.array([start])
     if step is None:
         step = stop - start
-    return np.arange(start, stop + step/2, step)
+    return _np.arange(start, stop + step/2, step)
 
-def dist_num(table, dist):
-    for num, val in enumerate(table):
-        if dist < val:
-            return num
+def distance_mapping(mapping, dist):
+    # We assume that the dictionary is very small, so a linear search is OK.
+    for k, v in mapping.items():
+        left, right = k
+        if left <= dist < right:
+            break
     else:
-        return num
+        return 0
+
+    if isinstance(v, _numbers.Number):
+        return v
+    return v(dist)
 
 try:
     from __builtin__ import execfile
@@ -37,7 +45,7 @@ class {typename}(list):
 
     __slots__ = ()
 
-    def __init__(self, {arg_list}):
+    def __init__(self, {init_args}):
         'Create new instance of {typename}({arg_list})'
         return _list.__init__(self, ({arg_list}))
 
@@ -59,7 +67,8 @@ def NamedList(typename, field_names, verbose=False):
     "Returns a new subclass of list with named fields."
 
     # Validate the field names.
-    field_names = field_names.replace(',', ' ').split()
+    init_args = field_names.replace(',', ' ').split()
+    field_names = [name.partition('=')[0] for name in init_args]
     if sorted(set(field_names)) != sorted(field_names):
         raise ValueError('Duplicate field names')
 
@@ -67,6 +76,7 @@ def NamedList(typename, field_names, verbose=False):
     class_definition = _class_template.format(
         typename = typename,
         num_fields = len(field_names),
+        init_args = ', '.join(init_args),
         arg_list = ', '.join(field_names),
         repr_fmt = ', '.join(_repr_template.format(name=name)
                              for name in field_names),
@@ -81,10 +91,7 @@ def NamedList(typename, field_names, verbose=False):
     namespace = dict(_itemgetter=_itemgetter, _itemsetter=_itemsetter,
                      __name__='NamedList_%s' % typename,
                      OrderedDict=_OrderedDict, _property=property, _list=list)
-    try:
-        exec class_definition in namespace
-    except SyntaxError as e:
-        raise SyntaxError(e.message + ':\n' + class_definition)
+    exec(class_definition, namespace)
     result = namespace[typename]
 
     # For pickling to work, the __module__ variable needs to be set to the frame
@@ -97,3 +104,41 @@ def NamedList(typename, field_names, verbose=False):
         pass
 
     return result
+
+class NamedDict(dict):
+    def __init__(self, name, **kwargs):
+        super(NamedDict, self).__init__(**kwargs)
+        self.__name__ = name
+
+    def __repr__(self):
+        items = ('{}={}'.format(k,v) for (k,v) in self.items())
+        l = len(self.__name__) + 1
+        sep = ',\n' + ' '*l
+        return '{}({})'.format(self.__name__, sep.join(items))
+
+    def __setitem__(self, k, v):
+        raise ValueError('Assignment is not allowed')
+
+    def __getattribute__(self, k):
+        # attributes have higher priority
+        try:
+            return super(NamedDict, self).__getattribute__(k)
+        except AttributeError:
+            return super(NamedDict, self).__getitem__(k)
+
+    def __setattribute__(self, k, v):
+        raise ValueError('Assignment is not allowed')
+
+def block_if_noninteractive():
+    if not hasattr(_sys, 'ps1'):
+        print('Simulation finished. Close all windows to exit.')
+        import matplotlib.pyplot as plt
+        plt.show(block=True)
+
+def maybe_find_file(name, *paths):
+    if not _os.path.isabs(name):
+        for path in paths:
+            p = _os.path.join(path, name)
+            if _os.path.exists(p):
+                return p
+    return name
