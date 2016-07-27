@@ -19,11 +19,6 @@ Temp=30         # Celsius, needed for GHK objects, some channels
 Faraday=96485.3415
 R=8.314
 
-#dictionary to index the Conductance and synapses with distance
-distTable=[26.1e-6,   # "prox"
-           50e-6,     # "mid"
-           1000e-6]   # "dist"
-
 def neurontypes():
     "Names of neurontypes of each neuron created"
     return sorted(Condset.keys())
@@ -53,39 +48,44 @@ morph_file = 'MScell-Entire.p'
 #CaL12=0.6e-6 soma, 0.1e-6 dend
 #CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
 
+# helper variables to index the Conductance and synapses with distance
+prox = (0, 26.1e-6)
+med =  (26.1e-6, 50e-6)
+dist = (50e-6, 1000e-6)
+
 _D1 = _util.NamedDict(
     'D1',
-    #Krp = [77.963,77.25,7.25],
-    Krp = [150.963,70.25,77.25],
-    #KaF = [3214, 571, 314],
-    #KaF =[1157,500,200],
-    KaF =[600,500,100],
-    KaS = [404.7, 35.2, 0],
-    Kir = [9.4644, 9.4644, 9.4644],
-    CaL13 = [12*ghKluge, 5.6*ghKluge, 5.6*ghKluge],
-    CaL12 = [8*ghKluge, 4*ghKluge, 4*ghKluge],
-    CaR = [20*ghKluge, 45*ghKluge, 44*ghKluge],
-    CaN = [4.0*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
-    CaT = [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-    NaF =[130e3, 1894, 927],
-    SKCa =[0.5, 0.5, 0.5],
-    BKCa =[10.32, 10, 10],
+    #Krp = {prox:77.963, med:77.25, dist:7.25},
+    Krp = {prox:150.963, med:70.25, dist:77.25},
+    #KaF = {prox:3214, med: 571, dist: 314},
+    #KaF = {prox:1157, med:500, dist:200},
+    KaF = {prox:600, med:500, dist:100},
+    KaS = {prox:404.7, med: 35.2, dist: 0},
+    Kir = {prox:9.4644, med: 9.4644, dist: 9.4644},
+    CaL13 = {prox:12*ghKluge, med: 5.6*ghKluge, dist: 5.6*ghKluge},
+    CaL12 = {prox:8*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
+    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 44*ghKluge},
+    CaN = {prox:4.0*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
+    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
+    NaF = {prox:130e3, med: 1894, dist: 927},
+    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
+    BKCa = {prox:10.32, med: 10, dist: 10},
 )
 _D2 = _util.NamedDict(
     'D2',
-    Krp = [177.25,177.25,27.25],
-    #KaF = [3214, 471, 234],
-    KaF =[641,300,100],
-    KaS = [372, 32.9, 0],
-    Kir = [6.2, 6.2, 6.2],
-    CaL13 = [10*ghKluge, 4*ghKluge, 4*ghKluge],
-    CaL12 = [4*ghKluge, 2.2*ghKluge, 2.2*ghKluge],
-    CaR = [20*ghKluge, 45*ghKluge, 45*ghKluge],
-    CaN = [1.5*ghKluge, 0.0*ghKluge, 0.0*ghKluge],
-    CaT = [0.0*ghKluge, 1.9*ghKluge, 1.9*ghKluge],
-    NaF =[150.0e3, 2503, 1073],
-    SKCa =[0.5, 0.5, 0.5],
-    BKCa =[10, 10, 10],
+    Krp = {prox:177.25, med:177.25, dist:27.25},
+    #KaF = {prox:3214, med: 471, dist: 234},
+    KaF = {prox:641, med:300, dist:100},
+    KaS = {prox:372, med: 32.9, dist: 0},
+    Kir = {prox:6.2, med: 6.2, dist: 6.2},
+    CaL13 = {prox:10*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
+    CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
+    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 45*ghKluge},
+    CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
+    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
+    NaF = {prox:150.0e3, med: 2503, dist: 1073},
+    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
+    BKCa = {prox:10, med: 10, dist: 10},
 )
 
 chanvar = _util.NamedDict(

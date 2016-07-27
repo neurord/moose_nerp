@@ -6,8 +6,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine.util import dist_num
-from spspine import param_chan, param_cond, param_sim, param_syn
+from spspine import param_chan, param_cond, param_sim, param_syn, util
 
 def make_synchan(chanpath,synparams,ghkYN,calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
@@ -129,9 +128,8 @@ def add_synchans(container,calYN,ghkYN):
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
         #Check in ExtConn - how is SynPerComp used
 
-        num = dist_num(param_cond.distTable, dist)
-        SynPerComp[i,param_syn.GABA] = param_syn.NumGaba[num]
-        SynPerComp[i,param_syn.GLU] = param_syn.NumGlu[num]
+        SynPerComp[i, param_syn.GABA] = util.distance_mapping(param_syn.NumGaba, dist)
+        SynPerComp[i, param_syn.GLU] = util.distance_mapping(param_syn.NumGlu, dist)
 
     #end of iterating over compartments
     #now, transform the synchans into a dictionary

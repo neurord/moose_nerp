@@ -1,5 +1,5 @@
 from spspine.util import NamedList, NamedDict
-from spspine import param_sim
+from spspine import param_sim, param_cond
 
 #Parameters for inhibitory synpases:
 #Erev, tau1, tau2  (SI units)
@@ -58,9 +58,9 @@ nmdaCaFrac = 0.05
 
 GbarVar = 0.05
 
-#dictionary of synapses at each distance
-NumGaba=[3, 2, 1]
-NumGlu=[1, 2, 3]
+# number of synapses at each distance
+NumGaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
+NumGlu = {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
 #number of synapse classes such as Gaba and Glutamate
 NumSynClass = 2

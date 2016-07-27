@@ -1,4 +1,4 @@
-from spspine import param_chan
+from spspine import param_chan, util
 import pytest
 
 def test_param_access():
@@ -25,3 +25,15 @@ def test_channel_params(channel):
     params = param_chan.ChanDict[channel]
     assert params == getattr(param_chan.ChanDict, channel)
     assert params.channel.name == channel
+
+def test_distance_mapping():
+    near = (0, 20)
+    far = (20, 30)
+    map = {near:5, far:6}
+
+    assert util.distance_mapping(map,  0) == 5
+    assert util.distance_mapping(map, 10) == 5
+    assert util.distance_mapping(map, 20) == 6
+    assert util.distance_mapping(map, 25) == 6
+    assert util.distance_mapping(map, 30) == 0
+    assert util.distance_mapping(map, 35) == 0

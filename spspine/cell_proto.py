@@ -59,8 +59,8 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
             ghk=[]
         Cond = param_cond.Condset[ntype]
         for channame, chanparams in param_chan.ChanDict.items():
-            c = Cond[channame][_util.dist_num(param_cond.distTable, dist)]
-            if c:
+            c = _util.distance_mapping(Cond[channame], dist)
+            if c > 0:
                 if prnInfo:
                     print("Testing Cond If", channame, c)
                 calciumPermeable = chanparams.calciumPermeable

@@ -14,12 +14,13 @@ def inclusive_range(start, stop=None, step=None):
         step = stop - start
     return _np.arange(start, stop + step/2, step)
 
-def dist_num(table, dist):
-    for num, val in enumerate(table):
-        if dist < val:
-            return num
-    else:
-        return num
+def distance_mapping(mapping, dist):
+    # We assume that the dictionary is very small, so a linear search is OK.
+    for k, v in mapping.items():
+        left, right = k
+        if left <= dist < right:
+            return v
+    return 0
 
 try:
     from __builtin__ import execfile
