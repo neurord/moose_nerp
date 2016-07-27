@@ -13,9 +13,40 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_cond, param_chan, param_sim, constants
+from spspine import param_cond, param_sim, constants
+from spspine.util import NamedList
+
+SSTauChannelParams = NamedList('SSTauChannelParams', '''
+                                Arate
+                                A_B
+                                A_C
+                                Avhalf
+                                Avslope
+                                taumin
+                                tauVdep
+                                tauPow
+                                tauVhalf
+                                tauVslope''')
+
+AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
+                                A_rate
+                                A_B
+                                A_C
+                                Avhalf
+                                A_vslope
+                                B_rate
+                                B_B
+                                B_C
+                                Bvhalf
+                                B_vslope''')
+
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
+BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
+
+ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
 def interpolate_values_in_table(tabA,V_0,l=40):
+    import param_chan
     '''This function interpolates values in the table
     around tabA[V_0]. '''
     V = np.linspace(param_chan.VMIN, param_chan.VMAX, len(tabA))
@@ -30,6 +61,7 @@ def interpolate_values_in_table(tabA,V_0,l=40):
     return tabA
 
 def fix_singularities(Params,Gate):
+    import param_chan
     
     if Params.A_C < 0:
 
@@ -56,6 +88,7 @@ def fix_singularities(Params,Gate):
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(chanpath, params):
+    import param_chan
     if param_sim.printinfo:
         print(chanpath, ":", params)
     chan = moose.HHChannel(chanpath)
@@ -86,6 +119,7 @@ def chan_proto(chanpath, params):
     return chan
 
 def NaFchan_proto(chanpath, params):
+    import param_chan
     v_array = np.linspace(param_chan.VMIN, param_chan.VMAX, param_chan.VDIVS)
     chan = moose.HHChannel(chanpath)
     chan.Xpower = params.channel.Xpow #creates the m gate
@@ -118,6 +152,7 @@ def NaFchan_proto(chanpath, params):
     return chan
 
 def BKchan_proto(chanpath, params):
+    import param_chan
     ZFbyRT= 2 * constants.Faraday / (constants.R * constants.celsius_to_kelvin(param_cond.Temp))
     v_array = np.linspace(param_chan.VMIN, param_chan.VMAX, param_chan.VDIVS)
     ca_array = np.linspace(param_chan.CAMIN, param_chan.CAMAX, param_chan.CADIVS)
@@ -157,10 +192,17 @@ def BKchan_proto(chanpath, params):
     return chan
 #ChanDict (param_chan.py) includes channel function name in the dictionary
 
+TypicalOneDalpha = NamedList('TypicalOneDalpha',
+                             '''channel X Y Z=[] calciumPermeable=False calciumPermeable2=False''')
+AtypicalOneD     = NamedList('AtypicalOneD',
+                             '''channel X Y      calciumPermeable=False calciumPermeable2=False''')
+TwoD             = NamedList('TwoD',
+                             '''channel X        calciumPermeable=False calciumPermeable2=False''')
+
 _FUNCTIONS = {
-    param_chan.TypicalOneDalpha: chan_proto,
-    param_chan.AtypicalOneD: NaFchan_proto,
-    param_chan.TwoD: BKchan_proto,
+    TypicalOneDalpha: chan_proto,
+    AtypicalOneD: NaFchan_proto,
+    TwoD: BKchan_proto,
 }
 
 #*params... passes the set of values not as a list but as individuals
@@ -169,6 +211,7 @@ def make_channel(chanpath, params):
     return func(chanpath, params)
 
 def chanlib():
+    import param_chan
     if not moose.exists('/library'):
         moose.Neutral('/library')
     #Adding all the channels to the library. *list removes list elements from the list,

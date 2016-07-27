@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from spspine.util import NamedList, NamedDict
+from spspine.util import NamedDict
+from spspine.chan_proto import (
+    SSTauChannelParams,
+    AlphaBetaChannelParams,
+    ZChannelParams,
+    BKChannelParams,
+    ChannelSettings,
+    TypicalOneDalpha,
+    AtypicalOneD,
+    TwoD)
 
 #chanDictSP.py
 #contains all gating parameters and reversal potentials
@@ -32,17 +41,6 @@ CADIVS=4001 #10 nM steps
 #htau fits the main -50 through -10 slope of Ogata figure 9 (log tau), but a qfact of 2 is already taken into account.
 
 qfactNaF = 1.3
-SSTauChannelParams = NamedList('SSTauChannelParams', '''
-                                Arate
-                                A_B
-                                A_C
-                                Avhalf
-                                Avslope
-                                taumin
-                                tauVdep
-                                tauPow
-                                tauVhalf
-                                tauVslope''')
 
 Na_m_params = SSTauChannelParams(Arate = 1.0,
                                  A_B = 0.0,
@@ -65,23 +63,10 @@ Na_h_params = SSTauChannelParams(Arate = 1.0,
                                  tauVhalf = 42e-3,
                                  tauVslope = 3e-3)
 
-ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
 KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
-
-AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
-                              A_rate
-                              A_B
-                              A_C
-                              Avhalf
-                              A_vslope
-                              B_rate
-                              B_B
-                              B_C
-                              Bvhalf
-                              B_vslope''')
 
 KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
                                       A_B = 0,
@@ -306,14 +291,11 @@ CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100*qfactCaR,
 #Fast component, tau=4.9ms from Hirschberg et al., 1998 figure 13.
 SKparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
-
 SK_Z_params = ZChannelParams(Kd = 0.57e-3,
                              power = 5.2,
                              tau = 4.9e-3)
 
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
-BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
              BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
@@ -328,13 +310,6 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
 
-TypicalOneDalpha = NamedList('TypicalOneDalpha',
-                             '''channel X Y Z=[] calciumPermeable=False calciumPermeable2=False''')
-AtypicalOneD     = NamedList('AtypicalOneD',
-                             '''channel X Y      calciumPermeable=False calciumPermeable2=False''')
-TwoD             = NamedList('TwoD',
-                             '''channel X        calciumPermeable=False calciumPermeable2=False''')
-
 ChanDict = NamedDict(
     'ChannelParams',
     Krp =   TypicalOneDalpha(Krpparam, Krp_X_params, Krp_Y_params),
@@ -348,5 +323,5 @@ ChanDict = NamedDict(
     CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params, calciumPermeable=True),
     SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumPermeable2=True),
     NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
-    BKCa =  TwoD(BKparam, BK_X_params),
+    BKCa =  TwoD(BKparam, BK_X_params, calciumPermeable2=True),
 )
