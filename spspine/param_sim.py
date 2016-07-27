@@ -6,18 +6,10 @@ plas=plasticity elements and synaptic input, curr=ionic currents
 
 ############## First, optionally override parameters specifying model detail
 #calcium: include or exclude calcium concentration dynamics, single tau
-calcium=0
-
-#include or exclude plasticity based on calcium
-plasYesNo=0
-
-#note that if ghkYesNo=0, make sure that ghKluge = 1
-ghkYesNo=0
-
-spineYesNo=0
-
-#No point adding synapses unless they receive inputs
-synYesNo=0
+#synYN:No point adding synapses unless they receive inputs
+#plasYN:include or exclude plasticity based on calcium
+Config={'calYN':0,'plasYN':0,'ghkYN':0,'spineYN':0,'synYN':1}
+#note that if ghkYN=0, make sure that ghKluge = 1
 
 # The parameter single only used in SPnetSpineSim.py
 # set single=1 to create a single neuron of each type with synaptic input 
@@ -25,7 +17,7 @@ synYesNo=0
 single=1
 # For now, don't create spines if creating a network of neurons
 if not single:
-    spineYesNo=0
+    Config['spineYN']=0
     title1 = 'network'
     neurnameNum=2
 else:
@@ -35,7 +27,7 @@ else:
 plotplas=1
 
 #to prevent you from plotting plasticity if not created:
-if not plasYesNo or not calcium:
+if not Config['plasYN'] or not Config['calYN']:
     plotplas=0
 
 ######################plotcurr indicates whether to plot time dependent currents (or conductances)
@@ -77,7 +69,7 @@ stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
 ###################Fourth, specify simulation time, time step:dt and solver
-simtime = 0.4999 #0.4999
+simtime = 0.04999 #0.4999
 plotdt = 0.2e-3
 simdt = 10e-6
 hsolve=1

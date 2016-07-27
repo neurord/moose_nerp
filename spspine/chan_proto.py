@@ -217,7 +217,7 @@ def chanlib():
     #Adding all the channels to the library. *list removes list elements from the list,
     #so they can be used as function arguments
     chan = [make_channel('/library/'+key, value) for key, value in param_chan.ChanDict.items()]
-    if param_sim.ghkYesNo:
+    if param_sim.Config['ghkYN']:
         ghk=moose.GHK('/library/ghk')
         ghk.T=param_cond.Temp
         ghk.Cout=param_cond.ConcOut

@@ -67,10 +67,10 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
                 addOneChan(channame, c, comp, ghkYN, ghk, prnInfo, calciumPermeable=calciumPermeable)
     return {'comps': comps, 'cell': cellproto}
 
-def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
+def neuronclasses(config,prnInfo,SynChanParams, NumSyn):
     ##create channels in the library
     chan_proto.chanlib()
-    syn_proto.synchanlib(ghkYN,calyesno)
+    syn_proto.synchanlib(config['calYN'],SynChanParams)
     ##now create the neuron prototypes
     neuron={}
     synArray={}
@@ -81,29 +81,30 @@ def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(param_cond, ntype, ghkYN, prnInfo)
+        neuron[ntype]=create_neuron(param_cond, ntype, config['ghkYN'], prnInfo)
         #optionally add spines
-        if spYesNo:
-            headArray[ntype]=spines.addSpines(ntype,ghkYN)
+        if config['spineYN']:
+            headArray[ntype]=spines.addSpines(ntype,config['ghkYN'])
         #optionally add synapses to dendrites, and possibly to spines
-        if synYesNo:
-            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(ntype, calyesno, ghkYN)
+        if config['synYN']:
+            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(ntype, config['calYN'],SynChanParams, NumSyn)
         caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
     #This is single tau calcium. 
-    #Next step: change calyesno to caltype, allowing
+    #Next step: change config['calYN'] to caltype, allowing
     #   0: none
     #   1: single tau
     #   2: diffusion, buffering, pumps
     #      this will require many additional function definitions
-    if calyesno:
+    if config['calYN']:
+        #put all these calcium parameters into a dictionary
         calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau,param_ca_plas.caName)
         for ntype in param_cond.neurontypes():
             for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
                 capool=calcium.addCaPool(comp,param_ca_plas.caName)
                 caPools[ntype].append(capool)
-                calcium.connectVDCC_KCa(ghkYN,comp,capool)
+                calcium.connectVDCC_KCa(config['ghkYN'],comp,capool)
             #if there are spines, calcium will be added to the spine head
             if spYesNo:
                 for spcomp in headArray[ntype]:
@@ -111,6 +112,6 @@ def neuronclasses(calyesno,synYesNo,spYesNo,ghkYN,prnInfo):
                     if param_spine.SpineParams.spineChanList:
                         calcium.connectVDCC_KCa(ghkYN,spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
-            if synYesNo:
-                calcium.connectNMDA(synArray[ntype]['nmda'],param_ca_plas.caName,ghkYN)
+            if config['synYN']:
+                calcium.connectNMDA(synArray[ntype]['nmda'],param_ca_plas.caName,config['ghkYN'])
     return synArray,neuron,caPools,numSynArray,headArray
