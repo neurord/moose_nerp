@@ -43,23 +43,14 @@ _SynNMDA = SynChannelParams(Erev = 5e-3,
 #Note that since Ca reversal produces ~2x driving potential,
 #need to make this half of typical value.  Default is 0.02 in Moose
 
-SynChanParams = NamedDict(
-    'SynChanParams',
-    ampa =  _SynAMPA,
-    gaba =  _SynGaba,
-    nmda =  _SynNMDA
+SYNAPSE_TYPES = NamedDict(
+    'SYNAPSE_TYPES',
+    ampa = _SynAMPA,
+    gaba = _SynGaba,
+    nmda = _SynNMDA,
 )
 
 # number of synapses at each distance
 NumGaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
 NumGlu = {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 NumSyn={'Gaba':NumGaba,'Glu':NumGlu}
-
-def SpineSynChans():
-    return sorted(key for key,val in SynChanParams.items()
-                  if val.spinic and param_sim.spineYesNo)
-
-def DendSynChans():
-    # If synapses are disabled, put all synaptic channels in the dendrite
-    return sorted(key for key,val in SynChanParams.items()
-                  if not (val.spinic and param_sim.spineYesNo))

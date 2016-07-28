@@ -67,10 +67,10 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
                 addOneChan(channame, c, comp, ghkYN, ghk, prnInfo, calciumPermeable=calciumPermeable)
     return {'comps': comps, 'cell': cellproto}
 
-def neuronclasses(config,prnInfo,SynChanParams, NumSyn):
+def neuronclasses(config, prnInfo, synapse_types, NumSyn):
     ##create channels in the library
     chan_proto.chanlib()
-    syn_proto.synchanlib(config['calYN'],SynChanParams)
+    syn_proto.synchanlib(config['calYN'], synapse_types)
     ##now create the neuron prototypes
     neuron={}
     synArray={}
@@ -87,7 +87,7 @@ def neuronclasses(config,prnInfo,SynChanParams, NumSyn):
             headArray[ntype]=spines.addSpines(ntype,config['ghkYN'])
         #optionally add synapses to dendrites, and possibly to spines
         if config['synYN']:
-            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(ntype, config['calYN'],SynChanParams, NumSyn)
+            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(ntype, config['calYN'], synapse_types, NumSyn)
         caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
@@ -106,11 +106,11 @@ def neuronclasses(config,prnInfo,SynChanParams, NumSyn):
                 caPools[ntype].append(capool)
                 calcium.connectVDCC_KCa(config['ghkYN'],comp,capool)
             #if there are spines, calcium will be added to the spine head
-            if spYesNo:
+            if config['spineYN']:
                 for spcomp in headArray[ntype]:
                     capool=calcium.addCaPool(spcomp,param_ca_plas.caName)
                     if param_spine.SpineParams.spineChanList:
-                        calcium.connectVDCC_KCa(ghkYN,spcomp,capool)
+                        calcium.connectVDCC_KCa(config['ghkYN'],spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if config['synYN']:
                 calcium.connectNMDA(synArray[ntype]['nmda'],param_ca_plas.caName,config['ghkYN'])

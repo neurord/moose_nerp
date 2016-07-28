@@ -23,11 +23,10 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     neuron_graph,
                      test_plas,
                      util as _util)
 from spspine import param_chan,param_cond, param_sim, param_syn
-from spspine.graph import plot_channel
+from spspine.graph import plot_channel, neuron_graph
 
 try:
     from ParamOverrides import *
@@ -37,7 +36,7 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.Config,param_sim.printMoreInfo,param_syn.SynChanParams, param_syn.NumSyn)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.Config,param_sim.printMoreInfo,param_syn.SYNAPSE_TYPES, param_syn.NumSyn)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if param_sim.Config['synYN']:

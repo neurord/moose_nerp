@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim
+from spspine import param_cond, syn_proto
 from spspine.param_spine import SpineParams
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
@@ -14,11 +14,11 @@ def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
         if printinfo:
             print("CTABLES", ctab[tabnum].path,cacomp.path)
         moose.connect(ctab[tabnum], 'requestOut', cacomp, 'getCa')
-    for synnum,chan in enumerate(param_sim.DendSynChans()):
+    for synnum,chan in enumerate(syn_proto.DendSynChans()):
         syn=moose.element(vcomp.path+'/'+chan)
         if chan=='nmda':
             syn=moose.element(syn.path+'/mgblock')
-        syntabnum=len(param_sim.DendSynChans())*tabnum+synnum
+        syntabnum=len(syn_proto.DendSynChans())*tabnum+synnum
         if printinfo:
             print(stab[syntabnum].path, chan)
         assert chan in stab[syntabnum].path
@@ -31,11 +31,11 @@ def spineTables(spineHeads,catab,syntab,calyn):
             if calyn:
                 spcal=head.path+'/'+caName
                 moose.connect(catab[typenum][headnum], 'requestOut', moose.element(spcal), 'getCa')
-            for synnum,chan in enumerate(param_sim.SpineSynChans()):
+            for synnum,chan in enumerate(syn_proto.SpineSynChans()):
                 syn=moose.element(head.path+'/'+chan)
                 if chan=='nmda':
                     syn=moose.element(syn.path+'/mgblock')
-                syntabnum = len(param_sim.SpineSynChans()) * headnum + synnum
+                syntabnum = len(syn_proto.SpineSynChans()) * headnum + synnum
                 if printinfo:
                     print(syn.path,syntab[typenum][syntabnum].path, chan)
                 assert chan in syntab[typenum][syntabnum].path
@@ -72,7 +72,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
                 vmtab[typenum].append(moose.Table('/data/Vm%s_%s' % (neurtype, compname)))
                 if len(capools[neurtype]):
                     catab[typenum].append(moose.Table('/data/Ca%s_%s' % (neurtype,compname)))
-                for chan in param_sim.DendSynChans():
+                for chan in syn_proto.DendSynChans():
                     syntab[typenum].append(moose.Table('/data/Gk%s_%s_%s' % (chan,neurtype,compname)))
             if len(spineheads[neurtype]):
                 for head in spineheads[neurtype]:
@@ -80,7 +80,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
                         p = head.path.split('/')
                         spinename = p[param_cond.compNameNum] + p[SpineParams.spineNameNum][SpineParams.spineNumLoc]
                         spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))
-                    for chan in param_sim.SpineSynChans():
+                    for chan in syn_proto.SpineSynChans():
                          spsyntab[typenum].append(moose.Table('/data/SpGk%s_%s_%s' % (chan,neurtype,spinename)))
             if SynPlas[neurtype]:
                 for plas in SynPlas[neurtype]: 
@@ -115,7 +115,7 @@ def graphtables(neuron,singl,pltnet,msn_pop,capools=[],SynPlas=[],spineheads=[])
                 vmtab[typenum].append(moose.Table('/data/soma%s_%s' % (neurtype,neurnum)))
                 if len(capools[neurtype]):
                     catab[typenum].append(moose.Table('/data/Ca%s_%s' % (neurtype,neurnum)))
-                for chan in param_sim.DendSynChans():
+                for chan in syn_proto.DendSynChans():
                     syntab[typenum].append(moose.Table('/data/Gk%s%s_%s' % (chan,neurtype,neurnum)))
             for tabnum,neurpath in enumerate(msn_pop['pop'][typenum]):
                 plotcomp=moose.element(neurpath+'/soma')
@@ -145,8 +145,8 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
         for typenum,neur in enumerate(param_cond.neurontypes()):
             f=figure()
             f.canvas.set_window_title(neur+' Dend SynChans')
-            for i,chan in enumerate(param_sim.DendSynChans()):
-                axes=f.add_subplot(len(param_sim.DendSynChans()),1,i+1)
+            for i,chan in enumerate(syn_proto.DendSynChans()):
+                axes=f.add_subplot(len(syn_proto.DendSynChans()),1,i+1)
                 axes.set_title(neur+chan)
                 for oid in syntab[typenum]:
                     if chan in oid.path and len(oid.vector) > 0:
@@ -173,8 +173,8 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
         for typenum,neur in enumerate(param_cond.neurontypes()):
             f = plt.figure()
             f.canvas.set_window_title("Spines {}".format(neur))
-            numplots = len(param_sim.SpineSynChans())+1
-            for i,chan in enumerate(param_sim.SpineSynChans()):
+            numplots = len(syn_proto.SpineSynChans())+1
+            for i,chan in enumerate(syn_proto.SpineSynChans()):
                 axes=f.add_subplot(numplots,1,i+1)
                 axes.set_ylabel('I (nA) {}'.format(chan))
                 for oid in sptab['syn'][typenum]:

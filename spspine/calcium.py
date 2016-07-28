@@ -51,14 +51,9 @@ def connectVDCC_KCa(ghkYN,comp,capool):
                 print("channel message", chan.path, comp.path, m)
  
 def connectNMDA(nmdachans,poolname,ghkYesNo):
-    #Note that ghk must receive input from SynChan and send output to MgBlock
     for chan in nmdachans:
-        if ghkYesNo:
-            nmdaCurr=moose.element(chan.path+'/CaCurr/ghk')
-        else:
-            nmdaCurr=moose.element(chan.path+'/CaCurr/mgblock')
-        caname = os.path.join(os.path.dirname(chan.path), poolname)
-        capool=moose.element(caname)
+        caname = os.path.dirname(chan.path) + '/' + poolname
+        capool = moose.element(caname)
         if param_sim.printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)
-        n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
+        moose.connect(chan, 'IkOut', capool, 'current')
