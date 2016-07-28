@@ -23,7 +23,6 @@ def neurontypes():
 
 ####These numbers are used with split to extract channel and compartment names
 compNameNum=2
-chanNameNum=3
 
 #will eventually use different morphologies also
 morph_file = 'MScell-Entire.p'

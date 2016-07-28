@@ -3,6 +3,7 @@ Make a plasticity device in that compartment/synapse
 """
 from __future__ import print_function, division
 import os
+import re
 import moose
 
 from spspine import param_cond, param_sim
@@ -42,19 +43,24 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     return {'cum':plasCum,'plas':plas}
 
 def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
-    plaslist=[]
     if param_sim.printinfo:
         print("PLAS", cells)
-    if not cells:
-        for synchan in synPop:
-            plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
-    else:
+    if cells:
+        plaslist = []
         for cell in cells:
             for br in range(len(synPop)):
+                compname = re.sub('/.*?/', '/x', synPop[br].path)
+
+                # remove after testing
                 p = synPop[br].path.split('/')
-                compname = p[param_cond.compNameNum] + '/' + p[param_cond.chanNameNum]
+                compname2 = p[2] + '/' + p[3]
+                assert compname == compname2
+
                 synchan=moose.element(cell+'/'+compname)
                 if param_sim.printMoreInfo:
                     print("ADDPLAS",cell,compname,synchan)
                 plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
-    return plaslist
+        return plastlist
+    else:
+        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name)
+                for synchan in synPop]
