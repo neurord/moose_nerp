@@ -56,12 +56,15 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    exp = 0.149306 if spines else 0.1736
+    exp = (0.174
+           - 0.025 * bool(spines)
+           - 0.043 * bool(calcium))
+
     assert exp - 0.01 < vm1[250] < exp + 0.02
     assert exp - 0.01 < vm2[250] < exp + 0.02
 
-    assert 0.00 < vm1[499] < 0.05
-    assert 0.00 < vm2[499] < 0.05
+    assert -0.01 < vm1[499] < 0.05
+    assert -0.01 < vm2[499] < 0.05
 
 @pytest.mark.parametrize("calcium", ["", "calcium"])
 @pytest.mark.parametrize("synapses", ["", "synapses"])

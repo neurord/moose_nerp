@@ -71,14 +71,17 @@ def run_simulation(injection_current, simtime):
     moose.start(simtime)
 
 if __name__ == '__main__':
-    Alltraces=[]
+    traces, names = [], []
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         neuron_graph.graphs(vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
-        Alltraces.append(vmtab[0][0].vector)
+        traces.append(vmtab[0][0].vector)
+        traces.append(vmtab[1][0].vector)
+        names.append('D1 @ {}'.format(inj))
+        names.append('D2 @ {}'.format(inj))
         #if param_sim.Config['spineYN']:
         #    spineFig(spinecatab,spinevmtab)
-    neuron_graph.SingleGraphSet(Alltraces,currents)
+    neuron_graph.SingleGraphSet(traces, names)
 
     # block in non-interactive mode
     _util.block_if_noninteractive()

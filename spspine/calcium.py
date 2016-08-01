@@ -56,4 +56,4 @@ def connectNMDA(nmdachans,poolname,ghkYesNo):
         capool = moose.element(caname)
         if param_sim.printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)
-        moose.connect(chan, 'IkOut', capool, 'current')
+        moose.connect(chan, 'ICaOut', capool, 'current')
