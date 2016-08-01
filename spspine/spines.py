@@ -5,6 +5,9 @@ import moose
 from spspine import param_sim
 from spspine.param_spine import SpineParams
 
+NAME_NECK = "neck"
+NAME_HEAD = "head"
+
 def setSpineCompParams(comp,compdia,complen):
     comp.diameter=compdia
     comp.length=complen
@@ -24,34 +27,27 @@ def setSpineCompParams(comp,compdia,complen):
 def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
-    neckName=compName+str(index)+SpineParams.nameneck
-    neck=moose.Compartment(parentComp.path+'/'+neckName)
+    neck_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_NECK)
+    neck = moose.Compartment(neck_path)
     if param_sim.printMoreInfo:
         print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
     y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
     z=parentComp.z0+ frac * (parentComp.z - parentComp.z0)
-    neck.x0=x
-    neck.y0=y
-    neck.z0=z
+    neck.x0, neck.y0, neck.z0 = x, y, z
     #could pass in an angle and use cos and sin to set y and z
-    neck.x=x
-    neck.y=y + necklen
-    neck.z=z
+    neck.x, neck.y, neck.z = x, y + necklen, z
     setSpineCompParams(neck,neckdia,necklen)
-    
-    headName=compName+str(index)+SpineParams.namehead
-    head=moose.Compartment(parentComp.path+'/'+headName)
-    moose.connect(neck, 'raxial', head, 'axial', 'Single' )
-    head.x0=neck.x
-    head.y0=neck.y
-    head.z0=neck.z
-    head.x=head.x
-    head.y=head.y+headdia
-    head.z=head.z
+
+    head_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_HEAD)
+    head = moose.Compartment(head_path)
+    moose.connect(neck, 'raxial', head, 'axial', 'Single')
+    head.x0, head.y0, head.z0 = neck.x, neck.y, neck.z
+    head.x, head.y, head.z = head.x0, head.y0 + headdia, head.z0
+
     setSpineCompParams(head,neckdia,necklen)
-    #
+
     return head
 
 def addSpines(container,ghkYN):
