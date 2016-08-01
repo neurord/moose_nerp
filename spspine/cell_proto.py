@@ -26,7 +26,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo, ghk=None, calciumPermeable=Fals
         moose.connect(chan,'permeability',ghk,'addPermeability')
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
-        m=moose.connect(chan, 'channel', comp, 'channel')
+        m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
     if prnInfo:
         print("channel message", chan.path,comp.path, m)
     return
