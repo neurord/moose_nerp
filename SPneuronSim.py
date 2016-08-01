@@ -23,11 +23,10 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     neuron_graph,
                      test_plas,
                      util as _util)
-from spspine import param_chan,param_cond, param_sim
-from spspine.graph import plot_channel
+from spspine import param_chan,param_cond, param_sim, param_syn
+from spspine.graph import plot_channel, neuron_graph
 
 try:
     from ParamOverrides import *
@@ -37,11 +36,11 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo,param_sim.printMoreInfo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.Config,param_sim.printMoreInfo,param_syn.SYNAPSE_TYPES, param_syn.NumSyn)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-if param_sim.synYesNo:
-    syn,plas,stimtab=test_plas.test_plas(param_sim.syncomp,param_sim.calcium,param_sim.plasYesNo,param_sim.inpath,MSNsyn)
+if param_sim.Config['synYN']:
+    syn,plas,stimtab=test_plas.test_plas(param_sim.syncomp,param_sim.Config['calYN'],param_sim.Config['plasYN'],param_sim.inpath,MSNsyn)
 else:
     syn,plas = {}, {}
 
@@ -77,7 +76,7 @@ if __name__ == '__main__':
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         neuron_graph.graphs(vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
         Alltraces.append(vmtab[0][0].vector)
-        #if param_sim.spineYesNo:
+        #if param_sim.Config['spineYN']:
         #    spineFig(spinecatab,spinevmtab)
     neuron_graph.SingleGraphSet(Alltraces,currents)
 

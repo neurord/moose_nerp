@@ -8,7 +8,7 @@ from spspine import param_sim, util as _util
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
-if param_sim.ghkYesNo:
+if param_sim.Config['ghkYN']:
     ghKluge=0.35e-6
 else:
     ghKluge=1
@@ -22,9 +22,7 @@ def neurontypes():
     return sorted(Condset.keys())
 
 ####These numbers are used with split to extract channel and compartment names
-neurTypeNum=1
 compNameNum=2
-chanNameNum=3
 
 #will eventually use different morphologies also
 morph_file = 'MScell-Entire.p'

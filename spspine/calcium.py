@@ -41,27 +41,19 @@ def connectVDCC_KCa(ghkYN,comp,capool):
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
                  moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
     for chan in chan_list:
-        channame = chan.path.split('/')[param_cond.chanNameNum]
-        if channame.endswith('[0]'):
-            channame = channame[:-3]
-        if param_chan.ChanDict[channame].calciumPermeable:
+        if param_chan.ChanDict[chan.name].calciumPermeable:
             if ghkYN == 0:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
                 m = moose.connect(chan, 'IkOut', capool, 'current')
-        elif param_chan.ChanDict[channame].calciumPermeable2:
+        if param_chan.ChanDict[chan.name].calciumDependent:
             m = moose.connect(capool, 'concOut', chan, 'concen')
             if param_sim.printMoreInfo:
                 print("channel message", chan.path, comp.path, m)
  
 def connectNMDA(nmdachans,poolname,ghkYesNo):
-    #Note that ghk must receive input from SynChan and send output to MgBlock
     for chan in nmdachans:
-        if ghkYesNo:
-            nmdaCurr=moose.element(chan.path+'/CaCurr/ghk')
-        else:
-            nmdaCurr=moose.element(chan.path+'/CaCurr/mgblock')
-        caname = os.path.join(os.path.dirname(chan.path), poolname)
-        capool=moose.element(caname)
+        caname = os.path.dirname(chan.path) + '/' + poolname
+        capool = moose.element(caname)
         if param_sim.printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)
-        n=moose.connect(nmdaCurr, 'IkOut', capool, 'current')
+        moose.connect(chan, 'IkOut', capool, 'current')
