@@ -2,9 +2,9 @@
 
 from __future__ import print_function, division
 import moose 
-from spspine import param_cond, param_sim
+from spspine import param_sim
 
-def setupinj(delay,width,neuron):
+def setupinj(model, delay,width,neuron):
     """Setup injections
 
     Note that the actual injected current is proportional to dt of the clock
@@ -16,11 +16,11 @@ def setupinj(delay,width,neuron):
     pg.firstWidth = width
     pg.secondDelay = 1e9
     if param_sim.single:
-        for neurtype in param_cond.neurontypes():
+        for neurtype in model.neurontypes():
             print("INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0])
             moose.connect(pg, 'output', neuron[neurtype]['comps'][0], 'injectMsg')  
     else:
-        for num, name in enumerate(param_cond.neurontypes()):
+        for num, name in enumerate(model.neurontypes()):
             for ii in range(len(MSNpop['pop'][num])):
                 injectcomp=moose.element(MSNpop['pop'][num][ii]+'/soma')
                 print("INJECT:", name, injectcomp.path)

@@ -8,9 +8,9 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_chan, param_cond, param_sim, param_net
+from spspine import param_sim, param_net
 
-def create_population(container, neurontypes, sizeX, sizeY, spacing):
+def create_population(model, container, neurontypes, sizeX, sizeY, spacing):
     netpath = container.path
     spikegens = []
     proto=[]
@@ -38,11 +38,11 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in param_chan.Channels:
-                if (param_cond.Condset[typename][chan][0] > 0
-                        and param_cond.chanvar[chan] > 0):
+            for chan in model.Channels:
+                if (model.Condset[typename][chan][0] > 0
+                        and model.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)
-                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, param_cond.chanvar[chan]))
+                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, model.chanvar[chan]))
             #spike generator
             spikegen = moose.SpikeGen(comp.path + '/spikegen')
             spikegen.threshold = 0.0

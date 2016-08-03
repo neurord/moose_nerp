@@ -25,7 +25,7 @@ from spspine import (cell_proto,
                      tables,
                      test_plas,
                      util as _util)
-from spspine import param_chan,param_cond, param_sim, param_syn
+from spspine import param_sim, d1d2
 from spspine.graph import plot_channel, neuron_graph
 
 try:
@@ -36,7 +36,7 @@ except ImportError:
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.Config,param_sim.printMoreInfo,param_syn.SYNAPSE_TYPES, param_syn.NumSyn)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.Config,param_sim.printMoreInfo)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if param_sim.Config['synYN']:
@@ -46,7 +46,7 @@ else:
 
 ####---------------Current Injection
 currents = _util.inclusive_range(param_sim.current1,param_sim.current2,param_sim.currinc)
-pg=inject_func.setupinj(param_sim.delay,param_sim.width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.delay,param_sim.width,neuron)
 
 ###############--------------output elements
 if param_sim.plotchan:
@@ -56,7 +56,7 @@ if param_sim.plotchan:
 
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = tables.graphtables(neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver

@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim, param_spine
+from spspine import param_sim
 
 def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
     synchan=moose.element(synpath)
@@ -58,7 +58,7 @@ def alltables(fname,inpath,maxtt,simtime):
     Uniqtt=filltimtable(UniqueSpikes[0:maxtt],simtime,'Uniq',inpath)
     return {'Dup':Duptt,'Uniq':Uniqtt}
 
-def addinput(ttab,synchans,synlist,cells,SynPerComp,startt):
+def addinput(model, ttab,synchans,synlist,cells,SynPerComp,startt):
     #all synpases in synlist must in same compartment (e.g. both on spines or both on dendrites)
     if param_sim.printinfo:
         print("CELLS", len(cells),cells, "syn/Comp", SynPerComp)
@@ -70,11 +70,11 @@ def addinput(ttab,synchans,synlist,cells,SynPerComp,startt):
 
     for kk in range(len(synchans[synlist[0]])):
         p = synchans[synlist[0]][kk].path.split('/')
-        compname = '/' + p[param_cond.compNameNum]
+        compname = '/' + p[model.compNameNum]
         if param_sim.printMoreInfo:
             print(kk, SynPerComp[kk])
         if param_sim.spineYesNo:
-            comps.append(compname + '/' + p[param_spine.SpineParams.spineNameNum])
+            comps.append(compname + '/' + p[model.SpineParams.spineNameNum])
         else:
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)

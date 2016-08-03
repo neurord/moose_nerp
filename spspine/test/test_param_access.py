@@ -1,31 +1,32 @@
 import numpy as np
 from numpy.testing import assert_approx_equal as assert_close
-from spspine import param_chan, util
+from spspine import util
+from spspine import d1d2
 import pytest
 
 def test_param_access():
     "Just test that the accessors work"
-    param_chan.Channels.Krp
-    param_chan.Channels.CaT
-    param_chan.Channels['Krp']
-    param_chan.Channels['CaT']
-    assert 'CaT' in param_chan.Channels.keys()
-    assert 'Krp' in param_chan.Channels.keys()
+    d1d2.Channels.Krp
+    d1d2.Channels.CaT
+    d1d2.Channels['Krp']
+    d1d2.Channels['CaT']
+    assert 'CaT' in d1d2.Channels.keys()
+    assert 'Krp' in d1d2.Channels.keys()
 
 def test_channel_params_sanity():
     "Just test that the accessors work"
-    param_chan.Channels.KaF.channel.Xpow
-    param_chan.Channels.KaF.channel.Ypow
-    param_chan.Channels.KaF.channel.Zpow
-    assert param_chan.Channels.KaF.channel.name == 'KaF'
-    param_chan.Channels.KaF.X
-    assert param_chan.Channels.KaF.X.A_rate > 0
+    d1d2.Channels.KaF.channel.Xpow
+    d1d2.Channels.KaF.channel.Ypow
+    d1d2.Channels.KaF.channel.Zpow
+    assert d1d2.Channels.KaF.channel.name == 'KaF'
+    d1d2.Channels.KaF.X
+    assert d1d2.Channels.KaF.X.A_rate > 0
 
 @pytest.mark.parametrize("channel",
-                         param_chan.Channels.keys())
+                         d1d2.Channels.keys())
 def test_channel_params(channel):
-    params = param_chan.Channels[channel]
-    assert params == getattr(param_chan.Channels, channel)
+    params = d1d2.Channels[channel]
+    assert params == getattr(d1d2.Channels, channel)
     assert params.channel.name == channel
 
 def test_distance_mapping():

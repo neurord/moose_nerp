@@ -1,6 +1,8 @@
 from spspine.util import NamedList, NamedDict
-from spspine import param_sim, param_cond
+from spspine import param_sim
 from spspine.syn_proto import SynChannelParams, MgParams
+
+from . import param_cond
 
 #Parameters for inhibitory synpases:
 #Erev, tau1, tau2  (SI units)
@@ -51,6 +53,8 @@ SYNAPSE_TYPES = NamedDict(
 )
 
 # number of synapses at each distance
-NumGaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
-NumGlu = {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
-NumSyn={'Gaba':NumGaba,'Glu':NumGlu}
+_gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
+_glu = {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
+
+NumSyn={'Gaba':_gaba,
+        'Glu':_glu}

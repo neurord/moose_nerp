@@ -1,5 +1,5 @@
-#SpineParams.py
-from spspine import param_cond
+from . import param_cond
+
 from spspine import util as _util
 
 SpineParams = _util.NamedDict(

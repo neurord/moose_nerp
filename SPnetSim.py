@@ -32,23 +32,23 @@ from spspine import (cell_proto,
                      net_output,
                      util as _util)
 from spspine.graph import net_graph
-from spspine import (param_cond, param_sim, param_net)
+from spspine import (param_sim, param_net, d1d2)
 
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(param_sim.plotchan,param_sim.plotpow,param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.plotchan,param_sim.plotpow,param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo)
 
-MSNpop,SynPlas=create_network.CreateNetwork(param_sim.inpath,param_sim.calcium,param_sim.plasYesNo,param_sim.single,spineHeads,synarray,MSNsyn,neuron)
+MSNpop,SynPlas=create_network.CreateNetwork(d1d2, param_sim.inpath,param_sim.calcium,param_sim.plasYesNo,param_sim.single,spineHeads,synarray,MSNsyn,neuron)
 
 ###------------------Current Injection
 currents = _util.inclusive_range(param_sim.current1)
-pg=inject_func.setupinj(param_sim.delay,param_sim.width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.delay,param_sim.width,neuron)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
 if param_sim.showgraphs:
-    vmtab,syntab,catab,plastab,sptab = net_graph.graphtables(neuron,param_sim.single,param_sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
+    vmtab,syntab,catab,plastab,sptab = net_graph.graphtables(d1d2, neuron,param_sim.single,param_sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
 else:
     vmtab=[]
 

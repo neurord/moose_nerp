@@ -6,7 +6,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_cond, param_sim, constants
+from spspine import param_sim, constants
 from spspine.util import NamedList, distance_mapping
 
 SynChannelParams = NamedList('SynChannelParams',
@@ -35,7 +35,7 @@ def DendSynChans(synapse_types):
     return sorted(key for key,val in synapse_types.items()
                   if not (val.spinic and param_sim.Config['spineYN']))
 
-def make_synchan(chanpath,synparams,calYN):
+def make_synchan(model, chanpath, synparams, calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
     if param_sim.printinfo:
         print('synparams:', chanpath, synparams)
@@ -53,16 +53,17 @@ def make_synchan(chanpath,synparams,calYN):
         synchan.CMg = synparams.MgBlock.C
         if calYN:
             synchan.condFraction = synparams.nmdaCaFrac
-            synchan.temperature = constants.celsius_to_kelvin(param_cond.Temp)
-            synchan.extCa = param_cond.ConcOut
+            synchan.temperature = constants.celsius_to_kelvin(model.Temp)
+            synchan.extCa = model.ConcOut
     return synchan
 
-def synchanlib(calYN,synapse_types):
+def synchanlib(model, calYN):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
 
-    for name, params in synapse_types.items():
-        synchan = make_synchan('/library/' + name,
+    for name, params in model.SYNAPSE_TYPES.items():
+        synchan = make_synchan(model,
+                               '/library/' + name,
                                params, calYN)
         print(synchan)
 

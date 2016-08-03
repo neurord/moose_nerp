@@ -6,7 +6,7 @@ import os
 import re
 import moose
 
-from spspine import param_cond, param_sim
+from spspine import param_sim
 
 def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     compname = os.path.dirname(synchan.path)
