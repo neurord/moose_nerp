@@ -60,7 +60,7 @@ vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,param_sim.plotcurr
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver
-simpaths=['/'+neurotype for neurotype in param_cond.neurontypes()]
+simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
 clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve, param_sim.printinfo)
 
 ###########Actually run the simulation
