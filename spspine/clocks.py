@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 #This is simplified clocks/hsolve setup for Moose 3.0.  
 #No need to assign clocks except for output elements
 """\
@@ -20,7 +22,7 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolveYN, printi
             hsolve = moose.HSolve(path + '/hsolve')
             #hsolve.dt=simdt
             if printinfo:
-                print("USING HSOLVE for", hsolve.path, "clock", hsolve.tick
+                print("USING HSOLVE for", hsolve.path, "clock", hsolve.tick)
     for tick in range(0, 7):
         moose.setClock(tick, simdt)
         # 2 — channels
