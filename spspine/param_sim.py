@@ -39,8 +39,8 @@ graphsyn=0
 Synmsg='getGk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=1
-plotpow=1
+plotchan=0
+plotpow=0
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only
 plotnet=1
