@@ -69,7 +69,7 @@ stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
 ###################Fourth, specify simulation time, time step:dt and solver
-simtime = 0.04999 #0.4999
+simtime = 0.35
 plotdt = 0.2e-3
 simdt = 10e-6
 hsolve=1
