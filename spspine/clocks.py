@@ -17,14 +17,15 @@ def assign_clocks(model_container_list, dataName, simdt, plotdt,hsolveYN, printi
         print('SimDt=%g, PlotDt=%g' % (simdt, plotdt))
     for tab in moose.wildcardFind(dataName+ '/##[TYPE=Table]'):
         moose.setClock(tab.tick,plotdt)
+    for tick in range(0, 7):
+        moose.setClock(tick, simdt)
+        # 2 — channels
+        # 4 — compartments
+        # 6 — hsolver
     for path in model_container_list:
         if hsolveYN:
             hsolve = moose.HSolve(path + '/hsolve')
             #hsolve.dt=simdt
             if printinfo:
                 print("USING HSOLVE for", hsolve.path, "clock", hsolve.tick)
-    for tick in range(0, 7):
-        moose.setClock(tick, simdt)
-        # 2 — channels
-        # 4 — compartments
-        # 6 — hsolver
+    moose.reinit()
