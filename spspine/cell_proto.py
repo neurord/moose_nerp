@@ -58,7 +58,7 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
         else:
             ghk=[]
         Cond = param_cond.Condset[ntype]
-        for channame, chanparams in param_chan.ChanDict.items():
+        for channame, chanparams in param_chan.Channels.items():
             c = _util.distance_mapping(Cond[channame], dist)
             if c > 0:
                 if prnInfo:

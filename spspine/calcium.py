@@ -41,11 +41,11 @@ def connectVDCC_KCa(ghkYN,comp,capool):
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
                  moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
     for chan in chan_list:
-        if param_chan.ChanDict[chan.name].calciumPermeable:
+        if param_chan.Channels[chan.name].calciumPermeable:
             if ghkYN == 0:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
                 m = moose.connect(chan, 'IkOut', capool, 'current')
-        if param_chan.ChanDict[chan.name].calciumDependent:
+        if param_chan.Channels[chan.name].calciumDependent:
             m = moose.connect(capool, 'concOut', chan, 'concen')
             if param_sim.printMoreInfo:
                 print("channel message", chan.path, comp.path, m)

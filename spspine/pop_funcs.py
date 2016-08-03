@@ -38,7 +38,7 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in param_chan.ChanDict:
+            for chan in param_chan.Channels:
                 if (param_cond.Condset[typename][chan][0] > 0
                         and param_cond.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)

@@ -50,7 +50,7 @@ pg=inject_func.setupinj(param_sim.delay,param_sim.width,neuron)
 
 ###############--------------output elements
 if param_sim.plotchan:
-    for chan in param_chan.ChanDict.keys():
+    for chan in param_chan.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plotpow, param_chan.VMIN, param_chan.VMAX, param_chan.CAMIN, param_chan.CAMAX)
 

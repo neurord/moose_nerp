@@ -190,7 +190,7 @@ def BKchan_proto(chanpath, params):
             for jj in np.arange(0,param_chan.CADIVS,1000):
                 print("    Ca=", param_chan.CAMIN+jj*(param_chan.CAMAX-param_chan.CAMIN)/(param_chan.CADIVS-1), "A,B=", xGate.tableA[ii][jj],xGate.tableB[ii][jj])
     return chan
-#ChanDict (param_chan.py) includes channel function name in the dictionary
+#Channels (param_chan.py) includes channel function name in the dictionary
 
 TypicalOneDalpha = NamedList('TypicalOneDalpha',
                              '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
@@ -216,7 +216,7 @@ def chanlib():
         moose.Neutral('/library')
     #Adding all the channels to the library. *list removes list elements from the list,
     #so they can be used as function arguments
-    chan = [make_channel('/library/'+key, value) for key, value in param_chan.ChanDict.items()]
+    chan = [make_channel('/library/'+key, value) for key, value in param_chan.Channels.items()]
     if param_sim.Config['ghkYN']:
         ghk=moose.GHK('/library/ghk')
         ghk.T=param_cond.Temp

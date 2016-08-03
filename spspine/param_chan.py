@@ -310,8 +310,8 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
 
-ChanDict = NamedDict(
-    'ChannelParams',
+Channels = NamedDict(
+    'Channels',
     Krp =   TypicalOneDalpha(Krpparam, Krp_X_params, Krp_Y_params),
     KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
     KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),

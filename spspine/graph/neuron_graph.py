@@ -71,8 +71,8 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
 
     if plotcurr:
         f = _get_graph('D1/D2 currents', figsize=(6,12))
-        numplots=len(param_chan.ChanDict)
-        for plotnum, channame in enumerate(sorted(param_chan.ChanDict)):
+        numplots=len(param_chan.Channels)
+        for plotnum, channame in enumerate(sorted(param_chan.Channels)):
             try:
                 axes = f.add_subplot(numplots, 1, plotnum + 1)
                 toplot = [tab.vector / (param_cond.ghKluge if 'chanCa' in tab.path else 1)
