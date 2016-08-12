@@ -103,6 +103,7 @@ def chan_proto(chanpath, params):
         yGate = moose.HHGate(chan.path + '/gateY')
         yGate.setupAlpha(params.Y + [param_chan.VDIVS, param_chan.VMIN, param_chan.VMAX])
         yGate = fix_singularities(params.Y, yGate)
+        
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
         zgate = moose.HHGate(chan.path + '/gateZ')
@@ -112,7 +113,7 @@ def chan_proto(chanpath, params):
         caterm = (ca_array/params.Z.Kd) ** params.Z.power
         inf_z = caterm / (1 + caterm)
         tau_z = params.Z.tau * np.ones(len(ca_array))
-        zgate.tableA = inf_z / tau_z
+        zgate.tableA = inf_z**2# / tau_z #CDI in SP12 model, 8/12/16 JJS
         zgate.tableB = 1 / tau_z
         chan.useConcentration = True
     chan.Ek = params.channel.Erev
