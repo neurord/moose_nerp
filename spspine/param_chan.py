@@ -23,7 +23,7 @@ from spspine.chan_proto import (
 # where x is membrane voltage and y is the rate constant
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 #Parameters for Ca channels may need to be shifted - see Dorman model
-krev=-87e-3
+krev=-9e-3
 narev=50e-3
 carev=0.14 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI = 1
@@ -127,7 +127,7 @@ KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 # activation constants for alphas and betas (obtained by
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
 
-qfactKaF = 1.5
+qfactKaF = 2
 KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
