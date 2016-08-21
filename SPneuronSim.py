@@ -28,11 +28,6 @@ from spspine import (cell_proto,
 from spspine import param_sim, d1d2
 from spspine.graph import plot_channel, neuron_graph
 
-try:
-    from ParamOverrides import *
-except ImportError:
-    pass
-
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
