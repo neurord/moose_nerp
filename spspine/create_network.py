@@ -7,7 +7,7 @@ import moose
 from spspine import (extern_conn,
                      pop_funcs,
                      plasticity)
-from spspine import param_sim, param_ca_plas, param_net
+from spspine import param_sim, param_net
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
@@ -86,18 +86,18 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
         if (single==1):
             for ntype in _types:
                 SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                        param_ca_plas.highThresh,
-                                                        param_ca_plas.lowThresh,
-                                                        param_ca_plas.highfactor,
-                                                        param_ca_plas.lowfactor,
+                                                        model.CaPlasticityParams.highThresh,
+                                                        model.CaPlasticityParams.lowThresh,
+                                                        model.CaPlasticityParams.highfactor,
+                                                        model.CaPlasticityParams.lowfactor,
                                                         [])
         else:
             for nnum,ntype in _enumerate(_types):
                 SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                        param_ca_plas.highThresh,
-                                                        param_ca_plas.lowThresh,
-                                                        param_ca_plas.highfactor,
-                                                        param_ca_plas.lowfactor,
+                                                        model.CaPlasticityParams.highThresh,
+                                                        model.CaPlasticityParams.lowThresh,
+                                                        model.CaPlasticityParams.highfactor,
+                                                        model.CaPlasticityParams.lowfactor,
                                                         MSNpop['pop'][nnum])
     else:
         SynPlas=[]

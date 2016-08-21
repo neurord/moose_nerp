@@ -7,7 +7,6 @@ import moose
 from spspine import (param_sim,
                      extern_conn,
                      plasticity)
-import param_ca_plas as parcal
 
 def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
     syn={}
@@ -31,11 +30,11 @@ def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
             if plasYN:
-                print(syn_pop[neurtype]['ampa'][syncomp],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor)
+                print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
                 plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
-                                                        parcal.highThresh,
-                                                        parcal.lowThresh,
-                                                        parcal.highfactor,
-                                                        parcal.lowfactor)
+                                                        model.CaPlasticityParams.highThresh,
+                                                        model.CaPlasticityParams.lowThresh,
+                                                        model.CaPlasticityParams.highfactor,
+                                                        model.CaPlasticityParams.lowfactor)
 
     return syn, plast, stimtab

@@ -10,3 +10,4 @@ from .param_cond import (ghKluge,
 from .param_spine import SpineParams
 from .param_syn import (SYNAPSE_TYPES,
                         NumSyn)
+from . import param_ca_plas as CaPlasticityParams

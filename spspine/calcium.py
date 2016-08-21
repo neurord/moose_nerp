@@ -3,21 +3,21 @@ import os
 import numpy as np
 import moose
 
-from spspine import param_sim, param_ca_plas, constants
+from spspine import param_sim, constants
 
-def CaProto(thick,basal,ctau):
+def CaProto(params):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     #if the proto as been created already, this will not create a duplicate
-    poolproto=moose.CaConc('/library/CaPool')
-    poolproto.CaBasal=basal
-    poolproto.ceiling=1
-    poolproto.floor=0.0
-    poolproto.thick=thick
-    poolproto.tau=ctau
+    poolproto = moose.CaConc('/library/CaPool')
+    poolproto.CaBasal = params.CaBasal
+    poolproto.ceiling = 1
+    poolproto.floor = 0.0
+    poolproto.thick = params.CaThick
+    poolproto.tau = params.CaTau
     return poolproto
 
-def addCaPool(comp):
+def addCaPool(model, comp):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
@@ -25,7 +25,7 @@ def addCaPool(comp):
     caproto = moose.element('/library/CaPool')
     capool = moose.copy(caproto, comp, 'CaPool')[0]
     vol = SA * capool.thick
-    capool.B = 1 / (constants.Faraday*vol*2) / param_ca_plas.BufCapacity
+    capool.B = 1 / (constants.Faraday*vol*2) / model.CaPlasticityParams.BufCapacity
     if param_sim.printMoreInfo:
         print("CALCIUM", capool.path, length,diam,capool.thick,vol)
     return capool
