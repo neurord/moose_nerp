@@ -4,19 +4,18 @@ Can add single synapse to single neuron model to test calcium and plasticity
 from __future__ import print_function, division
 import moose
 
-from spspine import (param_cond,
-                     param_sim,
+from spspine import (param_sim,
                      extern_conn,
                      plasticity)
 import param_ca_plas as parcal
 
-def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
+def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
     syn={}
     plast={}
     stimtab={}
     if calYN and plasYN:
         moose.Neutral(inpath)
-        for neurtype in param_cond.neurontypes():
+        for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' %(inpath,neurtype))
             stimtab[neurtype].vector = param_sim.stimtimes
             for syntype in ('ampa','nmda'):

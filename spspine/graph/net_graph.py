@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, syn_proto
+from spspine import syn_proto
 from spspine.param_spine import SpineParams
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
@@ -25,8 +25,8 @@ def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
         moose.connect(stab[syntabnum], 'requestOut', syn, Synmsg)
     return vtab,ctab,stab
 
-def spineTables(spineHeads,catab,syntab,calyn):
-    for typenum, neurtype in enumerate(param_cond.neurontypes()):
+def spineTables(model, spineHeads,catab,syntab,calyn):
+    for typenum, neurtype in enumerate(model.neurontypes()):
         for headnum,head in enumerate(spineHeads[neurtype]):
             if calyn:
                 spcal=head.path+'/CaPool'
@@ -42,9 +42,9 @@ def spineTables(spineHeads,catab,syntab,calyn):
                 moose.connect(syntab[typenum][syntabnum], 'requestOut', syn, Synmsg)
     return catab,syntab
 
-def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
+def graphs(model, vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
     t = np.linspace(0, sim.simtime, len(vmtab[0][0].vector))
-    for typenum,neur in enumerate(param_cond.neurontypes()):
+    for typenum,neur in enumerate(model.neurontypes()):
         f=figure()
         f.canvas.set_window_title(neur+' Vm')
         if len(catab):
@@ -62,7 +62,7 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
             plt.ylabel('calcium, uM')
     #
     if grphsyn:
-        for typenum,neur in enumerate(param_cond.neurontypes()):
+        for typenum,neur in enumerate(model.neurontypes()):
             f=figure()
             f.canvas.set_window_title(neur+' Dend SynChans')
             for i,chan in enumerate(syn_proto.DendSynChans()):
@@ -84,13 +84,13 @@ def graphs(vmtab,syntab,grphsyn,catab=[],plastab=[],plasCumtab=[],sptab=[]):
             for typenum in range(len(plastab[plastype])):
                 t=np.linspace(0, simtime, len(plastab[typenum][0].vector))
                 f = plt.figure(figsize=(6,6))
-                f.canvas.set_window_title(param_cond.neurontypes()[typenum]+plastype)
+                f.canvas.set_window_title(model.neurontypes()[typenum]+plastype)
                 axes=f.add_subplot(numplots,1,plasnum+1)
                 for oid in plastab[plastype][typenum]:
                     axes.plot(t,oid.vector*scaling, label=oid.path.rpartition('_')[2])
                 axes.legend(fontsize=8,loc='best')
     if len(sptab['cal']):
-        for typenum,neur in enumerate(param_cond.neurontypes()):
+        for typenum,neur in enumerate(model.neurontypes()):
             f = plt.figure()
             f.canvas.set_window_title("Spines {}".format(neur))
             numplots = len(syn_proto.SpineSynChans())+1

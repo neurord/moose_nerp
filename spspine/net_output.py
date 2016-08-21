@@ -5,12 +5,12 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_cond, param_sim
+from spspine import param_sim
 
-def SpikeTables(single,MSNpop,showgraphs,vmtab):
+def SpikeTables(model, single,MSNpop,showgraphs,vmtab):
     spiketab=[]
     if not single:
-        for typenum,neurtype in enumerate(param_cond.neurontypes()):
+        for typenum,neurtype in enumerate(model.neurontypes()):
             spiketab.append([])
             for tabnum,neurpath in enumerate(MSNpop['pop'][typenum]):
                 neurnum=int(neurpath[find(neurpath,'_')+1:])
@@ -25,14 +25,14 @@ def SpikeTables(single,MSNpop,showgraphs,vmtab):
                     m=moose.connect(vmtab[typenum][tabnum], 'requestOut', plotcomp, 'getVm')
     return spiketab, vmtab
 
-def writeOutput(outfilename,spiketab,vmtab,MSNpop):
+def writeOutput(model, outfilename,spiketab,vmtab,MSNpop):
     outvmfile='Vm'+outfilename
     outspikefile='Spike'+outfilename
     if param_sim.printinfo:
         print("SPIKE FILE", outspikefile, "VM FILE", outvmfile)
     outspiketab=list()
     outVmtab=list()
-    for typenum,neurtype in enumerate(param_cond.neurontypes()):
+    for typenum,neurtype in enumerate(model.neurontypes()):
         outspiketab.append([])
         outVmtab.append([])
         for tabnum,neurname in enumerate(MSNpop['pop'][typenum]):

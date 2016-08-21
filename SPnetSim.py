@@ -52,13 +52,13 @@ if param_sim.showgraphs:
 else:
     vmtab=[]
 
-spiketab, vmtab = net_output.SpikeTables(param_sim.single,MSNpop,param_sim.showgraphs,vmtab)
+spiketab, vmtab = net_output.SpikeTables(d1d2, param_sim.single,MSNpop,param_sim.showgraphs,vmtab)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if param_sim.single:
-    simpath=['/'+neurotype for neurotype in param_cond.neurontypes()]
+    simpath=['/'+neurotype for neurotype in d1d2.neurontypes()]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
     simpath=[netpar.netname]
@@ -75,10 +75,10 @@ if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         if param_sim.showgraphs:
-            net_graph.graphs(vmtab,syntab,graphsyn,catab,plastab,sptab)
+            net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not param_sim.single:
-            writeOutput(param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
+            writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
 
     # block in non-interactive mode
     _util.block_if_noninteractive()

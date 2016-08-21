@@ -40,7 +40,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if param_sim.Config['synYN']:
-    syn,plas,stimtab=test_plas.test_plas(param_sim.syncomp,param_sim.Config['calYN'],param_sim.Config['plasYN'],param_sim.inpath,MSNsyn)
+    syn,plas,stimtab=test_plas.test_plas(d1d2, param_sim.syncomp,param_sim.Config['calYN'],param_sim.Config['plasYN'],param_sim.inpath,MSNsyn)
 else:
     syn,plas = {}, {}
 
@@ -50,9 +50,9 @@ pg=inject_func.setupinj(d1d2, param_sim.delay,param_sim.width,neuron)
 
 ###############--------------output elements
 if param_sim.plotchan:
-    for chan in param_chan.Channels.keys():
+    for chan in d1d2.Channels.keys():
         libchan=moose.element('/library/'+chan)
-        plot_channel.plot_gate_params(libchan,param_sim.plotpow, param_chan.VMIN, param_chan.VMAX, param_chan.CAMIN, param_chan.CAMAX)
+        plot_channel.plot_gate_params(libchan,param_sim.plotpow, d1d2.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
 
 data = moose.Neutral('/data')
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     traces, names = [], []
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
+        neuron_graph.graphs(d1d2, vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
         traces.append(vmtab[0][0].vector)
         traces.append(vmtab[1][0].vector)
         names.append('D1 @ {}'.format(inj))

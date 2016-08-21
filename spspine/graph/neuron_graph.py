@@ -5,7 +5,7 @@ from matplotlib import pyplot
 import numpy as np
 
 from spspine.iso_scaling import iso_scaling
-from spspine import param_chan, param_cond, param_sim
+from spspine import param_sim
 
 try:
     _GRAPHS
@@ -22,10 +22,10 @@ def _get_graph(name, figsize=None):
         f.canvas.draw() # this is here to make it easier to see what changed
     return f
 
-def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
+def graphs(model, vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
     t = np.linspace(0, param_sim.simtime, len(vmtab[0][0].vector))
 
-    for typenum,neurtype in enumerate(param_cond.neurontypes()):
+    for typenum,neurtype in enumerate(model.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         t = np.linspace(0, param_sim.simtime, len(vmtab[typenum][0].vector))
         axes = f.add_subplot(211) if len(catab) else f.gca()
@@ -71,11 +71,11 @@ def graphs(vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
 
     if plotcurr:
         f = _get_graph('D1/D2 currents', figsize=(6,12))
-        numplots=len(param_chan.Channels)
-        for plotnum, channame in enumerate(sorted(param_chan.Channels)):
+        numplots=len(model.Channels)
+        for plotnum, channame in enumerate(sorted(model.Channels)):
             try:
                 axes = f.add_subplot(numplots, 1, plotnum + 1)
-                toplot = [tab.vector / (param_cond.ghKluge if 'chanCa' in tab.path else 1)
+                toplot = [tab.vector / (model.ghKluge if 'chanCa' in tab.path else 1)
                           for tab in currtab[neurtype][channame]]
                 scaling = iso_scaling(*toplot)
                 for vec in toplot:
