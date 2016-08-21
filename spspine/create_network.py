@@ -90,17 +90,15 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
                                                         param_ca_plas.lowThresh,
                                                         param_ca_plas.highfactor,
                                                         param_ca_plas.lowfactor,
-                                                        [],
-                                                        param_ca_plas.caName)
+                                                        [])
         else:
             for nnum,ntype in _enumerate(_types):
-                SynPlas[ntype]=plas.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                  param_ca_plas.highThresh,
-                                                  param_ca_plas.lowThresh,
-                                                  param_ca_plas.highfactor,
-                                                  param_ca_plas.lowfactor,
-                                                  MSNpop['pop'][nnum],
-                                                  param_ca_plas.caName)
+                SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
+                                                        param_ca_plas.highThresh,
+                                                        param_ca_plas.lowThresh,
+                                                        param_ca_plas.highfactor,
+                                                        param_ca_plas.lowfactor,
+                                                        MSNpop['pop'][nnum])
     else:
         SynPlas=[]
     return MSNpop, SynPlas

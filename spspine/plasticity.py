@@ -8,9 +8,9 @@ import moose
 
 from spspine import param_sim
 
-def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
+def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/' + caName
+    calname = compname + '/caPool'
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
@@ -42,7 +42,7 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     
     return {'cum':plasCum,'plas':plas}
 
-def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
+def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
     if param_sim.printinfo:
         print("PLAS", cells)
     if cells:
@@ -59,8 +59,8 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
                 synchan=moose.element(cell+'/'+compname)
                 if param_sim.printMoreInfo:
                     print("ADDPLAS",cell,compname,synchan)
-                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
+                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
         return plastlist
     else:
-        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name)
+        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact)
                 for synchan in synPop]

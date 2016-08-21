@@ -99,19 +99,19 @@ def neuronclasses(model, config, prnInfo):
     #      this will require many additional function definitions
     if config['calYN']:
         #put all these calcium parameters into a dictionary
-        calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau,param_ca_plas.caName)
+        calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau)
         for ntype in model.neurontypes():
             for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-                capool=calcium.addCaPool(comp,param_ca_plas.caName)
+                capool=calcium.addCaPool(comp)
                 caPools[ntype].append(capool)
                 calcium.connectVDCC_KCa(model, config['ghkYN'],comp,capool)
             #if there are spines, calcium will be added to the spine head
             if config['spineYN']:
                 for spcomp in headArray[ntype]:
-                    capool=calcium.addCaPool(spcomp,param_ca_plas.caName)
+                    capool=calcium.addCaPool(spcomp)
                     if model.SpineParams.spineChanList:
                         calcium.connectVDCC_KCa(model, config['ghkYN'],spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if config['synYN']:
-                calcium.connectNMDA(synArray[ntype]['nmda'],param_ca_plas.caName,config['ghkYN'])
+                calcium.connectNMDA(synArray[ntype]['nmda'], config['ghkYN'])
     return synArray,neuron,caPools,numSynArray,headArray

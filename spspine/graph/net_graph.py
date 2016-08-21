@@ -10,7 +10,7 @@ def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
         print("VTABLES", vtab[tabnum].path,vcomp.path)
     m=moose.connect(vtab[tabnum], 'requestOut', vcomp, 'getVm')
     if calyn:
-        cacomp=moose.element(vcomp.path+'/'+caName)
+        cacomp=moose.element(vcomp.path+'/CaPool')
         if printinfo:
             print("CTABLES", ctab[tabnum].path,cacomp.path)
         moose.connect(ctab[tabnum], 'requestOut', cacomp, 'getCa')
@@ -29,7 +29,7 @@ def spineTables(spineHeads,catab,syntab,calyn):
     for typenum, neurtype in enumerate(param_cond.neurontypes()):
         for headnum,head in enumerate(spineHeads[neurtype]):
             if calyn:
-                spcal=head.path+'/'+caName
+                spcal=head.path+'/CaPool'
                 moose.connect(catab[typenum][headnum], 'requestOut', moose.element(spcal), 'getCa')
             for synnum,chan in enumerate(syn_proto.SpineSynChans()):
                 syn=moose.element(head.path+'/'+chan)

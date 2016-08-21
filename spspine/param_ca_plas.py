@@ -8,7 +8,6 @@ BufCapacity=2
 CaThick=0.1e-6
 CaBasal=0.05e-3
 CaTau=20e-3
-caName='CaPool'
 
 plasYesNo=1
 #These thresholds are applied to calcium concentration

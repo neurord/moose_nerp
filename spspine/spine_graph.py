@@ -15,7 +15,7 @@ def spinetabs():
             moose.connect(spvmtab[typenum][headnum], 'requestOut', head, 'getVm')
             if calcium:
                 spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))
-                spcal=moose.element(head.path+'/'+caName)
+                spcal=moose.element(head.path+'/CaPool'
                 moose.connect(spcatab[typenum][headnum], 'requestOut', spcal, 'getCa')
     return spcatab,spvmtab
 

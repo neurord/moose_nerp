@@ -5,11 +5,11 @@ import moose
 
 from spspine import param_sim, param_ca_plas, constants
 
-def CaProto(thick,basal,ctau,poolname):
+def CaProto(thick,basal,ctau):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     #if the proto as been created already, this will not create a duplicate
-    poolproto=moose.CaConc('/library/'+poolname)
+    poolproto=moose.CaConc('/library/CaPool')
     poolproto.CaBasal=basal
     poolproto.ceiling=1
     poolproto.floor=0.0
@@ -17,13 +17,13 @@ def CaProto(thick,basal,ctau,poolname):
     poolproto.tau=ctau
     return poolproto
 
-def addCaPool(comp,poolname):
+def addCaPool(comp):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
         #create the calcium pools in each compartment
-    caproto=moose.element('/library/'+poolname)
-    capool = moose.copy(caproto, comp, poolname)[0]
+    caproto = moose.element('/library/CaPool')
+    capool = moose.copy(caproto, comp, 'CaPool')[0]
     vol = SA * capool.thick
     capool.B = 1 / (constants.Faraday*vol*2) / param_ca_plas.BufCapacity
     if param_sim.printMoreInfo:
@@ -50,9 +50,9 @@ def connectVDCC_KCa(model, ghkYN,comp,capool):
             if param_sim.printMoreInfo:
                 print("channel message", chan.path, comp.path, m)
  
-def connectNMDA(nmdachans,poolname,ghkYesNo):
+def connectNMDA(nmdachans, ghkYesNo):
     for chan in nmdachans:
-        caname = os.path.dirname(chan.path) + '/' + poolname
+        caname = os.path.dirname(chan.path) + '/CaPool'
         capool = moose.element(caname)
         if param_sim.printMoreInfo:
             print("CONNECT", nmdaCurr.path,'to',capool.path)

@@ -32,12 +32,11 @@ def test_plas(syncomp,calYN,plasYN,inpath,syn_pop):
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
             if plasYN:
-                print(syn_pop[neurtype]['ampa'][syncomp],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor,parcal.caName)
+                print(syn_pop[neurtype]['ampa'][syncomp],parcal.highThresh,parcal.lowThresh,parcal.highfactor,parcal.lowfactor)
                 plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
                                                         parcal.highThresh,
                                                         parcal.lowThresh,
                                                         parcal.highfactor,
-                                                        parcal.lowfactor,
-                                                        # FIXME: param missing?
-                                                        parcal.caName)
+                                                        parcal.lowfactor)
+
     return syn, plast, stimtab
