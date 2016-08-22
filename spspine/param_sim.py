@@ -19,7 +19,6 @@ single=1
 if not single:
     Config['spineYN']=0
     title1 = 'network'
-    neurnameNum=2
 else:
     title1 = 'single'
 

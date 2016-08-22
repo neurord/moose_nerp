@@ -76,7 +76,7 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
         for neurlist in MSNpop['pop']:
             for jj in range(len(neurlist)):
                 neur=moose.element(neurlist[jj]+'/soma')
-                neurname = neurlist[jj].split('/')[neurnameNum]
+                neurname = neurlist[jj].split('/')[-1]
                 locationlist.append([neurname,neur.x,neur.y])
         savez(param_net.confile,conn=connect,loc=locationlist)
 
