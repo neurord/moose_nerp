@@ -27,16 +27,16 @@ MgParams = NamedList('MgParams',
                          C
                       ''')
 
-def SpineSynChans(synapse_types):
-    return sorted(key for key,val in synapse_types.items()
-                  if val.spinic and param_sim.Config['spineYN'])
+def SpineSynChans(model):
+    return sorted(key for key,val in model.SYNAPSE_TYPES.items()
+                  if val.spinic and model.spineYN)
 
-def DendSynChans(synapse_types):
+def DendSynChans(model):
     # If synapses are disabled, put all synaptic channels in the dendrite
-    return sorted(key for key,val in synapse_types.items()
-                  if not (val.spinic and param_sim.Config['spineYN']))
+    return sorted(key for key,val in model.SYNAPSE_TYPES.items()
+                  if not (val.spinic and model.spineYN))
 
-def make_synchan(model, chanpath, synparams, calYN):
+def make_synchan(model, chanpath, synparams):
     # for AMPA or GABA - just make the channel, no connections/messages
     log.info('synparams: {} {}', chanpath, synparams)
     if synparams.NMDA:
@@ -51,20 +51,20 @@ def make_synchan(model, chanpath, synparams, calYN):
         synchan.KMg_A = synparams.MgBlock.A
         synchan.KMg_B = synparams.MgBlock.B
         synchan.CMg = synparams.MgBlock.C
-        if calYN:
+        if model.calYN:
             synchan.condFraction = synparams.nmdaCaFrac
             synchan.temperature = constants.celsius_to_kelvin(model.Temp)
             synchan.extCa = model.ConcOut
     return synchan
 
-def synchanlib(model, calYN):
+def synchanlib(model):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
 
     for name, params in model.SYNAPSE_TYPES.items():
         synchan = make_synchan(model,
                                '/library/' + name,
-                               params, calYN)
+                               params)
         print(synchan)
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
@@ -76,34 +76,34 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
     m = moose.connect(syncomp, 'channel', synchan, 'channel')
     return synchan
 
-def add_synchans(container,calYN,synapse_types,NumSyn):
+def add_synchans(model, container):
     #synchans is 2D array, where each row has a single channel type
     #at the end they are concatenated into a dictionary
     synchans=[]
     comp_list = moose.wildcardFind(container + '/#[TYPE=Compartment]')
-    SynPerCompList=np.zeros((len(comp_list),len(NumSyn)),dtype=int)
+    SynPerCompList=np.zeros((len(comp_list),len(model.NumSyn)),dtype=int)
     #Create 2D array to store all the synapses.  Rows=num synapse types, columns=num comps
-    for key in synapse_types:
+    for key in model.SYNAPSE_TYPES:
         synchans.append([])
-    allkeys = sorted(synapse_types)
+    allkeys = sorted(model.SYNAPSE_TYPES)
 
     # i indexes compartment for array that stores number of synapses
     SynPerComp={}
     for i, comp in enumerate(comp_list):
                 
         #create each type of synchan in each compartment.  Add to 2D array
-        for key in DendSynChans(synapse_types):
+        for key in DendSynChans(model):
             keynum = allkeys.index(key)
-            Gbar = synapse_types[key].Gbar
-            Gbarvar=synapse_types[key].var
-            synchans[keynum].append(addoneSynChan(key,comp,Gbar,calYN,Gbarvar))
-        for key in SpineSynChans(synapse_types):
+            Gbar = model.SYNAPSE_TYPES[key].Gbar
+            Gbarvar=model.SYNAPSE_TYPES[key].var
+            synchans[keynum].append(addoneSynChan(key,comp,Gbar, model.calYN, Gbarvar))
+        for key in SpineSynChans(model):
             keynum = allkeys.index(key)
-            Gbar = synapse_types[key].Gbar
-            Gbarvar=synapse_types[key].var
+            Gbar = model.SYNAPSE_TYPES[key].Gbar
+            Gbarvar=model.SYNAPSE_TYPES[key].var
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
                 if 'head' in spcomp.path:
-                    synchans[keynum].append(addoneSynChan(key,spcomp,Gbar,calYN,Gbarvar))
+                    synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
         #
         #calculate distance from soma
         xloc=moose.Compartment(comp).x
@@ -112,13 +112,13 @@ def add_synchans(container,calYN,synapse_types,NumSyn):
         #create array of number of synapses per compartment based on distance
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
         #Check in ExtConn - how is SynPerComp used
-        for j,syntype in enumerate(NumSyn.keys()):
-            SynPerCompList[i,j] = distance_mapping(NumSyn[syntype], dist)
-    for j,syntype in enumerate(NumSyn.keys()):
+        for j,syntype in enumerate(model.NumSyn.keys()):
+            SynPerCompList[i,j] = distance_mapping(model.NumSyn[syntype], dist)
+    for j,syntype in enumerate(model.NumSyn.keys()):
         SynPerComp[syntype]=SynPerCompList[:,j]
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
     allsynchans={key:synchans[keynum]
-                 for keynum, key in enumerate(sorted(synapse_types))}
+                 for keynum, key in enumerate(sorted(model.SYNAPSE_TYPES))}
 
     return SynPerComp,allsynchans

@@ -11,3 +11,17 @@ from .param_spine import SpineParams
 from .param_syn import (SYNAPSE_TYPES,
                         NumSyn)
 from . import param_ca_plas as CaPlasticityParams
+
+#calcium: include or exclude calcium concentration dynamics, single tau
+#synYN:No point adding synapses unless they receive inputs
+#plasYN:include or exclude plasticity based on calcium
+
+calYN = False
+plasYN = False
+ghkYN = False
+spineYN = False
+synYN = False
+
+#note that if ghkYN=0, make sure that ghKluge = 1
+
+single = 1

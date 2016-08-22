@@ -10,11 +10,11 @@ from spspine import (param_sim,
                      logutil)
 log = logutil.Logger()
 
-def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
+def test_plas(model, syncomp, inpath, syn_pop):
     syn={}
     plast={}
     stimtab={}
-    if calYN and plasYN:
+    if model.calYN and model.plasYN:
         moose.Neutral(inpath)
         for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' %(inpath,neurtype))
@@ -22,14 +22,14 @@ def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
                 log.info('Synapse added to {.path}', synchan)
-                extern_conn.synconn(synchan,0,stimtab[neurtype],calYN)
+                extern_conn.synconn(synchan,0,stimtab[neurtype],model.calYN)
                 if syntype=='nmda':
                     synchanCa=moose.element(syn_pop[neurtype][syntype][syncomp].path+'/CaCurr')
                     log.info('Synapse added to {.path}', synchanCa)
-                    extern_conn.synconn(synchanCa,0,stimtab[neurtype],calYN)
+                    extern_conn.synconn(synchanCa,0,stimtab[neurtype],model.calYN)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
-            if plasYN:
+            if model.plasYN:
                 print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
                 plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
                                                         model.CaPlasticityParams.highThresh,

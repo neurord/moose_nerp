@@ -203,7 +203,7 @@ def chanlib(model):
         moose.Neutral('/library')
     #Adding all the channels to the library.
     chan = [make_channel(model, '/library/'+key, value) for key, value in model.Channels.items()]
-    if param_sim.Config['ghkYN']:
+    if model.ghkYN:
         ghk = moose.GHK('/library/ghk')
         ghk.T = model.Temp
         ghk.Cout = model.ConcOut

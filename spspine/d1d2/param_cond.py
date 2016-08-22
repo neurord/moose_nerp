@@ -8,7 +8,7 @@ from spspine import param_sim, util as _util
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
-if param_sim.Config['ghkYN']:
+if False: # param_sim.Config['ghkYN']:
     ghKluge=0.35e-6
 else:
     ghKluge=1

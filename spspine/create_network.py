@@ -14,8 +14,7 @@ from spspine import param_sim, param_net
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
-
-def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsyn,neuron):
+def CreateNetwork(model, inputpath, spineheads,synarray,MSNsyn,neuron):
     #First, extract number of synapses per compartment for glu and gaba
     _types = model.neurontypes()
     if synarray:
@@ -29,7 +28,7 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
     indata=moose.Neutral(inputpath)
     inpath=indata.path
     startt=0
-    if single:
+    if model.single:
         #Create one of each neuron type, add synaptic inputs
         MSNpop=[]
         totaltt=0
@@ -82,10 +81,10 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
 
     ##### Synaptic Plasticity, requires calcium
     #### Array of SynPlas has ALL neurons of a single type in one big array.  Might want to change this
-    if (calYN==1 and plasYN==1):
+    if model.calYN and model.plasYN:
         #rolled back code because didn't know how to add loop over nnum (synchronized to ntype) in single line
         SynPlas={}
-        if (single==1):
+        if model.single:
             for ntype in _types:
                 SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
                                                         model.CaPlasticityParams.highThresh,

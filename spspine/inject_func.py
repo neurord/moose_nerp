@@ -15,7 +15,7 @@ def setupinj(model, delay,width,neuron):
     pg.firstDelay = delay
     pg.firstWidth = width
     pg.secondDelay = 1e9
-    if param_sim.single:
+    if model.single:
         for neurtype in model.neurontypes():
             print("INJECT:",neurtype, neuron[neurtype].keys(),neuron[neurtype]['comps'][0])
             moose.connect(pg, 'output', neuron[neurtype]['comps'][0], 'injectMsg')  

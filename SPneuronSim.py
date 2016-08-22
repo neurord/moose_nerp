@@ -36,11 +36,11 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.Config)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-if param_sim.Config['synYN']:
-    syn,plas,stimtab=test_plas.test_plas(d1d2, param_sim.syncomp,param_sim.Config['calYN'],param_sim.Config['plasYN'],param_sim.inpath,MSNsyn)
+if d1d2.synYN:
+    syn,plas,stimtab=test_plas.test_plas(d1d2, param_sim.syncomp, param_sim.inpath, MSNsyn)
 else:
     syn,plas = {}, {}
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
         traces.append(vmtab[1][0].vector)
         names.append('D1 @ {}'.format(inj))
         names.append('D2 @ {}'.format(inj))
-        #if param_sim.Config['spineYN']:
+        #if d1d2.spineYN:
         #    spineFig(spinecatab,spinevmtab)
     neuron_graph.SingleGraphSet(traces, names)
 
