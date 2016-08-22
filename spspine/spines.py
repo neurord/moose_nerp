@@ -2,7 +2,8 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_sim
+from . import logutil
+log = logutil.Logger()
 
 NAME_NECK = "neck"
 NAME_HEAD = "head"
@@ -12,8 +13,9 @@ def setSpineCompParams(model, comp,compdia,complen):
     comp.length=complen
     XArea=np.pi*compdia*compdia/4
     circumf=np.pi*compdia
-    if param_sim.printMoreInfo:
-        print("Xarea,circumf of",comp.path, XArea,circumf,"CM", model.SpineParams.spineCM*complen*circumf)
+    log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
+              comp.path, XArea, circumf,
+              model.SpineParams.spineCM*complen*circumf)
     comp.Ra = model.SpineParams.spineRA*complen/XArea
     comp.Rm = model.SpineParams.spineRM/(complen*circumf)
     cm = model.SpineParams.spineCM*compdia*circumf
@@ -28,8 +30,7 @@ def makeSpine(model, parentComp, compName,index, frac, necklen, neckdia, headdia
     #unfortunately, these values specified in the .p file are not accessible
     neck_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_NECK)
     neck = moose.Compartment(neck_path)
-    if param_sim.printMoreInfo:
-        print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
+    log.debug('{} at {} x,y,z={2.x},{2.y},{2.z}', neck.path, frac, parentComp)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
     y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
@@ -70,6 +71,5 @@ def addSpines(model, container,ghkYN):
                         addOneChan(chanpath,cond,head,ghkYN)
             #end for index
     #end for comp
-    if param_sim.printinfo:
-        print(len(headarray),"spines created in",container)
+    log.info('{} spines created in {}', len(headarray), container)
     return headarray

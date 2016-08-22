@@ -2,25 +2,23 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import syn_proto
+from spspine import syn_proto, logutil
 from spspine.param_spine import SpineParams
+log = logutil.Logger()
 
 def connectTables(vcomp,vtab,ctab,stab,tabnum,calyn):
-    if printinfo:
-        print("VTABLES", vtab[tabnum].path,vcomp.path)
+    log.info("VTABLES {} {}", vtab[tabnum].path,vcomp.path)
     m=moose.connect(vtab[tabnum], 'requestOut', vcomp, 'getVm')
     if calyn:
         cacomp=moose.element(vcomp.path+'/CaPool')
-        if printinfo:
-            print("CTABLES", ctab[tabnum].path,cacomp.path)
+        log.debug('CTABLES {} {}', ctab[tabnum].path,cacomp.path)
         moose.connect(ctab[tabnum], 'requestOut', cacomp, 'getCa')
     for synnum,chan in enumerate(syn_proto.DendSynChans()):
         syn=moose.element(vcomp.path+'/'+chan)
         if chan=='nmda':
             syn=moose.element(syn.path+'/mgblock')
         syntabnum=len(syn_proto.DendSynChans())*tabnum+synnum
-        if printinfo:
-            print(stab[syntabnum].path, chan)
+        log.debug('{} {}', stab[syntabnum].path, chan)
         assert chan in stab[syntabnum].path
         moose.connect(stab[syntabnum], 'requestOut', syn, Synmsg)
     return vtab,ctab,stab
@@ -36,8 +34,7 @@ def spineTables(model, spineHeads,catab,syntab,calyn):
                 if chan=='nmda':
                     syn=moose.element(syn.path+'/mgblock')
                 syntabnum = len(syn_proto.SpineSynChans()) * headnum + synnum
-                if printinfo:
-                    print(syn.path,syntab[typenum][syntabnum].path, chan)
+                log.debug('{.path} {.path} {}', syn, syntab[typenum][syntabnum], chan)
                 assert chan in syntab[typenum][syntabnum].path
                 moose.connect(syntab[typenum][syntabnum], 'requestOut', syn, Synmsg)
     return catab,syntab

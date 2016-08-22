@@ -6,7 +6,9 @@ import moose
 
 from spspine import (param_sim,
                      extern_conn,
-                     plasticity)
+                     plasticity,
+                     logutil)
+log = logutil.Logger()
 
 def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
     syn={}
@@ -19,13 +21,11 @@ def test_plas(model, syncomp,calYN,plasYN,inpath,syn_pop):
             stimtab[neurtype].vector = param_sim.stimtimes
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
-                if param_sim.printinfo:
-                    print("Synapse added to", synchan.path)
+                log.info('Synapse added to {.path}', synchan)
                 extern_conn.synconn(synchan,0,stimtab[neurtype],calYN)
                 if syntype=='nmda':
                     synchanCa=moose.element(syn_pop[neurtype][syntype][syncomp].path+'/CaCurr')
-                    if param_sim.printinfo:
-                        print("Synapse added to", synchanCa.path)
+                    log.info('Synapse added to {.path}', synchanCa)
                     extern_conn.synconn(synchanCa,0,stimtab[neurtype],calYN)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity

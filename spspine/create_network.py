@@ -6,7 +6,10 @@ import moose
 
 from spspine import (extern_conn,
                      pop_funcs,
-                     plasticity)
+                     plasticity,
+                     logutil)
+log = logutil.Logger()
+
 from spspine import param_sim, param_net
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
@@ -21,8 +24,7 @@ def CreateNetwork(model, inputpath,calYN,plasYN,single,spineheads,synarray,MSNsy
     else:
         numglu = {ntype:[] for ntype in _types}
         numgaba = {ntype:[] for ntype in _types}
-    if param_sim.printinfo:
-        print("synarray", synarray)
+    log.info('synarray {}', synarray)
 
     indata=moose.Neutral(inputpath)
     inpath=indata.path

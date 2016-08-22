@@ -45,10 +45,6 @@ plotpow=0
 # These two param used in SPnetSpineSim only
 plotnet=1
 showgraphs=1
-#whether to plot additional information during simulation set-up
-printinfo=1
-#printMoreInfo is compartment based - generates a lot
-printMoreInfo=0
 
 #showclocks=1 will show which elements are assigned to clocks between a and b
 showclocks=1

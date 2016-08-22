@@ -36,8 +36,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
                                   'plasYN':bool(plasticity),
                                   'ghkYN':bool(ghk),
                                   'spineYN':bool(spines),
-                                  'synYN':bool(synapses)},
-                                 False)
+                                  'synYN':bool(synapses)})
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
     pg.firstLevel = 1e-8
@@ -89,8 +88,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
                                   'plasYN':bool(plasticity),
                                   'ghkYN':bool(ghk),
                                   'spineYN':bool(spines),
-                                  'synYN':bool(synapses)},
-                                 False)
+                                  'synYN':bool(synapses)})
 
     MSNpop, SynPlas = \
         create_network.CreateNetwork(d1d2,

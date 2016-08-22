@@ -9,6 +9,7 @@
 ##      used to tune parameters and channel kinetics (but using larger morphology)
 
 from __future__ import print_function, division
+import logging
 
 import os
 os.environ['NUMPTHREADS'] = '1'
@@ -24,14 +25,18 @@ from spspine import (cell_proto,
                      inject_func,
                      tables,
                      test_plas,
+                     logutil,
                      util as _util)
 from spspine import param_sim, d1d2
 from spspine.graph import plot_channel, neuron_graph
 
+logging.basicConfig(level=logging.INFO)
+log = logutil.Logger()
+
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.Config,param_sim.printMoreInfo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.Config)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if param_sim.Config['synYN']:
@@ -56,7 +61,7 @@ vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,param_sim.plotcurr
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
-clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve, param_sim.printinfo)
+clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):

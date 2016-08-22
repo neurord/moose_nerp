@@ -3,7 +3,8 @@ from __future__ import print_function, division
 import moose 
 import numpy as np
 
-from spspine import param_sim
+from . import logutil
+log = logutil.Logger()
 
 def graphtables(model, neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     print("GRAPH TABLES, ca=", len(capools),"plas=",len(plas),"curr=",pltcurr)
@@ -47,11 +48,11 @@ def graphtables(model, neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     for neurtype in model.neurontypes():
         for channame in model.Channels:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
+                path = comp.path+'/'+channame
                 try:
-                    chan=moose.element(comp.path+'/'+channame)
+                    chan=moose.element(path)
                     moose.connect(tab, 'requestOut', chan, curmsg)
-                except:
-                    if param_sim.printMoreInfo:
-                        print('no channel', comp.path+'/'+channame)
+                except Exception:
+                    log.debug('no channel {}', path)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
 

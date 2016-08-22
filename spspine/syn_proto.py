@@ -6,8 +6,9 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_sim, constants
+from spspine import param_sim, constants, logutil
 from spspine.util import NamedList, distance_mapping
+log = logutil.Logger()
 
 SynChannelParams = NamedList('SynChannelParams',
                               '''Erev
@@ -37,8 +38,7 @@ def DendSynChans(synapse_types):
 
 def make_synchan(model, chanpath, synparams, calYN):
     # for AMPA or GABA - just make the channel, no connections/messages
-    if param_sim.printinfo:
-        print('synparams:', chanpath, synparams)
+    log.info('synparams: {} {}', chanpath, synparams)
     if synparams.NMDA:
         synchan=moose.NMDAChan(chanpath)
     else:
@@ -69,8 +69,7 @@ def synchanlib(model, calYN):
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
     proto=moose.SynChan('/library/' +chanpath)
-    if param_sim.printMoreInfo:
-        print("adding channel",chanpath,"to",syncomp.path,"from",proto.path)
+    log.debug('adding channel {} to {.path} from {.path}', chanpath, syncomp, proto)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
     #bidirectional connection from synchan to compartment when not NMDA:

@@ -12,9 +12,11 @@ If no inactivation, just send in empty Yparam array.
 from __future__ import print_function, division
 import moose
 import numpy as np
+import logging
 
-from spspine import param_sim, constants
+from spspine import param_sim, constants, logutil
 from spspine.util import NamedList
+log = logutil.Logger()
 
 SSTauChannelParams = NamedList('SSTauChannelParams', '''
                                 Arate
@@ -78,8 +80,7 @@ def fix_singularities(model, Params, Gate):
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(model, chanpath, params):
-    if param_sim.printinfo:
-        print(chanpath, ":", params)
+    log.info("{}: {}", chanpath, params)
     chan = moose.HHChannel(chanpath)
     chan.Xpower = params.channel.Xpow
     if params.channel.Xpow > 0:
@@ -120,8 +121,7 @@ def NaFchan_proto(model, chanpath, params):
     tau1 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/params.X.tauVslope))
     tau2 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/-params.X.tauVslope))
     tau_x = (params.X.taumin+1000*tau1*tau2)/model.qfactNaF
-    if param_sim.printMoreInfo:
-        print("NaF mgate:", mgate, 'tau1:', tau1, "tau2:", tau2, 'tau:', tau_x)
+    log.debug("NaF mgate:{} tau1:{} tau2:{} tau:{}", mgate, tau1, tau2, tau_x)
 
     mgate.tableA = inf_x / tau_x
     mgate.tableB =  1 / tau_x
@@ -133,8 +133,7 @@ def NaFchan_proto(model, chanpath, params):
     hgate.max = model.VMAX
     tau_y = (params.Y.taumin + (params.Y.tauVdep/(1+np.exp((v_array+params.Y.tauVhalf)/params.Y.tauVslope)))) / model.qfactNaF
     inf_y = params.Y.Arate / (params.Y.A_C + np.exp(( v_array+params.Y.Avhalf)/params.Y.Avslope))
-    if param_sim.printMoreInfo:
-        print("NaF hgate:", hgate, 'inf:', inf_y, 'tau:', tau_y)
+    log.debug("NaF hgate:{} inf:{} tau:{}", hgate, inf_y, tau_y)
     hgate.tableA = inf_y / tau_y
     hgate.tableB = 1 / tau_y
     chan.Ek=params.channel.Erev
@@ -144,8 +143,8 @@ def BKchan_proto(model, chanpath, params):
     ZFbyRT= 2 * constants.Faraday / (constants.R * constants.celsius_to_kelvin(model.Temp))
     v_array = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
     ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
-    if model.VDIVS<=5 and model.CADIVS<=5 and param_sim.printinfo:
-        print(v_array,ca_array)
+    if model.VDIVS<=5 and model.CADIVS<=5:
+        log.info("{}, {}", v_array, ca_array)
     gatingMatrix = []
     for i,pars in enumerate(params.X):
         Vdepgating=pars.K*np.exp(pars.delta*ZFbyRT*v_array)
@@ -171,12 +170,14 @@ def BKchan_proto(model, chanpath, params):
     xGate.ydivsA=xGate.ydivsB=model.CADIVS
     xGate.tableA=gatingMatrix[0]
     xGate.tableB=gatingMatrix[1]
-    if param_sim.printinfo:
-        print(chan.path)
+    if log.isEnabledFor(logging.INFO):
+        log.info("{}", chan.path)
         for ii in np.arange(0, model.VDIVS,1000):
-            print("V=", model.VMIN+ii*(model.VMAX-model.VMIN)/(model.VDIVS-1))
+            log.info("V={}", model.VMIN+ii*(model.VMAX-model.VMIN)/(model.VDIVS-1))
             for jj in np.arange(0,model.CADIVS,1000):
-                print("    Ca=", model.CAMIN+jj*(model.CAMAX-model.CAMIN)/(model.CADIVS-1), "A,B=", xGate.tableA[ii][jj],xGate.tableB[ii][jj])
+                log.info("    Ca={} A,B={},{}",
+                         model.CAMIN+jj*(model.CAMAX-model.CAMIN)/(model.CADIVS-1),
+                         xGate.tableA[ii][jj], xGate.tableB[ii][jj])
     return chan
 #Channels (model.py) includes channel function name in the dictionary
 
