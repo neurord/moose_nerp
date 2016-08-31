@@ -25,7 +25,7 @@ def neurontypes():
 compNameNum=2
 
 #will eventually use different morphologies also
-morph_file = 'MScell-Entire.p'
+morph_file = 'out_ri04_v3.p'
 
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
@@ -49,10 +49,10 @@ inclu = (0, 1000e-6)
 
 _CA1 = _util.NamedDict(
     'CA1',
-    Kdr =  {inclu: 70.0}
-    Kadist = {inclu: 200.0}
-    Kaprox = {inclu: 200.0}
-    Na = {inclu: 140.0}
+    Kdr =  {inclu: 70.0},
+    Kadist = {inclu: 200.0},
+    Kaprox = {inclu: 200.0},
+    Na = {inclu: 140.0},
 )
 
 

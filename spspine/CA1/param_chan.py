@@ -48,8 +48,7 @@ kDr_X_params= AlphaBetaChannelParams (
 
 kDr_Y_params=[]
 
-channelSettings=namedtuple('channelSettings','Xpow Ypow Zpow Erev name xparams yparams zparams')
-kDrparams=channelSettings(Xpow=1,Ypow=0,Zpow=0,Erev=-0.09,name='kDr',xparams=kDr_X_params,yparams=kDr_Y_params,zparams=[])
+kDrparams=ChannelSettings(Xpow=1,Ypow=0,Zpow=0,Erev=-0.09,name='kDr')
 
 KAdist_m_params= AlphaBetaChannelParams (
     A_rate=0.7,
@@ -75,7 +74,7 @@ KAdist_h_params= AlphaBetaChannelParams (
     Bvhalf=0,
     B_vslope=25e-3)
 
-KAdistparams=channelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAdist',xparams=KAdist_m_params,yparams=KAdist_h_params,zparams=[])
+KAdistparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAdist')
 
 KAprox_m_params= AlphaBetaChannelParams (
     A_rate=0.375,
@@ -101,8 +100,7 @@ KAprox_h_params= AlphaBetaChannelParams (
     Bvhalf=0,
     B_vslope=25e-3)
 
-KAproxparams=channelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAprox',xparams=KAprox_m_params,yparams=KAprox_h_params,zparams=[])
-
+KAproxparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAprox')
 # KD_x_params= AlphaBetaChannelParams (
 #     A_rate=1,
 #     A_B=0,
@@ -128,8 +126,9 @@ KAproxparams=channelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAprox',xpara
 #     B_vslope=25e-3)
 
 
-# KDparams=channelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-90e-3,name='KAdist',xparams=KD_x_params,yparams=KD_y_params,zparams=[])
+# KDparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-90e-3,name='KAdist',xparams=KD_x_params,yparams=KD_y_params,zparams=[])
 
+qfactNaF = 1
 
 Na_m_params= AlphaBetaChannelParams (
     A_rate=-12.0052e-3*2.14e6,
@@ -158,7 +157,7 @@ Na_h_params= AlphaBetaChannelParams (
     B_vslope=-3.5e-3)
 
 
-naFparams=channelSettings(Xpow=3,Ypow=1,Zpow=0,Erev=55.0e-3,name='NaF',xparams=Na_m_params,yparams=Na_h_params,zparams=[])
+naFparams=ChannelSettings(Xpow=3,Ypow=1,Zpow=0,Erev=55.0e-3,name='NaF')
 
 
 Channels = NamedDict(

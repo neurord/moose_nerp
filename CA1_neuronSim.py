@@ -27,7 +27,7 @@ from spspine import (cell_proto,
                      test_plas,
                      logutil,
                      util as _util)
-from spspine import param_sim, CA1#change to CA1
+from spspine import param_sim_CA1, CA1#change to CA1
 from spspine.graph import plot_channel, neuron_graph
 
 logging.basicConfig(level=logging.INFO)
@@ -40,28 +40,28 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(CA1)#change
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if CA1.synYN:
-    syn,plas,stimtab=test_plas.test_plas(CA1, param_sim.syncomp, param_sim.inpath, MSNsyn)
+    syn,plas,stimtab=test_plas.test_plas(CA1, param_sim_CA1.syncomp, param_sim_CA1.inpath, MSNsyn)
 else:
     syn,plas = {}, {}
 
 ####---------------Current Injection
-currents = _util.inclusive_range(param_sim.current1,param_sim.current2,param_sim.currinc)
-pg=inject_func.setupinj(CA1, param_sim.delay,param_sim.width,neuron)
+currents = _util.inclusive_range(param_sim_CA1.current1,param_sim_CA1.current2,param_sim_CA1.currinc)
+pg=inject_func.setupinj(CA1, param_sim_CA1.delay,param_sim_CA1.width,neuron)
 
 ###############--------------output elements
-if param_sim.plotchan:
+if param_sim_CA1.plotchan:
     for chan in CA1.Channels.keys():
         libchan=moose.element('/library/'+chan)
-        plot_channel.plot_gate_params(libchan,param_sim.plotpow, CA1.VMIN, CA1.VMAX, CA1.CAMIN, CA1.CAMAX)
+        plot_channel.plot_gate_params(libchan,param_sim_CA1.plotpow, CA1.VMIN, CA1.VMAX, CA1.CAMIN, CA1.CAMAX)
 
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = tables.graphtables(CA1, neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = tables.graphtables(CA1, neuron,param_sim_CA1.plotcurr,param_sim_CA1.currmsg,capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in CA1.neurontypes()]
-clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpaths, '/data', param_sim_CA1.simdt, param_sim_CA1.plotdt, param_sim_CA1.hsolve)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -73,8 +73,8 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     traces, names = [], []
     for inj in currents:
-        run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(CA1, vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
+        run_simulation(injection_current=inj, simtime=param_sim_CA1.simtime)
+        neuron_graph.graphs(CA1, vmtab,param_sim_CA1.plotcurr,currtab,param_sim_CA1.currlabel,catab,plastab)
         traces.append(vmtab[0][0].vector)
         names.append('CA1 @ {}'.format(inj))
         #if CA1.spineYN:

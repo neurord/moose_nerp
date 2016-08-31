@@ -53,8 +53,8 @@ SYNAPSE_TYPES = NamedDict(
 )
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
-_glu = {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
+_gaba = {param_cond.inclu:1}
+_glu = {param_cond.inclu:1}
 
 NumSyn={'Gaba':_gaba,
         'Glu':_glu}
