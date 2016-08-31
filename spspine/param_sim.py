@@ -26,11 +26,11 @@ clocka=3
 clockb=6
 
 #####################Third, specify values for somatic current injection and/or synaptic input
-current1=0.25e-9
-current2=0.35e-9
-currinc=0.1e-9
+current1=20e-3
+current2=400e-3
+currinc=-50e-12
 delay=0.1
-width=0.4
+width=0.1
 
 #For single neuron, provide synaptic input at specified times, to compartment specified
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
@@ -39,7 +39,7 @@ stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
 ###################Fourth, specify simulation time, time step:dt and solver
-simtime = 0.35
-plotdt = 0.2e-3
-simdt = 10e-6
+simtime = 0.05
+simdt = 25e-6
+plotdt = 0.25e-3
 hsolve=1
