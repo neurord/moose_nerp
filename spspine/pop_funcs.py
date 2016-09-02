@@ -8,48 +8,52 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_sim, param_net, logutil
+from spspine import param_sim, logutil
 log = logutil.Logger()
 
-def create_population(model, container, neurontypes, sizeX, sizeY, spacing):
+def create_population(container, netparams):
     netpath = container.path
     spikegens = []
     proto=[]
     neurXclass=[]
     neurons=[]
-    for neur in neurontypes:
-        proto.append(moose.element(neur))
+    #number of neurons
+    size=np.ones(len(netparams.grid))
+    numneurons=1
+    for i in range(len(netparams.grid)):
+	if netparams.grid[i]['inc']>0:
+	    size[i]=np.int((netparams.grid[i]['xyzmax']-netparams.grid[i]['xyzmin'])/netparams.grid[i]['inc'])
+	numneurons*=size[i]
+    rannum = np.random.uniform(0,1,numneurons)
+    choicearray=[0]
+    for neurtype in netparams.pop_dict.keys():
+        proto.append(moose.element(neurtype))
         neurXclass.append([])
-    #Decide whether to implement a D1 or D2 neuron
-    #count how many of each is implemented
-    choices = np.ceil(np.random.uniform(0,1,sizeX*sizeY) - param_net.fractionD1)
-    for i in range(sizeX):
-        for j in range(sizeY):
-            number=i*sizeY+j
-            neurnum = int(choices[number])
-            typename = neurontypes[neurnum]
-            tag = '{}_{}'.format(typename, number)
-            neurons.append(moose.copy(proto[neurnum],netpath, tag))
-            neurXclass[neurnum].append(container.path + '/' + tag)
-            comp=moose.Compartment(neurons[number].path + '/soma')
-            comp.x=i*spacing
-            comp.y=j*spacing
-            log.debug("x,y={},{} {}", comp.x, comp.y, neurons[number].path)
-            #This new assignment of x and y prevents dist_num from working anymore
-            #Must consider this if creating function for variability of all compartments
-            #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in model.Channels:
-                if (model.Condset[typename][chan][0] > 0
-                        and model.chanvar[chan] > 0):
-                    chancomp=moose.element(comp.path+'/'+chan)
-                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, model.chanvar[chan]))
-            #spike generator
-            spikegen = moose.SpikeGen(comp.path + '/spikegen')
-            spikegen.threshold = 0.0
-            spikegen.refractT=1e-3
-            m = moose.connect(comp, 'VmOut', spikegen, 'Vm')
-            spikegens.append(spikegen)
-            
+        #create cumulative array for selecting neuron type - maybe one of Zbyszek's utilities?
+	choicearray.append(choicearray[len(choicearray)-1]+netparams.pop_dict[neurtype].percent)
+    print(choicearray)
+    #probably need to eliminate the 0 element in choice array
+    #replace range with something for floats
+    for i,xloc in enumerate(range(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], netparams.grid[0]['inc'])):
+        for j,yloc in enumerate(range(netparams.grid[1]['xyzmin'], netparams.grid[1]['xyzmax'], netparams.grid[1]['inc'])):
+	    for k,zloc in enumerate(range(netparams.grid[2]['xyzmin'], netparams.grid[2]['xyzmax'], netparams.grid[2]['inc'])):
+		neurnumber=k*num[2]*num[1]+j*num[1]+i
+		neurtypenum=np.max(np.where(rannum[neurnumber]<choicearray))
+		typename = proto[neurtypenum].name#neurontypes[neurnum]
+		tag = '{}_{}'.format(typename, neurnumber)
+		neurons.append(moose.copy(proto[neurtypenum],netpath, tag))
+		neurXclass[neurnum].append(container.path + '/' + tag)
+		comp=moose.Compartment(neurons[number].path + '/soma')
+		comp.x=i*xloc
+		comp.y=j*yloc
+		comp.z=k.zloc
+		log.debug("x,ymz={},{},{} {}", comp.x, comp.y, comp.z, neurons[number].path)
+		#spike generator
+		spikegen = moose.SpikeGen(comp.path + '/spikegen')
+		spikegen.threshold = 0.0
+		spikegen.refractT=1e-3
+		m = moose.connect(comp, 'VmOut', spikegen, 'Vm')
+		spikegens.append(spikegen)
     return {'cells': neurons,
             'pop':neurXclass,
             'spikegen': spikegens}

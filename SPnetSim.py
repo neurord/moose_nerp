@@ -15,6 +15,7 @@ Also assumes that single neuron element tree is '/neurtype/compartment', and
 network element tree is '/network/neurtype/compartment'
 """
 from __future__ import print_function, division
+import logging
 
 import os
 os.environ['NUMPTHREADS'] = '1'
@@ -27,20 +28,33 @@ import moose
 
 from spspine import (cell_proto,
                      clocks,
-                     create_network,
                      inject_func,
-                     net_output,
+                     #create_network,
+                     pop_funcs,
+                     #net_output,
                      tables,
+                     logutil,
                      util as _util)
-from spspine.graph import net_graph
 from spspine import (param_sim, param_net, d1d2)
+#from spspine.graph import net_graph
+
+logging.basicConfig(level=logging.INFO)
+#log = logutil.Logger()
 
 #################################-----------create the model
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.plotchan,param_sim.plotpow,param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
+#FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)\
 
-MSNpop,SynPlas=create_network.CreateNetwork(d1d2, param_sim.inpath, spineHeads,synarray,MSNsyn,neuron)
+striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+
+#SECOND: debug connect_neurons
+#THIRD: external connections - new method for duplicates
+#FOURTH: fix create_network - eliminate use of spineheads, fix synarray using new param_syn
+#May not need some of the create_network code depending on how external conn implemented
+
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral(param_sim.inpath), spineheads, synarray, MSNsyn)
 
 ###------------------Current Injection
 currents = _util.inclusive_range(param_sim.current1)
@@ -76,7 +90,7 @@ if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         if param_sim.showgraphs:
-            net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
+            #net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not d1d2.single:
             writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
