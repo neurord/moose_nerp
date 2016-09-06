@@ -18,36 +18,39 @@ def create_population(container, netparams):
     neurXclass=[]
     neurons=[]
     #number of neurons
-    size=np.ones(len(netparams.grid))
+    size=np.ones(len(netparams.grid),dtype=np.int)
     numneurons=1
     for i in range(len(netparams.grid)):
 	if netparams.grid[i]['inc']>0:
 	    size[i]=np.int((netparams.grid[i]['xyzmax']-netparams.grid[i]['xyzmin'])/netparams.grid[i]['inc'])
+        else:
+            size[i]=1
 	numneurons*=size[i]
     rannum = np.random.uniform(0,1,numneurons)
-    choicearray=[0]
+    pop_percent=[]
     for neurtype in netparams.pop_dict.keys():
         proto.append(moose.element(neurtype))
         neurXclass.append([])
+        pop_percent.append(netparams.pop_dict[neurtype].percent)
         #create cumulative array for selecting neuron type - maybe one of Zbyszek's utilities?
-	choicearray.append(choicearray[len(choicearray)-1]+netparams.pop_dict[neurtype].percent)
-    print(choicearray)
-    #probably need to eliminate the 0 element in choice array
-    #replace range with something for floats
-    for i,xloc in enumerate(range(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], netparams.grid[0]['inc'])):
-        for j,yloc in enumerate(range(netparams.grid[1]['xyzmin'], netparams.grid[1]['xyzmax'], netparams.grid[1]['inc'])):
-	    for k,zloc in enumerate(range(netparams.grid[2]['xyzmin'], netparams.grid[2]['xyzmax'], netparams.grid[2]['inc'])):
-		neurnumber=k*num[2]*num[1]+j*num[1]+i
-		neurtypenum=np.max(np.where(rannum[neurnumber]<choicearray))
+    choicearray=np.cumsum(pop_percent)
+    print(size,"numneurons=", numneurons,"choicarray=",choicearray, "rannum",rannum)
+    #Error check for last element in choicearray equal to 1.0
+    for i,xloc in enumerate(np.linspace(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], size[0])):
+        for j,yloc in enumerate(np.linspace(netparams.grid[1]['xyzmin'], netparams.grid[1]['xyzmax'], size[1])):
+	    for k,zloc in enumerate(np.linspace(netparams.grid[2]['xyzmin'], netparams.grid[2]['xyzmax'], size[2])):
+		neurnumber=i*size[2]*size[1]+j*size[2]+k
+		neurtypenum=np.min(np.where(rannum[neurnumber]<choicearray))
+                print ("i,j,k", i,j,k,"neurnumber", neurnumber, "type", neurtypenum)
 		typename = proto[neurtypenum].name#neurontypes[neurnum]
 		tag = '{}_{}'.format(typename, neurnumber)
 		neurons.append(moose.copy(proto[neurtypenum],netpath, tag))
-		neurXclass[neurnum].append(container.path + '/' + tag)
-		comp=moose.Compartment(neurons[number].path + '/soma')
+		neurXclass[neurtypenum].append(container.path + '/' + tag)
+		comp=moose.Compartment(neurons[neurnumber].path + '/soma')
 		comp.x=i*xloc
 		comp.y=j*yloc
-		comp.z=k.zloc
-		log.debug("x,ymz={},{},{} {}", comp.x, comp.y, comp.z, neurons[number].path)
+		comp.z=k*zloc
+		log.debug("x,ymz={},{},{} {}", comp.x, comp.y, comp.z, neurons[neurnumber].path)
 		#spike generator
 		spikegen = moose.SpikeGen(comp.path + '/spikegen')
 		spikegen.threshold = 0.0

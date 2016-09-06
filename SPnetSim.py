@@ -48,10 +48,11 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)\
 
 striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+#May not need to return both cells and pop from create_population - just pop is fine?
 
-#SECOND: debug connect_neurons
+#SECOND: debug connect_neurons (make synYN=Y), fix synarray using new param_syn, eliminate "neuron" - list of compartments     
 #THIRD: external connections - new method for duplicates
-#FOURTH: fix create_network - eliminate use of spineheads, fix synarray using new param_syn
+#FOURTH: fix create_network - eliminate use of spineheads
 #May not need some of the create_network code depending on how external conn implemented
 
 #population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral(param_sim.inpath), spineheads, synarray, MSNsyn)
