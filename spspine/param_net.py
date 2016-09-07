@@ -39,20 +39,21 @@ FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIcon
 #glu_FSI=connect(synapse='glu',pre='timetable',post='FSI', fraction_duplicate=0.2)
 
 #change pre='timetable' for external to specify the file with time tables?  But what if same set of time tables?
-D1post={}
-D2post={}
-FSIpost={}
+#one dictionary for each post-synaptic neuron class
+D1={}
+D2={}
+FSI={}
 connect_dict={}
 ##Collect the above connections into dictionaries organized by post-syn neuron, and synapse type
-D1post['gaba']={'D1pre': D1pre_D1post, 'D2pre': D2pre_D1post, 'FSIpre': FSIpre_D1post}
-#D1post['glu']={'extern': glu_D1post}
-connect_dict['D1post']=D1post
-D2post['gaba']={'D1pre': D1pre_D2post, 'D2pre': D2pre_D2post, 'FSIpre': FSIpre_D2post}
-#D2post['glu']={'extern': glu_D2post}
-connect_dict['D2post']=D2post
-FSIpost['gaba']={'FSIpre': FSIpre_FSIpost}
-#FSIpost['glu']={'extern': glu_FSI}
-connect_dict['FSIpost']=FSIpost
+D1['gaba']={'D1': D1pre_D1post, 'D2': D2pre_D1post}#, 'FSI': FSIpre_D1post}
+#D1['glu']={'extern': glu_D1post}
+connect_dict['D1']=D1
+D2['gaba']={'D1': D1pre_D2post, 'D2': D2pre_D2post}#, 'FSI': FSIpre_D2post}
+#D2['glu']={'extern': glu_D2post}
+connect_dict['D2']=D2
+FSI['gaba']={'FSI': FSIpre_FSIpost}
+#FSI['glu']={'extern': glu_FSI}
+#connect_dict['FSI']=FSI
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel=0.8

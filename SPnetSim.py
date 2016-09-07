@@ -37,20 +37,27 @@ from spspine import (cell_proto,
                      util as _util)
 from spspine import (param_sim, param_net, d1d2)
 #from spspine.graph import net_graph
-
 logging.basicConfig(level=logging.INFO)
 #log = logutil.Logger()
 
 #################################-----------create the model
+#overrides:
+d1d2.synYN=True
 
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)\
 
+### once debugged, the following lines can be incorporated in create_network
 striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
 #May not need to return both cells and pop from create_population - just pop is fine?
 
-#SECOND: debug connect_neurons (make synYN=Y), fix synarray using new param_syn, eliminate "neuron" - list of compartments     
+#loop over all post-synaptic neuron types:
+for ntype in striatum_pop['pop'].keys():
+    connect=pop_funcs.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+#SECOND: debug connect_neurons - message type for spikegen
+#need better way to determine/store number of synaptic inputs vs distance along dendrite
+#This is used in both connect_neurons and extern_conn
 #THIRD: external connections - new method for duplicates
 #FOURTH: fix create_network - eliminate use of spineheads
 #May not need some of the create_network code depending on how external conn implemented
