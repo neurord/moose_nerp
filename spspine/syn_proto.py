@@ -32,7 +32,7 @@ def SpineSynChans(model):
                   if val.spinic and model.spineYN)
 
 def DendSynChans(model):
-    # If synapses are disabled, put all synaptic channels in the dendrite
+    # If spines are disabled, put all synaptic channels in the dendrite
     return sorted(key for key,val in model.SYNAPSE_TYPES.items()
                   if not (val.spinic and model.spineYN))
 
