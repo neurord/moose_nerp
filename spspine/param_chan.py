@@ -237,29 +237,29 @@ CaL13_Y_params = AlphaBetaChannelParams(A_rate = 42.2*qfactCaL, #Checked JJS
 #Params from McRory J Biol Chem, alpha1I subunit
 CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaT')
 qfactCaT = 2
-CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
-                                      A_B = 0.0,
-                                      A_C = 0.0,
-                                      Avhalf = 0.0,
-                                      A_vslope = -19e-3,
-                                      B_rate = 1340*qfactCaT,
-                                      B_B = 16500*qfactCaT,
-                                      B_C = -1.0,
-                                      Bvhalf = 81.0003e-3,
-                                      B_vslope = 7.12e-3)
+CaT_X_params = AlphaBetaChannelParams(A_rate = 5342.5*qfactCaT,
+                                      A_B = 2100*qfactCaT,
+                                      A_C = 11.9,
+                                      Avhalf = 1e-3,
+                                      A_vslope = -12e-3,
+                                      B_rate = 289.7*qfactCaT,
+                                      B_B = 0.,
+                                      B_C = 1.,
+                                      Bvhalf = 0.0969,
+                                      B_vslope = 0.0141)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
-CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
-                                      A_B = 34000*qfactCaT,
-                                      A_C = -1.0,
-                                      Avhalf = 113.0003e-3,
-                                      A_vslope = 5.12e-3,
-                                      B_rate = 320*qfactCaT,
-                                      B_B = 0,
-                                      B_C = 0.0,
-                                      Bvhalf = 0.0,
-                                      B_vslope = -17e-3)
 
+CaT_Y_params = AlphaBetaChannelParams(A_rate = 0*qfactCaT,
+                                      A_B = -74.,
+                                      A_C = 1,
+                                      Avhalf = 0.09,
+                                      A_vslope = 5e-3,
+                                      B_rate = 15*qfactCaT,
+                                      B_B = -1.5*qfactCaT,
+                                      B_C = 1.5,
+                                      Bvhalf = 50e-3,
+                                      B_vslope = -15e-3)
 # CaN SS parameters tuned so m2 fits Bargas and Surmeier 1994 boltzmann curve
 # CaN tau from kasai 1992.
 # Kasai measures calcium dependent inactivation
