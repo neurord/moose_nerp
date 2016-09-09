@@ -3,7 +3,7 @@ from spspine import (cell_proto,
                      create_network,
                      inject_func,
                      tables,
-                     param_syn)
+                     d1d2)
 
 import pytest
 
@@ -30,23 +30,23 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     if ghk and not hasattr(moose, 'GHK'):
         pytest.skip("GHK is missing")
 
-    MSNsyn,neuron,capools,synarray,spineHeads = \
-        cell_proto.neuronclasses({'calYN':bool(calcium),
-                                  'plasYN':bool(plasticity),
-                                  'ghkYN':bool(ghk),
-                                  'spineYN':bool(spines),
-                                  'synYN':bool(synapses)},
-                                 False,
-                                 param_syn.SYNAPSE_TYPES,
-                                 param_syn.NumSyn)
+    d1d2.calYN = bool(calcium)
+    d1d2.plasYN = bool(plasticity)
+    d1d2.ghkYN = bool(ghk)
+    d1d2.spineYN = bool(spines)
+    d1d2.synYN = bool(synapses)
+    d1d2.single = True
 
-    pg = inject_func.setupinj(0.02, 0.01, neuron)
+    MSNsyn,neuron,capools,synarray,spineHeads = \
+        cell_proto.neuronclasses(d1d2)
+
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', capools, {}, {})
 
     moose.reinit()
     moose.start(0.05)
@@ -84,27 +84,25 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     if spines and not single:
         pytest.skip("spines are too much with multiple neurons")
 
-    MSNsyn,neuron,capools,synarray,spineHeads = \
-        cell_proto.neuronclasses({'calYN':bool(calcium),
-                                  'plasYN':bool(plasticity),
-                                  'ghkYN':bool(ghk),
-                                  'spineYN':bool(spines),
-                                  'synYN':bool(synapses)},
-                                 False,
-                                 param_syn.SynChannelParams,
-                                 param_syn.NumSyn)
+    d1d2.calYN = bool(calcium)
+    d1d2.plasYN = bool(plasticity)
+    d1d2.ghkYN = bool(ghk)
+    d1d2.spineYN = bool(spines)
+    d1d2.synYN = bool(synapses)
+    d1d2.single = bool(single)
+
+    MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 
     MSNpop, SynPlas = \
-        create_network.CreateNetwork('/input', calcium, plasticity, single,
-                                     spineHeads, synarray, MSNsyn, neuron)
+        create_network.CreateNetwork(d1d2, '/input', spineHeads, synarray, MSNsyn, neuron)
 
-    pg = inject_func.setupinj(0.02, 0.01, neuron)
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', capools, {}, {})
 
     moose.reinit()
     moose.start(0.05)

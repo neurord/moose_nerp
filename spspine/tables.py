@@ -3,20 +3,21 @@ from __future__ import print_function, division
 import moose 
 import numpy as np
 
-from spspine import param_chan, param_cond, param_sim
+from . import logutil
+log = logutil.Logger()
 
-def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
+def graphtables(model, neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     print("GRAPH TABLES, ca=", len(capools),"plas=",len(plas),"curr=",pltcurr)
     #Vm and Calcium
     vmtab=[]
     catab=[]
     #
-    for neurtype in param_cond.neurontypes():
+    for neurtype in model.neurontypes():
         ncomps = len(neuron[neurtype]['comps'])
         vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(ncomps)])
         if len(capools[neurtype]):
             catab.append([moose.Table('/data/Ca%s_%d' % (neurtype,ii)) for ii in range(ncomps)])
-    for num,neurtype in enumerate(param_cond.neurontypes()):
+    for num,neurtype in enumerate(model.neurontypes()):
         for tab, comp in zip(vmtab[num], neuron[neurtype]['comps']):
             moose.connect(tab, 'requestOut', comp, 'getVm')
         if len(capools[neurtype]):
@@ -28,7 +29,7 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     plastab=[]
     plasCumtab=[]
     if len(plas):
-        for num,neurtype in enumerate(param_cond.neurontypes()):
+        for num,neurtype in enumerate(model.neurontypes()):
             plastab.append(moose.Table('/data/plas' + neurtype))
             plasCumtab.append(moose.Table('/data/plasCum' + neurtype))
             syntab.append(moose.Table('/data/synwt' + neurtype))
@@ -40,18 +41,18 @@ def graphtables(neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     #
     #CHANNEL CURRENTS
     currtab={}
-    for neurtype in param_cond.neurontypes():
+    for neurtype in model.neurontypes():
         currtab[neurtype]={}
-        for channame in param_chan.ChanDict:
+        for channame in model.Channels:
             currtab[neurtype][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,neurtype,ii)) for ii in range(len(neuron[neurtype]['comps']))]
-    for neurtype in param_cond.neurontypes():
-        for channame in param_chan.ChanDict:
+    for neurtype in model.neurontypes():
+        for channame in model.Channels:
             for tab, comp in zip(currtab[neurtype][channame], neuron[neurtype]['comps']):
+                path = comp.path+'/'+channame
                 try:
-                    chan=moose.element(comp.path+'/'+channame)
+                    chan=moose.element(path)
                     moose.connect(tab, 'requestOut', chan, curmsg)
-                except:
-                    if param_sim.printMoreInfo:
-                        print('no channel', comp.path+'/'+channame)
+                except Exception:
+                    log.debug('no channel {}', path)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
 

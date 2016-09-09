@@ -1,34 +1,8 @@
 """\
-Simulation and plotting parameters, as well as parameter overrides
+Simulation and plotting parameters
 
 plas=plasticity elements and synaptic input, curr=ionic currents
 """
-
-############## First, optionally override parameters specifying model detail
-#calcium: include or exclude calcium concentration dynamics, single tau
-#synYN:No point adding synapses unless they receive inputs
-#plasYN:include or exclude plasticity based on calcium
-Config={'calYN':0,'plasYN':0,'ghkYN':0,'spineYN':0,'synYN':1}
-#note that if ghkYN=0, make sure that ghKluge = 1
-
-# The parameter single only used in SPnetSpineSim.py
-# set single=1 to create a single neuron of each type with synaptic input 
-# set single=0 to create a network (in which case spines are a bad idea)
-single=1
-# For now, don't create spines if creating a network of neurons
-if not single:
-    Config['spineYN']=0
-    title1 = 'network'
-    neurnameNum=2
-else:
-    title1 = 'single'
-
-#Second, specify which graphs of the simulation should be shown?
-plotplas=1
-
-#to prevent you from plotting plasticity if not created:
-if not Config['plasYN'] or not Config['calYN']:
-    plotplas=0
 
 ######################plotcurr indicates whether to plot time dependent currents (or conductances)
 plotcurr=0
@@ -39,16 +13,12 @@ graphsyn=0
 Synmsg='getGk'  # make this get_Ik to plot current
 SynLabel='Cond, nS' #make this 'Curr, nA' for current
 #whether to plot the various ion channel activation and inactivation curves
-plotchan=1
-plotpow=1
+plotchan=0
+plotpow=0
 # plotnet=0 plots all comps from single neuron, plotnet=1 plots soma from all neurons
 # These two param used in SPnetSpineSim only
 plotnet=1
 showgraphs=1
-#whether to plot additional information during simulation set-up
-printinfo=1
-#printMoreInfo is compartment based - generates a lot
-printMoreInfo=0
 
 #showclocks=1 will show which elements are assigned to clocks between a and b
 showclocks=1
@@ -69,7 +39,7 @@ stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
 ###################Fourth, specify simulation time, time step:dt and solver
-simtime = 0.04999 #0.4999
+simtime = 0.35
 plotdt = 0.2e-3
 simdt = 10e-6
 hsolve=1

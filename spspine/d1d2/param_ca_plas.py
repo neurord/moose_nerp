@@ -1,4 +1,3 @@
-#param_ca_plas.py
 #if calcium=0, then calcium pools not implemented
 #if calcium=2, then diffusion,buffers and pumps implemented (eventually)
 calcium=1
@@ -8,7 +7,6 @@ BufCapacity=2
 CaThick=0.1e-6
 CaBasal=0.05e-3
 CaTau=20e-3
-caName='CaPool'
 
 plasYesNo=1
 #These thresholds are applied to calcium concentration
@@ -19,5 +17,5 @@ lowThresh=0.15e-3
 #Both the timeStep Factor - applied to both, and the Arbitrary constant
 timeStepFactor=100.0
 lowfactor='/'+str(lowThresh-highThresh)+'/'+str(timeStepFactor)
-#Arbitraty constant 
+#Arbitrary constant
 highfactor='(0.5/'+str(timeStepFactor)+')*'

@@ -6,17 +6,18 @@ import os
 import re
 import moose
 
-from spspine import param_cond, param_sim
+from spspine import logutil
+log = logutil.Logger()
 
-def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
+def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/' + caName
+    calname = compname + '/caPool'
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
-    if param_sim.printinfo:
-        print("PLAS",synchan.path,sh.synapse[0],cal.path)
-    #
+
+    log.info("{} {} {}", synchan.path, sh.synapse[0], cal.path)
+
     plasname=compname+'/plas'
     plas=moose.Func(plasname)
     #FIRST: calculate the amount of plasticity
@@ -42,9 +43,8 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac,caName):
     
     return {'cum':plasCum,'plas':plas}
 
-def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
-    if param_sim.printinfo:
-        print("PLAS", cells)
+def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
+    log.info("{}", cells)
     if cells:
         plaslist = []
         for cell in cells:
@@ -57,10 +57,9 @@ def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells,ca_name):
                 assert compname == compname2
 
                 synchan=moose.element(cell+'/'+compname)
-                if param_sim.printMoreInfo:
-                    print("ADDPLAS",cell,compname,synchan)
-                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name))
+                log.debug("{} {} {}", cell, compname, synchan)
+                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
         return plastlist
     else:
-        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact,ca_name)
+        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact)
                 for synchan in synPop]

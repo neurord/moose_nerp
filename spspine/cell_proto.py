@@ -10,10 +10,11 @@ from spspine import (calcium,
                      chan_proto,
                      spines,
                      syn_proto,
-                     util as _util)
-from spspine import param_chan, param_cond, param_ca_plas, param_spine
+                     util as _util,
+                     logutil)
+log = logutil.Logger()
 
-def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo, ghk=None, calciumPermeable=False):
+def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
@@ -26,13 +27,11 @@ def addOneChan(chanpath,gbar,comp,ghkYN,prnInfo, ghk=None, calciumPermeable=Fals
         moose.connect(chan,'permeability',ghk,'addPermeability')
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
-        m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
-    if prnInfo:
-        print("channel message", chan.path,comp.path, m)
-    return
+        m=moose.connect(chan, 'channel', comp, 'channel')
+    log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
-def create_neuron(param_cond, ntype, ghkYN, prnInfo):
-    p_file = _util.maybe_find_file(param_cond.morph_file, '.', _os.path.dirname(__file__))
+def create_neuron(model, ntype, ghkYN):
+    p_file = _util.maybe_find_file(model.morph_file, '.', _os.path.dirname(__file__))
     try:
         cellproto=moose.loadModel(p_file, ntype)
     except IOError:
@@ -46,8 +45,7 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
         yloc=moose.Compartment(comp).y
         #Possibly this should be replaced by pathlength
         dist=np.sqrt(xloc*xloc+yloc*yloc)
-        if prnInfo:
-            print("comp,dist",comp.path,dist)
+        log.debug('comp {.path} dist {}', comp, dist)
         #
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function
@@ -57,61 +55,60 @@ def create_neuron(param_cond, ntype, ghkYN, prnInfo):
             moose.connect(ghk,'channel',comp,'channel')
         else:
             ghk=[]
-        Cond = param_cond.Condset[ntype]
-        for channame, chanparams in param_chan.ChanDict.items():
+        Cond = model.Condset[ntype]
+        for channame, chanparams in model.Channels.items():
             c = _util.distance_mapping(Cond[channame], dist)
             if c > 0:
-                if prnInfo:
-                    print("Testing Cond If", channame, c)
+                log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = chanparams.calciumPermeable
-                addOneChan(channame, c, comp, ghkYN, ghk, prnInfo, calciumPermeable=calciumPermeable)
+                addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
     return {'comps': comps, 'cell': cellproto}
 
-def neuronclasses(config, prnInfo, synapse_types, NumSyn):
+def neuronclasses(model):
     ##create channels in the library
-    chan_proto.chanlib()
-    syn_proto.synchanlib(config['calYN'], synapse_types)
+    chan_proto.chanlib(model)
+    syn_proto.synchanlib(model)
     ##now create the neuron prototypes
     neuron={}
     synArray={}
     numSynArray={}
     caPools={}
     headArray={}
-    for ntype in param_cond.neurontypes():
+    for ntype in model.neurontypes():
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only
-        neuron[ntype]=create_neuron(param_cond, ntype, config['ghkYN'], prnInfo)
+        neuron[ntype]=create_neuron(model, ntype, model.ghkYN)
         #optionally add spines
-        if config['spineYN']:
-            headArray[ntype]=spines.addSpines(ntype,config['ghkYN'])
+        if model.spineYN:
+            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN)
         #optionally add synapses to dendrites, and possibly to spines
-        if config['synYN']:
-            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(ntype, config['calYN'], synapse_types, NumSyn)
+        if model.synYN:
+            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
         caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
     #This is single tau calcium. 
-    #Next step: change config['calYN'] to caltype, allowing
+    #Next step: change model.calYN to caltype, allowing
     #   0: none
     #   1: single tau
     #   2: diffusion, buffering, pumps
     #      this will require many additional function definitions
-    if config['calYN']:
+    if model.calYN:
         #put all these calcium parameters into a dictionary
-        calcium.CaProto(param_ca_plas.CaThick,param_ca_plas.CaBasal,param_ca_plas.CaTau,param_ca_plas.caName)
-        for ntype in param_cond.neurontypes():
+        calcium.CaProto(model.CaPlasticityParams)
+        for ntype in model.neurontypes():
             for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-                capool=calcium.addCaPool(comp,param_ca_plas.caName)
+                capool=calcium.addCaPool(model, comp)
                 caPools[ntype].append(capool)
-                calcium.connectVDCC_KCa(config['ghkYN'],comp,capool)
+                calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
             #if there are spines, calcium will be added to the spine head
-            if config['spineYN']:
+            if model.spineYN:
                 for spcomp in headArray[ntype]:
-                    capool=calcium.addCaPool(spcomp,param_ca_plas.caName)
-                    if param_spine.SpineParams.spineChanList:
-                        calcium.connectVDCC_KCa(config['ghkYN'],spcomp,capool)
+                    capool=calcium.addCaPool(model, spcomp)
+                    if model.SpineParams.spineChanList:
+                        calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
-            if config['synYN']:
-                calcium.connectNMDA(synArray[ntype]['nmda'],param_ca_plas.caName,config['ghkYN'])
+            if model.synYN:
+                calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)
     return synArray,neuron,caPools,numSynArray,headArray

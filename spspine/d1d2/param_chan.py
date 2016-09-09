@@ -11,7 +11,6 @@ from spspine.chan_proto import (
     AtypicalOneD,
     TwoD)
 
-#chanDictSP.py
 #contains all gating parameters and reversal potentials
 # Gate equations have the form:
 #
@@ -31,9 +30,9 @@ ZpowCDI = 1
 VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
-CAMIN=0.01e-3   #10 nM
-CAMAX=40e-3  #40 uM, might want to go up to 100 uM with spines
-CADIVS=4001 #10 nM steps
+CAMIN = 0.01e-3   #10 nM
+CAMAX = 40e-3  #40 uM, might want to go up to 100 uM with spines
+CADIVS = 4001 #10 nM steps
 
 #mtau: Ogata fig 5, no qfactor accounted in mtau, 1.2 will improve spike shape
 #activation minf fits Ogata 1990 figure 3C (which is cubed root)
@@ -330,8 +329,8 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
 
-ChanDict = NamedDict(
-    'ChannelParams',
+Channels = NamedDict(
+    'Channels',
     Krp =   TypicalOneDalpha(Krpparam, Krp_X_params, Krp_Y_params),
     KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
     KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),

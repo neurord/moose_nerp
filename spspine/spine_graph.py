@@ -1,6 +1,8 @@
 from __future__ import print_function, division
 
 from collections import defaultdict
+from . import logutil
+log = logutil.Logger()
 
 def spinetabs():
     spcatab = defaultdict(list)
@@ -10,12 +12,11 @@ def spinetabs():
             p = head.path.split('/')
             spinename = p[compNameNum] + p[spineNameNum][spineNumLoc]
             spvmtab[typenum].append(moose.Table('/data/SpVm%s_%s' % (neurtype,spinename)))
-            if printinfo:
-                print(headnum,head, spvmtab[typenum][headnum])
+            log.debug('{} {} {}', headnum,head, spvmtab[typenum][headnum])
             moose.connect(spvmtab[typenum][headnum], 'requestOut', head, 'getVm')
             if calcium:
                 spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,spinename)))
-                spcal=moose.element(head.path+'/'+caName)
+                spcal=moose.element(head.path+'/CaPool'
                 moose.connect(spcatab[typenum][headnum], 'requestOut', spcal, 'getCa')
     return spcatab,spvmtab
 

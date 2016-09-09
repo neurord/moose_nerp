@@ -2,35 +2,35 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_sim
-from spspine.param_spine import SpineParams
+from . import logutil
+log = logutil.Logger()
 
 NAME_NECK = "neck"
 NAME_HEAD = "head"
 
-def setSpineCompParams(comp,compdia,complen):
+def setSpineCompParams(model, comp,compdia,complen):
     comp.diameter=compdia
     comp.length=complen
     XArea=np.pi*compdia*compdia/4
     circumf=np.pi*compdia
-    if param_sim.printMoreInfo:
-        print("Xarea,circumf of",comp.path, XArea,circumf,"CM",SpineParams.spineCM*complen*circumf)
-    comp.Ra=SpineParams.spineRA*complen/XArea
-    comp.Rm=SpineParams.spineRM/(complen*circumf)
-    cm=SpineParams.spineCM*compdia*circumf
+    log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
+              comp.path, XArea, circumf,
+              model.SpineParams.spineCM*complen*circumf)
+    comp.Ra = model.SpineParams.spineRA*complen/XArea
+    comp.Rm = model.SpineParams.spineRM/(complen*circumf)
+    cm = model.SpineParams.spineCM*compdia*circumf
     if cm<1e-15:
         cm=1e-15
-    comp.Cm=cm
-    comp.Em=SpineParams.spineELEAK
-    comp.initVm=SpineParams.spineEREST
+    comp.Cm = cm
+    comp.Em = model.SpineParams.spineELEAK
+    comp.initVm = model.SpineParams.spineEREST
 
-def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
+def makeSpine(model, parentComp, compName,index, frac, necklen, neckdia, headdia):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
     neck_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_NECK)
     neck = moose.Compartment(neck_path)
-    if param_sim.printMoreInfo:
-        print(neck.path,"at",frac, "x,y,z=", parentComp.x,parentComp.y,parentComp.z)
+    log.debug('{} at {} x,y,z={2.x},{2.y},{2.z}', neck.path, frac, parentComp)
     moose.connect(parentComp,'raxial',neck,'axial','Single')
     x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
     y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
@@ -38,7 +38,7 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     neck.x0, neck.y0, neck.z0 = x, y, z
     #could pass in an angle and use cos and sin to set y and z
     neck.x, neck.y, neck.z = x, y + necklen, z
-    setSpineCompParams(neck,neckdia,necklen)
+    setSpineCompParams(model, neck,neckdia,necklen)
 
     head_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_HEAD)
     head = moose.Compartment(head_path)
@@ -46,12 +46,13 @@ def makeSpine (parentComp, compName,index, frac, necklen, neckdia, headdia):
     head.x0, head.y0, head.z0 = neck.x, neck.y, neck.z
     head.x, head.y, head.z = head.x0, head.y0 + headdia, head.z0
 
-    setSpineCompParams(head,neckdia,necklen)
+    setSpineCompParams(model, head,neckdia,necklen)
 
     return head
 
-def addSpines(container,ghkYN):
+def addSpines(model, container,ghkYN):
     headarray=[]
+    SpineParams = model.SpineParams
     for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
         if 'soma' not in comp.path:
             numSpines=int(np.round(SpineParams.spineDensity*comp.length))
@@ -59,7 +60,7 @@ def addSpines(container,ghkYN):
             for index in range(numSpines):
                 frac=(index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
-                head=makeSpine (comp, 'spine',index, frac, SpineParams.necklen, SpineParams.neckdia, SpineParams.headdia)
+                head=makeSpine(model, comp, 'spine',index, frac, SpineParams.necklen, SpineParams.neckdia, SpineParams.headdia)
                 headarray.append(head)
                 if SpineParams.spineChanList:
                     if ghkYN:
@@ -70,6 +71,5 @@ def addSpines(container,ghkYN):
                         addOneChan(chanpath,cond,head,ghkYN)
             #end for index
     #end for comp
-    if param_sim.printinfo:
-        print(len(headarray),"spines created in",container)
+    log.info('{} spines created in {}', len(headarray), container)
     return headarray

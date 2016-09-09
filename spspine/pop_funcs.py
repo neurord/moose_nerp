@@ -8,9 +8,10 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_chan, param_cond, param_sim, param_net
+from spspine import param_sim, param_net, logutil
+log = logutil.Logger()
 
-def create_population(container, neurontypes, sizeX, sizeY, spacing):
+def create_population(model, container, neurontypes, sizeX, sizeY, spacing):
     netpath = container.path
     spikegens = []
     proto=[]
@@ -33,16 +34,15 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             comp=moose.Compartment(neurons[number].path + '/soma')
             comp.x=i*spacing
             comp.y=j*spacing
-            if param_sim.printMoreInfo:
-                print("x,y", comp.x, comp.y, neurons[number].path)
+            log.debug("x,y={},{} {}", comp.x, comp.y, neurons[number].path)
             #This new assignment of x and y prevents dist_num from working anymore
             #Must consider this if creating function for variability of all compartments
             #Channel Variance in soma only, for channels with non-zero conductance
-            for chan in param_chan.ChanDict:
-                if (param_cond.Condset[typename][chan][0] > 0
-                        and param_cond.chanvar[chan] > 0):
+            for chan in model.Channels:
+                if (model.Condset[typename][chan][0] > 0
+                        and model.chanvar[chan] > 0):
                     chancomp=moose.element(comp.path+'/'+chan)
-                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, param_cond.chanvar[chan]))
+                    chancomp.Gbar=chancomp.Gbar*abs(np.random.normal(1.0, model.chanvar[chan]))
             #spike generator
             spikegen = moose.SpikeGen(comp.path + '/spikegen')
             spikegen.threshold = 0.0
@@ -55,14 +55,12 @@ def create_population(container, neurontypes, sizeX, sizeY, spacing):
             'spikegen': spikegens}
 
 def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
-    if param_sim.printinfo:
-        print('CONNECT:', postype, spaceConst)
+    log.info('CONNECT: {} {}', postype, spaceConst)
     numSpikeGen = len(spikegen)
     prelist=list()
     postlist=list()
     distloclist=[]
-    if param_sim.printinfo:
-        print("SYNAPSES:", numSpikeGen, cells, spikegen)
+    log.info('SYNAPSES: {} {} {}', numSpikeGen, cells, spikegen)
     #loop over post-synaptic neurons
     for jj in range(len(cells)):
         postsoma=cells[jj]+'/soma'
@@ -75,8 +73,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             compname = '/' + p[-2] + '/' + p[-1]
             for qq in range(SynPerComp[kk]):
                 comps.append(compname)
-        if param_sim.printMoreInfo:
-            print("SYN TABLE:", len(comps), comps, postsoma)
+        log.debug('SYN TABLE: {} {} {}', len(comps), comps, postsoma)
         #loop over pre-synaptic neurons - all types
         for ii in range(numSpikeGen):
             precomp = os.path.dirname(spikegen[ii].path)
@@ -88,8 +85,7 @@ def connect_neurons(spikegen, cells, synchans, spaceConst, SynPerComp,postype):
             dist=np.sqrt((xpre-xpost)**2+(ypre-ypost)**2)
             prob=np.exp(-(dist/fact))
             connect=np.random.uniform()
-            if param_sim.printMoreInfo:
-                print(precomp,postsoma,dist,fact,prob,connect)
+            log.debug('{} {} {} {} {} {}', precomp,postsoma,dist,fact,prob,connect)
             #select a random number to determine whether a connection should occur
             if connect < prob and dist > 0 and len(comps)>0:
                 #if so, randomly select a branch, and then eliminate that branch from the table.
