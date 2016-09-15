@@ -4,13 +4,12 @@ Add a single synapse to the neuron model to test calcium and plasticity
 from __future__ import print_function, division
 import moose
 
-from spspine import (param_sim,
-                     extern_conn,
+from spspine import (extern_conn,
                      plasticity,
                      logutil)
 log = logutil.Logger()
 
-def plastic_synapse(model, syncomp, syn_pop):
+def plastic_synapse(model, syncomp, syn_pop, stimtimes):
     syn={}
     plast={}
     stimtab={}
@@ -18,7 +17,7 @@ def plastic_synapse(model, syncomp, syn_pop):
         neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
-            stimtab[neurtype].vector = param_sim.stimtimes
+            stimtab[neurtype].vector = stimtimes
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
                 log.info('Synapse added to {.path}', synchan)

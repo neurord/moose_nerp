@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from spspine import param_sim, util as _util
+from spspine import util as _util
 
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin

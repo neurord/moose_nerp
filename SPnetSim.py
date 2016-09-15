@@ -35,7 +35,8 @@ from spspine import (cell_proto,
                      tables,
                      logutil,
                      util as _util)
-from spspine import (param_sim, param_net, d1d2)
+from spspine import (param_net, d1d2)
+import param_sim
 #from spspine.graph import net_graph
 logging.basicConfig(level=logging.INFO)
 #log = logutil.Logger()
@@ -62,7 +63,7 @@ for ntype in striatum_pop['pop'].keys():
 #FOURTH: fix create_network - eliminate use of spineheads
 #May not need some of the create_network code depending on how external conn implemented
 
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn)
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn, param_sim.simtime)
 
 ###------------------Current Injection
 currents = _util.inclusive_range(param_sim.current1)

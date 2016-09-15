@@ -6,7 +6,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_sim, constants, logutil
+from spspine import constants, logutil
 from spspine.util import NamedList, distance_mapping
 log = logutil.Logger()
 

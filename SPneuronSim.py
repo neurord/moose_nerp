@@ -27,8 +27,9 @@ from spspine import (cell_proto,
                      plastic_synapse,
                      logutil,
                      util as _util)
-from spspine import param_sim, d1d2
+from spspine import d1d2
 from spspine.graph import plot_channel, neuron_graph
+import param_sim
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -40,7 +41,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
-    syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn)
+    syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
     syn,plas = {}, {}
 
@@ -74,14 +75,15 @@ if __name__ == '__main__':
     traces, names = [], []
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(d1d2, vmtab,param_sim.plotcurr,currtab,param_sim.currlabel,catab,plastab)
+        neuron_graph.graphs(d1d2, vmtab, param_sim.plotcurr, param_sim.simtime,
+                            currtab,param_sim.currlabel,catab,plastab)
         traces.append(vmtab[0][0].vector)
         traces.append(vmtab[1][0].vector)
         names.append('D1 @ {}'.format(inj))
         names.append('D2 @ {}'.format(inj))
         #if d1d2.spineYN:
         #    spineFig(spinecatab,spinevmtab)
-    neuron_graph.SingleGraphSet(traces, names)
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode
     _util.block_if_noninteractive()

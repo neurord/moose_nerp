@@ -2,7 +2,6 @@
 
 from __future__ import print_function, division
 import moose 
-from spspine import param_sim
 
 def setupinj(model, delay,width,neuron):
     """Setup injections

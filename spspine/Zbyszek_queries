@@ -1,8 +1,6 @@
 1. single should not be defined in the d1d2/__init__.py
 OR, it should be able to be overridden in param_net.py
 
-3. param_sim.py should be at same level as SPneuronSim.py, not in the prototypes
-
 4. d1d2/, CA1/ etc should be at same level, not below spspine prototypes
 
 5. More functional: the dictionary of channel conductances should not have to include every channel defined in the library.  We tried this and it threw an error somewhere.
