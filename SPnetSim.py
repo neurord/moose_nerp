@@ -62,7 +62,7 @@ for ntype in striatum_pop['pop'].keys():
 #FOURTH: fix create_network - eliminate use of spineheads
 #May not need some of the create_network code depending on how external conn implemented
 
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral(param_sim.inpath), spineheads, synarray, MSNsyn)
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn)
 
 ###------------------Current Injection
 currents = _util.inclusive_range(param_sim.current1)

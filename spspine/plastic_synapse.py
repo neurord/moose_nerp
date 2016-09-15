@@ -10,14 +10,14 @@ from spspine import (param_sim,
                      logutil)
 log = logutil.Logger()
 
-def plastic_synapse(model, syncomp, inpath, syn_pop):
+def plastic_synapse(model, syncomp, syn_pop):
     syn={}
     plast={}
     stimtab={}
     if model.calYN and model.plasYN:
-        moose.Neutral(inpath)
+        neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
-            stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' %(inpath,neurtype))
+            stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
             stimtab[neurtype].vector = param_sim.stimtimes
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])

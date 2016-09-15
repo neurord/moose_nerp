@@ -40,7 +40,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
-    syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, param_sim.inpath, MSNsyn)
+    syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn)
 else:
     syn,plas = {}, {}
 

@@ -34,7 +34,6 @@ width= .4
 
 #For single neuron, provide synaptic input at specified times, to compartment specified
 #Can adjust these to provide synaptic input appropriately timed to Action Potential
-inpath='/input'
 stimtimes=[0.04,0.19,0.46]
 syncomp=4
 
