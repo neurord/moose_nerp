@@ -1,5 +1,5 @@
 """\
-Can add single synapse to single neuron model to test calcium and plasticity
+Add a single synapse to the neuron model to test calcium and plasticity
 """
 from __future__ import print_function, division
 import moose
@@ -10,7 +10,7 @@ from spspine import (param_sim,
                      logutil)
 log = logutil.Logger()
 
-def test_plas(model, syncomp, inpath, syn_pop):
+def plastic_synapse(model, syncomp, inpath, syn_pop):
     syn={}
     plast={}
     stimtab={}
@@ -29,12 +29,11 @@ def test_plas(model, syncomp, inpath, syn_pop):
                     extern_conn.synconn(synchanCa,0,stimtab[neurtype],model.calYN)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
-            if model.plasYN:
-                print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
-                plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
-                                                        model.CaPlasticityParams.highThresh,
-                                                        model.CaPlasticityParams.lowThresh,
-                                                        model.CaPlasticityParams.highfactor,
-                                                        model.CaPlasticityParams.lowfactor)
+            print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
+            plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
+                                                    model.CaPlasticityParams.highThresh,
+                                                    model.CaPlasticityParams.lowThresh,
+                                                    model.CaPlasticityParams.highfactor,
+                                                    model.CaPlasticityParams.lowfactor)
 
     return syn, plast, stimtab

@@ -24,7 +24,7 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     test_plas,
+                     plastic_synapse,
                      logutil,
                      util as _util)
 from spspine import param_sim_CA1, CA1#change to CA1
@@ -40,7 +40,7 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(CA1)#change
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if CA1.synYN:
-    syn,plas,stimtab=test_plas.test_plas(CA1, param_sim_CA1.syncomp, param_sim_CA1.inpath, MSNsyn)
+    syn,plas,stimtab=plastic_synapse.plastic_synapse(CA1, param_sim_CA1.syncomp, param_sim_CA1.inpath, MSNsyn)
 else:
     syn,plas = {}, {}
 
