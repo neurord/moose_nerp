@@ -1,8 +1,6 @@
 1. single should not be defined in the d1d2/__init__.py
 OR, it should be able to be overridden in param_net.py
 
-2. .p files should be in d1d2, etc.
-
 3. param_sim.py should be at same level as SPneuronSim.py, not in the prototypes
 
 4. d1d2/, CA1/ etc should be at same level, not below spspine prototypes
