@@ -43,7 +43,7 @@ option_parser = standard_options.standard_options(default_injection_current=[50e
 param_sim = option_parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
-#log = logutil.Logger()
+log = logutil.Logger()
 
 #################################-----------create the model
 #overrides:
@@ -84,7 +84,7 @@ spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.show_xxx,vmtab)
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-if d1d2.single
+if d1d2.single:
     simpath=['/'+neurotype for neurotype in d1d2.neurontypes()]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
