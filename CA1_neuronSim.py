@@ -26,10 +26,13 @@ from spspine import (cell_proto,
                      tables,
                      plastic_synapse,
                      logutil,
-                     util as _util)
-from spspine import CA1#change to CA1
+                     util,
+                     standard_options)
+from spspine import CA1
 from spspine.graph import plot_channel, neuron_graph
-import param_sim
+
+option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+param_sim = option_parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -37,7 +40,7 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(CA1)#change all CA1 to ca1
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(CA1)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if CA1.synYN:
@@ -46,18 +49,22 @@ else:
     syn,plas = {}, {}
 
 ####---------------Current Injection
-currents = _util.inclusive_range(param_sim.current1,param_sim.current2,param_sim.currinc)
-pg=inject_func.setupinj(CA1, param_sim.delay,param_sim.width,neuron)
+
+pg=inject_func.setupinj(CA1, param_sim.injection_delay, param_sim.injection_width, neuron)
 
 ###############--------------output elements
-if param_sim.plotchan:
+if param_sim.plot_channels:
     for chan in CA1.Channels.keys():
         libchan=moose.element('/library/'+chan)
-        plot_channel.plot_gate_params(libchan,param_sim.plotpow, CA1.VMIN, CA1.VMAX, CA1.CAMIN, CA1.CAMAX)
+        plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
+                                      CA1.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
 
 data = moose.Neutral('/data')
 
-vmtab,catab,plastab,currtab = tables.graphtables(CA1, neuron,param_sim.plotcurr,param_sim.currmsg,capools,plas,syn)
+vmtab,catab,plastab,currtab = tables.graphtables(CA1, neuron,
+                                                 param_sim.plot_current,
+                                                 param_sim.plot_current_message,
+                                                 capools,plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver
@@ -73,9 +80,10 @@ def run_simulation(injection_current, simtime):
 
 if __name__ == '__main__':
     traces, names = [], []
-    for inj in currents:
+    for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(CA1, vmtab,param_sim.plotcurr,param_sim.simtime, currtab,param_sim.currlabel,catab,plastab)
+        neuron_graph.graphs(CA1, vmtab, param_sim.plot_current, param_sim.simtime,
+                            currtab,param_sim.plot_current_label, catab, plastab)
         traces.append(vmtab[0][0].vector)
         names.append('CA1 @ {}'.format(inj))
         #if CA1.spineYN:
@@ -83,6 +91,6 @@ if __name__ == '__main__':
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode
-    _util.block_if_noninteractive()
+    util.block_if_noninteractive()
 
     #End of inject loop

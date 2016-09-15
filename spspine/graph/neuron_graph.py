@@ -22,6 +22,7 @@ def _get_graph(name, figsize=None):
     return f
 
 def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[]):
+    print('simtime', simtime)
     t = np.linspace(0, simtime, len(vmtab[0][0].vector))
 
     for typenum,neurtype in enumerate(model.neurontypes()):

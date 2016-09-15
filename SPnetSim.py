@@ -34,10 +34,14 @@ from spspine import (cell_proto,
                      #net_output,
                      tables,
                      logutil,
-                     util as _util)
+                     util,
+                     standard_options)
 from spspine import (param_net, d1d2)
-import param_sim
 #from spspine.graph import net_graph
+
+option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+param_sim = option_parser.parse_args()
+
 logging.basicConfig(level=logging.INFO)
 #log = logutil.Logger()
 
@@ -66,17 +70,16 @@ for ntype in striatum_pop['pop'].keys():
 #population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn, param_sim.simtime)
 
 ###------------------Current Injection
-currents = _util.inclusive_range(param_sim.current1)
-pg=inject_func.setupinj(d1d2, param_sim.delay,param_sim.width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
-if param_sim.showgraphs:
-    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
+if param_sim.show_xxx:
+    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,capools,SynPlas,spineHeads)
 else:
     vmtab=[]
 
-spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.showgraphs,vmtab)
+spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.show_xxx,vmtab)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
@@ -98,7 +101,7 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if param_sim.showgraphs:
+        if param_sim.show_xxx:
             #net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not d1d2.single:
