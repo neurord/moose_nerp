@@ -20,11 +20,6 @@ plotpow=0
 plotnet=1
 showgraphs=1
 
-#showclocks=1 will show which elements are assigned to clocks between a and b
-showclocks=1
-clocka=3
-clockb=6
-
 #####################Third, specify values for somatic current injection and/or synaptic input
 current1=50e-12
 current2=100e-12
