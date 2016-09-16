@@ -1,10 +1,11 @@
 import argparse
+import numpy as np
 from . import util
 
 def inclusive_range_from_string(arg):
-    parts = args.split(':')
+    parts = arg.split(':')
     if len(parts) == 1:
-        return numpy.array([float(parts[0])])
+        return np.array([float(parts[0])])
     start, stop = float(parts[0]), float(parts[1])
     if len(parts) == 2:
         return utils.inclusive_range(start, stop, (stop - start) / 5)
@@ -27,7 +28,7 @@ def standard_options(parser=None,
     if parser is None:
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('--simtime', '-t',
+    parser.add_argument('--simtime', '-t', type=float,
                         help='Simulation time',
                         default=default_simulation_time)
     parser.add_argument('--simdt', type=float,
