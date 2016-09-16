@@ -59,8 +59,6 @@ if param_sim.plot_channels:
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       d1d2.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
 
-data = moose.Neutral('/data')
-
 vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
@@ -69,7 +67,7 @@ vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
-clocks.assign_clocks(simpaths, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):

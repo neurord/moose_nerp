@@ -59,8 +59,6 @@ if param_sim.plot_channels:
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       ca1.VMIN, ca1.VMAX, ca1.CAMIN, ca1.CAMAX)
 
-data = moose.Neutral('/data')
-
 vmtab,catab,plastab,currtab = tables.graphtables(ca1, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
