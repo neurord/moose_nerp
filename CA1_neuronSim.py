@@ -57,7 +57,7 @@ if param_sim.plot_channels:
     for chan in CA1.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
-                                      CA1.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
+                                      CA1.VMIN, CA1.VMAX, CA1.CAMIN, CA1.CAMAX)
 
 data = moose.Neutral('/data')
 
