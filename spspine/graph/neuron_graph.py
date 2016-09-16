@@ -22,12 +22,10 @@ def _get_graph(name, figsize=None):
     return f
 
 def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[]):
-    print('simtime', simtime)
     t = np.linspace(0, simtime, len(vmtab[0][0].vector))
 
     for typenum,neurtype in enumerate(model.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
-        t = np.linspace(0, simtime, len(vmtab[typenum][0].vector))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:
             name=oid.path.split('/')[-1]
@@ -49,7 +47,7 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
         f.tight_layout()
         f.canvas.draw()
 
-    if len(plastab['plas']):
+    if plastab and plastab['plas']:
         f = _get_graph('D1/D2 plasticity', figsize=(6,8))
         for plasnum,plastype in enumerate(['plas','cum','syn']):
             if plastype=='plas':
