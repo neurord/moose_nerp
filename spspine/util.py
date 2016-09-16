@@ -5,6 +5,7 @@ import numbers as _numbers
 from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
+import functools
 
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
@@ -145,3 +146,8 @@ def maybe_find_file(name, *paths):
             if _os.path.exists(p):
                 return p
     return name
+
+def listize(func):
+    def wrapper(*args, **kwargs):
+        return list(func(*args, **kwargs))
+    return functools.update_wrapper(wrapper, func)
