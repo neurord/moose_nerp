@@ -30,9 +30,12 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         m=moose.connect(chan, 'channel', comp, 'channel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
+def find_morph_file(model):
+    return _util.maybe_find_file(model.morph_file,
+                                 _os.path.dirname(model.__file__))
+
 def create_neuron(model, ntype, ghkYN):
-    p_file = _util.maybe_find_file(model.morph_file,
-                                   _os.path.dirname(model.__file__))
+    p_file = find_morph_file(model)
     try:
         cellproto=moose.loadModel(p_file, ntype)
     except IOError:
