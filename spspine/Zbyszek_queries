@@ -1,23 +1,9 @@
 1. single should not be defined in the d1d2/__init__.py
 OR, it should be able to be overridden in param_net.py
 
-2. .p files should be in d1d2, etc.
-
-3. param_sim.py should be at same level as SPneuronSim.py, not in the prototypes
-
-4. d1d2/, CA1/ etc should be at same level, not below spspine prototypes
+4. d1d2/, ca1/ etc should be at same level, not below spspine prototypes
 
 5. More functional: the dictionary of channel conductances should not have to include every channel defined in the library.  We tried this and it threw an error somewhere.
-
-6. In SPnetSim.py, the logging isn't working
->>> logging.basicConfig(level=logging.INFO)
->>> log = logutil.Logger()
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "spspine/logutil.py", line 34, in Logger
-    name = mod.__name__
-AttributeError: 'NoneType' object has no attribute '__name__'
->
 
 7. possibly want to give shape_Shifter its own repo (and possibly rename it)
 

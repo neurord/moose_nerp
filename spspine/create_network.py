@@ -10,11 +10,11 @@ from spspine import (#extern_conn,
                      logutil)
 log = logutil.Logger()
 
-from spspine import param_sim, param_net
+from spspine import param_net
 
 #Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
 
-def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn):
+def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn, simtime):
     #First, extract number of synapses per compartment for glu and gaba
     _types = model.neurontypes()
     if synarray:
@@ -39,7 +39,7 @@ def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn):
                 totaltt += synarray[ntype].sum(axis=0)[param_syn.GLU]
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,param_sim.simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
         #Third, assign the timetables to synapses for each neuron
         for ntype in _types:
             synapses = MSNsyn[ntype] if synarray else {'ampa':[], 'nmda':[]}
@@ -53,7 +53,7 @@ def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn):
         totaltt=sum(sum(numglu[_types[i]])*len(population['pop'][i]) for i in range(len(population['pop'])))
         print("totaltt GLU", ntype, totaltt)
         #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,param_sim.simtime)
+        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
         #Third, assign the timetables to synapses for each neuron, but don't re-use uniq
         for ii,ntype in enumerate(_types):
             startt=extern_conn.addinput(model, timetab,MSNsyn[ntype],['ampa', 'nmda'],population['pop'][ii],numglu[ntype],startt)

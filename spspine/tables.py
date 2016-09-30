@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import moose 
+import moose
 import numpy as np
 
 from . import logutil
@@ -11,7 +11,10 @@ def graphtables(model, neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
     #Vm and Calcium
     vmtab=[]
     catab=[]
-    #
+
+    # Make sure /data exists
+    moose.Neutral('/data')
+
     for neurtype in model.neurontypes():
         ncomps = len(neuron[neurtype]['comps'])
         vmtab.append([moose.Table('/data/Vm%s_%d' % (neurtype,ii))  for ii in range(ncomps)])
@@ -55,4 +58,3 @@ def graphtables(model, neuron,pltcurr,curmsg, capools=[],plas=[],syn=[]):
                 except Exception:
                     log.debug('no channel {}', path)
     return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
-

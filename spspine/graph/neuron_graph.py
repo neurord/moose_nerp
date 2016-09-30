@@ -5,7 +5,6 @@ from matplotlib import pyplot
 import numpy as np
 
 from spspine.iso_scaling import iso_scaling
-from spspine import param_sim
 
 try:
     _GRAPHS
@@ -22,12 +21,11 @@ def _get_graph(name, figsize=None):
         f.canvas.draw() # this is here to make it easier to see what changed
     return f
 
-def graphs(model, vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
-    t = np.linspace(0, param_sim.simtime, len(vmtab[0][0].vector))
+def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[]):
+    t = np.linspace(0, simtime, len(vmtab[0][0].vector))
 
     for typenum,neurtype in enumerate(model.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
-        t = np.linspace(0, param_sim.simtime, len(vmtab[typenum][0].vector))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:
             name=oid.path.split('/')[-1]
@@ -49,7 +47,7 @@ def graphs(model, vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
         f.tight_layout()
         f.canvas.draw()
 
-    if len(plastab['plas']):
+    if plastab and plastab['plas']:
         f = _get_graph('D1/D2 plasticity', figsize=(6,8))
         for plasnum,plastype in enumerate(['plas','cum','syn']):
             if plastype=='plas':
@@ -89,8 +87,8 @@ def graphs(model, vmtab,plotcurr,currtab=[],curlabl="",catab=[],plastab=[]):
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
         f.canvas.draw()
 
-def SingleGraphSet(traces,currents):
-    t = np.linspace(0, param_sim.simtime, len(traces[0]))
+def SingleGraphSet(traces, currents, simtime):
+    t = np.linspace(0, simtime, len(traces[0]))
     f=pyplot.figure()
     f.canvas.set_window_title('Voltage')
     axes=f.add_subplot(1,1,1)

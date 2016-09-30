@@ -5,6 +5,7 @@ import numbers as _numbers
 from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
+import functools
 
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
@@ -131,9 +132,12 @@ class NamedDict(dict):
 
 def block_if_noninteractive():
     if not hasattr(_sys, 'ps1'):
-        print('Simulation finished. Close all windows to exit.')
+        print('Simulation finished. Close all windows or press ^C to exit.')
         import matplotlib.pyplot as plt
-        plt.show(block=True)
+        try:
+            plt.show(block=True)
+        except KeyboardInterrupt:
+            pass
 
 def maybe_find_file(name, *paths):
     if not _os.path.isabs(name):
@@ -142,3 +146,8 @@ def maybe_find_file(name, *paths):
             if _os.path.exists(p):
                 return p
     return name
+
+def listize(func):
+    def wrapper(*args, **kwargs):
+        return list(func(*args, **kwargs))
+    return functools.update_wrapper(wrapper, func)

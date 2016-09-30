@@ -1,5 +1,4 @@
 from spspine.util import NamedList, NamedDict
-from spspine import param_sim
 from spspine.syn_proto import SynChannelParams, MgParams
 
 from . import param_cond

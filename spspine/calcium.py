@@ -4,7 +4,12 @@ import numpy as np
 import moose
 
 from spspine import constants, logutil
+from spspine.util import NamedList
 log = logutil.Logger()
+
+#Suggested specification of calcium buffers
+#Similar approach for calcium pumps, but they need Km and power, and location dependent Vmax
+cabuf_params=NamedList('cabuf_params', bufname kf kb diffconst total bound)
 
 def CaProto(params):
     if not moose.exists('/library'):
