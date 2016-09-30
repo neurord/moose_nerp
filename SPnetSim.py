@@ -56,10 +56,13 @@ striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), par
 for ntype in striatum_pop['pop'].keys():
     connect=pop_funcs.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
 #SECOND: debug connect_neurons - message type for spikegen
-#need better way to determine/store number of synaptic inputs vs distance along dendrite
-#This is used in both connect_neurons and extern_conn
 #THIRD: external connections - new method for duplicates
-#FOURTH: fix create_network - eliminate use of spineheads
+#FOURTH: fix create_network - eliminate use of spineheads if possible
+#need better way to determine/store number of synaptic inputs vs distance along dendrite
+#This is used in both connect_neurons and extern_conn, so do this last
+
+#LAST: tackle tables and graphs for both single and network
+#Think about how to connect two different networks, e.g. striatum and GP
 #May not need some of the create_network code depending on how external conn implemented
 
 #population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral(param_sim.inpath), spineheads, synarray, MSNsyn)

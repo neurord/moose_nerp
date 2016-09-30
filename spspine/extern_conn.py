@@ -5,7 +5,8 @@ import moose
 from spspine import param_sim, logutil
 log = logutil.Logger()
 
-def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
+def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
+    presyn=moose.element(presyn_path)
     synchan=moose.element(synpath)
     shname=synchan.path+'/SH'
     sh=moose.SimpleSynHandler(shname)
@@ -18,8 +19,8 @@ def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
     else:
         sh.synapse[jj].delay=mindel
     log.debug('SYNAPSE: {} {} {} {}', synpath, jj, sh.synapse.num, sh.synapse[jj].delay)
-    #It is possible to set the synaptic weight here.  
-    m = moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
+    #It is possible to set the synaptic weight here.
+    m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
 
 def filltimtable(spikeTime,simtime,name,path):
     stimtab=[]
