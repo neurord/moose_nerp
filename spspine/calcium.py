@@ -9,7 +9,7 @@ log = logutil.Logger()
 
 #Suggested specification of calcium buffers
 #Similar approach for calcium pumps, but they need Km and power, and location dependent Vmax
-cabuf_params=NamedList('cabuf_params', bufname kf kb diffconst total bound)
+cabuf_params=NamedList('cabuf_params', 'bufname kf kb diffconst total bound')
 
 def CaProto(params):
     if not moose.exists('/library'):
