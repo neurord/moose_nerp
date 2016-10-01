@@ -104,7 +104,7 @@ def add_synchans(model, container):
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
                 if 'head' in spcomp.path:
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
-        #
+        ########### delete from here to allsynchans= once pop_funcs debugged ################
         #calculate distance from soma
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
