@@ -55,5 +55,5 @@ SYNAPSE_TYPES = NamedDict(
 _gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
-NumSyn={'Gaba':_gaba,
+NumSyn={'gaba':_gaba,
         'ampa':_ampa}

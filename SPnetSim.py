@@ -29,7 +29,8 @@ import moose
 from spspine import (cell_proto,
                      clocks,
                      inject_func,
-                     #create_network,
+                     check_connect,
+                     connect,
                      pop_funcs,
                      #net_output,
                      tables,
@@ -61,18 +62,14 @@ striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), par
 
 #loop over all post-synaptic neuron types:
 for ntype in striatum_pop['pop'].keys():
-    connect=pop_funcs.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+    connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#THIRD: pop_funcs:
-#   a. debug connect_neurons
-#   b. add nmda connections to synconn
-#   c. add network utilies: select entry, count neurons, count postsyn, create syn array
-#   d. eliminate addinput in extern_conn
-#   e. timetables:
+#THIRD: debug count pre-syn and do timetables:
 #        figure out how to arrange and count time tables
 #        fix alltables (create sample timetables to test)
-#   possibly eliminate extern_conn.py and place all connection functions + utilies into connect.py
+#        eliminate extern_conn.py 
 #FOURTH: fix create_network - eliminate use of spineheads if possible
+#        delete connection.py
 # also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
 
 #LAST: tackle tables and graphs for both single and network
