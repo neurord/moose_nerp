@@ -17,14 +17,7 @@ log = logutil.Logger()
 AMPAname='ampa'
 NMDAname='nmda'
 
-def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
-    presyn=moose.element(presyn_path)
-    if dist:
-        syn_delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
-    else:
-        syn_delay=mindel
-    synchan=moose.element(synpath)
-    
+def plain_synconn(synchan,presyn,syn_delay):
     shname=synchan.path+'/SH'
     sh=moose.SimpleSynHandler(shname)
     if sh.synapse.num==1:
@@ -32,22 +25,24 @@ def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
     jj=sh.synapse.num
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
-    log.debug('SYNAPSE: {} {} {} {}', synpath, jj, sh.synapse.num, sh.synapse[jj].delay)
+    log.debug('SYNAPSE: {} {} {} {}', synchan.path, jj, sh.synapse.num, sh.synapse[jj].delay)
     #It is possible to set the synaptic weight here.
     m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
-    
+    return
+
+def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
+    presyn=moose.element(presyn_path)
+    if dist:
+        syn_delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
+    else:
+        syn_delay=mindel
+    synchan=moose.element(synpath)
+    plain_synconn(synchan,presyn,syn_delay)
+                
     if synchan.name==AMPAname:
        nmda_synpath=synchan.parent+NMDAname
        nmda_synchan=moose.element(nmda_synpath)# - check for existance
-       
-       nmda_shname=nmda_synchan.path+'/SH'
-       nmdash=moose.SimpleSynHandler(nmda_shname)
-       if nmdash.synapse.num==1:
-           moose.connect(nmdash, 'activationOut', nmda_synchan, 'activation')
-       nmdash.synapse.num = nmdash.synapse.num+1
-       kk=nmdash.synapse.num
-       nmdash.synapse[kk].delay=syn_delay
-       m = moose.connect(presyn, 'spikeOut', nmdash.synapse[kk], 'addSpike')
+       plain_synconn(nmda_synchan,presyn,syn_delay)
     return
 
 def filltimtable(spikeTime,simtime,name,path):
