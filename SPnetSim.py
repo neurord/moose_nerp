@@ -56,25 +56,25 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #neurons=[]
 #neurons.append(cell_proto.neuronclasses(FSI)
 
-### once debugged, the following lines can be incorporated in create_network
+### once debugged, the following lines will be incorporated in create_network
 striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
 #May not need to return both cells and pop from create_population - just pop is fine?
 
 #check whether network parameters are reasonable for making appropriate connections
 #if population not yet created, predicted population is calculated in function
-#i.e., this function  can be used for creating timetable data
-num_neurons,num_postsyn,num_postcells,num_tt=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+#i.e., this function can be used for creating timetable data
+#probably don't need to return any values except num_tt
+num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
 
 #loop over all post-synaptic neuron types:
 for ntype in striatum_pop['pop'].keys():
     connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#THIRD: debug count pre-syn and do timetables:
-#        figure out how to arrange and count time tables
-#        fix alltables (create sample timetables to test)
-#        eliminate extern_conn.py 
-#FOURTH: fix create_network - eliminate use of spineheads if possible
-#        delete connection.py
+#  create new timetable program that uses param_net and check_connect (begun: CorrTrain.py)
+#  fix alltables (create sample timetables to test) and test tt connections
+#  eliminate extern_conn.py 
+#  fix create_network - eliminate use of spineheads if possible
+#  delete connection.py - currently holding notes
 # also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
 
 #LAST: tackle tables and graphs for both single and network

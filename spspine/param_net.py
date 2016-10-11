@@ -7,8 +7,8 @@ netname='/striatum'
 spacing=25e-6
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':50e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':50e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':1000e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':1000e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 
@@ -24,10 +24,10 @@ connect=NamedList('connect','synapse pre post space_const')
 ext_connect=NamedList('ext_connect','synapse pre post fraction_duplicate')
 #change pre from timetable to name of file providing timetable data
 # add num_post_connect post_location to both of these - optionally specify e.g. prox vs distal for synapses
-# add probability - non-distant dependent alternative to space_const
+# add probability - non-distant dependent alternative to space_const (or just make Space Const hugeq
 
 
-MSNconnSpaceConst=95e-6
+MSNconnSpaceConst=125e-6
 FSIconnSpaceConst=200e-6
 D1pre_D1post=connect(synapse='gaba', pre='D1', post='D1', space_const=MSNconnSpaceConst)
 D1pre_D2post=connect(synapse='gaba', pre='D1', post='D2', space_const=MSNconnSpaceConst)
@@ -40,7 +40,6 @@ glu_D1post=ext_connect(synapse='ampa',pre='timetable',post='D1', fraction_duplic
 glu_D2post=ext_connect(synapse='ampa',pre='timetable',post='D2', fraction_duplicate=0.1)
 #glu_FSI=connect(synapse='ampa',pre='timetable',post='FSI', fraction_duplicate=0.2)
 
-#change pre='timetable' for external to specify the file with time tables?  But what if same set of time tables?
 #one dictionary for each post-synaptic neuron class
 D1={}
 D2={}

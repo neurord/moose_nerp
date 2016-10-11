@@ -11,14 +11,16 @@ log = logutil.Logger()
 
 def count_neurons(netparams):
     size=np.ones(len(netparams.grid),dtype=np.int)
+    length=np.ones(len(netparams.grid),dtype=np.float)
     numneurons=1
+    volume=1
     for i in range(len(netparams.grid)):
 	if netparams.grid[i]['inc']>0:
-	    size[i]=np.int((netparams.grid[i]['xyzmax']-netparams.grid[i]['xyzmin'])/netparams.grid[i]['inc'])
-        else:
-            size[i]=1
+            length[i]=netparams.grid[i]['xyzmax']-netparams.grid[i]['xyzmin']
+	    size[i]=np.int(length[i]/netparams.grid[i]['inc'])
 	numneurons*=size[i]
-    return size, numneurons
+        volume*=length[i]
+    return size, numneurons, volume
 
 def create_population(container, netparams):
     netpath = container.path
@@ -26,7 +28,7 @@ def create_population(container, netparams):
     neurXclass={}
     neurons=[]
     #determine total number of neurons
-    size,numneurons=count_neurons(netparams)
+    size,numneurons,vol=count_neurons(netparams)
     #array of random numbers that will be used to select neuron type
     rannum = np.random.uniform(0,1,numneurons)
     pop_percent=[]
