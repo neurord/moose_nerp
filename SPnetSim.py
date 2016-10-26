@@ -70,12 +70,13 @@ num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_ne
 for ntype in striatum_pop['pop'].keys():
     connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#  create new timetable program that uses param_net and check_connect (begun: CorrTrain.py)
+#  create new timetable program that uses param_net and check_connect (begun: corr_train.py)
 #  fix alltables (create sample timetables to test) and test tt connections
 #  eliminate extern_conn.py 
 #  fix create_network - eliminate use of spineheads if possible
-#  delete connection.py - currently holding notes
+#  delete connection.py? - currently holding notes
 # also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
+# plasticity
 
 #LAST: tackle tables and graphs for both single and network
 #Think about how to connect two different networks, e.g. striatum and GP
