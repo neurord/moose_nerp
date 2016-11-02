@@ -111,7 +111,7 @@ def chan_proto(model, chanpath, params):
             zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Z, zGate)
             chan.useConcentration = False
-        chan.Ek = params.channel.Erev
+    chan.Ek = params.channel.Erev
     return chan
 
 def NaFchan_proto(model, chanpath, params):
