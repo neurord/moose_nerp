@@ -5,33 +5,6 @@ import moose
 from spspine import logutil
 log = logutil.Logger()
 
-def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
-    presyn=moose.element(presyn_path)
-    synchan=moose.element(synpath)
-    shname=synchan.path+'/SH'
-    sh=moose.SimpleSynHandler(shname)
-    if sh.synapse.num==1:
-        moose.connect(sh, 'activationOut', synchan, 'activation')
-    jj=sh.synapse.num
-    sh.synapse.num = sh.synapse.num+1
-    if mindel:
-        sh.synapse[jj].delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
-    else:
-        sh.synapse[jj].delay=mindel
-    log.debug('SYNAPSE: {} {} {} {}', synpath, jj, sh.synapse.num, sh.synapse[jj].delay)
-    #It is possible to set the synaptic weight here.
-    m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
-
-def filltimtable(spikeTime,simtime,name,path):
-    stimtab=[]
-    for ii in range(len(spikeTime)):
-        #convert spiketimes into form that can be used
-        stimtimes=spikeTime[ii][spikeTime[ii]<simtime]
-        #create stimtab and fille it with the 0-1 vector
-        stimtab.append(moose.TimeTable('{}/{}TimTab{}'.format(path, name, ii)))
-        stimtab[ii].vector=stimtimes
-    return stimtab
-
 def alltables(fname,inpath,maxtt,simtime):
     #Read in file with spike times.  both duplicates and unique
     ######################Add some code to allow entering fname if not found by system

@@ -29,7 +29,8 @@ import moose
 from spspine import (cell_proto,
                      clocks,
                      inject_func,
-                     #create_network,
+                     check_connect,
+                     connect,
                      pop_funcs,
                      #net_output,
                      tables,
@@ -55,25 +56,27 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #neurons=[]
 #neurons.append(cell_proto.neuronclasses(FSI)
 
-### once debugged, the following lines can be incorporated in create_network
+### once debugged, the following lines will be incorporated in create_network
 striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
 #May not need to return both cells and pop from create_population - just pop is fine?
 
+#check whether network parameters are reasonable for making appropriate connections
+#if population not yet created, predicted population is calculated in function
+#i.e., this function can be used for creating timetable data
+#probably don't need to return any values except num_tt
+num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+
 #loop over all post-synaptic neuron types:
 for ntype in striatum_pop['pop'].keys():
-    connect=pop_funcs.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+    connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#THIRD: pop_funcs:
-#   a. debug connect_neurons
-#   b. add nmda connections to synconn
-#   c. add network utilies: select entry, count neurons, count postsyn, create syn array
-#   d. eliminate addinput in extern_conn
-#   e. timetables:
-#        figure out how to arrange and count time tables
-#        fix alltables (create sample timetables to test)
-#   possibly eliminate extern_conn.py and place all connection functions + utilies into connect.py
-#FOURTH: fix create_network - eliminate use of spineheads if possible
+#  create new timetable program that uses param_net and check_connect (begun: corr_train.py)
+#  fix alltables (create sample timetables to test) and test tt connections
+#  eliminate extern_conn.py 
+#  fix create_network - eliminate use of spineheads if possible
+#  delete connection.py? - currently holding notes
 # also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
+# plasticity
 
 #LAST: tackle tables and graphs for both single and network
 #Think about how to connect two different networks, e.g. striatum and GP
