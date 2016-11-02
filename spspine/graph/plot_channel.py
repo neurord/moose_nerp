@@ -25,15 +25,15 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
 
             plt.subplot(212)
             if plotpow:
-                label = '(ma/mb)**{}'.format(chan.Xpower)
+                label = '(minf)**{}'.format(chan.Xpower)
                 inf = (ma/mb)**chan.Xpower
             else:
-                label = 'ma/mb'
+                label = 'minf'
                 inf = ma/mb
             plt.plot(varray, inf, label=label)
             plt.axis([-0.12,0.05,0,1])
             if chan.Ypower > 0:
-                plt.plot(varray,ha/hb, label='h ' + chan.path)
+                plt.plot(varray,ha/hb, label='hinf ' + chan.path)
             plt.legend(loc='best', fontsize=8)
         else:
 
