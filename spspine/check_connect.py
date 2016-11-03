@@ -1,3 +1,7 @@
+#check whether network parameters are reasonable for making appropriate connections
+#if population not yet created, predicted population is calculated in function
+#i.e., this function can be used to determine how many timetables to create
+
 from __future__ import print_function, division
 import numpy as np
 import moose

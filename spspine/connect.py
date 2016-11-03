@@ -107,6 +107,10 @@ def connect_neurons(cells, netparams, postype, synapse_density, tt_list=[]):
             for pretype in post_connections[syntype].keys():
                 #########if syntype is glu -  need to deal with ampa and nmda (not glu)
                 if pretype=='timetable' or pretype=='extern':  #not sure which to use.  Could be two types: both thal and ctx
+                    ttname=post_connections[syntype][pretype].pre
+                    #use ttname to refer to timetables?
+                    #param_net.tt_gluSPN.stimtab
+                    #AttributeError: TableSet instance has no attribute 'stimtab'
                     dist=0
                     num_tt=len(tt_list)    #possibly only assign a fraction of totalsyn to each tt_list
                     for i in range(totalsyn):

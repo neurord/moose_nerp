@@ -29,8 +29,6 @@ def create_population(container, netparams):
     neurons=[]
     #determine total number of neurons
     size,numneurons,vol=count_neurons(netparams)
-    #array of random numbers that will be used to select neuron type
-    rannum = np.random.uniform(0,1,numneurons)
     pop_percent=[]
     for neurtype in netparams.pop_dict.keys():
         proto.append(moose.element(neurtype))
@@ -38,6 +36,10 @@ def create_population(container, netparams):
         pop_percent.append(netparams.pop_dict[neurtype].percent)
         #create cumulative array of probabilities for selecting neuron type
     choicearray=np.cumsum(pop_percent)
+    if pop_percent[-1]<1.0:
+        log.info("fractional populations sum to {}",pop_percent[-1])
+    #array of random numbers that will be used to select neuron type
+    rannum = np.random.uniform(0,pop_percent[-1],numneurons)
     #Error check for last element in choicearray equal to 1.0
     log.info("numneurons= {} {} choicarray={} rannum={}", size, numneurons, choicearray, rannum)
     for i,xloc in enumerate(np.linspace(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], size[0])):

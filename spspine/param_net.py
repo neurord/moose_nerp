@@ -1,7 +1,7 @@
 #param_net.py
 ####################### Populations
 from spspine.util import NamedList
-from spspine.ttables import TableSet
+from spspine.ttables import TableSet as TableSet
 
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
@@ -26,7 +26,7 @@ connect=NamedList('connect','synapse pre post space_const=None probability=None'
 ext_connect=NamedList('ext_connect','synapse pre post fraction_duplicate')
 # add num_post_connect post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
-tt_gluSPN = TableSet('gluSPN', 'A4B4jit1ms.npz')
+tt_gluSPN = TableSet('gluSPN', 'AMPA_4x4')
 
 MSNconnSpaceConst=125e-6
 FSIconnSpaceConst=200e-6
@@ -61,5 +61,5 @@ FSI['gaba']={'FSI': FSIpre_FSIpost}
 cond_vel=0.8
 mindelay=1e-3
 
-confile='NetConn'+infile
-outfile='MSNout'+infile
+#confile='NetConn'+infile
+#outfile='MSNout'+infile

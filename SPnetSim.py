@@ -2,17 +2,13 @@
 
 ######## SPnetSim.py ############
 """\
-Create a SP neuron using dictionaries for channels and synapses
+Create a network of SP neurons using dictionaries for channels, synapses, and network parameters
 
-This allows multiple channels to be added with minimal change to the code
 Can use ghk for calcium permeable channels if ghkYesNo=1
 Optional calcium concentration in compartments (calcium=1)
 Optional synaptic plasticity based on calcium (plasyesno=1)
 Spines are optional (spineYesNo=1), but not allowed for network
 The graphs won't work for multiple spines per compartment
-Assumes spine head has name 'head', cell body called 'soma',
-Also assumes that single neuron element tree is '/neurtype/compartment', and
-network element tree is '/network/neurtype/compartment'
 """
 from __future__ import print_function, division
 import logging
@@ -56,21 +52,27 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #neurons=[]
 #neurons.append(cell_proto.neuronclasses(FSI)
 
+#check_connect prior to creating population, or after:
+num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
+
 ### once debugged, the following lines will be incorporated in create_network
 striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
 #May not need to return both cells and pop from create_population - just pop is fine?
 
-#check whether network parameters are reasonable for making appropriate connections
-#if population not yet created, predicted population is calculated in function
-#i.e., this function can be used for creating timetable data
-#probably don't need to return any values except num_tt
+#This will create the time tables for tt_gluSPN
+#where should time tables be created?
+#should all be created at once?
+#does a tt_list need to be passed to connect_neurons?
+param_net.tt_gluSPN.create()
+
+#check_connect syntax after creating population
+#possibly don't need to return any values except num_tt
 num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
 
 #loop over all post-synaptic neuron types:
 for ntype in striatum_pop['pop'].keys():
     connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#  create new timetable program that uses param_net and check_connect (begun: corr_train.py)
 #  fix alltables (create sample timetables to test) and test tt connections
 #  eliminate extern_conn.py 
 #  fix create_network - eliminate use of spineheads if possible
