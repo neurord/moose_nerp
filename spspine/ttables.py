@@ -19,7 +19,6 @@ class TableSet:
         spike_set = spike_file.keys()[0]
         print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: {} ', len(spike_file[spike_set]))
         self.stimtab=[]
-        #make dictionary of stimtabs?  With key = tablename?
         for ii,stimtimes in enumerate(spike_file[spike_set]):
             self.stimtab.append(moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)))
             self.stimtab[ii].vector=stimtimes
@@ -29,8 +28,3 @@ class TableSet:
         for obj in cls.ALL:
             obj.create()
 
-#table2 = TableSet('cortical_inputs2', 'cortical_inputs2.npz')
-#table2.TableSet.create()
-#>>> t.TableSet.create_all()
-#creating <t.TableSet object at 0x7feb08695c88> cortical_inputs1 cortical_inputs1.npz
-#creating <t.TableSet object at 0x7feb0a12ffd0> cortical_inputs2 cortical_inputs2.npz

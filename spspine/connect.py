@@ -63,7 +63,7 @@ def select_tt(table,fraction):
         table=np.resize(table,(len(table)-1))
     return element,table
 
-def create_synpath_array(allsyncomp_list,syntype,synapse_density):
+def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
     totalsyn=0
     for syncomp in allsyncomp_list:
@@ -71,12 +71,12 @@ def create_synpath_array(allsyncomp_list,syntype,synapse_density):
             xloc=syncomp.parent.x
             yloc=syncomp.parent.y
             dist=np.sqrt(xloc*xloc+yloc*yloc)
-            SynPerComp = util.distance_mapping(synapse_density[syntype], dist)
+            SynPerComp = util.distance_mapping(NumSyn[syntype], dist)
             syncomps.append([syncomp.path,SynPerComp])
             totalsyn+=SynPerComp
     return syncomps,totalsyn
 
-def connect_neurons(cells, netparams, postype, synapse_density):
+def connect_neurons(cells, netparams, postype, NumSyn):
     log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     log.debug('CONNECT set: {} {}', postype, cells[postype])
@@ -88,11 +88,12 @@ def connect_neurons(cells, netparams, postype, synapse_density):
         postsoma=postcell+'/soma'
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
+        zpost=moose.element(postsoma).z
         #set-up array of post-synapse compartments/synchans
         allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
             #make a table of possible post-synaptic connections
-            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,synapse_density)
+            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
             log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
             for pretype in post_connections[syntype].keys():
                 if pretype=='timetable' or pretype=='extern':  #not sure which to use.  Could be two types: both thal and ctx
@@ -114,20 +115,22 @@ def connect_neurons(cells, netparams, postype, synapse_density):
                         fact=post_connections[syntype][pretype].space_const
                         xpre=moose.element(presoma).x
                         ypre=moose.element(presoma).y
+                        zpre=moose.element(presoma).z
                         #calculate distance between pre- and post-soma
-                        dist=np.sqrt((xpre-xpost)**2+(ypre-ypost)**2)
+                        dist=np.sqrt((xpre-xpost)**2+(ypre-ypost)**2+(zpre-zpost)**2)
                         prob=np.exp(-(dist/fact))
                         connect=np.random.uniform()
                         log.debug('{} {} {} {} {} {}', presoma,postsoma,dist,fact,prob,connect)
-                        #select a random number to determine whether a connection should occur
+                        #select a random number to determine whether a connection should occurmore c
                         if connect < prob and dist > 0 and len(syncomps)>0:
                             spikegen=moose.wildcardFind(presoma+'/#[TYPE=SpikeGen]')[0]
                             #if so, randomly select a branch, and then eliminate that branch from the table.
                             #presently only a single synapse established.  Need to expand this to allow multiple conns
                             synpath,syncomps=select_entry(syncomps)
                             log.info('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
-                            postlist.append((synpath,xpost,ypost))
-                            prelist.append((presoma,xpre,xpost))
+                            #make this one list? of dictionaries (to know what each value means)
+                            postlist.append((synpath,xpost,ypost,zpost))
+                            prelist.append((presoma,xpre,ypre,zpre))
                             distloclist.append((dist,prob))
                             #connect the synapse
                             synconn(synpath,dist,spikegen,netparams.mindelay,netparams.cond_vel)

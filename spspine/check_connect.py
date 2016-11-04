@@ -71,7 +71,7 @@ def count_total_tt(netparams,num_postsyn,num_postcells):
                     total_trains[ntype][syntype]=unique+shared
     return total_trains
                      
-def check_netparams(netparams,synapse_density,population=[]):
+def check_netparams(netparams,NumSyn,population=[]):
     size,num_neurons,volume=pop_funcs.count_neurons(netparams)
     log.info("net size: {} {} vol {}", size,num_neurons,volume)
     #if population net yet created, calculate predicted population
@@ -80,7 +80,7 @@ def check_netparams(netparams,synapse_density,population=[]):
         for ntype in netparams.connect_dict.keys():
             population[ntype]=np.arange(np.round(num_neurons*netparams.pop_dict[ntype].percent))
     log.debug("pop {}",population)
-    num_postsyn,num_postcells=count_postsyn(netparams,synapse_density,population)
+    num_postsyn,num_postcells=count_postsyn(netparams,NumSyn,population)
     log.info("num synapses {} cells {}", num_postsyn, num_postcells)
     num_tt=count_total_tt(netparams,num_postsyn,num_postcells)
     log.debug("num time tables {}", num_tt)

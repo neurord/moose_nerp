@@ -65,9 +65,14 @@ def create_network():
     num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
 
     if model.single:
-        total_tt=connect.count_total_tt(protypes)
+        for ntype in d1d2.neurontypes():
+            striatum_pop['pop'][ntype]="/"+ntype
+        #subset of check_netparams
+        num_postsyn,num_postcells=count_postsyn(netparams,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+        total_tt=connect.count_total_tt(param_net,num_postsyn,num_postcells)
+        #perhaps, should separate out external connections from connect_neurons for model.single usability
         for ntype in striatum_pop['pop'].keys():
-            connect=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+            connect=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn )
     else:
         #May not need to return both cells and pop from create_population - just pop is fine?
         striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
@@ -80,7 +85,13 @@ def create_network():
         #Last, save/write out the list of connections and location of each neuron
         savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
 
-
+#NEXT: deal with bug and multiple time tables
+#>>> connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
+#Traceback (most recent call last):
+#  File "<stdin>", line 1, in <module>
+#  File "spspine/connect.py", line 80, in connect_neurons
+#    log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
+#TypeError: unhashable type: 'list'
 #  eliminate extern_conn.py 
 #  delete connection.py? - currently holding notes
 # also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons and synarray
