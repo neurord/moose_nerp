@@ -49,42 +49,48 @@ d1d2.synYN=True
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)
-#neurons=[]
-#neurons.append(cell_proto.neuronclasses(FSI)
+#allneurons=[]
+#allneurons.append(neuron)
 
-#check_connect prior to creating population, or after:
-num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
+######################### elements of new create_network.py ###############################
+def create_network():
+    #where should time tables be created? if all created at once, no need to know the name of the table
+    param_net.TableSet.create_all()
+    #Currently, have implemented re-use of connections (both within and between)
+    #To explicitly allow within neuron correlation:
+    #in connect_neurons: select random number, if rannum<fraction_duplicate, select another compartment??
 
-### once debugged, the following lines will be incorporated in create_network
-striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
-#May not need to return both cells and pop from create_population - just pop is fine?
+    #check_connect prior to creating population, or after:
+    #possibly don't need to return any values except num_tt
+    num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
 
-#This will create the time tables for tt_gluSPN
-#where should time tables be created?
-#should all be created at once?
-#does a tt_list need to be passed to connect_neurons?
-param_net.tt_gluSPN.create()
+    if model.single:
+        total_tt=connect.count_total_tt(protypes)
+        for ntype in striatum_pop['pop'].keys():
+            connect=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+    else:
+        #May not need to return both cells and pop from create_population - just pop is fine?
+        striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+        #check_connect syntax after creating population
+        num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+        #loop over all post-synaptic neuron types:
+        for ntype in striatum_pop['pop'].keys():
+            connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#check_connect syntax after creating population
-#possibly don't need to return any values except num_tt
-num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+        #Last, save/write out the list of connections and location of each neuron
+        savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
 
-#loop over all post-synaptic neuron types:
-for ntype in striatum_pop['pop'].keys():
-    connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
-#  fix alltables (create sample timetables to test) and test tt connections
 #  eliminate extern_conn.py 
-#  fix create_network - eliminate use of spineheads if possible
 #  delete connection.py? - currently holding notes
-# also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
-# plasticity
+# also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons and synarray
+# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
 #LAST: tackle tables and graphs for both single and network
 #Think about how to connect two different networks, e.g. striatum and GP
-#May not need some of the create_network code depending on how external conn implemented
 
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn, param_sim.simtime)
+# plasticity
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), striatum_pop['pop'], synarray)
 
 ###------------------Current Injection
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
