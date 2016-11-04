@@ -18,16 +18,16 @@ class TableSet:
         spike_file=np.load(self.filename+'.npz')
         spike_set = spike_file.keys()[0]
         print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: {} ', len(spike_file[spike_set]))
-        stimtab=[]
+        self.stimtab=[]
         #make dictionary of stimtabs?  With key = tablename?
         for ii,stimtimes in enumerate(spike_file[spike_set]):
-            stimtab.append(moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)))
-            stimtab[ii].vector=stimtimes
+            self.stimtab.append(moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)))
+            self.stimtab[ii].vector=stimtimes
 
-#    @classmethod
-#    def create_all(cls):
-#        for obj in cls.ALL:
-#            obj.create()
+    @classmethod
+    def create_all(cls):
+        for obj in cls.ALL:
+            obj.create()
 
 #table2 = TableSet('cortical_inputs2', 'cortical_inputs2.npz')
 #table2.TableSet.create()

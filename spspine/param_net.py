@@ -1,7 +1,7 @@
 #param_net.py
 ####################### Populations
 from spspine.util import NamedList
-from spspine.ttables import TableSet as TableSet
+from spspine.ttables import TableSet
 
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
@@ -13,13 +13,11 @@ grid[0]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
 grid[1]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
-
-#This won't work if the single neuron of these types is not created
+#Do not include a neuron type in pop_dict if the proto not created
 D1pop=neur_distr(neuronname='D1', spacing=grid,percent=0.49)
 D2pop=neur_distr(neuronname='D2', spacing=grid,percent=0.49)
 FSIpop=neur_distr(neuronname='FSI', spacing=grid,percent=0.02)
-#pop_dict={'D1':D1pop,'D2': D2pop, 'FSI': FSIpop}
-pop_dict={'D1':D1pop,'D2': D2pop}
+pop_dict={'D1':D1pop,'D2': D2pop, 'FSI': FSIpop}
 
 ####################### Connections
 connect=NamedList('connect','synapse pre post space_const=None probability=None')
@@ -37,8 +35,8 @@ D2pre_D2post=connect(synapse='gaba', pre='D2', post='D2', space_const=MSNconnSpa
 FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst)
 FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst)
 FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIconnSpaceConst)
-glu_D1post=ext_connect(synapse='ampa',pre='tt_gluSPN',post='D1', fraction_duplicate=0.1)
-glu_D2post=ext_connect(synapse='ampa',pre='tt_gluSPN',post='D2', fraction_duplicate=0.1)
+glu_D1post=ext_connect(synapse='ampa',pre=tt_gluSPN,post='D1', fraction_duplicate=0.1)
+glu_D2post=ext_connect(synapse='ampa',pre=tt_gluSPN,post='D2', fraction_duplicate=0.1)
 #glu_FSI=connect(synapse='ampa',pre='timetable',post='FSI', fraction_duplicate=0.2)
 
 #one dictionary for each post-synaptic neuron class
@@ -61,5 +59,5 @@ FSI['gaba']={'FSI': FSIpre_FSIpost}
 cond_vel=0.8
 mindelay=1e-3
 
-#confile='NetConn'+infile
-#outfile='MSNout'+infile
+confile=netname+'NetConn'
+outfile=netname+'_out'
