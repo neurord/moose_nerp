@@ -60,14 +60,15 @@ def count_total_tt(netparams,num_postsyn,num_postcells):
     #The following assumes unique timetable files for each ntype/syntype
     for ntype in netparams.connect_dict.keys():
         total_trains[ntype]={}
-        for syntype in netparams.connect_dict[ntype].keys():
-            num_input=num_postsyn[ntype][syntype]
-            if 'extern' in netparams.connect_dict[ntype][syntype].keys():
-                #may need to loop over multiple instances of extern if multiple tt
-                dups=netparams.connect_dict[ntype][syntype]['extern'].fraction_duplicate
-                unique=num_input*(1-dups)
-                shared=num_input*dups/num_postcells[ntype]
-                total_trains[ntype][syntype]=unique+shared
+        if num_postcells[ntype]:
+            for syntype in netparams.connect_dict[ntype].keys():
+                num_input=num_postsyn[ntype][syntype]
+                if 'extern' in netparams.connect_dict[ntype][syntype].keys():
+                    #may need to loop over multiple instances of extern if multiple tt
+                    dups=netparams.connect_dict[ntype][syntype]['extern'].fraction_duplicate
+                    unique=num_input*(1-dups)
+                    shared=num_input*dups/num_postcells[ntype]
+                    total_trains[ntype][syntype]=unique+shared
     return total_trains
                      
 def check_netparams(netparams,synapse_density,population=[]):
@@ -86,10 +87,11 @@ def check_netparams(netparams,synapse_density,population=[]):
     pre_syn_cells=count_presyn(netparams,num_postcells,volume)
     log.info("num presyn_cells {}", pre_syn_cells)
     for ntype in netparams.connect_dict.keys():
-        for syntype in netparams.connect_dict[ntype].keys():
-            if 'extern' in netparams.connect_dict[ntype][syntype].keys():
-                log.info("Neuron {} Synapse {} Post {} needed tt {}", ntype, syntype, num_postsyn[ntype][syntype], num_tt[ntype][syntype])
-            else:
-                log.info("Neuron {} Synapse {} Post {} available Pre {}", ntype, syntype, num_postsyn[ntype][syntype]/num_postcells[ntype], pre_syn_cells[ntype][syntype])
+        if num_postcells[ntype]:
+            for syntype in netparams.connect_dict[ntype].keys():
+                if 'extern' in netparams.connect_dict[ntype][syntype].keys():
+                    log.info("Neuron {} Synapse {} Post {} needed tt {}", ntype, syntype, num_postsyn[ntype][syntype], num_tt[ntype][syntype])
+                else:
+                    log.info("Neuron {} Synapse {} Post {} available Pre {}", ntype, syntype, num_postsyn[ntype][syntype]/num_postcells[ntype], pre_syn_cells[ntype][syntype])
     return num_neurons,num_postsyn,num_postcells,num_tt,pre_syn_cells
         
