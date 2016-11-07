@@ -109,7 +109,7 @@ if (corr==2):
     spikeTime=make_trains(indep_trains,isi,samples,maxTime)
     total_spikes=[len(item) for item in spikeTime]
     spikes_per_train=sum(total_spikes)/indep_trains
-    print ("spikes_per_train", spikes_per_train,"Indep SpikeTime", shape(spikeTime), shape(spikeTime[i]))
+    print ("spikes_per_train", spikes_per_train,"Indep SpikeTime", shape(spikeTime), shape(spikeTime[0]))
     #
     #Second, randomly select spikeTimes from independent trains to create dependent Trains
     if (indep_trains<num_syn):
@@ -119,13 +119,14 @@ if (corr==2):
             spikeTimeTemp=[]
             for j in range(indep_trains):
                 #2. from each indep train, select some spikes, eliminating duplicates
+              if len(spikeTime[j]):
                 high=len(spikeTime[j])-1
                 indices=list(set(np.sort(np.random.random_integers(0,high,samplesPerTrain[j]))))
                 spikeTimeTemp=np.append(spikeTimeTemp,spikeTime[j][indices])
-                print ('spike train %d:' % (i), spikeTimeTemp)
-            #3. after sampling each indepTrain, sort spikes before appending to the spikeTime list
+            print ('spike train %d:' % (i), spikeTimeTemp,'train length', len(spikeTimeTemp))
+            #3. after sampling each indepTrain, sort spikes before appending to spikeTime list
             spikeTime.append(np.sort(spikeTimeTemp))
-            print ("all train:", shape(spikeTime), len(spikeTime[i]))
+        print ("num trains:", shape(spikeTime))
 
 ################Save the spike times array#############
 savez(fname, spikeTime=spikeTime)

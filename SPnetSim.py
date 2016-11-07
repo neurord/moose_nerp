@@ -50,58 +50,69 @@ d1d2.synYN=True
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)
 #allneurons=[]
-#allneurons.append(neuron)
+#allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
 
 ######################### elements of new create_network.py ###############################
-def create_network():
+def create_network(d1d2, netparams):
     #where should time tables be created? if all created at once, no need to know the name of the table
     param_net.TableSet.create_all()
-    #Currently, have implemented re-use of connections (both within and between)
-    #To explicitly allow within neuron correlation:
-    #in connect_neurons: select random number, if rannum<fraction_duplicate, select another compartment??
 
-    #check_connect prior to creating population, or after:
-    #possibly don't need to return any values except num_tt
-    num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
-
-    if model.single:
+    if d1d2.single:
+        #fix this kluge with the allneurons array above
         for ntype in d1d2.neurontypes():
             striatum_pop['pop'][ntype]="/"+ntype
         #subset of check_netparams
         num_postsyn,num_postcells=count_postsyn(netparams,d1d2.param_syn.NumSyn,striatum_pop['pop'])
-        total_tt=connect.count_total_tt(param_net,num_postsyn,num_postcells)
-        #perhaps, should separate out external connections from connect_neurons for model.single usability
+        tt_per_syn,tt_per_ttfile=connect.count_total_tt(param_net,num_postsyn,num_postcells)
+        #
         for ntype in striatum_pop['pop'].keys():
             connect=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn )
     else:
+        #check_connect prior to creating population
+        check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
+        #
         #May not need to return both cells and pop from create_population - just pop is fine?
         striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+        #
         #check_connect syntax after creating population
-        num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
-        #loop over all post-synaptic neuron types:
+        check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+        #
+        #loop over all post-synaptic neuron types and create connections:
         for ntype in striatum_pop['pop'].keys():
             connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
 
         #Last, save/write out the list of connections and location of each neuron
         savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
+        return striatum_pop
 
-#NEXT: deal with bug and multiple time tables
-#>>> connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
-#Traceback (most recent call last):
-#  File "<stdin>", line 1, in <module>
-#  File "spspine/connect.py", line 80, in connect_neurons
-#    log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
-#TypeError: unhashable type: 'list'
-#  eliminate extern_conn.py 
-#  delete connection.py? - currently holding notes
-# also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons and synarray
+#Types of spike train correlations
+#1. number of synaptic terminals between single axon and single neuron
+#       parameter specifying range or mean number.  Randomly select how many and repeat calls to
+#           synpath,syncomps=select_entry(syncomps)
+#           synconn(synpath,dist,presyn_tt,netparams.mindelay)
+#2. with and between neuron correlation due to correlation of the cortical region projecting to striatum
+#      account for both of these (same source) with correlated spike trains
+#3.  between neuron correlations because a single axon can contact multiple neurons
+#       implement using parameter syn_per_tt - associated with table object
+#       this will also allow multiple synapses within single neuron, but unlikely if large neuron population
+
+#1A: fix synconn for time table object
+#Then  update create_network.py
+#2: plasticity
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), striatum_pop['pop'], synarray)
+# then delete extern_conn.py,
+# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
 # e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
-#LAST: tackle tables and graphs for both single and network
-#Think about how to connect two different networks, e.g. striatum and GP
+#3: tackle tables and graphs for both single and network
+#4: Think about how to connect two different networks, e.g. striatum and GP
 
-# plasticity
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), striatum_pop['pop'], synarray)
+#5. Refinements
+#A. refine NamedLists for connections to specify post-syn location dependence (optional)
+#B. refine select_branch to make use of location dependence 
+#C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
+#                                      b. 3D arrays of elements
+#D. debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
 
 ###------------------Current Injection
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)

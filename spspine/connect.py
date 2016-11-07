@@ -3,7 +3,6 @@ Function definitions for connecting populations of neurons
 1. single synaptic connection
 2. creating an array of post-synaptic channels, to randomly select without replacement
 3. connect each post-syn channel type of each neuron to either a pre-synaptic neuron or a timetable
-4. functions to load time tables
 
 """
 
@@ -54,15 +53,6 @@ def select_entry(table):
         table=np.resize(table,(len(table)-1,2))
     return element,table
 
-def select_tt(table,fraction):
-    row=np.random.random_integers(0,len(table)-1)
-    element=table[row]
-    #only remove a fraction of time tables, allow re-use of the duplicate fraction
-    if np.random.uniform()>fraction:
-        table[row]=table[len(table)-1]
-        table=np.resize(table,(len(table)-1))
-    return element,table
-
 def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
     totalsyn=0
@@ -76,10 +66,38 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn):
             totalsyn+=SynPerComp
     return syncomps,totalsyn
 
-def connect_neurons(cells, netparams, postype, NumSyn):
-    log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
+def connect_timetable(post_connection,syncomps,totalsyn,netparams):
+    dist=0
+    tt_list=post_connection.pre.stimtab
+    postsyn_fraction=post_connection.postsyn_fraction
+    num_tt=len(tt_list)    
+    for i in range(np.int(np.round(totalsyn*postsyn_fraction))):
+        presyn_tt,tt_list=select_entry(tt_list)
+        synpath,syncomps=select_entry(syncomps)
+        log.info('CONNECT: TT {} POST {} ', presyn_tt,synpath)
+        #connect the time table with mindelay (dist=0)
+        synconn(synpath,dist,presyn_tt,netparams.mindelay)
+    return syncomps
+
+def timetable_input(cells, netparams, postype, NumSyn):
+    #connect post-synaptic synapses to time tables
+    #used for single neuron models, since populations are connected in connect_neurons
+    log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    log.debug('CONNECT set: {} {}', postype, cells[postype])
+    for postcell in cells[postype]:
+        postsoma=postcell+'/soma'
+        allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
+        for syntype in post_connections.keys():
+            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
+            log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
+            for pretype in post_connections[syntype].keys():
+                if 'extern' in pretype:
+                    connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+    return
+                    
+def connect_neurons(cells, netparams, postype, NumSyn):
+    log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
+    post_connections=netparams.connect_dict[postype]
     prelist=list()
     postlist=list()
     distloclist=[]
@@ -96,18 +114,9 @@ def connect_neurons(cells, netparams, postype, NumSyn):
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
             log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
             for pretype in post_connections[syntype].keys():
-                if pretype=='timetable' or pretype=='extern':  #not sure which to use.  Could be two types: both thal and ctx
+                if 'extern' in pretype:
                     ####### connect to time tables instead of other neurons in network
-                    tt_list=post_connections[syntype][pretype].pre.stimtab
-                    fraction_duplicate=post_connections[syntype][pretype].fraction_duplicat
-                    dist=0
-                    num_tt=len(tt_list)    #possibly only assign a fraction of totalsyn to each tt_list
-                    for i in range(totalsyn):
-                        presyn_tt,tt_list=select_tt(tt_list,fraction_duplicate)
-                        synpath,syncomps=select_entry(syncomps)
-                        log.info('CONNECT: TT {} POST {} DIST {}', presyn_tt,synpath,dist)
-                        #connect the time table with mindelay (dist=0)
-                        synconn(synpath,dist,presyn_tt,netparams.mindelay)
+                    connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
                 else:
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
                     for precell in cells[pretype]:
