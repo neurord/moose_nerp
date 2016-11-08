@@ -55,14 +55,14 @@ def count_presyn(netparams,num_cells,volume):
     return presyn_cells
 
 def count_total_tt(netparams,num_postsyn,num_postcells):
-    tt_needed_per_synapse={}
+    tt_needed_per_syntype={}
     tt_per_ttfile={}
     for each in netparams.TableSet.ALL:
         tt_per_ttfile[each.tablename]={}
         each.needed=0
     #Determine how many trains of synaptic input are needed needed.
     for ntype in netparams.connect_dict.keys():
-        tt_needed_per_synapse[ntype]={}
+        tt_needed_per_syntype[ntype]={}
         if num_postcells[ntype]:
             for syntype in netparams.connect_dict[ntype].keys():
                 needed_trains=0
@@ -72,15 +72,15 @@ def count_total_tt(netparams,num_postsyn,num_postcells):
                       dups=netparams.connect_dict[ntype][syntype][key].pre.syn_per_tt
                       postsyn_fraction=netparams.connect_dict[ntype][syntype][key].postsyn_fraction
                       needed_trains+=num_postsyn[ntype][syntype]*postsyn_fraction/dups
-                      tt_per_ttfile[ttname.tablename][ntype]=num_postsyn[ntype][syntype]*postsyn_fraction/dups
+                      tt_per_ttfile[ttname.tablename][ntype]={'num':num_postsyn[ntype][syntype]*postsyn_fraction/dups, 'syn_per_tt': dups}
                       log.debug('tt {} syn_per_tt {} postsyn_fraction {} needed_trains {}',key, dups,postsyn_fraction,needed_trains)
-                tt_needed_per_synapse[ntype][syntype]=needed_trains
+                tt_needed_per_syntype[ntype][syntype]=needed_trains
     for each in netparams.TableSet.ALL:
         for ntype in tt_per_ttfile[each.tablename].keys():
-            each.needed+=tt_per_ttfile[ttname.tablename][ntype]
-            log.info('ttname {}, {} needed for neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype)
+            each.needed+=tt_per_ttfile[ttname.tablename][ntype]['num']
+            log.info('ttname {}, {} needed for neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype )
         log.info("{} tt needed for file {}", each.needed, each.filename)
-    return tt_needed_per_synapse,tt_per_ttfile
+    return tt_needed_per_syntype,tt_per_ttfile
                      
 def check_netparams(netparams,NumSyn,population=[]):
     size,num_neurons,volume=pop_funcs.count_neurons(netparams)
@@ -100,11 +100,11 @@ def check_netparams(netparams,NumSyn,population=[]):
     for ntype in netparams.connect_dict.keys():
         if num_postcells[ntype]:
             for syntype in netparams.connect_dict[ntype].keys():
-                log.info("POST: Neuron {} Synapse {} num syn {} :", ntype, syntype, num_postsyn[ntype][syntype])
+                log.info("POST: Neuron {} {} num_syn={}", ntype, syntype, num_postsyn[ntype][syntype])
                 if syntype in presyn_cells['D2'].keys():
                     avail=presyn_cells[ntype][syntype]
                 else:
                     avail=0
-                log.info("PRE: neurons available {} tt {}", avail, tt_per_syn[ntype][syntype])
+                log.info("PRE: neurons available={} expected tt={}", avail, tt_per_syn[ntype][syntype])
     return 
         

@@ -25,9 +25,7 @@ import moose
 from spspine import (cell_proto,
                      clocks,
                      inject_func,
-                     check_connect,
-                     connect,
-                     pop_funcs,
+                     create_network,
                      #net_output,
                      tables,
                      logutil,
@@ -45,6 +43,7 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
+d1d2.single=1
 
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
@@ -52,38 +51,16 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #allneurons=[]
 #allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
 
-######################### elements of new create_network.py ###############################
-def create_network(d1d2, netparams):
-    #where should time tables be created? if all created at once, no need to know the name of the table
-    param_net.TableSet.create_all()
+#create network and plasticity
+population,SynPlas=create_network.create_network(d1d2, param_net)
 
-    if d1d2.single:
-        #fix this kluge with the allneurons array above
-        for ntype in d1d2.neurontypes():
-            striatum_pop['pop'][ntype]="/"+ntype
-        #subset of check_netparams
-        num_postsyn,num_postcells=count_postsyn(netparams,d1d2.param_syn.NumSyn,striatum_pop['pop'])
-        tt_per_syn,tt_per_ttfile=connect.count_total_tt(param_net,num_postsyn,num_postcells)
-        #
-        for ntype in striatum_pop['pop'].keys():
-            connect=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn )
-    else:
-        #check_connect prior to creating population
-        check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn)
-        #
-        #May not need to return both cells and pop from create_population - just pop is fine?
-        striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
-        #
-        #check_connect syntax after creating population
-        check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
-        #
-        #loop over all post-synaptic neuron types and create connections:
-        for ntype in striatum_pop['pop'].keys():
-            connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
+#NEXT: debug plasticity (and what is written to connection file, and writing pickle file)
+# then delete extern_conn.py,
+# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
+# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
-        #Last, save/write out the list of connections and location of each neuron
-        savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
-        return striatum_pop
+#3: tackle tables and graphs for both single and network
+#4: Think about how to connect two different networks, e.g. striatum and GP
 
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
@@ -96,18 +73,7 @@ def create_network(d1d2, netparams):
 #       implement using parameter syn_per_tt - associated with table object
 #       this will also allow multiple synapses within single neuron, but unlikely if large neuron population
 
-#1A: fix synconn for time table object
-#Then  update create_network.py
-#2: plasticity
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), striatum_pop['pop'], synarray)
-# then delete extern_conn.py,
-# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
-# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
-
-#3: tackle tables and graphs for both single and network
-#4: Think about how to connect two different networks, e.g. striatum and GP
-
-#5. Refinements
+#Code Refinements
 #A. refine NamedLists for connections to specify post-syn location dependence (optional)
 #B. refine select_branch to make use of location dependence 
 #C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence

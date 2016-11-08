@@ -19,14 +19,17 @@ NMDAname='nmda'
 def plain_synconn(synchan,presyn,syn_delay):
     shname=synchan.path+'/SH'
     sh=moose.SimpleSynHandler(shname)
-    if sh.synapse.num==1:
+    if sh.synapse.num==0:
         moose.connect(sh, 'activationOut', synchan, 'activation')
     jj=sh.synapse.num
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
-    log.debug('SYNAPSE: {} {} {} {}', synchan.path, jj, sh.synapse.num, sh.synapse[jj].delay)
+    log.debug('SYNAPSE: {} index {} num {} delay {}', synchan.path, jj, sh.synapse.num, sh.synapse[jj].delay)
     #It is possible to set the synaptic weight here.
-    m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
+    if presyn.className=='TimeTable':
+        m = moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
+    else:
+        m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
     return
 
 def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
@@ -39,9 +42,10 @@ def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
     plain_synconn(synchan,presyn,syn_delay)
                 
     if synchan.name==AMPAname:
-       nmda_synpath=synchan.parent+NMDAname
-       nmda_synchan=moose.element(nmda_synpath)# - check for existance
-       plain_synconn(nmda_synchan,presyn,syn_delay)
+       nmda_synpath=synchan.parent.path+'/'+NMDAname
+       if moose.exists(nmda_synpath):
+           nmda_synchan=moose.element(nmda_synpath)
+           plain_synconn(nmda_synchan,presyn,syn_delay)
     return
 
 def select_entry(table):
@@ -74,7 +78,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams):
     for i in range(np.int(np.round(totalsyn*postsyn_fraction))):
         presyn_tt,tt_list=select_entry(tt_list)
         synpath,syncomps=select_entry(syncomps)
-        log.info('CONNECT: TT {} POST {} ', presyn_tt,synpath)
+        log.debug('CONNECT: TT {} POST {} ', presyn_tt.path,synpath)
         #connect the time table with mindelay (dist=0)
         synconn(synpath,dist,presyn_tt,netparams.mindelay)
     return syncomps
@@ -112,7 +116,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
         for syntype in post_connections.keys():
             #make a table of possible post-synaptic connections
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
-            log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
+            log.debug('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
             for pretype in post_connections[syntype].keys():
                 if 'extern' in pretype:
                     ####### connect to time tables instead of other neurons in network
@@ -136,7 +140,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             #if so, randomly select a branch, and then eliminate that branch from the table.
                             #presently only a single synapse established.  Need to expand this to allow multiple conns
                             synpath,syncomps=select_entry(syncomps)
-                            log.info('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
+                            log.ebug'CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
                             #make this one list? of dictionaries (to know what each value means)
                             postlist.append((synpath,xpost,ypost,zpost))
                             prelist.append((presoma,xpre,ypre,zpre))
