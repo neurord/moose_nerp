@@ -6,6 +6,9 @@ from spspine.ttables import TableSet
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
 netname='/striatum'
+confile='striatum_connect'
+outfile='striatum_out'
+
 spacing=25e-6
 #0,1,2 refer to x, y and z
 grid={}
@@ -62,5 +65,3 @@ FSI['gaba']={'FSI': FSIpre_FSIpost}
 cond_vel=0.8
 mindelay=1e-3
 
-confile=netname+'NetConn'
-outfile=netname+'_out'

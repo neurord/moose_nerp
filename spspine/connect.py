@@ -102,9 +102,7 @@ def timetable_input(cells, netparams, postype, NumSyn):
 def connect_neurons(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    prelist=list()
-    postlist=list()
-    distloclist=[]
+    connect_list={}
     #loop over post-synaptic neurons
     for postcell in cells[postype]:
         postsoma=postcell+'/soma'
@@ -140,12 +138,11 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             #if so, randomly select a branch, and then eliminate that branch from the table.
                             #presently only a single synapse established.  Need to expand this to allow multiple conns
                             synpath,syncomps=select_entry(syncomps)
-                            log.ebug'CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
-                            #make this one list? of dictionaries (to know what each value means)
-                            postlist.append((synpath,xpost,ypost,zpost))
-                            prelist.append((presoma,xpre,ypre,zpre))
-                            distloclist.append((dist,prob))
+                            log.debug('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
+                            #list of connections for further processing if desired.  Assumes one conn per synpath (which might be a problem)
+                            connect_list[synpath]={'postloc':(xpost,ypost,zpost),'pre':presoma,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
+                            log.debug('{}',connect_list[synpath])
                             #connect the synapse
                             synconn(synpath,dist,spikegen,netparams.mindelay,netparams.cond_vel)
-    return {'post': postlist, 'pre': prelist, 'dist': distloclist}
+    return connect_list
 

@@ -4,6 +4,7 @@ connects time tables to neurons
 connects neurons to each other
 """
 from __future__ import print_function, division
+import numpy as np
 import moose
 
 from spspine import (pop_funcs,
@@ -42,7 +43,7 @@ def create_network(model, param_net):
             connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn)
 
         #Last, save/write out the list of connections and location of each neuron
-        savez(param_net.confile,conn=connect,loc=striatum_pop['location'])
+        np.savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
 
     ##### Synaptic Plasticity, requires calcium
     #### Array of SynPlas has ALL neurons of a single type in one big array.  Might want to change this

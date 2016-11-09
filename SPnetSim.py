@@ -43,7 +43,7 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
-d1d2.single=1
+d1d2.single=0
 
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
