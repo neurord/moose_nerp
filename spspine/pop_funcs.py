@@ -26,18 +26,21 @@ def create_population(container, netparams):
     netpath = container.path
     proto=[]
     neurXclass={}
-    neurons=[]
+    locationlist=[]
     #determine total number of neurons
     size,numneurons,vol=count_neurons(netparams)
-    #array of random numbers that will be used to select neuron type
-    rannum = np.random.uniform(0,1,numneurons)
     pop_percent=[]
     for neurtype in netparams.pop_dict.keys():
-        proto.append(moose.element(neurtype))
-        neurXclass[neurtype]=[]
-        pop_percent.append(netparams.pop_dict[neurtype].percent)
-        #create cumulative array of probabilities for selecting neuron type
+        if moose.exists(neurtype):
+            proto.append(moose.element(neurtype))
+            neurXclass[neurtype]=[]
+            pop_percent.append(netparams.pop_dict[neurtype].percent)
+    #create cumulative array of probabilities for selecting neuron type
     choicearray=np.cumsum(pop_percent)
+    if choicearray[-1]<1.0:
+        log.info("Warning!!!! fractional populations sum to {}",choicearray[-1])
+    #array of random numbers that will be used to select neuron type
+    rannum = np.random.uniform(0,choicearray[-1],numneurons)
     #Error check for last element in choicearray equal to 1.0
     log.info("numneurons= {} {} choicarray={} rannum={}", size, numneurons, choicearray, rannum)
     for i,xloc in enumerate(np.linspace(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], size[0])):
@@ -49,19 +52,20 @@ def create_population(container, netparams):
                 log.info("i,j,k {} {} {} neurnumber {} type {}", i,j,k, neurnumber, neurtypenum)
 		typename = proto[neurtypenum].name
 		tag = '{}_{}'.format(typename, neurnumber)
-		neurons.append(moose.copy(proto[neurtypenum],netpath, tag))
+		new_neuron=moose.copy(proto[neurtypenum],netpath, tag)
 		neurXclass[typename].append(container.path + '/' + tag)
-		comp=moose.Compartment(neurons[neurnumber].path + '/soma')
+		comp=moose.Compartment(new_neuron.path + '/soma')
 		comp.x=i*xloc
 		comp.y=j*yloc
 		comp.z=k*zloc
-		log.debug("x,ymz={},{},{} {}", comp.x, comp.y, comp.z, neurons[neurnumber].path)
+		log.debug("x,y,z={},{},{} {} {}", comp.x, comp.y, comp.z, new_neuron.path)
+                locationlist.append([new_neuron.name,comp.x,comp.y,comp.z])
 		#spike generator - can this be done to the neuron prototype?
 		spikegen = moose.SpikeGen(comp.path + '/spikegen')
                 #should these be parameters in netparams?
 		spikegen.threshold = 0.0
 		spikegen.refractT=1e-3
 		m = moose.connect(comp, 'VmOut', spikegen, 'Vm')
-    return {'cells': neurons,
+    return {'location': locationlist,
             'pop':neurXclass}
 

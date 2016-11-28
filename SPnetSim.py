@@ -2,17 +2,13 @@
 
 ######## SPnetSim.py ############
 """\
-Create a SP neuron using dictionaries for channels and synapses
+Create a network of SP neurons using dictionaries for channels, synapses, and network parameters
 
-This allows multiple channels to be added with minimal change to the code
 Can use ghk for calcium permeable channels if ghkYesNo=1
 Optional calcium concentration in compartments (calcium=1)
 Optional synaptic plasticity based on calcium (plasyesno=1)
 Spines are optional (spineYesNo=1), but not allowed for network
 The graphs won't work for multiple spines per compartment
-Assumes spine head has name 'head', cell body called 'soma',
-Also assumes that single neuron element tree is '/neurtype/compartment', and
-network element tree is '/network/neurtype/compartment'
 """
 from __future__ import print_function, division
 import logging
@@ -29,9 +25,7 @@ import moose
 from spspine import (cell_proto,
                      clocks,
                      inject_func,
-                     check_connect,
-                     connect,
-                     pop_funcs,
+                     create_network,
                      #net_output,
                      tables,
                      logutil,
@@ -49,40 +43,42 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
+d1d2.single=0
 
 ##create 2 neuron prototypes with synapses and calcium
 MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)
-#neurons=[]
-#neurons.append(cell_proto.neuronclasses(FSI)
+#allneurons=[]
+#allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
 
-### once debugged, the following lines will be incorporated in create_network
-striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
-#May not need to return both cells and pop from create_population - just pop is fine?
+#create network and plasticity
+population,SynPlas=create_network.create_network(d1d2, param_net)
 
-#check whether network parameters are reasonable for making appropriate connections
-#if population not yet created, predicted population is calculated in function
-#i.e., this function can be used for creating timetable data
-#probably don't need to return any values except num_tt
-num_neurons,num_postsyn,num_postcells,num_tt,presyn_cells=check_connect.check_netparams(param_net,d1d2.param_syn.NumSyn,striatum_pop['pop'])
+#NEXT: debug plasticity (and what is written to connection file, and writing pickle file)
+# then delete extern_conn.py,
+# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
+# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
-#loop over all post-synaptic neuron types:
-for ntype in striatum_pop['pop'].keys():
-    connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, d1d2.param_syn.NumSyn)
+#3: tackle tables and graphs for both single and network
+#4: Think about how to connect two different networks, e.g. striatum and GP
 
-#  create new timetable program that uses param_net and check_connect (begun: corr_train.py)
-#  fix alltables (create sample timetables to test) and test tt connections
-#  eliminate extern_conn.py 
-#  fix create_network - eliminate use of spineheads if possible
-#  delete connection.py? - currently holding notes
-# also eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons
-# plasticity
+#Types of spike train correlations
+#1. number of synaptic terminals between single axon and single neuron
+#       parameter specifying range or mean number.  Randomly select how many and repeat calls to
+#           synpath,syncomps=select_entry(syncomps)
+#           synconn(synpath,dist,presyn_tt,netparams.mindelay)
+#2. with and between neuron correlation due to correlation of the cortical region projecting to striatum
+#      account for both of these (same source) with correlated spike trains
+#3.  between neuron correlations because a single axon can contact multiple neurons
+#       implement using parameter syn_per_tt - associated with table object
+#       this will also allow multiple synapses within single neuron, but unlikely if large neuron population
 
-#LAST: tackle tables and graphs for both single and network
-#Think about how to connect two different networks, e.g. striatum and GP
-#May not need some of the create_network code depending on how external conn implemented
-
-#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn, param_sim.simtime)
+#Code Refinements
+#A. refine NamedLists for connections to specify post-syn location dependence (optional)
+#B. refine select_branch to make use of location dependence 
+#C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
+#                                      b. 3D arrays of elements
+#D. debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
 
 ###------------------Current Injection
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)

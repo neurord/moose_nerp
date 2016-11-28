@@ -1,81 +1,49 @@
 """\
-Sets up time tables, then connects them after creating population
+Sets up time tables, creates population
+connects time tables to neurons
+connects neurons to each other
 """
 from __future__ import print_function, division
+import numpy as np
 import moose
 
-from spspine import (#extern_conn,
-                     pop_funcs,
+from spspine import (pop_funcs,
+                     connect,
+                     check_connect,
                      plasticity,
                      logutil)
 log = logutil.Logger()
 
-from spspine import param_net
-
-#Note that the code actually allows different timetabs to D1 and D2, and different D1 and D2 morphology
-
-def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn, simtime):
-    #First, extract number of synapses per compartment for glu and gaba
-    _types = model.neurontypes()
-    if synarray:
-        numglu = {ntype:synarray[ntype][:,param_syn.GLU] for ntype in _types}
-        numgaba = {ntype:synarray[ntype][:,param_syn.GABA] for ntype in _types}
-    else:
-        numglu = {ntype:[] for ntype in _types}
-        numgaba = {ntype:[] for ntype in _types}
-    log.info('synarray {}', synarray)
-
-    inpath=inputelement.path
-    startt=0
+def create_network(model, param_net):
+    #create all timetables
+    param_net.TableSet.create_all()
+    #
     if model.single:
-        #Create one of each neuron type, add synaptic inputs
-        population=[]
-        totaltt=0
-        for ntype in _types:
-            #First, determine how many synaptic inputs, and whether connection to spine
-            if spineheads:
-                totaltt += len(spineheads[ntype])
-            elif synarray:
-                totaltt += synarray[ntype].sum(axis=0)[param_syn.GLU]
-        print("totaltt GLU", ntype, totaltt)
-        #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
-        #Third, assign the timetables to synapses for each neuron
-        for ntype in _types:
-            synapses = MSNsyn[ntype] if synarray else {'ampa':[], 'nmda':[]}
-            neuronpaths = [neuron[ntype]['cell'].path]
-            startt=extern_conn.addinput(model, timetab,synapses,['ampa','nmda'], neuronpaths, numglu[ntype], startt)
+        #fix this kluge? Potentially may need to know neurontypes/names of multiple neurons 
+        striatum_pop={'pop':{},'location':{}}
+        for ntype in model.neurontypes():
+            striatum_pop['pop'][ntype]=["/"+ntype]
+        #subset of check_param_net
+        num_postsyn,num_postcells=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,striatum_pop['pop'])
+        tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells)
+        #
+        for ntype in striatum_pop['pop'].keys():
+            connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn )
     else:
-        #Create network of neurons
-        population = pop_funcs.create_population(moose.Neutral(param_net.netname), 
-                                                 param_net.pop_dict)
-        #First, determine how many synaptic inputs (assume not spines for network)
-        totaltt=sum(sum(numglu[_types[i]])*len(population['pop'][i]) for i in range(len(population['pop'])))
-        print("totaltt GLU", ntype, totaltt)
-        #Second, read in the spike time tables
-        timetab=extern_conn.alltables(param_net.infile,inpath,totaltt,simtime)
-        #Third, assign the timetables to synapses for each neuron, but don't re-use uniq
-        for ii,ntype in enumerate(_types):
-            startt=extern_conn.addinput(model, timetab,MSNsyn[ntype],['ampa', 'nmda'],population['pop'][ii],numglu[ntype],startt)
-        #Fourth, intrinsic connections, from all spikegens to each population
-        #Different conn probs between populations is indicated in SpaceConst
-        ######### Add FS['spikegen'] to population['spikegen'] once FS added to network
-        for ii,ntype in _enumerate(_types):
-            connect=pop_funcs.connect_neurons(population['spikegen'],
-                                              population['pop'][ii],
-                                              MSNsyn[ntype]['gaba'],
-                                              param_net.SpaceConst[ntype],
-                                              numgaba[ntype],
-                                              ntype)
+        #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
+        #
+        #May not need to return both cells and pop from create_population - just pop is fine?
+        striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+        #
+        #check_connect syntax after creating population
+        check_connect.check_netparams(param_net,model.param_syn.NumSyn,striatum_pop['pop'])
+        #
+        #loop over all post-synaptic neuron types and create connections:
+        for ntype in striatum_pop['pop'].keys():
+            connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn)
 
         #Last, save/write out the list of connections and location of each neuron
-        locationlist=[]
-        for neurlist in population['pop']:
-            for jj in range(len(neurlist)):
-                neur=moose.element(neurlist[jj]+'/soma')
-                neurname = neurlist[jj].split('/')[-1]
-                locationlist.append([neurname,neur.x,neur.y])
-        savez(param_net.confile,conn=connect,loc=locationlist)
+        np.savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
 
     ##### Synaptic Plasticity, requires calcium
     #### Array of SynPlas has ALL neurons of a single type in one big array.  Might want to change this
@@ -90,14 +58,14 @@ def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn, simtime):
                                                         model.CaPlasticityParams.highfactor,
                                                         model.CaPlasticityParams.lowfactor,
                                                         [])
-        else:
-            for nnum,ntype in _enumerate(_types):
-                SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
-                                                        model.CaPlasticityParams.highThresh,
-                                                        model.CaPlasticityParams.lowThresh,
-                                                        model.CaPlasticityParams.highfactor,
-                                                        model.CaPlasticityParams.lowfactor,
-                                                        population['pop'][nnum])
+#        else:
+#            for nnum,ntype in _enumerate(_types):
+#                SynPlas[ntype]=plasticity.addPlasticity(MSNsyn[ntype]['ampa'],
+#                                                        model.CaPlasticityParams.highThresh,
+#                                                        model.CaPlasticityParams.lowThresh,
+#                                                        model.CaPlasticityParams.highfactor,
+#                                                        model.CaPlasticityParams.lowfactor,
+#                                                        population['pop'][nnum])
     else:
         SynPlas=[]
-    return population, SynPlas
+    return striatum_pop, SynPlas

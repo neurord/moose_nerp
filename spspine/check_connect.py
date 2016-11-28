@@ -1,3 +1,7 @@
+#check whether network parameters are reasonable for making appropriate connections
+#if population not yet created, predicted population is calculated in function
+#i.e., this function can be used to determine how many timetables to create
+
 from __future__ import print_function, division
 import numpy as np
 import moose
@@ -29,13 +33,13 @@ def count_postsyn(netparams,synapse_density,population):
     return num_postsyn,num_postcells
 
 def count_presyn(netparams,num_cells,volume):
-    pre_syn_cells={}
+    presyn_cells={}
     for postype in netparams.connect_dict.keys():
         for syntype in netparams.connect_dict[postype].keys():
-            pre_syn_cells[postype]={}
-            pre_syn_cells[postype][syntype]=0
+            presyn_cells[postype]={}
+            presyn_cells[postype][syntype]=0
             for presyn_type in netparams.connect_dict[postype][syntype].keys():
-                if presyn_type != 'extern':
+                if 'extern' not in presyn_type:
                     predict_cells=0
                     space_const=netparams.connect_dict[postype][syntype][presyn_type].space_const
                     density=num_cells[presyn_type]/volume
@@ -46,46 +50,61 @@ def count_presyn(netparams,num_cells,volume):
                         predict_cells+=np.int(density*(outer_area-inner_area)*np.exp(-dist/space_const))
                         log.debug("dist {} outer_area {} predict_cells {} ",  dist, outer_area, predict_cells)
                         inner_area=outer_area
-                    pre_syn_cells[postype][syntype]+=min(max_cells,predict_cells)
-                    log.debug ("vol {} max_cells {} num_presyn {}",volume, max_cells, pre_syn_cells[postype][syntype])
-    return pre_syn_cells
+                    presyn_cells[postype][syntype]+=min(max_cells,predict_cells)
+                    log.debug ("vol {} max_cells {} num_presyn {}",volume, max_cells, presyn_cells[postype][syntype])
+    return presyn_cells
 
 def count_total_tt(netparams,num_postsyn,num_postcells):
-    total_trains={}
-    #Now determine how many unique and shared trains needed.
-    #The following assumes unique timetable files for each ntype/syntype
+    tt_needed_per_syntype={}
+    tt_per_ttfile={}
+    for each in netparams.TableSet.ALL:
+        tt_per_ttfile[each.tablename]={}
+        each.needed=0
+    #Determine how many trains of synaptic input are needed needed.
     for ntype in netparams.connect_dict.keys():
-        total_trains[ntype]={}
-        for syntype in netparams.connect_dict[ntype].keys():
-            num_input=num_postsyn[ntype][syntype]
-            if 'extern' in netparams.connect_dict[ntype][syntype].keys():
-                #may need to loop over multiple instances of extern if multiple tt
-                dups=netparams.connect_dict[ntype][syntype]['extern'].fraction_duplicate
-                unique=num_input*(1-dups)
-                shared=num_input*dups/num_postcells[ntype]
-                total_trains[ntype][syntype]=unique+shared
-    return total_trains
+        tt_needed_per_syntype[ntype]={}
+        if num_postcells[ntype]:
+            for syntype in netparams.connect_dict[ntype].keys():
+                needed_trains=0
+                for key in netparams.connect_dict[ntype][syntype].keys():
+                  if 'extern' in key:
+                      ttname=netparams.connect_dict[ntype][syntype][key].pre
+                      dups=netparams.connect_dict[ntype][syntype][key].pre.syn_per_tt
+                      postsyn_fraction=netparams.connect_dict[ntype][syntype][key].postsyn_fraction
+                      needed_trains+=num_postsyn[ntype][syntype]*postsyn_fraction/dups
+                      tt_per_ttfile[ttname.tablename][ntype]={'num':num_postsyn[ntype][syntype]*postsyn_fraction/dups, 'syn_per_tt': dups}
+                      log.debug('tt {} syn_per_tt {} postsyn_fraction {} needed_trains {}',key, dups,postsyn_fraction,needed_trains)
+                tt_needed_per_syntype[ntype][syntype]=needed_trains
+    for each in netparams.TableSet.ALL:
+        for ntype in tt_per_ttfile[each.tablename].keys():
+            each.needed+=tt_per_ttfile[ttname.tablename][ntype]['num']
+            log.info('ttname {}, {} needed for neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype )
+        log.info("{} tt needed for file {}", each.needed, each.filename)
+    return tt_needed_per_syntype,tt_per_ttfile
                      
-def check_netparams(netparams,synapse_density,population=[]):
+def check_netparams(netparams,NumSyn,population=[]):
     size,num_neurons,volume=pop_funcs.count_neurons(netparams)
-    log.info("net size: {} {} vol {}", size,num_neurons,volume)
+    log.info("net size: {} {} tissue volume {}", size,num_neurons,volume)
     #if population net yet created, calculate predicted population
     if not len(population):
         population={}
         for ntype in netparams.connect_dict.keys():
             population[ntype]=np.arange(np.round(num_neurons*netparams.pop_dict[ntype].percent))
     log.debug("pop {}",population)
-    num_postsyn,num_postcells=count_postsyn(netparams,synapse_density,population)
+    num_postsyn,num_postcells=count_postsyn(netparams,NumSyn,population)
     log.info("num synapses {} cells {}", num_postsyn, num_postcells)
-    num_tt=count_total_tt(netparams,num_postsyn,num_postcells)
-    log.debug("num time tables {}", num_tt)
-    pre_syn_cells=count_presyn(netparams,num_postcells,volume)
-    log.info("num presyn_cells {}", pre_syn_cells)
+    tt_per_syn,tt_per_ttfile=count_total_tt(netparams,num_postsyn,num_postcells)
+    log.debug("num time tables needed: per synapse {} per ttfile {}", tt_per_syn, tt_per_ttfile)
+    presyn_cells=count_presyn(netparams,num_postcells,volume)
+    log.info("num presyn_cells {}", presyn_cells)
     for ntype in netparams.connect_dict.keys():
-        for syntype in netparams.connect_dict[ntype].keys():
-            if 'extern' in netparams.connect_dict[ntype][syntype].keys():
-                log.info("Neuron {} Synapse {} Post {} needed tt {}", ntype, syntype, num_postsyn[ntype][syntype], num_tt[ntype][syntype])
-            else:
-                log.info("Neuron {} Synapse {} Post {} available Pre {}", ntype, syntype, num_postsyn[ntype][syntype]/num_postcells[ntype], pre_syn_cells[ntype][syntype])
-    return num_neurons,num_postsyn,num_postcells,num_tt,pre_syn_cells
+        if num_postcells[ntype]:
+            for syntype in netparams.connect_dict[ntype].keys():
+                log.info("POST: Neuron {} {} num_syn={}", ntype, syntype, num_postsyn[ntype][syntype])
+                if syntype in presyn_cells['D2'].keys():
+                    avail=presyn_cells[ntype][syntype]
+                else:
+                    avail=0
+                log.info("PRE: neurons available={} expected tt={}", avail, tt_per_syn[ntype][syntype])
+    return 
         

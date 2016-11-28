@@ -1,3 +1,7 @@
+"""\
+Function definitions for connecting timetables to neurons
+
+"""
 from __future__ import print_function, division
 import numpy as np
 import moose
@@ -5,23 +9,33 @@ import moose
 from spspine import logutil
 log = logutil.Logger()
 
-def alltables(fname,inpath,maxtt,simtime):
-    #Read in file with spike times.  both duplicates and unique
-    ######################Add some code to allow entering fname if not found by system
-    temp=np.load(fname+'.npz')
-    DupSpikes=temp['Dup']
-    UniqueSpikes=temp['Unique']
-    log.info('AVAILBLE Dup trains: {} {} Unique trains: {}',
-             len(DupSpikes), DupSpikes, len(UniqueSpikes))
-    #create Time tables
-    Duptt=filltimtable(DupSpikes,simtime,'Dup',inpath)
-    uniqnum=min(maxtt,len(UniqueSpikes))
-    log.info('time tables to use {} Unique: {}', maxtt, uniqnum)
-    Uniqtt=filltimtable(UniqueSpikes[0:maxtt],simtime,'Uniq',inpath)
-    return {'Dup':Duptt,'Uniq':Uniqtt}
+def connect_timetable(post_connection,syncomps,totalsyn,netparams):
+    tt_list=post_connection.pre.stimtab
+    postsyn_fraction=post_connection.postsyn_fraction
+    num_tt=len(tt_list)    
+    for i in range(totalsyn*postsyn_fraction):
+        presyn_tt,tt_list=select_entry(tt_list)
+        synpath,syncomps=select_entry(syncomps)
+        log.info('CONNECT: TT {} POST {} DIST {}', presyn_tt,synpath,dist)
+        #connect the time table with mindelay (dist=0)
+        synconn(synpath,dist,presyn_tt,netparams.mindelay)
+    return syncomps
 
-def addinput(model, ttab,synchans,synlist,cells,SynPerComp,startt):
-    #all synpases in synlist must in same compartment (e.g. both on spines or both on dendrites)
+def addinput(cells, netparams, postype, NumSyn):
+    #connect post-synaptic synapses to time tables
+    #used for single neuron models, since populations are connected in connect_neurons
+    log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
+    post_connections=netparams.connect_dict[postype]
+    for postcell in cells[postype]:
+        postsoma=postcell+'/soma'
+        allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
+        for syntype in post_connections.keys():
+            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
+            log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
+            for pretype in post_connections[syntype].keys():
+                if pretype=='timetable' or pretype=='extern':
+                    
+        #all synpases in synlist must in same compartment (e.g. both on spines or both on dendrites)
     log.info('cells {} {} syn/Comp {}', len(cells), cells, SynPerComp)
     #create table of synapse compartments for each neuron
     comps=[]
