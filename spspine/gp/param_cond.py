@@ -30,23 +30,24 @@ morph_file = 'GP1_41comp.p'
 #CONDUCTANCES
 #Kdr is Kv2
 # helper variables to index the Conductance and synapses with distance
-prox = (0,0)
-med =  (0,50e-6)
-dist = (50e-6, 1000e-6)
-
+prox = (0,1e-6)
+#med =  (0,50e-6)
+dist = (1e-6, 1000e-6)
+# check Gbar vlues for NaS,Hva,SK and Ca
+# _proto for prototypical GP neuron
 _proto = _util.NamedDict(
     'proto',
-    KDr = {prox:20.8, med:40.2, dist:20.8},
-    Kv3 = {prox:09.6, med:38.4, dist:09.6},
-    KvF = {prox:22.4, med: 48, dist: 22.4},
-    KvS = {prox:53.6, med: 100, dist: 53.6},
-    NaF = {prox:50, med: 100, dist: 50},
-    HCN1 = {prox:0.628, med: 0, dist: 0.628},
-    HCN2 = {prox:1.57, med: 0, dist: 1.57},
-    KCNQ = {prox:1.256, med: 2.512, dist:1.256},
+    KDr = {prox:320,dist:64 },#, med:40.2},
+    Kv3 = {prox:640 , dist:128 },#, med:38.4},
+    KvF = {prox:160,dist:160 },#, med: 48},
+    KvS = {prox:240, dist:240},#, med: 100
+    NaF = {prox:2500, dist: 40},#, med: 100
+    HCN1 = {prox:0.2, dist: 0.2},#, med: 0
+    HCN2 = {prox:0.5, dist: 0.5}, #med: 0,
+    KCNQ = {prox:0.4, dist:0.4},#, med: 2.512
     #NaS = {prox: 3.14, med: 251.2, dist: 3.14},
-    #Hva = {prox: 6.28, med: 0, dist: 0.471},
-    #Sk = {prox: 157, med: 0, dist: 927},
+    Ca = {prox: 2, dist: 0.15},#med: 0,
+    SKCa = {prox: 50, dist: 4},# med: 0,
     #Ca = {prox: 5.73, med: 0, dist: 5.73},
 )
 
@@ -62,8 +63,8 @@ chanvar = _util.NamedDict(
     KCNQ=0.04,
     # NaS = 0.04,
     # Hva = 0.04,
-    # Sk = 0.04,
-    # Ca = 0.04,
+     SKCa= 0.04,
+     Ca = 0.04,
 )
 
 Condset  = _util.NamedDict(

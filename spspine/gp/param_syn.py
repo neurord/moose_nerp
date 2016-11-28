@@ -52,8 +52,8 @@ SYNAPSE_TYPES = NamedDict(
 )
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
-_ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
+_gaba = {param_cond.prox:3, param_cond.dist:1} # param_cond.med:2,
+_ampa= {param_cond.prox:1, param_cond.dist:3}  # param_cond.med:2,
 
 NumSyn={'Gaba':_gaba,
         'ampa':_ampa}
