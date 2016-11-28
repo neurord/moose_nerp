@@ -12,17 +12,19 @@ from spspine.chan_proto import (
     TwoD)
 
 
-krev=-87e-3
+krev=-90e-3
 narev=50e-3
-carev=48e-3
+carev=90e-3
+hcnrev=-30e-3
 ZpowCDI=2
 
 VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
+
 CAMIN = 0.01e-3   #10 nM
-CAMAX = 40e-3  #40 uM, might want to go up to 100 uM with spines
-CADIVS = 4001 #10 nM steps
+CAMAX = 60e-3  #40 uM, might want to go up to 100 uM with spines
+CADIVS = 5999 #10 nM steps
 
 
 qfactNaF = 1.0
@@ -188,7 +190,7 @@ KCNQ_Y_params = []
 
 
 
-HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=carev, name='HCN1')
+HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN1')
 
 HCN1_X_params = AlphaBetaChannelParams(A_rate = 18e3,
                                         A_B = 0,
@@ -202,7 +204,7 @@ HCN1_X_params = AlphaBetaChannelParams(A_rate = 18e3,
                                         B_vslope = -6.9e-3)
 HCN1_Y_params=[]
 
-HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=carev, name='HCN2')
+HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN2')
 
 HCN2_X_params = AlphaBetaChannelParams(A_rate = 20.5e3,
                                         A_B = 0,
@@ -216,8 +218,24 @@ HCN2_X_params = AlphaBetaChannelParams(A_rate = 20.5e3,
                                         B_vslope = -8.5e-3)
 HCN2_Y_params=[]
 
+Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
+Ca_X_params=AlphaBetaChannelParams(A_rate = 5.5e3,
+                                        A_B = 0,
+                                        A_C = 1.0,
+                                        Avhalf = -20e-3,
+                                        A_vslope = -8e-3,
+                                        B_rate = 4.999e3,
+                                        B_B = 0,
+                                        B_C = 1,
+                                        Bvhalf = 550e-3,
+                                        B_vslope = 85e-3)
+Ca_Y_params=[]
 
+SKparam= ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
 
+SK_Z_params= ZChannelParams(Kd=0.00035,
+                            power=4.6,
+                            tau=0.002)
 
 
 
@@ -231,5 +249,7 @@ Channels = NamedDict(
     HCN2 =  TypicalOneDalpha(HCN2param,HCN2_X_params, []),
     KCNQ =  TypicalOneDalpha(KCNQparam,KCNQ_X_params, []),
     NaF =   TypicalOneDalpha(NaFparam, Na_m_params, Na_h_params,Na_s_param),
+    Ca =   TypicalOneDalpha(Caparam,Ca_X_params, [],[], calciumPermeable=True),
+    SKCa=  TypicalOneDalpha(SKparam, [], [], SK_Z_params , calciumDependent=True)
 )
 # have to add NaP and calcium channels
