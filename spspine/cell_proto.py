@@ -18,6 +18,8 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
+    if length==0:
+        SA=np.pi*diam**2
     proto = moose.element('/library/'+chanpath)
     chan = moose.copy(proto, comp, chanpath)[0]
     chan.Gbar = gbar * SA
@@ -43,6 +45,7 @@ def create_neuron(model, ntype, ghkYN):
         raise
     comps=[]
     #######channels
+    Cond = model.Condset[ntype]
     for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
         comps.append(comp)
         xloc=moose.Compartment(comp).x
@@ -59,7 +62,6 @@ def create_neuron(model, ntype, ghkYN):
             moose.connect(ghk,'channel',comp,'channel')
         else:
             ghk=[]
-        Cond = model.Condset[ntype]
         for channame, chanparams in model.Channels.items():
             c = _util.distance_mapping(Cond[channame], dist)
             if c > 0:
