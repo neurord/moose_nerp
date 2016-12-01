@@ -21,6 +21,7 @@ CaBasal=0.05e-3
 CaTau=20e-3
 
 plasYesNo=1
+syntype='ampa'
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 highThresh=0.3e-3

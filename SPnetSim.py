@@ -52,11 +52,11 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
 
 #create network and plasticity
-population,SynPlas=create_network.create_network(d1d2, param_net)
+population=create_network.create_network(d1d2, param_net)
 
-#NEXT: debug plasticity (and what is written to connection file, and writing pickle file)
-# then delete extern_conn.py,
-# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
+#NEXT:
+# delete extern_conn.py,
+# eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
 # e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
 #3: tackle tables and graphs for both single and network

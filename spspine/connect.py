@@ -105,6 +105,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
     connect_list={}
     #loop over post-synaptic neurons
     for postcell in cells[postype]:
+        connect_list[postcell]={}
         postsoma=postcell+'/soma'
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
@@ -140,8 +141,8 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             synpath,syncomps=select_entry(syncomps)
                             log.debug('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
                             #list of connections for further processing if desired.  Assumes one conn per synpath (which might be a problem)
-                            connect_list[synpath]={'postloc':(xpost,ypost,zpost),'pre':presoma,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
-                            log.debug('{}',connect_list[synpath])
+                            connect_list[postcell][synpath]={'postloc':(xpost,ypost,zpost),'pre':presoma,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
+                            log.debug('{}',connect_list[postcell][synpath])
                             #connect the synapse
                             synconn(synpath,dist,spikegen,netparams.mindelay,netparams.cond_vel)
     return connect_list

@@ -43,23 +43,17 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     
     return {'cum':plasCum,'plas':plas}
 
-def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
-    log.info("{}", cells)
-    if cells:
-        plaslist = []
-        for cell in cells:
-            for br in range(len(synPop)):
-                compname = re.sub('/.*?/', '/x', synPop[br].path)
-
-                # remove after testing
-                p = synPop[br].path.split('/')
-                compname2 = p[2] + '/' + p[3]
-                assert compname == compname2
-
-                synchan=moose.element(cell+'/'+compname)
-                log.debug("{} {} {}", cell, compname, synchan)
-                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
-        return plastlist
-    else:
-        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact)
-                for synchan in synPop]
+def addPlasticity(cell_pop,caplas_params):
+    log.debug("{} {}", cell_pop,dir(caplas_params))
+    for cell in cell_pop:
+        allsyncomp_list=moose.wildcardFind(cell+'/##[ISA=SynChan]')
+        for synchan in allsyncomp_list:
+            #add another  condition - only if there is pre-synaptic connection
+            if caplas_params.syntype in synchan.path:
+                log.debug("{} {}", cell, synchan.path)
+                plasticity(synchan,
+                           caplas_params.highThresh,
+                           caplas_params.lowThresh,
+                           caplas_params.highfactor,
+                           caplas_params.lowfactor)
+    return 
