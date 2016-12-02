@@ -98,9 +98,10 @@ def timetable_input(cells, netparams, postype, NumSyn):
 def connect_neurons(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    connect_list = defaultdict(dict)
+    connect_list = {}
     #loop over post-synaptic neurons
     for postcell in cells[postype]:
+        connect_list[postcell.name]={}
         postsoma=postcell+'/'+NAME_SOMA
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
@@ -108,6 +109,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
         #set-up array of post-synapse compartments/synchans
         allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
+            connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
             log.debug('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
@@ -136,8 +138,9 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             synpath,syncomps=select_entry(syncomps)
                             log.debug('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
                             #list of connections for further processing if desired.  Assumes one conn per synpath (which might be a problem)
-                            connect_list[postcell][synpath]={'postloc':(xpost,ypost,zpost),'pre':presoma,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
-                            log.debug('{}',connect_list[postcell][synpath])
+                            postbranch=moose.element(synpath).parent.name
+                            connect_list[postcell][syntype][postbranch]={'postloc':(xpost,ypost,zpost),'pre':precell,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
+                            log.debug('{}',connect_list[postcell][syntype])
                             #connect the synapse
                             synconn(synpath,dist,spikegen,netparams.mindelay,netparams.cond_vel)
     return connect_list

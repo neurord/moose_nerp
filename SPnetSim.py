@@ -52,14 +52,14 @@ MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
 #allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
 
 #create network and plasticity
-population=create_network.create_network(d1d2, param_net)
+population,connections=create_network.create_network(d1d2, param_net)
 
 #NEXT:
-# delete extern_conn.py,
+# debug connection array and plasticity creation
+#3: tackle tables and graphs for both single and network: create capools, comps, etc, then
 # eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
 # e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
 
-#3: tackle tables and graphs for both single and network
 #4: Think about how to connect two different networks, e.g. striatum and GP
 
 #Types of spike train correlations

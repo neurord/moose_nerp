@@ -50,7 +50,7 @@ def create_population(container, netparams):
                 #for each location in grid, assign neuron type, update soma location, add in spike generator
 		neurnumber=i*size[2]*size[1]+j*size[2]+k
 		neurtypenum=np.min(np.where(rannum[neurnumber]<choicearray))
-                log.info("i,j,k {} {} {} neurnumber {} type {}", i,j,k, neurnumber, neurtypenum)
+                log.debug("i,j,k {} {} {} neurnumber {} type {}", i,j,k, neurnumber, neurtypenum)
 		typename = proto[neurtypenum].name
 		tag = '{}_{}'.format(typename, neurnumber)
 		new_neuron=moose.copy(proto[neurtypenum],netpath, tag)

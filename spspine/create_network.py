@@ -15,7 +15,6 @@ from spspine import (pop_funcs,
 log = logutil.Logger()
 
 def create_network(model, param_net):
-    print ("syn", model.synYN, "single", model.single)
     #create all timetables
     param_net.TableSet.create_all()
     #
