@@ -8,6 +8,7 @@ import numpy as np
 
 from spspine import constants, logutil
 from spspine.util import NamedList, distance_mapping
+from spspine.spines import NAME_HEAD
 log = logutil.Logger()
 
 SynChannelParams = NamedList('SynChannelParams',
@@ -102,7 +103,7 @@ def add_synchans(model, container):
             Gbar = model.SYNAPSE_TYPES[key].Gbar
             Gbarvar=model.SYNAPSE_TYPES[key].var
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
-                if 'head' in spcomp.path:
+                if NAME_HEAD in spcomp.path:
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
         ########### delete from here to allsynchans= once pop_funcs debugged ################
         #calculate distance from soma

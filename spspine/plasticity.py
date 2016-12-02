@@ -9,9 +9,9 @@ import moose
 from spspine import logutil
 log = logutil.Logger()
 
-def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
+def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/caPool'
+    calname = compname + '/'+NAME_CALCIUM
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
@@ -51,7 +51,7 @@ def addPlasticity(cell_pop,caplas_params):
             #add another  condition - only if there is pre-synaptic connection
             if caplas_params.syntype in synchan.path:
                 log.debug("{} {}", cell, synchan.path)
-                plasticity(synchan,
+                plasticity(synchan,caplas_params.NAME_CALCIUM,
                            caplas_params.highThresh,
                            caplas_params.lowThresh,
                            caplas_params.highfactor,

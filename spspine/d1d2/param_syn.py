@@ -51,6 +51,11 @@ SYNAPSE_TYPES = NamedDict(
     nmda = _SynNMDA,
 )
 
+#These will be used by synconn in connect.py, since AMPA and NMDA synapses usually go together
+#for same reason, the next lines only list ampa and gaba, and nmda are created the same as ampa
+NAME_AMPA='ampa'
+NAME_NMDA='nmda'
+
 # number of synapses at each distance
 _gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}

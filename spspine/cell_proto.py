@@ -13,6 +13,7 @@ from spspine import (calcium,
                      util as _util,
                      logutil)
 log = logutil.Logger()
+NAME_SOMA='soma'
 
 def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
@@ -87,7 +88,7 @@ def neuronclasses(model):
         neuron[ntype]=create_neuron(model, ntype, model.ghkYN)
         #optionally add spines
         if model.spineYN:
-            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN)
+            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN,NAME_SOMA)
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
@@ -116,5 +117,5 @@ def neuronclasses(model):
                         calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if model.synYN:
-                calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)
+                calcium.connectNMDA(synArray[ntype][model.param_syn.NAME_NMDA], model.ghkYN)
     return synArray,neuron,caPools,numSynArray,headArray

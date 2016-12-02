@@ -11,10 +11,9 @@ import numpy as np
 import moose
 
 from spspine import logutil, util
+from spspine.d1d2.param_syn import NAME_AMPA,NAME_NMDA
+from spspine.cell_proto import NAME_SOMA
 log = logutil.Logger()
-
-AMPAname='ampa'
-NMDAname='nmda'
 
 def plain_synconn(synchan,presyn,syn_delay):
     shname=synchan.path+'/SH'
@@ -27,10 +26,9 @@ def plain_synconn(synchan,presyn,syn_delay):
     log.debug('SYNAPSE: {} index {} num {} delay {}', synchan.path, jj, sh.synapse.num, sh.synapse[jj].delay)
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
-        m = moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
+        moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
     else:
-        m = moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
-    return
+        moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
 
 def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
     presyn=moose.element(presyn_path)
@@ -41,12 +39,11 @@ def synconn(synpath,dist,presyn_path,mindel=1e-3,cond_vel=0.8):
     synchan=moose.element(synpath)
     plain_synconn(synchan,presyn,syn_delay)
                 
-    if synchan.name==AMPAname:
-       nmda_synpath=synchan.parent.path+'/'+NMDAname
+    if synchan.name==NAME_AMPA:
+       nmda_synpath=synchan.parent.path+'/'+NAME_NMDA
        if moose.exists(nmda_synpath):
            nmda_synchan=moose.element(nmda_synpath)
            plain_synconn(nmda_synchan,presyn,syn_delay)
-    return
 
 def select_entry(table):
     row=np.random.random_integers(0,len(table)-1)
@@ -89,7 +86,7 @@ def timetable_input(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     for postcell in cells[postype]:
-        postsoma=postcell+'/soma'
+        postsoma=postcell+'/'+NAME_SOMA
         allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
@@ -97,16 +94,14 @@ def timetable_input(cells, netparams, postype, NumSyn):
             for pretype in post_connections[syntype].keys():
                 if 'extern' in pretype:
                     connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
-    return
                     
 def connect_neurons(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    connect_list={}
+    connect_list = defaultdict(dict)
     #loop over post-synaptic neurons
     for postcell in cells[postype]:
-        connect_list[postcell]={}
-        postsoma=postcell+'/soma'
+        postsoma=postcell+'/'+NAME_SOMA
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
         zpost=moose.element(postsoma).z
@@ -123,7 +118,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                 else:
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
                     for precell in cells[pretype]:
-                        presoma=precell+'/soma'
+                        presoma=precell+'/'+NAME_SOMA
                         fact=post_connections[syntype][pretype].space_const
                         xpre=moose.element(presoma).x
                         ypre=moose.element(presoma).y

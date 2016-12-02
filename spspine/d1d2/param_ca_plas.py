@@ -1,4 +1,4 @@
-from spspine.calcium import cabuf_params
+from spspine.calcium import cabuf_params,NAME_CALCIUM
 
 #example of how to specify calcium buffers.
 #new def in calcium.py will loop over items in cabuf dictionary and create buffers

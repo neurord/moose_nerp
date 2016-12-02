@@ -15,6 +15,7 @@ from spspine import (pop_funcs,
 log = logutil.Logger()
 
 def create_network(model, param_net):
+    print ("syn", model.synYN, "single", model.single)
     #create all timetables
     param_net.TableSet.create_all()
     #
@@ -50,4 +51,4 @@ def create_network(model, param_net):
     if model.calYN and model.plasYN:
         for ntype in striatum_pop['pop'].keys():
                 plasticity.addPlasticity(striatium_pop['pop'][ntype],model.CaPlasticityParams)
-    return striatum_pop
+    return striatum_pop, connections

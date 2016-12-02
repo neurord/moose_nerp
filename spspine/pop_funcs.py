@@ -7,6 +7,7 @@ import numpy as np
 import moose
 
 from spspine import logutil, util
+from spspine.cell_proto import NAME_SOMA
 log = logutil.Logger()
 
 def count_neurons(netparams):
@@ -54,7 +55,7 @@ def create_population(container, netparams):
 		tag = '{}_{}'.format(typename, neurnumber)
 		new_neuron=moose.copy(proto[neurtypenum],netpath, tag)
 		neurXclass[typename].append(container.path + '/' + tag)
-		comp=moose.Compartment(new_neuron.path + '/soma')
+		comp=moose.Compartment(new_neuron.path + '/'+NAME_SOMA)
 		comp.x=i*xloc
 		comp.y=j*yloc
 		comp.z=k*zloc
