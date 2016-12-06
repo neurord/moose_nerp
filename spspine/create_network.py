@@ -14,15 +14,15 @@ from spspine import (pop_funcs,
                      logutil)
 log = logutil.Logger()
 
-def create_network(model, param_net):
+def create_network(model, param_net,neur_protos=[]):
     #create all timetables
     param_net.TableSet.create_all()
     #
     if model.single:
         #fix this kluge? Potentially may need to know neurontypes/names of multiple neurons 
         striatum_pop={'pop':{},'location':{}}
-        for ntype in model.neurontypes():
-            striatum_pop['pop'][ntype]=["/"+ntype]
+        for ntype in neur_protos.keys():
+            striatum_pop['pop'][ntype]=neur_protos[ntype].path
         #subset of check_param_net
         num_postsyn,num_postcells=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,striatum_pop['pop'])
         tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells)

@@ -44,11 +44,9 @@ def create_neuron(model, ntype, ghkYN):
     except IOError:
         print('could not load model from {!r}'.format(p_file))
         raise
-    comps=[]
     #######channels
     Cond = model.Condset[ntype]
     for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
-        comps.append(comp)
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
         #Possibly this should be replaced by pathlength
@@ -69,7 +67,7 @@ def create_neuron(model, ntype, ghkYN):
                 log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = chanparams.calciumPermeable
                 addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
-    return {'comps': comps, 'cell': cellproto}
+    return cellproto
 
 def neuronclasses(model):
     ##create channels in the library
@@ -79,7 +77,6 @@ def neuronclasses(model):
     neuron={}
     synArray={}
     numSynArray={}
-    caPools={}
     headArray={}
     for ntype in model.neurontypes():
         protoname='/library/'+ntype
@@ -92,7 +89,6 @@ def neuronclasses(model):
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
-        caPools[ntype]=[]
     #Calcium concentration - also optional
     #possibly when FS are added will change this to avoid calcium in the FSI
     #This is single tau calcium. 
@@ -107,7 +103,6 @@ def neuronclasses(model):
         for ntype in model.neurontypes():
             for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
                 capool=calcium.addCaPool(model, comp)
-                caPools[ntype].append(capool)
                 calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
             #if there are spines, calcium will be added to the spine head
             if model.spineYN:
@@ -118,4 +113,4 @@ def neuronclasses(model):
             #if there are synapses, NMDA will be connected to set of calcium pools
             if model.synYN:
                 calcium.connectNMDA(synArray[ntype][model.param_syn.NAME_NMDA], model.ghkYN)
-    return synArray,neuron,caPools,numSynArray,headArray
+    return synArray,neuron,headArray

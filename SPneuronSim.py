@@ -40,8 +40,10 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
-
+d1d2.spineYN=1
+d1d2.calYN=1
+d1d2.synYN=1
+MSNsyn,neuron,spineHeads = cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
     syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
@@ -62,7 +64,7 @@ if param_sim.plot_channels:
 vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
-                                                 capools,plas,syn)
+                                                 plas,syn)
 #if sim.spineYesNo:
 #    spinecatab,spinevmtab=spinetabs()
 ########## clocks are critical. assign_clocks also sets up the hsolver

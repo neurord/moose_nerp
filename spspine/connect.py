@@ -101,7 +101,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
     connect_list = {}
     #loop over post-synaptic neurons
     for postcell in cells[postype]:
-        connect_list[postcell.name]={}
+        connect_list[postcell]={}
         postsoma=postcell+'/'+NAME_SOMA
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y

@@ -46,21 +46,19 @@ d1d2.synYN=True
 d1d2.single=0
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
-#FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)
-#allneurons=[]
-#allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
+MSNsyn,neuron,spineHeads = cell_proto.neuronclasses(d1d2)
+
+#for additional prototypes to be used in same network
+#all_neur_types=neuron
+#FSIsyn,neuron,spineHeads = cell_proto.neuronclasses(FSI)
+#all_neur_types.append(neuron)  #how to append/merge dictionaries?
 
 #create network and plasticity
 population,connections=create_network.create_network(d1d2, param_net)
+#population,connections=create_network.create_network(d1d2, param_net, all_neur_types)
 
 #NEXT:
-# debug connection array and plasticity creation
-#3: tackle tables and graphs for both single and network: create capools, comps, etc, then
-# eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
-# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
-
-#4: Think about how to connect two different networks, e.g. striatum and GP
+#debug network graphs
 
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
@@ -79,6 +77,7 @@ population,connections=create_network.create_network(d1d2, param_net)
 #C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
 #                                      b. 3D arrays of elements
 #D. debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
+#E: Think about how to connect two different networks, e.g. striatum and GP
 
 ###------------------Current Injection
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
