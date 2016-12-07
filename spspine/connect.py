@@ -89,6 +89,8 @@ def timetable_input(cells, netparams, postype, NumSyn):
         postsoma=postcell+'/'+NAME_SOMA
         allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
+            #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
+            #allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
             log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
             for pretype in post_connections[syntype].keys():
@@ -109,6 +111,8 @@ def connect_neurons(cells, netparams, postype, NumSyn):
         #set-up array of post-synapse compartments/synchans
         allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
+            #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
+            #allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)

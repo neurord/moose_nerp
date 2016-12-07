@@ -89,7 +89,6 @@ def add_synchans(model, container):
     allkeys = sorted(model.SYNAPSE_TYPES)
 
     # i indexes compartment for array that stores number of synapses
-    SynPerComp={}
     for i, comp in enumerate(comp_list):
                 
         #create each type of synchan in each compartment.  Add to 2D array
@@ -113,13 +112,9 @@ def add_synchans(model, container):
         #create array of number of synapses per compartment based on distance
         #possibly replace NumGlu[] with number of spines, or eliminate this if using real morph
         #Check in ExtConn - how is SynPerComp used
-        for j,syntype in enumerate(model.NumSyn.keys()):
-            SynPerCompList[i,j] = distance_mapping(model.NumSyn[syntype], dist)
-    for j,syntype in enumerate(model.NumSyn.keys()):
-        SynPerComp[syntype]=SynPerCompList[:,j]
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
     allsynchans={key:synchans[keynum]
                  for keynum, key in enumerate(sorted(model.SYNAPSE_TYPES))}
 
-    return SynPerComp,allsynchans
+    return allsynchans

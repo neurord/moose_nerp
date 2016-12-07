@@ -37,7 +37,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = True
 
-    MSNsyn,neuron,spineHeads = \
+    MSNsyn,neuron = \
         cell_proto.neuronclasses(d1d2)
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
@@ -91,7 +91,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = bool(single)
 
-    MSNsyn,neuron,spineHeads = cell_proto.neuronclasses(d1d2)
+    MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
     population,connection = create_network.CreateNetwork(d1d2, param_net)
 

@@ -46,11 +46,11 @@ d1d2.synYN=True
 d1d2.single=0
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,spineHeads = cell_proto.neuronclasses(d1d2)
+MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
 #for additional prototypes to be used in same network
 #all_neur_types=neuron
-#FSIsyn,neuron,spineHeads = cell_proto.neuronclasses(FSI)
+#FSIsyn,neuron = cell_proto.neuronclasses(FSI)
 #all_neur_types.append(neuron)  #how to append/merge dictionaries?
 
 #create network and plasticity
@@ -58,8 +58,13 @@ population,connections=create_network.create_network(d1d2, param_net)
 #population,connections=create_network.create_network(d1d2, param_net, all_neur_types)
 
 #NEXT:
-#debug network graphs
+#debug graphs
+#debug network tables& graphs
+#eliminate numSynArray[ntype] in cell_proto and add_synchans
+#if passed MSNsyn into create_network, could eliminate creating such array in connect and if syntype statement
 
+#PYTHONPATH=. py.test -v
+#runs the tests - do this prior to commit.
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
 #       parameter specifying range or mean number.  Randomly select how many and repeat calls to
@@ -85,7 +90,7 @@ pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_widt
 ##############--------------output elements
 data = moose.Neutral('/data')
 if param_sim.show_xxx:
-    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,capools,SynPlas,spineHeads)
+    vmtab,syntab,catab,plastab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,SynPlas)
 else:
     vmtab=[]
 

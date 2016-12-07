@@ -29,7 +29,7 @@ from spspine import (cell_proto,
                      util,
                      standard_options)
 from spspine import d1d2
-from spspine.graph import plot_channel, neuron_graph
+from spspine.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options()
 param_sim = option_parser.parse_args()
@@ -43,7 +43,7 @@ log = logutil.Logger()
 d1d2.spineYN=1
 d1d2.calYN=1
 d1d2.synYN=1
-MSNsyn,neuron,spineHeads = cell_proto.neuronclasses(d1d2)
+MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
     syn,plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
@@ -65,8 +65,8 @@ vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
                                                  plas,syn)
-#if sim.spineYesNo:
-#    spinecatab,spinevmtab=spinetabs()
+if d1d2.spineYN:
+    spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
@@ -78,6 +78,7 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
+param_sim.simtime=0.01
 if __name__ == '__main__':
     traces, names = [], []
     for inj in param_sim.injection_current:
@@ -88,8 +89,8 @@ if __name__ == '__main__':
         traces.append(vmtab[1][0].vector)
         names.append('D1 @ {}'.format(inj))
         names.append('D2 @ {}'.format(inj))
-        #if d1d2.spineYN:
-        #    spineFig(spinecatab,spinevmtab)
+        if d1d2.spineYN:
+            spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode

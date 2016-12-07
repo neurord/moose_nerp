@@ -29,7 +29,7 @@ from spspine import (cell_proto,
                      util,
                      standard_options)
 from spspine import gp
-from spspine.graph import plot_channel, neuron_graph
+from spspine.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(default_injection_current=[0.1e-9])
 param_sim = option_parser.parse_args()
@@ -40,7 +40,7 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(gp)
+MSNsyn,neuron = cell_proto.neuronclasses(gp)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
@@ -63,9 +63,9 @@ if param_sim.plot_channels:
 vmtab,catab,plastab,currtab = tables.graphtables(gp, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
-                                                 capools,plas,syn)
-#if sim.spineYesNo:
-#    spinecatab,spinevmtab=spinetabs()
+                                                 plas,syn)
+if gp.spineYN:
+    spinecatab,spinevmtab=tables.spinetabs(gp,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in gp.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
@@ -87,8 +87,8 @@ if __name__ == '__main__':
         #traces.append(vmtab[1][0].vector)
         names.append('GP @ {}'.format(inj))
         #names.append('D2 @ {}'.format(inj))
-        #if gp.spineYN:
-        #    spineFig(spinecatab,spinevmtab)
+        if gp.spineYN:
+            spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode

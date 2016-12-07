@@ -76,7 +76,6 @@ def neuronclasses(model):
     ##now create the neuron prototypes
     neuron={}
     synArray={}
-    numSynArray={}
     headArray={}
     for ntype in model.neurontypes():
         protoname='/library/'+ntype
@@ -88,9 +87,8 @@ def neuronclasses(model):
             headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN,NAME_SOMA)
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
-            numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
+            synArray[ntype] = syn_proto.add_synchans(model, ntype)
     #Calcium concentration - also optional
-    #possibly when FS are added will change this to avoid calcium in the FSI
     #This is single tau calcium. 
     #Next step: change model.calYN to caltype, allowing
     #   0: none
@@ -113,4 +111,4 @@ def neuronclasses(model):
             #if there are synapses, NMDA will be connected to set of calcium pools
             if model.synYN:
                 calcium.connectNMDA(synArray[ntype][model.param_syn.NAME_NMDA], model.ghkYN)
-    return synArray,neuron,headArray
+    return synArray,neuron
