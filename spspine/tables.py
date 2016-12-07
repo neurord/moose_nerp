@@ -23,18 +23,18 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
             for channame in model.Channels:
                 currtab[ntype][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,ntype,ii)) for ii in range(len(neur_comps))]
 
-    for ntype in neuron.keys():
-        neur_comps = moose.wildcardFind(ntype + '/#[TYPE=Compartment]')
+    for typenum,neur_type in enumerate(neuron.keys()):
+        neur_comps = moose.wildcardFind(neur_type + '/##[TYPE=Compartment]')
+        vmtab.append([moose.Table('/data/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
         for ii,comp in enumerate(neur_comps):
-            vmtab.append(moose.Table('/data/Vm%s_%d' % (ntype,ii)))
-            moose.connect(vmtab[ii], 'requestOut', comp, 'getVm')
+            moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
         if model.calYN:
-            for ii,cal in enumerate(moose.wildcardFind(ntype + '/##[ISA=CaConc]')):
-                catab.append(moose.Table('/data/Ca%s_%d' % (ntype,ii)))
-                moose.connect(catab[ii], 'requestOut', cal, 'getCa')
+            catab.append([moose.Table('/data/Ca%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
+            for ii,cal in enumerate(moose.wildcardFind(neur_type + '/##[ISA=CaConc]')):
+                moose.connect(catab[typenum][ii], 'requestOut', cal, 'getCa')
         if pltcurr:
             for channame in model.Channels:
-                for tab, comp in zip(currtab[ntype][channame], neur_comps):
+                for tab, comp in zip(currtab[neur_type][channame], neur_comps):
                     path = comp.path+'/'+channame
                     try:
                         chan=moose.element(path)
@@ -47,13 +47,13 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
     plastab=[]
     plasCumtab=[]
     if len(plas):
-        for num,ntype in enumerate(model.neurontypes()):
-            plastab.append(moose.Table('/data/plas' + ntype))
-            plasCumtab.append(moose.Table('/data/plasCum' + ntype))
-            syntab.append(moose.Table('/data/synwt' + ntype))
-            moose.connect(plastab[num], 'requestOut', plas[ntype]['plas'], 'getValue')
-            moose.connect(plasCumtab[num], 'requestOut', plas[ntype]['cum'], 'getValue')
-            shname=syn[ntype].path+'/SH'
+        for num,neur_type in enumerate(model.neuroneur_types()):
+            plastab.append(moose.Table('/data/plas' + neur_type))
+            plasCumtab.append(moose.Table('/data/plasCum' + neur_type))
+            syntab.append(moose.Table('/data/synwt' + neur_type))
+            moose.connect(plastab[num], 'requestOut', plas[neur_type]['plas'], 'getValue')
+            moose.connect(plasCumtab[num], 'requestOut', plas[neur_type]['cum'], 'getValue')
+            shname=syn[neur_type].path+'/SH'
             sh=moose.element(shname)
             moose.connect(syntab[num], 'requestOut',sh.synapse[0],'getWeight')
     #
