@@ -40,9 +40,6 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-d1d2.spineYN=1
-d1d2.calYN=1
-d1d2.synYN=1
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
@@ -78,7 +75,6 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-param_sim.simtime=0.01
 if __name__ == '__main__':
     traces, names = [], []
     for inj in param_sim.injection_current:
