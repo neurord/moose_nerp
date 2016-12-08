@@ -5,6 +5,8 @@ import numpy as np
 
 from collections import defaultdict
 from spspine.calcium import NAME_CALCIUM
+from spspine.spines import NAME_HEAD
+
 from . import logutil
 log = logutil.Logger()
 
@@ -44,7 +46,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
     plastab=[]
     plasCumtab=[]
     if len(plas):
-        for num,neur_type in enumerate(model.neuroneur_types()):
+        for num,neur_type in enumerate(syn.keys()):
             plastab.append(moose.Table('/data/plas' + neur_type))
             plasCumtab.append(moose.Table('/data/plasCum' + neur_type))
             syntab.append(moose.Table('/data/synwt' + neur_type))
@@ -61,14 +63,15 @@ def spinetabs(model,neuron):
     spvmtab = defaultdict(list)
     for typenum,neurtype in enumerate(neuron.keys()):
         spineHeads=moose.wildcardFind(neurtype+'/##/#head#[ISA=Compartment]')
-        for headnum,head in enumerate(spineHeads):
-            headname = head.parent.name
-            spvmtab[typenum].append(moose.Table('/data/SpVm%s_%s' % (neurtype,headname)))
-            log.debug('{} {} {}', headnum,head, spvmtab[typenum][headnum])
-            moose.connect(spvmtab[typenum][headnum], 'requestOut', head, 'getVm')
+        for spinenum,spine in enumerate(spineHeads):
+            compname = spine.parent.name
+            sp_num=spine.name.split(NAME_HEAD)[0]
+            spvmtab[typenum].append(moose.Table('/data/Vm%s_%s%s' % (neurtype,sp_num,compname)))
+            log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
+            moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
             if model.calYN:
-                spcatab[typenum].append(moose.Table('/data/SpCa%s_%s' % (neurtype,headname)))
-                spcal=moose.element(head.path+'/'+NAME_CALCIUM)
-                moose.connect(spcatab[typenum][headnum], 'requestOut', spcal, 'getCa')
+                spcatab[typenum].append(moose.Table('/data/Ca%s_%s%s' % (neurtype,sp_num,compname)))
+                spcal=moose.element(spine.path+'/'+NAME_CALCIUM)
+                moose.connect(spcatab[typenum][spinenum], 'requestOut', spcal, 'getCa')
     return spcatab,spvmtab
 

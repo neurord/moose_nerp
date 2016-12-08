@@ -60,7 +60,7 @@ def addSpines(model, container,ghkYN,NAME_SOMA):
             for index in range(numSpines):
                 frac=(index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
-                head=makeSpine(model, comp, 'spine',index, frac, SpineParams.necklen, SpineParams.neckdia, SpineParams.headdia)
+                head=makeSpine(model, comp, 'sp',index, frac, SpineParams.necklen, SpineParams.neckdia, SpineParams.headdia)
                 headarray.append(head)
                 if SpineParams.spineChanList:
                     if ghkYN:
