@@ -83,10 +83,9 @@ if __name__ == '__main__':
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         neuron_graph.graphs(gp, vmtab, param_sim.plot_current, param_sim.simtime,
                             currtab,param_sim.plot_current_label, catab, plastab)
-        traces.append(vmtab[0][0].vector)
-        #traces.append(vmtab[1][0].vector)
-        names.append('GP @ {}'.format(inj))
-        #names.append('D2 @ {}'.format(inj))
+        for neurnum,neurtype in enumerate(gp.neurontypes()):
+            traces.append(vmtab[neurnum][0].vector)
+            names.append('{} @ {}'.format(neurtype, inj))
         if gp.spineYN:
             spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)

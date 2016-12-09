@@ -39,7 +39,6 @@ log = logutil.Logger()
 
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
-
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
@@ -48,7 +47,6 @@ else:
     syn,plas = {}, {}
 
 ####---------------Current Injection
-
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay, param_sim.injection_width, neuron)
 
 ###############--------------output elements
@@ -81,10 +79,11 @@ if __name__ == '__main__':
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         neuron_graph.graphs(d1d2, vmtab, param_sim.plot_current, param_sim.simtime,
                             currtab,param_sim.plot_current_label, catab, plastab)
-        traces.append(vmtab[0][0].vector)
-        traces.append(vmtab[1][0].vector)
-        names.append('D1 @ {}'.format(inj))
-        names.append('D2 @ {}'.format(inj))
+        for neurnum,neurtype in enumerate(d1d2.neurontypes()):
+            traces.append(vmtab[neurnum][0].vector)
+            names.append('{} @ {}'.format(neurtype, inj))
+            # In Python3.6, the following syntax works:
+            #names.append(f'{neurtype} @ {inj}')
         if d1d2.spineYN:
             spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
