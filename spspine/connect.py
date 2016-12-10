@@ -58,13 +58,13 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
     totalsyn=0
     for syncomp in allsyncomp_list:
-        if syncomp.name==syntype:
-            xloc=syncomp.parent.x
-            yloc=syncomp.parent.y
-            dist=np.sqrt(xloc*xloc+yloc*yloc)
-            SynPerComp = util.distance_mapping(NumSyn[syntype], dist)
-            syncomps.append([syncomp.path,SynPerComp])
-            totalsyn+=SynPerComp
+        #if syncomp.name==syntype:
+        xloc=syncomp.parent.x
+        yloc=syncomp.parent.y
+        dist=np.sqrt(xloc*xloc+yloc*yloc)
+        SynPerComp = util.distance_mapping(NumSyn[syntype], dist)
+        syncomps.append([syncomp.path,SynPerComp])
+        totalsyn+=SynPerComp
     return syncomps,totalsyn
 
 def connect_timetable(post_connection,syncomps,totalsyn,netparams):
@@ -86,13 +86,12 @@ def timetable_input(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     for postcell in cells[postype]:
-        postsoma=postcell+'/'+NAME_SOMA
-        allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
+        #allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
             #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
-            #allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
+            allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
-            log.info('SYN TABLE for {} {} has {} compartments and {} synapses', postsoma, syntype, len(syncomps),totalsyn)
+            log.info('SYN TABLE for {} has {} compartments and {} synapses', syntype, len(syncomps),totalsyn)
             for pretype in post_connections[syntype].keys():
                 if 'extern' in pretype:
                     connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
@@ -101,7 +100,10 @@ def connect_neurons(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     connect_list = {}
-    #loop over post-synaptic neurons
+    #loop over post-synaptic neurons - convert to list if only singe instance of any type
+    if not isinstance(cells[postype],list):
+        temp=cells[postype]
+        cells[postype]=list([temp])
     for postcell in cells[postype]:
         connect_list[postcell]={}
         postsoma=postcell+'/'+NAME_SOMA
@@ -109,10 +111,10 @@ def connect_neurons(cells, netparams, postype, NumSyn):
         ypost=moose.element(postsoma).y
         zpost=moose.element(postsoma).z
         #set-up array of post-synapse compartments/synchans
-        allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
+        #allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
             #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
-            #allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
+            allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)

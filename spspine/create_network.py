@@ -21,13 +21,13 @@ def create_network(model, param_net,neur_protos=[]):
     if model.single:
         striatum_pop={'pop':{},'location':{}}
         for ntype in neur_protos.keys():
-            striatum_pop['pop'][ntype]=neur_protos[ntype].path
+            striatum_pop['pop'][ntype]=list([neur_protos[ntype].path])
         #subset of check_param_net
         num_postsyn,num_postcells=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,striatum_pop['pop'])
         tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells)
         #
         for ntype in striatum_pop['pop'].keys():
-            connections=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn )
+            connections=connect.timetable_input(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn )
         #
     else:
         #check_connect.check_netparams(param_net,model.param_syn.NumSyn)

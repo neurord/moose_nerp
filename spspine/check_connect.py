@@ -23,11 +23,16 @@ def count_postsyn(netparams,synapse_density,population):
     num_postcells={}  #dictionary of number of cells by type
     num_postsyn={}   #dictionary of post-synaptic receptors by cell type and synaptic receptor
     for ntype in netparams.connect_dict.keys():   #top level key is post-synaptic type
+        #convert to list if only singe instance of any cell type
+        if not isinstance(population[ntype],list):
+            temp=population[ntype]
+            population[ntype]=list([temp])
         num_postcells[ntype]=len(population[ntype])
         num_postsyn[ntype]={}
         neur_proto=moose.element(ntype).path
-        allsyncomp_list = moose.wildcardFind(neur_proto + '/##[ISA=SynChan]')
+        #allsyncomp_list = moose.wildcardFind(neur_proto + '/##[ISA=SynChan]')
         for syntype in netparams.connect_dict[ntype].keys():  #next level is synaptic receptor
+            allsyncomp_list = moose.wildcardFind(neur_proto + '/##/'+syntype+'[ISA=SynChan]')
             syncomps,totalsyn=connect.create_synpath_array(allsyncomp_list,syntype,synapse_density)
             num_postsyn[ntype][syntype]=num_postcells[ntype]*totalsyn
     return num_postsyn,num_postcells
