@@ -15,18 +15,9 @@ def setupinj(model, delay,width,neuron_pop):
     pg.firstDelay = delay
     pg.firstWidth = width
     pg.secondDelay = 1e9
-    if model.single:
-        #Note that this code assumes that neuron_pop is the set of prototyes if model.single
-         for neurtype in neuron_pop.keys():
-            comp=moose.element(neurtype + '/'+NAME_SOMA)
-            print("INJECT:",neurtype, neuron_pop[neurtype],comp.path)
-            moose.connect(pg, 'output', comp, 'injectMsg')  
-    else:
-        #Note that this code assumes that neuron_pop is the set of neurons if network
-        for ntype in neuron_pop['pop'].keys():
-            for num, name in enumerate(neuron_pop['pop'][ntype]):
-                neuron=moose.element(name)
-                injectcomp=moose.element(neuron +'/'+NAME_SOMA)
-                print("INJECT:", name, injectcomp.path)
-                moose.connect(pg, 'outputOut', injectcomp, 'injectMsg')  
+    for ntype in neuron_pop.keys():
+        for num, name in enumerate(neuron_pop[ntype]):
+            injectcomp=moose.element(name +'/'+NAME_SOMA)
+            print("INJECT:", name, injectcomp.path)
+            moose.connect(pg, 'output', injectcomp, 'injectMsg')  
     return pg

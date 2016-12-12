@@ -46,7 +46,8 @@ def create_network(model, param_net,neur_protos=[]):
         np.savez(param_net.confile,conn=connections,loc=striatum_pop['location'])
 
         ##### add Synaptic Plasticity if specified, requires calcium
+    plascum=[]
     if model.calYN and model.plasYN:
         for ntype in striatum_pop['pop'].keys():
-                plasticity.addPlasticity(striatium_pop['pop'][ntype],model.CaPlasticityParams)
-    return striatum_pop, connections
+                plascum[ntype]=plasticity.addPlasticity(striatium_pop['pop'][ntype],model.CaPlasticityParams)
+    return striatum_pop, connections, plascum

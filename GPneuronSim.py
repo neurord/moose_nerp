@@ -49,7 +49,9 @@ else:
     syn,plas = {}, {}
 
 ####---------------Current Injection
-
+all_neurons={}
+for ntype in neuron.keys():
+    all_neurons[ntype]=list([neuron[ntype].path])
 pg=inject_func.setupinj(gp, param_sim.injection_delay, param_sim.injection_width, neuron)
 
 ###############--------------output elements

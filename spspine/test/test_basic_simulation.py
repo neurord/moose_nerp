@@ -40,7 +40,10 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     MSNsyn,neuron = \
         cell_proto.neuronclasses(d1d2)
 
-    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
+    all_neurons={}
+    for ntype in neuron.keys():
+        all_neurons[ntype]=list([neuron[ntype].path])
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, all_neurons)
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')
@@ -95,7 +98,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     population,connection = create_network.CreateNetwork(d1d2, param_net)
 
-    pg = inject_func.setupinj(d1d2, 0.02, 0.01, population)
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')

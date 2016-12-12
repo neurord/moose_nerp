@@ -8,6 +8,8 @@ import moose
 
 from spspine import logutil
 log = logutil.Logger()
+NAME_PLAS='/plas'
+NAME_CUM='Cum'
 
 def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
@@ -18,7 +20,7 @@ def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
 
     log.info("{} {} {}", synchan.path, sh.synapse[0], cal.path)
 
-    plasname=compname+'/plas'
+    plasname=compname+'/'+NAME_PLAS
     plas=moose.Func(plasname)
     #FIRST: calculate the amount of plasticity
     #y is input plasticity trigger (e.g. Vm or Ca) 
@@ -32,7 +34,7 @@ def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
     plas.x=Thigh
     plas.z=Tlow
     #SECOND: accumulate all the changes, as percent increase or decrease
-    plasCum=moose.Func(plasname+'Cum')
+    plasCum=moose.Func(plasname+NAME_CUM)
     #need input from the plasticity thresholding function to y 
     moose.connect(plas,'valueOut',plasCum,'xIn')
     moose.connect(plasCum,'valueOut',plasCum, 'yIn')
@@ -45,15 +47,17 @@ def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
 
 def addPlasticity(cell_pop,caplas_params):
     log.debug("{} {}", cell_pop,dir(caplas_params))
+    plascum=[]
     for cell in cell_pop:
-        allsyncomp_list=moose.wildcardFind(cell+'/##[ISA=SynChan]')
+        allsyncomp_list=moose.wildcardFind(cell+'/##/'+caplas_params.syntype+'[ISA=SynChan]')
+        #allsyncomp_list=moose.wildcardFind(cell+'/##[ISA=SynChan]')
         for synchan in allsyncomp_list:
             #add another  condition - only if there is pre-synaptic connection
-            if caplas_params.syntype in synchan.path:
+            #if caplas_params.syntype in synchan.path:
                 log.debug("{} {}", cell, synchan.path)
-                plasticity(synchan,caplas_params.NAME_CALCIUM,
+                plascum.append(plasticity(synchan,caplas_params.NAME_CALCIUM,
                            caplas_params.highThresh,
                            caplas_params.lowThresh,
                            caplas_params.highfactor,
-                           caplas_params.lowfactor)
-    return 
+                           caplas_params.lowfactor))
+    return plascum

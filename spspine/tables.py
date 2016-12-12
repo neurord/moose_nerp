@@ -6,6 +6,7 @@ import numpy as np
 from collections import defaultdict
 from spspine.calcium import NAME_CALCIUM
 from spspine.spines import NAME_HEAD
+DATA_NAME='/data'
 
 from . import logutil
 log = logutil.Logger()
@@ -17,22 +18,23 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
     catab=[]
     currtab=defaultdict(list)
     # Make sure /data exists
-    moose.Neutral('/data')
+    if not moose.exists(DATA_NAME):
+        moose.Neutral(DATA_NAME)
     
     for typenum,neur_type in enumerate(neuron.keys()):
         neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
-        vmtab.append([moose.Table('/data/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
+        vmtab.append([moose.Table(DATA_NAME+'/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
         if model.calYN:
-            catab.append([moose.Table('/data/Ca%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
+            catab.append([moose.Table(DATA_NAME+'/Ca%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
             for ii,comp in enumerate(neur_comps):
                 cal=moose.element(comp.path+'/'+NAME_CALCIUM)
                 moose.connect(catab[typenum][ii], 'requestOut', cal, 'getCa')
         if pltcurr:
             #CHANNEL CURRENTS (Optional)
             for channame in model.Channels:
-                currtab[neur_type][channame]=[moose.Table('/data/chan%s%s_%d' %(channame,neur_type,ii)) for ii in range(len(neur_comps))]
+                currtab[neur_type][channame]=[moose.Table(DATA_NAME+'/chan%s%s_%d' %(channame,neur_type,ii)) for ii in range(len(neur_comps))]
                 for tab, comp in zip(currtab[neur_type][channame], neur_comps):
                     path = comp.path+'/'+channame
                     try:
@@ -47,9 +49,9 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
     plasCumtab=[]
     if len(plas):
         for num,neur_type in enumerate(syn.keys()):
-            plastab.append(moose.Table('/data/plas' + neur_type))
-            plasCumtab.append(moose.Table('/data/plasCum' + neur_type))
-            syntab.append(moose.Table('/data/synwt' + neur_type))
+            plastab.append(moose.Table(DATA_NAME+'/plas' + neur_type))
+            plasCumtab.append(moose.Table(DATA_NAME+'/plasCum' + neur_type))
+            syntab.append(moose.Table(DATA_NAME+'/synwt' + neur_type))
             moose.connect(plastab[num], 'requestOut', plas[neur_type]['plas'], 'getValue')
             moose.connect(plasCumtab[num], 'requestOut', plas[neur_type]['cum'], 'getValue')
             shname=syn[neur_type].path+'/SH'
@@ -66,11 +68,11 @@ def spinetabs(model,neuron):
         for spinenum,spine in enumerate(spineHeads):
             compname = spine.parent.name
             sp_num=spine.name.split(NAME_HEAD)[0]
-            spvmtab[typenum].append(moose.Table('/data/Vm%s_%s%s' % (neurtype,sp_num,compname)))
+            spvmtab[typenum].append(moose.Table(DATA_NAME+'/Vm%s_%s%s' % (neurtype,sp_num,compname)))
             log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
             moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
             if model.calYN:
-                spcatab[typenum].append(moose.Table('/data/Ca%s_%s%s' % (neurtype,sp_num,compname)))
+                spcatab[typenum].append(moose.Table(DATA_NAME+'/Ca%s_%s%s' % (neurtype,sp_num,compname)))
                 spcal=moose.element(spine.path+'/'+NAME_CALCIUM)
                 moose.connect(spcatab[typenum][spinenum], 'requestOut', spcal, 'getCa')
     return spcatab,spvmtab

@@ -26,8 +26,8 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      create_network,
-                     #net_output,
                      tables,
+                     net_output,
                      logutil,
                      util,
                      standard_options)
@@ -43,25 +43,30 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
-d1d2.single=0
+d1d2.single=False
 
-##create 2 neuron prototypes with synapses and calcium
+##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
-#for additional prototypes to be used in same network
-#all_neur_types=neuron
+all_neur_types=neuron
 #FSIsyn,neuron = cell_proto.neuronclasses(FSI)
 #all_neur_types.append(neuron)  #how to append/merge dictionaries?
 
 #create network and plasticity
-population,connections=create_network.create_network(d1d2, param_net)
-#population,connections=create_network.create_network(d1d2, param_net, all_neur_types)
+if d1d2.single:
+    population,connections,plas=create_network.create_network(d1d2, param_net, all_neur_types)
+else:
+    population,connections,plas=create_network.create_network(d1d2, param_net)
 
 #NEXT:
-#debug graphs
-#debug network tables& graphs
-#eliminate numSynArray[ntype] in cell_proto and add_synchans
+#debug network tables & graphs
+#a. why no AMPA input to network?
+#b. randomly select one synapse per neuron to plot
+#c. plastab and syntab in tables.py only work for SPneuronSim, with a single synapse per neuron
+#    how to configure these tables if multiple synapses?  Should the plascum element returned from add_plastic synapse be changed?
+
 #if passed MSNsyn into create_network, could eliminate creating such array in connect and if syntype statement
+#to eliminate MSNsyn, need to change specification of the synapse in plastic_synapse
 
 #PYTHONPATH=. py.test -v
 #runs the tests - do this prior to commit.
@@ -85,26 +90,26 @@ population,connections=create_network.create_network(d1d2, param_net)
 #E: Think about how to connect two different networks, e.g. striatum and GP
 
 ###------------------Current Injection
-pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,population['pop'])
 
 ##############--------------output elements
-data = moose.Neutral('/data')
-if param_sim.show_xxx:
-    vmtab,syntab,catab,plastab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,SynPlas)
+if d1d2.single:
+    vmtab,syntab,catab,plastab = tables.graphtables(d1d2, all_neur_types,
+                                                 param_sim.plot_current,
+                                                 param_sim.plot_current_message,
+                                                 plas,syn)
 else:
-    vmtab=[]
-
-spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.show_xxx,vmtab)
+    spiketab, vmtab = net_output.SpikeTables(d1d2, population['pop'], param_sim.plot_netvm)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if d1d2.single:
-    simpath=['/'+neurotype for neurotype in d1d2.neurontypes()]
+    simpath=['/'+neurotype for neurotype in all_neur_types]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
-    simpath=[netpar.netname]
-clocks.assign_clocks(simpath, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+    simpath=[param_net.netname]
+clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -114,13 +119,13 @@ def run_simulation(injection_current, simtime):
     moose.start(simtime)
 
 if __name__ == '__main__':
-    for inj in currents:
+    for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if param_sim.show_xxx:
+        if param_sim.plot_netvm:
             #net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not d1d2.single:
-            writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
+            writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,population)
 
     # block in non-interactive mode
     _util.block_if_noninteractive()

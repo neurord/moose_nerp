@@ -4,26 +4,37 @@ Create table for spike generators of network, and Vm when not graphing.
 from __future__ import print_function, division
 import numpy as np
 import moose
+from spspine.cell_proto import NAME_SOMA
+from spspine.tables import DATA_NAME
 
 from spspine import logutil
 log = logutil.Logger()
 
-def SpikeTables(model, single,MSNpop,showgraphs,vmtab):
+def SpikeTables(model, pop,plot_netvm):
+    if not moose.exists(DATA_NAME):
+        moose.Neutral(DATA_NAME)
     spiketab=[]
-    if not single:
-        for typenum,neurtype in enumerate(model.neurontypes()):
-            spiketab.append([])
-            for tabnum,neurpath in enumerate(MSNpop['pop'][typenum]):
-                neurnum=int(neurpath[find(neurpath,'_')+1:])
-                sg=moose.element(neurpath+'/soma/spikegen')
-                spiketab[typenum].append(moose.Table('/data/outspike%s_%d' % (neurtype,neurnum)))
-                log.info('{}'*5, neurtype, neurnum, neurpath, sg.path, spiketab[typenum][tabnum])
-                m=moose.connect(sg, 'event', spiketab[typenum][tabnum],'spike')
-                if not showgraphs:
-                    vmtab[typenum].append(moose.Table('/data/soma%s_%s'%(neurtype,neurnum)))
-                    plotcomp=moose.element(neurpath+'/soma')
-                    m=moose.connect(vmtab[typenum][tabnum], 'requestOut', plotcomp, 'getVm')
+    vmtab=[]
+    for typenum,neur_type in enumerate(pop.keys()):
+        if plot_netvm:
+            vmtab.append([moose.Table(DATA_NAME+'/Vm_%s' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
+        spiketab.append([moose.Table(DATA_NAME+'/outspike_%s' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
+        for tabnum,neur in enumerate(pop[neur_type]):
+            soma_name=neur+'/'+NAME_SOMA
+            sg=moose.element(soma_name+'/spikegen')
+            log.debug('{} '*3, neur_type, sg.path, spiketab[typenum][tabnum])
+            m=moose.connect(sg, 'spikeOut', spiketab[typenum][tabnum],'spike')
+            if plot_netvm:
+                moose.connect(vmtab[typenum][tabnum], 'requestOut', moose.element(soma_name), 'getVm')
     return spiketab, vmtab
+
+#also create function to store calcium and the change in synaptic weight for synapses in the network
+#modify graphtables to plot subset of synapses when fully connected?
+#        if model.calYN:
+#            catab.append([moose.Table(DATA_NAME+'/Ca%s_%d' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
+#            for ii,neur in enumerate(pop[neur_type]):
+#                cal=moose.element(neur+'/'+NAME_SOMA+'/'+NAME_CALCIUM)
+#                moose.connect(catab[typenum][ii], 'requestOut', cal, 'getCa')
 
 def writeOutput(model, outfilename,spiketab,vmtab,MSNpop):
     outvmfile='Vm'+outfilename
