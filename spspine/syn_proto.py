@@ -6,7 +6,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from spspine import param_sim, constants, logutil
+from spspine import constants, logutil
 from spspine.util import NamedList, distance_mapping
 log = logutil.Logger()
 
@@ -32,7 +32,7 @@ def SpineSynChans(model):
                   if val.spinic and model.spineYN)
 
 def DendSynChans(model):
-    # If synapses are disabled, put all synaptic channels in the dendrite
+    # If spines are disabled, put all synaptic channels in the dendrite
     return sorted(key for key,val in model.SYNAPSE_TYPES.items()
                   if not (val.spinic and model.spineYN))
 

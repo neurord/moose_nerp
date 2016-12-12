@@ -131,9 +131,12 @@ class NamedDict(dict):
 
 def block_if_noninteractive():
     if not hasattr(_sys, 'ps1'):
-        print('Simulation finished. Close all windows to exit.')
+        print('Simulation finished. Close all windows or press ^C to exit.')
         import matplotlib.pyplot as plt
-        plt.show(block=True)
+        try:
+            plt.show(block=True)
+        except KeyboardInterrupt:
+            pass
 
 def maybe_find_file(name, *paths):
     if not _os.path.isabs(name):

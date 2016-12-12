@@ -31,5 +31,8 @@ def Logger(name=None):
     if name is None:
         frame = inspect.stack()[1]
         mod = inspect.getmodule(frame[0])
-        name = mod.__name__
+        if mod is not None:
+            name = mod.__name__
+        else:
+            name = '__main__'
     return StyleAdapter(logging.getLogger(name))

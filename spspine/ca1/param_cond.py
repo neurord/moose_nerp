@@ -25,7 +25,7 @@ def neurontypes():
 compNameNum=2
 
 #will eventually use different morphologies also
-morph_file = 'MScell-Entire.p'
+morph_file = 'out_ri04_v3.p'
 
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
@@ -45,44 +45,16 @@ morph_file = 'MScell-Entire.p'
 #CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
 
 # helper variables to index the Conductance and synapses with distance
-prox = (0, 26.1e-6)
-med =  (26.1e-6, 50e-6)
-dist = (50e-6, 1000e-6)
+inclu = (0, 1000e-6)
 
-_D1 = _util.NamedDict(
-    'D1',
-    #Krp = {prox:77.963, med:77.25, dist:7.25},
-    Krp = {prox:150.963, med:70.25, dist:77.25},
-    #KaF = {prox:3214, med: 571, dist: 314},
-    #KaF = {prox:1157, med:500, dist:200},
-    KaF = {prox:600, med:500, dist:100},
-    KaS = {prox:404.7, med: 35.2, dist: 0},
-    Kir = {prox:9.4644, med: 9.4644, dist: 9.4644},
-    CaL13 = {prox:12*ghKluge, med: 5.6*ghKluge, dist: 5.6*ghKluge},
-    CaL12 = {prox:8*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
-    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 44*ghKluge},
-    CaN = {prox:4.0*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
-    NaF = {prox:130e3, med: 1894, dist: 927},
-    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
-    BKCa = {prox:10.32, med: 10, dist: 10},
+_CA1 = _util.NamedDict(
+    'CA1',
+    Kdr =  {inclu: 70.0},
+    Kadist = {inclu: 200.0},
+    Kaprox = {inclu: 200.0},
+    Na = {inclu: 140.0},
 )
-_D2 = _util.NamedDict(
-    'D2',
-    Krp = {prox:177.25, med:177.25, dist:27.25},
-    #KaF = {prox:3214, med: 471, dist: 234},
-    KaF = {prox:641, med:300, dist:100},
-    KaS = {prox:372, med: 32.9, dist: 0},
-    Kir = {prox:6.2, med: 6.2, dist: 6.2},
-    CaL13 = {prox:10*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
-    CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
-    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 45*ghKluge},
-    CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
-    NaF = {prox:150.0e3, med: 2503, dist: 1073},
-    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
-    BKCa = {prox:10, med: 10, dist: 10},
-)
+
 
 chanvar = _util.NamedDict(
     'chanvar',
@@ -102,6 +74,6 @@ chanvar = _util.NamedDict(
 
 Condset  = _util.NamedDict(
     'Condset',
-    D1 = _D1,
-    D2 = _D2,
+    CA1 = _CA1,
+
 )

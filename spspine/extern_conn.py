@@ -2,10 +2,10 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 
-from spspine import param_sim, logutil
+from spspine import logutil
 log = logutil.Logger()
 
-def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
+def synconn(synpath,dist,presyn,mindel=1e-3,cond_vel=0.8):
     synchan=moose.element(synpath)
     shname=synchan.path+'/SH'
     sh=moose.SimpleSynHandler(shname)
@@ -20,16 +20,6 @@ def synconn(synpath,dist,presyn,cal,mindel=1e-3,cond_vel=0.8):
     log.debug('SYNAPSE: {} {} {} {}', synpath, jj, sh.synapse.num, sh.synapse[jj].delay)
     #It is possible to set the synaptic weight here.  
     m = moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
-    if 'nmda' in synchan.path and cal:
-        synchanCa=moose.SynChan(synchan.path+'/CaCurr')
-        shnameCa=synchanCa.path+'/SH'
-        shca=moose.SimpleSynHandler(shnameCa)
-        if shca.synapse.num==1:
-            moose.connect(shca, 'activationOut', synchan, 'activation')
-        shca.synapse.num=sh.synapse.num
-        shca.synapse[jj].delay=sh.synapse[jj].delay
-        log.debug('NMDA Syn {} {}', synchanCa.path, moose.element(shca))
-        m = moose.connect(presyn, 'eventOut', shca.synapse[jj], 'addSpike')
 
 def filltimtable(spikeTime,simtime,name,path):
     stimtab=[]

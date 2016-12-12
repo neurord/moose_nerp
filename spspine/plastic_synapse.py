@@ -1,24 +1,23 @@
 """\
-Can add single synapse to single neuron model to test calcium and plasticity
+Add a single synapse to the neuron model to test calcium and plasticity
 """
 from __future__ import print_function, division
 import moose
 
-from spspine import (param_sim,
-                     extern_conn,
+from spspine import (extern_conn,
                      plasticity,
                      logutil)
 log = logutil.Logger()
 
-def test_plas(model, syncomp, inpath, syn_pop):
+def plastic_synapse(model, syncomp, syn_pop, stimtimes):
     syn={}
     plast={}
     stimtab={}
     if model.calYN and model.plasYN:
-        moose.Neutral(inpath)
+        neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
-            stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' %(inpath,neurtype))
-            stimtab[neurtype].vector = param_sim.stimtimes
+            stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
+            stimtab[neurtype].vector = stimtimes
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
                 log.info('Synapse added to {.path}', synchan)
@@ -29,12 +28,11 @@ def test_plas(model, syncomp, inpath, syn_pop):
                     extern_conn.synconn(synchanCa,0,stimtab[neurtype],model.calYN)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
-            if model.plasYN:
-                print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
-                plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
-                                                        model.CaPlasticityParams.highThresh,
-                                                        model.CaPlasticityParams.lowThresh,
-                                                        model.CaPlasticityParams.highfactor,
-                                                        model.CaPlasticityParams.lowfactor)
+            print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)
+            plast[neurtype] = plasticity.plasticity(syn_pop[neurtype]['ampa'][syncomp],
+                                                    model.CaPlasticityParams.highThresh,
+                                                    model.CaPlasticityParams.lowThresh,
+                                                    model.CaPlasticityParams.highfactor,
+                                                    model.CaPlasticityParams.lowfactor)
 
     return syn, plast, stimtab

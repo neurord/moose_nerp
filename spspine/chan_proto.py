@@ -14,7 +14,7 @@ import moose
 import numpy as np
 import logging
 
-from spspine import param_sim, constants, logutil
+from spspine import constants, logutil
 from spspine.util import NamedList
 log = logutil.Logger()
 

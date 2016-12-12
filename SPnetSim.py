@@ -15,6 +15,7 @@ Also assumes that single neuron element tree is '/neurtype/compartment', and
 network element tree is '/network/neurtype/compartment'
 """
 from __future__ import print_function, division
+import logging
 
 import os
 os.environ['NUMPTHREADS'] = '1'
@@ -27,38 +28,63 @@ import moose
 
 from spspine import (cell_proto,
                      clocks,
-                     create_network,
                      inject_func,
-                     net_output,
+                     #create_network,
+                     pop_funcs,
+                     #net_output,
                      tables,
-                     util as _util)
-from spspine.graph import net_graph
-from spspine import (param_sim, param_net, d1d2)
+                     logutil,
+                     util,
+                     standard_options)
+from spspine import (param_net, d1d2)
+#from spspine.graph import net_graph
+
+option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+param_sim = option_parser.parse_args()
+
+logging.basicConfig(level=logging.INFO)
+log = logutil.Logger()
 
 #################################-----------create the model
+#overrides:
+d1d2.synYN=True
 
 ##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2, param_sim.plotchan,param_sim.plotpow,param_sim.calcium,param_sim.synYesNo,param_sim.spineYesNo,param_sim.ghkYesNo)
+MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
+#FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)\
 
-MSNpop,SynPlas=create_network.CreateNetwork(d1d2, param_sim.inpath, spineHeads,synarray,MSNsyn,neuron)
+### once debugged, the following lines can be incorporated in create_network
+striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+#May not need to return both cells and pop from create_population - just pop is fine?
+
+#loop over all post-synaptic neuron types:
+for ntype in striatum_pop['pop'].keys():
+    connect=pop_funcs.connect_neurons(striatum_pop['pop'], param_net, ntype, synarray)
+#SECOND: debug connect_neurons - message type for spikegen
+#need better way to determine/store number of synaptic inputs vs distance along dendrite
+#This is used in both connect_neurons and extern_conn
+#THIRD: external connections - new method for duplicates
+#FOURTH: fix create_network - eliminate use of spineheads
+#May not need some of the create_network code depending on how external conn implemented
+
+#population,SynPlas=create_network.CreateNetwork(d1d2, moose.Neutral('/input'), spineheads, synarray, MSNsyn, param_sim.simtime)
 
 ###------------------Current Injection
-currents = _util.inclusive_range(param_sim.current1)
-pg=inject_func.setupinj(d1d2, param_sim.delay,param_sim.width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
 
 ##############--------------output elements
 data = moose.Neutral('/data')
-if param_sim.showgraphs:
-    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plotnet,MSNpop,capools,SynPlas,spineHeads)
+if param_sim.show_xxx:
+    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,capools,SynPlas,spineHeads)
 else:
     vmtab=[]
 
-spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.showgraphs,vmtab)
+spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.show_xxx,vmtab)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-if d1d2.single
+if d1d2.single:
     simpath=['/'+neurotype for neurotype in d1d2.neurontypes()]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
@@ -75,8 +101,8 @@ def run_simulation(injection_current, simtime):
 if __name__ == '__main__':
     for inj in currents:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if param_sim.showgraphs:
-            net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
+        if param_sim.show_xxx:
+            #net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not d1d2.single:
             writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
