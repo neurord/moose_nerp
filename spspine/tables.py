@@ -11,7 +11,7 @@ DATA_NAME='/data'
 from . import logutil
 log = logutil.Logger()
 
-def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
+def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #Vm and Calcium
     vmtab=[]
@@ -48,13 +48,13 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],syn=[]):
     plastab=[]
     plasCumtab=[]
     if len(plas):
-        for num,neur_type in enumerate(syn.keys()):
+        for num,neur_type in enumerate(plas.keys()):
             plastab.append(moose.Table(DATA_NAME+'/plas' + neur_type))
             plasCumtab.append(moose.Table(DATA_NAME+'/plasCum' + neur_type))
             syntab.append(moose.Table(DATA_NAME+'/synwt' + neur_type))
             moose.connect(plastab[num], 'requestOut', plas[neur_type]['plas'], 'getValue')
             moose.connect(plasCumtab[num], 'requestOut', plas[neur_type]['cum'], 'getValue')
-            shname=syn[neur_type].path+'/SH'
+            shname=plas[neur_type]['syn'].path+'/SH'
             sh=moose.element(shname)
             moose.connect(syntab[num], 'requestOut',sh.synapse[0],'getWeight')
     #

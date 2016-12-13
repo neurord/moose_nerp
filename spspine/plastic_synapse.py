@@ -11,7 +11,6 @@ from spspine.d1d2.param_syn import NAME_AMPA
 log = logutil.Logger()
 
 def plastic_synapse(model, syncomp, syn_pop, stimtimes):
-    syn={}
     plast={}
     stimtab={}
     if model.calYN and model.plasYN:
@@ -24,11 +23,10 @@ def plastic_synapse(model, syncomp, syn_pop, stimtimes):
             synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
             log.info('Synapse added to {.path}', synchan)
             connect.synconn(synchan,0,stimtab[neurtype])
-            syn[neurtype]=moose.SynChan(syn_pop[neurtype][NAME_AMPA][syncomp])
             ###Synaptic Plasticity
             plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams.NAME_CALCIUM,
                                                     model.CaPlasticityParams.highThresh,
                                                     model.CaPlasticityParams.lowThresh,
                                                     model.CaPlasticityParams.highfactor,
                                                     model.CaPlasticityParams.lowfactor)
-    return syn, plast, stimtab
+    return plast, stimtab

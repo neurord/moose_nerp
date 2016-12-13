@@ -6,7 +6,18 @@ from collections import OrderedDict as _OrderedDict
 from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
 import functools
+import moose
 
+def syn_name(synpath,headname):
+    if headname in synpath:
+        #try to strip out name of cell from branch name
+        headpath=moose.element(synpath).parent.path
+        parentname=moose.element(headpath).parent.name
+        postbranch=parentname+moose.element(headpath).name
+    else:
+        postbranch=moose.element(synpath).parent.name
+    return postbranch
+    
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
         stop = start

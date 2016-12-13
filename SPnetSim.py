@@ -43,7 +43,10 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
+d1d2.calYN=True
+d1d2.plasYN=True
 d1d2.single=False
+param_sim.simtime=0.05
 
 ##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
@@ -59,11 +62,11 @@ else:
     population,connections,plas=create_network.create_network(d1d2, param_net)
 
 #NEXT:
-#debug network tables & graphs
-#a. why no AMPA input to network?
-#b. randomly select one synapse per neuron to plot
-#c. plastab and syntab in tables.py only work for SPneuronSim, with a single synapse per neuron
-#    how to configure these tables if multiple synapses?  Should the plascum element returned from add_plastic synapse be changed?
+# fix synaptic input being added to populations - working for single
+#a. plot all synapses for network/single - currently the plasticity part of graph tables assumes single synapse
+#b. randomly select one synapse per neuron to plot for network, or provide a list
+#c. test that providing a subset of neuron names to inject will work
+#d. plasticity for neuron/network.  Note that only adding plasticity to synapse[0].  Need to fix this
 
 #if passed MSNsyn into create_network, could eliminate creating such array in connect and if syntype statement
 #to eliminate MSNsyn, need to change specification of the synapse in plastic_synapse
@@ -97,7 +100,7 @@ if d1d2.single:
     vmtab,syntab,catab,plastab = tables.graphtables(d1d2, all_neur_types,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
-                                                 plas,syn)
+                                                 plas)
 else:
     spiketab, vmtab = net_output.SpikeTables(d1d2, population['pop'], param_sim.plot_netvm)
 

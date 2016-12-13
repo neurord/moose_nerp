@@ -44,9 +44,9 @@ MSNsyn,neuron = cell_proto.neuronclasses(ca1)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if ca1.synYN:
-    syn,plas,stimtab=plastic_synapse.plastic_synapse(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=plastic_synapse.plastic_synapse(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
-    syn,plas = {}, {}
+    plas = {}
 
 ####---------------Current Injection
 all_neurons={}
@@ -64,7 +64,7 @@ if param_sim.plot_channels:
 vmtab,catab,plastab,currtab = tables.graphtables(ca1, neuron,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
-                                                 plas,syn)
+                                                 plas)
 if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver

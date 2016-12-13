@@ -6,19 +6,20 @@ import os
 import re
 import moose
 
-from spspine import logutil
+from spspine import logutil, util
+from spines import NAME_HEAD
 log = logutil.Logger()
 NAME_PLAS='/plas'
 NAME_CUM='Cum'
 
-def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
+def plasticity(synchan,name_calcium,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/'+NAME_CALCIUM
+    calname = compname + '/'+name_calcium
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
 
-    log.info("{} {} {}", synchan.path, sh.synapse[0], cal.path)
+    log.debug("{} {} {}", synchan.path, sh.synapse[0], cal.path)
 
     plasname=compname+'/'+NAME_PLAS
     plas=moose.Func(plasname)
@@ -43,21 +44,22 @@ def plasticity(synchan,NAME_CALCIUM,Thigh,Tlow,highfac,lowfac):
     plasCum.y=1.0
     moose.connect(plasCum,'valueOut',sh.synapse[0],'setWeight')
     
-    return {'cum':plasCum,'plas':plas}
+    return {'cum':plasCum,'plas':plas, 'syn': synchan}
 
 def addPlasticity(cell_pop,caplas_params):
     log.debug("{} {}", cell_pop,dir(caplas_params))
-    plascum=[]
+    plascum={}
     for cell in cell_pop:
+        plascum[cell]={}
         allsyncomp_list=moose.wildcardFind(cell+'/##/'+caplas_params.syntype+'[ISA=SynChan]')
-        #allsyncomp_list=moose.wildcardFind(cell+'/##[ISA=SynChan]')
         for synchan in allsyncomp_list:
-            #add another  condition - only if there is pre-synaptic connection
-            #if caplas_params.syntype in synchan.path:
-                log.debug("{} {}", cell, synchan.path)
-                plascum.append(plasticity(synchan,caplas_params.NAME_CALCIUM,
-                           caplas_params.highThresh,
-                           caplas_params.lowThresh,
-                           caplas_params.highfactor,
-                           caplas_params.lowfactor))
-    return plascum
+            #if synapse exists
+            if moose.exists(synchan.path+'/SH'):
+                log.info("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
+                synname=util.syn_name(synchan.path,NAME_HEAD)
+                plascum[cell][synname]=plasticity(synchan,caplas_params.NAME_CALCIUM,
+                                                       caplas_params.highThresh,
+                                                       caplas_params.lowThresh,
+                                                       caplas_params.highfactor,
+                                                       caplas_params.lowfactor)
+            return plascum

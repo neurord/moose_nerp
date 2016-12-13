@@ -13,6 +13,7 @@ import moose
 from spspine import logutil, util
 from spspine.d1d2.param_syn import NAME_AMPA,NAME_NMDA
 from spspine.cell_proto import NAME_SOMA
+from spspine.spines import NAME_HEAD
 log = logutil.Logger()
 
 def plain_synconn(synchan,presyn,syn_delay):
@@ -58,7 +59,6 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
     totalsyn=0
     for syncomp in allsyncomp_list:
-        #if syncomp.name==syntype:
         xloc=syncomp.parent.x
         yloc=syncomp.parent.y
         dist=np.sqrt(xloc*xloc+yloc*yloc)
@@ -71,30 +71,35 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams):
     dist=0
     tt_list=post_connection.pre.stimtab
     postsyn_fraction=post_connection.postsyn_fraction
-    num_tt=len(tt_list)    
+    num_tt=len(tt_list)
+    connections={}
     for i in range(np.int(np.round(totalsyn*postsyn_fraction))):
         presyn_tt,tt_list=select_entry(tt_list)
         synpath,syncomps=select_entry(syncomps)
         log.debug('CONNECT: TT {} POST {} ', presyn_tt.path,synpath)
         #connect the time table with mindelay (dist=0)
         synconn(synpath,dist,presyn_tt,netparams.mindelay)
-    return syncomps
+        postbranch=util.syn_name(synpath,NAME_HEAD)
+        connections[postbranch]=presyn_tt.path
+    return syncomps,connections
 
 def timetable_input(cells, netparams, postype, NumSyn):
     #connect post-synaptic synapses to time tables
-    #used for single neuron models, since populations are connected in connect_neurons
+    #used for single neuron models only, since populations are connected in connect_neurons
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    for postcell in cells[postype]:
-        #allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
-        for syntype in post_connections.keys():
-            #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
-            allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
-            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
-            log.info('SYN TABLE for {} has {} compartments and {} synapses', syntype, len(syncomps),totalsyn)
-            for pretype in post_connections[syntype].keys():
-                if 'extern' in pretype:
-                    connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+    connect_list = {}
+    postcell = cells[postype][0]
+    for syntype in post_connections.keys():
+        connect_list[syntype]={}
+        #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
+        allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
+        syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
+        log.info('SYN TABLE for {} has {} compartments and {} synapses', syntype, len(syncomps),totalsyn)
+        for pretype in post_connections[syntype].keys():
+            if 'extern' in pretype:
+                syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+    return connect_list
                     
 def connect_neurons(cells, netparams, postype, NumSyn):
     log.debug('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
@@ -111,9 +116,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
         ypost=moose.element(postsoma).y
         zpost=moose.element(postsoma).z
         #set-up array of post-synapse compartments/synchans
-        #allsyncomp_list=moose.wildcardFind(postcell+'/##[ISA=SynChan]')
         for syntype in post_connections.keys():
-            #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
             allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
@@ -122,7 +125,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
             for pretype in post_connections[syntype].keys():
                 if 'extern' in pretype:
                     ####### connect to time tables instead of other neurons in network
-                    connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+                    syncomps,connect_list[postcell][syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
                 else:
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
                     for precell in cells[pretype]:
@@ -144,7 +147,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             synpath,syncomps=select_entry(syncomps)
                             log.debug('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
                             #list of connections for further processing if desired.  Assumes one conn per synpath (which might be a problem)
-                            postbranch=moose.element(synpath).parent.name
+                            postbranch=util.syn_name(synpath,NAME_HEAD)
                             connect_list[postcell][syntype][postbranch]={'postloc':(xpost,ypost,zpost),'pre':precell,'preloc':(xpre,ypre,zpre),'dist':dist, 'prob':prob}
                             log.debug('{}',connect_list[postcell][syntype])
                             #connect the synapse

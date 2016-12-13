@@ -49,7 +49,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)
@@ -96,7 +96,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
-    population,connection = create_network.CreateNetwork(d1d2, param_net)
+    population,connection, plas = create_network.CreateNetwork(d1d2, param_net)
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
     pg.firstLevel = 1e-8
@@ -104,7 +104,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)
