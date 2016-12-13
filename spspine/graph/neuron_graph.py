@@ -28,8 +28,7 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:
-            name=oid.path.split('/')[-1]
-            neurnum=name.split('_')[-1].split('[')[0]
+            neurnum=oid.name.split('_')[-1].split('[')[0]
             axes.plot(t, oid.vector, label=neurnum)
         axes.set_ylabel('Vm {}'.format(neurtype))
         axes.legend(fontsize=8, loc='best')
@@ -37,8 +36,7 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
         if len(catab):
             axes = f.add_subplot(212)
             for oid in catab[typenum]:
-                name=oid.path.split('/')[-1]
-                neurnum=name.split('_')[-1].split('[')[0]
+                neurnum=oid.name.split('_')[-1].split('[')[0]
                 axes.plot(t, oid.vector*1e3, label=neurnum)
             axes.set_ylabel('calcium, uM')
             axes.set_xlabel('Time (sec)')
@@ -58,8 +56,7 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
                 scaling=1
             axes = f.add_subplot(3, 1, plasnum + 1)
             for oid in plastab[plastype]:
-                name=oid.path.split('/')[-1]
-                neurnum=name.split('_')[-1].split('[')[0]
+                neurnum=oid.name.split('_')[-1].split('[')[0]
                 axes.plot(t,scaling*oid.vector, label=neurnum)
             axes.set_ylabel(str(scaling)+'*'+title)
             axes.set_title(title +' vs. time')

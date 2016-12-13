@@ -10,12 +10,13 @@ log = logutil.Logger()
 #Suggested specification of calcium buffers
 #Similar approach for calcium pumps, but they need Km and power, and location dependent Vmax
 cabuf_params=NamedList('cabuf_params', 'bufname kf kb diffconst total bound')
+NAME_CALCIUM='CaPool'
 
 def CaProto(params):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
     #if the proto as been created already, this will not create a duplicate
-    poolproto = moose.CaConc('/library/CaPool')
+    poolproto = moose.CaConc('/library/'+NAME_CALCIUM)
     poolproto.CaBasal = params.CaBasal
     poolproto.ceiling = 1
     poolproto.floor = 0.0
@@ -28,8 +29,8 @@ def addCaPool(model, comp):
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
         #create the calcium pools in each compartment
-    caproto = moose.element('/library/CaPool')
-    capool = moose.copy(caproto, comp, 'CaPool')[0]
+    caproto = moose.element('/library/'+NAME_CALCIUM)
+    capool = moose.copy(caproto, comp, NAME_CALCIUM)[0]
     vol = SA * capool.thick
     capool.B = 1 / (constants.Faraday*vol*2) / model.CaPlasticityParams.BufCapacity
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
@@ -55,7 +56,7 @@ def connectVDCC_KCa(model, ghkYN,comp,capool):
  
 def connectNMDA(nmdachans, ghkYesNo):
     for chan in nmdachans:
-        caname = os.path.dirname(chan.path) + '/CaPool'
+        caname = os.path.dirname(chan.path) + '/'+NAME_CALCIUM
         capool = moose.element(caname)
         log.debug('CONNECT {.path} to {.path}', chan, capool)
         moose.connect(chan, 'ICaOut', capool, 'current')

@@ -85,6 +85,6 @@ def standard_options(parser=None,
                         const=True, default=False)
     parser.add_argument('--plot-network', type=bool, nargs='?', metavar='BOOL',
                         const=True, default=False)
-    parser.add_argument('--plot-xxx', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-netvm', type=bool, nargs='?', metavar='BOOL',
                         const=True, default=False)
     return parser

@@ -6,19 +6,22 @@ import os
 import re
 import moose
 
-from spspine import logutil
+from spspine import logutil, util
+from spines import NAME_HEAD
 log = logutil.Logger()
+NAME_PLAS='/plas'
+NAME_CUM='Cum'
 
-def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
+def plasticity(synchan,name_calcium,Thigh,Tlow,highfac,lowfac):
     compname = os.path.dirname(synchan.path)
-    calname = compname + '/caPool'
+    calname = compname + '/'+name_calcium
     cal=moose.element(calname)
     shname=synchan.path+'/SH'
     sh=moose.element(shname)
 
-    log.info("{} {} {}", synchan.path, sh.synapse[0], cal.path)
+    log.debug("{} {} {}", synchan.path, sh.synapse[0], cal.path)
 
-    plasname=compname+'/plas'
+    plasname=compname+'/'+NAME_PLAS
     plas=moose.Func(plasname)
     #FIRST: calculate the amount of plasticity
     #y is input plasticity trigger (e.g. Vm or Ca) 
@@ -32,7 +35,7 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     plas.x=Thigh
     plas.z=Tlow
     #SECOND: accumulate all the changes, as percent increase or decrease
-    plasCum=moose.Func(plasname+'Cum')
+    plasCum=moose.Func(plasname+NAME_CUM)
     #need input from the plasticity thresholding function to y 
     moose.connect(plas,'valueOut',plasCum,'xIn')
     moose.connect(plasCum,'valueOut',plasCum, 'yIn')
@@ -41,25 +44,22 @@ def plasticity(synchan,Thigh,Tlow,highfac,lowfac):
     plasCum.y=1.0
     moose.connect(plasCum,'valueOut',sh.synapse[0],'setWeight')
     
-    return {'cum':plasCum,'plas':plas}
+    return {'cum':plasCum,'plas':plas, 'syn': synchan}
 
-def addPlasticity(synPop,Thigh,Tlow,highfact,lowfact,cells):
-    log.info("{}", cells)
-    if cells:
-        plaslist = []
-        for cell in cells:
-            for br in range(len(synPop)):
-                compname = re.sub('/.*?/', '/x', synPop[br].path)
-
-                # remove after testing
-                p = synPop[br].path.split('/')
-                compname2 = p[2] + '/' + p[3]
-                assert compname == compname2
-
-                synchan=moose.element(cell+'/'+compname)
-                log.debug("{} {} {}", cell, compname, synchan)
-                plaslist.append(plasticity(synchan,Thigh,Tlow,highfact,lowfact))
-        return plastlist
-    else:
-        return [plasticity(synchan,Thigh,Tlow,highfact,lowfact)
-                for synchan in synPop]
+def addPlasticity(cell_pop,caplas_params):
+    log.debug("{} {}", cell_pop,dir(caplas_params))
+    plascum={}
+    for cell in cell_pop:
+        plascum[cell]={}
+        allsyncomp_list=moose.wildcardFind(cell+'/##/'+caplas_params.syntype+'[ISA=SynChan]')
+        for synchan in allsyncomp_list:
+            #if synapse exists
+            if moose.exists(synchan.path+'/SH'):
+                log.info("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
+                synname=util.syn_name(synchan.path,NAME_HEAD)
+                plascum[cell][synname]=plasticity(synchan,caplas_params.NAME_CALCIUM,
+                                                       caplas_params.highThresh,
+                                                       caplas_params.lowThresh,
+                                                       caplas_params.highfactor,
+                                                       caplas_params.lowfactor)
+            return plascum

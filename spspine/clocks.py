@@ -14,10 +14,11 @@ from . import logutil
 log = logutil.Logger()
 
 import moose 
+from spspine.tables import DATA_NAME
 
 def assign_clocks(model_container_list, simdt, plotdt,hsolveYN):
     log.info('SimDt={}, PlotDt={}', simdt, plotdt)
-    for tab in moose.wildcardFind('/data/##[TYPE=Table]'):
+    for tab in moose.wildcardFind(DATA_NAME+'/##[TYPE=Table]'):
         moose.setClock(tab.tick,plotdt)
     for tick in range(0, 7):
         moose.setClock(tick, simdt)

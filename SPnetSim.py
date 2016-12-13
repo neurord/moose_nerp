@@ -26,8 +26,8 @@ from spspine import (cell_proto,
                      clocks,
                      inject_func,
                      create_network,
-                     #net_output,
                      tables,
+                     net_output,
                      logutil,
                      util,
                      standard_options)
@@ -43,25 +43,36 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN=True
-d1d2.single=0
+d1d2.calYN=True
+d1d2.plasYN=True
+d1d2.single=False
+param_sim.simtime=0.05
 
-##create 2 neuron prototypes with synapses and calcium
-MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
-#FSIsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(FSI)
-#allneurons=[]
-#allneurons.append(neuron)  #make neuron the list of neurons (not compartments)
+##create neuron prototypes with synapses and calcium
+MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
+
+all_neur_types=neuron
+#FSIsyn,neuron = cell_proto.neuronclasses(FSI)
+#all_neur_types.append(neuron)  #how to append/merge dictionaries?
 
 #create network and plasticity
-population,SynPlas=create_network.create_network(d1d2, param_net)
+if d1d2.single:
+    population,connections,plas=create_network.create_network(d1d2, param_net, all_neur_types)
+else:
+    population,connections,plas=create_network.create_network(d1d2, param_net)
 
-#NEXT: debug plasticity (and what is written to connection file, and writing pickle file)
-# then delete extern_conn.py,
-# then eliminate return of capools, neuron[comps], SynPerComp and MSNsyn - only need list of neurons, possibly synarray
-# e.g. neuron,synarray = cell_proto.neuronclasses(d1d2)
+#NEXT:
+# fix synaptic input being added to populations - working for single
+#a. plot all synapses for network/single - currently the plasticity part of graph tables assumes single synapse
+#b. randomly select one synapse per neuron to plot for network, or provide a list
+#c. test that providing a subset of neuron names to inject will work
+#d. plasticity for neuron/network.  Note that only adding plasticity to synapse[0].  Need to fix this
 
-#3: tackle tables and graphs for both single and network
-#4: Think about how to connect two different networks, e.g. striatum and GP
+#if passed MSNsyn into create_network, could eliminate creating such array in connect and if syntype statement
+#to eliminate MSNsyn, need to change specification of the synapse in plastic_synapse
 
+#PYTHONPATH=. py.test -v
+#runs the tests - do this prior to commit.
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
 #       parameter specifying range or mean number.  Randomly select how many and repeat calls to
@@ -79,28 +90,29 @@ population,SynPlas=create_network.create_network(d1d2, param_net)
 #C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
 #                                      b. 3D arrays of elements
 #D. debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
+#E: Think about how to connect two different networks, e.g. striatum and GP
 
 ###------------------Current Injection
-pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,neuron)
+pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,population['pop'])
 
 ##############--------------output elements
-data = moose.Neutral('/data')
-if param_sim.show_xxx:
-    vmtab,syntab,catab,plastab,sptab = tables.graphtables(d1d2, neuron, param_sim.plot_network,MSNpop,capools,SynPlas,spineHeads)
+if d1d2.single:
+    vmtab,syntab,catab,plastab = tables.graphtables(d1d2, all_neur_types,
+                                                 param_sim.plot_current,
+                                                 param_sim.plot_current_message,
+                                                 plas)
 else:
-    vmtab=[]
-
-spiketab, vmtab = net_output.SpikeTables(d1d2, MSNpop,param_sim.show_xxx,vmtab)
+    spiketab, vmtab = net_output.SpikeTables(d1d2, population['pop'], param_sim.plot_netvm)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
 if d1d2.single:
-    simpath=['/'+neurotype for neurotype in d1d2.neurontypes()]
+    simpath=['/'+neurotype for neurotype in all_neur_types]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
-    simpath=[netpar.netname]
-clocks.assign_clocks(simpath, '/data', param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+    simpath=[param_net.netname]
+clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -110,13 +122,13 @@ def run_simulation(injection_current, simtime):
     moose.start(simtime)
 
 if __name__ == '__main__':
-    for inj in currents:
+    for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if param_sim.show_xxx:
+        if param_sim.plot_netvm:
             #net_graph.graphs(d1d2, vmtab,syntab,graphsyn,catab,plastab,sptab)
             plt.show()
         if not d1d2.single:
-            writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,MSNpop)
+            writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,population)
 
     # block in non-interactive mode
     _util.block_if_noninteractive()

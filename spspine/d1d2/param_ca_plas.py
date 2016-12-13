@@ -1,4 +1,4 @@
-from spspine.calcium import cabuf_params
+from spspine.calcium import cabuf_params,NAME_CALCIUM
 
 #example of how to specify calcium buffers.
 #new def in calcium.py will loop over items in cabuf dictionary and create buffers
@@ -21,6 +21,7 @@ CaBasal=0.05e-3
 CaTau=20e-3
 
 plasYesNo=1
+syntype='ampa'
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 highThresh=0.3e-3
