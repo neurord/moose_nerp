@@ -47,7 +47,7 @@ def plasticity(synchan,name_calcium,Thigh,Tlow,highfac,lowfac):
     return {'cum':plasCum,'plas':plas, 'syn': synchan}
 
 def addPlasticity(cell_pop,caplas_params):
-    log.debug("{} {}", cell_pop,dir(caplas_params))
+    log.info("{} ", cell_pop)
     plascum={}
     for cell in cell_pop:
         plascum[cell]={}
@@ -55,11 +55,11 @@ def addPlasticity(cell_pop,caplas_params):
         for synchan in allsyncomp_list:
             #if synapse exists
             if moose.exists(synchan.path+'/SH'):
-                log.info("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
+                log.debug("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
                 synname=util.syn_name(synchan.path,NAME_HEAD)
                 plascum[cell][synname]=plasticity(synchan,caplas_params.NAME_CALCIUM,
                                                        caplas_params.highThresh,
                                                        caplas_params.lowThresh,
                                                        caplas_params.highfactor,
                                                        caplas_params.lowfactor)
-            return plascum
+    return plascum

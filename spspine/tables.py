@@ -13,7 +13,7 @@ log = logutil.Logger()
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
-    #Vm and Calcium
+    #tables for Vm and calcium in each compartment
     vmtab=[]
     catab=[]
     currtab=defaultdict(list)
@@ -43,24 +43,54 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                     except Exception:
                         log.debug('no channel {}', path)
     #
-    # synaptic weight and plasticity (Optional)
-    syntab=[]
+    # synaptic weight and plasticity (Optional) for one synapse per neuron
     plastab=[]
-    plasCumtab=[]
     if len(plas):
         for num,neur_type in enumerate(plas.keys()):
-            plastab.append(moose.Table(DATA_NAME+'/plas' + neur_type))
-            plasCumtab.append(moose.Table(DATA_NAME+'/plasCum' + neur_type))
-            syntab.append(moose.Table(DATA_NAME+'/synwt' + neur_type))
-            moose.connect(plastab[num], 'requestOut', plas[neur_type]['plas'], 'getValue')
-            moose.connect(plasCumtab[num], 'requestOut', plas[neur_type]['cum'], 'getValue')
-            shname=plas[neur_type]['syn'].path+'/SH'
-            sh=moose.element(shname)
-            moose.connect(syntab[num], 'requestOut',sh.synapse[0],'getWeight')
-    #
-    return vmtab,catab,{'syn':syntab,'plas':plastab,'cum':plasCumtab},currtab
+            plastab.append(add_one_table(DATA_NAME,plas[neur_type],neur_type))
+    return vmtab,catab,plastab,currtab
 
+def add_one_table(DATA_NAME, plas_entry, comp_name):
+    if comp_name.find('/')==0:
+       comp_name=comp_name[1:]
+    plastab=moose.Table(DATA_NAME+'/plas' + comp_name)
+    plasCumtab=moose.Table(DATA_NAME+'/cum' + comp_name)
+    syntab=moose.Table(DATA_NAME+'/synwt' + comp_name)
+    moose.connect(plastab, 'requestOut', plas_entry['plas'], 'getValue')
+    moose.connect(plasCumtab, 'requestOut', plas_entry['cum'], 'getValue')
+    shname=plas_entry['syn'].path+'/SH'
+    sh=moose.element(shname)
+    moose.connect(syntab, 'requestOut',sh.synapse[0],'getWeight')
+    return {'plas':plastab,'cum':plasCumtab,'syn':syntab}
+
+def syn_plastabs(connections, plas=[]):
+    if not moose.exists(DATA_NAME):
+        moose.Neutral(DATA_NAME)
+    #tables with synaptic conductance for all synapses that receive input
+    syn_tabs=[]
+    plas_tabs=[]
+    for neur_type in connections.keys():
+        for syntype in connections[neur_type].keys():
+            for compname in connections[neur_type][syntype].keys():
+                tt=moose.element(connections[neur_type][syntype][compname])
+                synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
+                log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
+                synchan=synapse.parent.parent
+                syn_tabs.append(moose.Table(DATA_NAME+'/'+neur_type+compname+synchan.name))
+                log.debug('{} {} ', syn_tabs[-1], synchan)
+                moose.connect(syn_tabs[-1], 'requestOut', synchan, 'getGk')
+    #tables of dictionaries with instantaneous plasticity (plas), cumulative plasticity (plasCum) and synaptic weight (syn)
+    if len(plas):
+        for neur_type in plas.keys():
+            for cell in plas[neur_type].keys():
+                for syncomp in plas[neur_type][cell].keys():
+                    plas_tabs.append(add_one_table(DATA_NAME, plas[neur_type][cell][syncomp], cell+syncomp))
+    return syn_tabs, plas_tabs
+            
 def spinetabs(model,neuron):
+    if not moose.exists(DATA_NAME):
+        moose.Neutral(DATA_NAME)
+    #creates tables of calcium and vm for spines
     spcatab = defaultdict(list)
     spvmtab = defaultdict(list)
     for typenum,neurtype in enumerate(neuron.keys()):
