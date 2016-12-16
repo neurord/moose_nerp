@@ -53,15 +53,12 @@ MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
 all_neur_types=neuron
 #FSIsyn,neuron = cell_proto.neuronclasses(FSI)
-#all_neur_types.append(neuron)  #how to append/merge dictionaries?
+#all_neur_types.update(neuron)
 
 #create network and plasticity
-if d1d2.single:
-    population,connections,plas=create_network.create_network(d1d2, param_net, all_neur_types)
-else:
-    population,connections,plas=create_network.create_network(d1d2, param_net)
+population,connections,plas=create_network.create_network(d1d2, param_net, all_neur_types)
 
-#NEXT: "updated tables for network simulations"
+#NEXT: 
 #b. test that providing a subset of neuron names to inject will work (construct list)
 #c. netgraphs
 #Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
@@ -73,6 +70,7 @@ else:
 #PYTHONPATH=. py.test -v
 #PYTHONPATH=. py.test -v -x to stop after 1st failure (and print the problem)
 #PYTHONPATH=. py.test -v -x -k"test_net_injection[]" to execute a single test
+#PYTHONPATH=. py.test -v -x -k"test_net_injection" to execute all network test
 
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
@@ -98,7 +96,7 @@ else:
 #name.sourceFields
 #name.destFields
 #name.msgOut
-#name.msgOut.getFieldNames
+#name.msgOut.getFieldNames()
 #name.msgOut[0].e1 shows the source object, i.e. name
 #name.msgOut[0].e2 shows the destination object (what it is connected to)
 

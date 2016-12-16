@@ -96,7 +96,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
-    population,connection, plas = create_network.create_network(d1d2, param_net)
+    population,connection, plas = create_network.create_network(d1d2, param_net, neuron)
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
     pg.firstLevel = 1e-9

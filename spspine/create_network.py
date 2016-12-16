@@ -14,7 +14,7 @@ from spspine import (pop_funcs,
                      logutil)
 log = logutil.Logger()
 
-def create_network(model, param_net,neur_protos=[]):
+def create_network(model, param_net,neur_protos={}):
     #create all timetables
     param_net.TableSet.create_all()
     connections={}
