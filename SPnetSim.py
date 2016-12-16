@@ -44,9 +44,9 @@ log = logutil.Logger()
 #overrides:
 d1d2.synYN=True
 d1d2.calYN=True
-d1d2.plasYN=True
-d1d2.single=False
-param_sim.simtime=0.05
+d1d2.plasYN=False
+d1d2.single=True
+param_sim.simtime=0.01
 
 ##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
@@ -61,18 +61,19 @@ if d1d2.single:
 else:
     population,connections,plas=create_network.create_network(d1d2, param_net)
 
-#NEXT:
-# fix synaptic input being added to populations - working for single
-#a. plot all synapses for network/single - currently the plasticity part of graph tables assumes single synapse
-#b. randomly select one synapse per neuron to plot for network, or provide a list
-#c. test that providing a subset of neuron names to inject will work
-#d. plasticity for neuron/network.  Note that only adding plasticity to synapse[0].  Need to fix this
+#NEXT: "updated tables for network simulations"
+#b. test that providing a subset of neuron names to inject will work (construct list)
+#c. netgraphs
+#Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
+#Fix: only plotting one synapse connected to each timetable (tables.py).
+#Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
+#                syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
 
-#if passed MSNsyn into create_network, could eliminate creating such array in connect and if syntype statement
 #to eliminate MSNsyn, need to change specification of the synapse in plastic_synapse
-
 #PYTHONPATH=. py.test -v
-#runs the tests - do this prior to commit.
+#PYTHONPATH=. py.test -v -x to stop after 1st failure (and print the problem)
+#PYTHONPATH=. py.test -v -x -k"test_net_injection[]" to execute a single test
+
 #Types of spike train correlations
 #1. number of synaptic terminals between single axon and single neuron
 #       parameter specifying range or mean number.  Randomly select how many and repeat calls to
@@ -89,20 +90,35 @@ else:
 #B. refine select_branch to make use of location dependence 
 #C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
 #                                      b. 3D arrays of elements
-#D. debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
+#D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
 #E: Think about how to connect two different networks, e.g. striatum and GP
+
+#add to tutorial
+#name=moose.element(path)
+#name.sourceFields
+#name.destFields
+#name.msgOut
+#name.msgOut.getFieldNames
+#name.msgOut[0].e1 shows the source object, i.e. name
+#name.msgOut[0].e2 shows the destination object (what it is connected to)
 
 ###------------------Current Injection
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,population['pop'])
 
 ##############--------------output elements
 if d1d2.single:
-    vmtab,syntab,catab,plastab = tables.graphtables(d1d2, all_neur_types,
+    vmtab,catab,plastab,currtab = tables.graphtables(d1d2, all_neur_types,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
-                                                 plas)
+                                                    [])
+    if d1d2.synYN:
+        #overwrite plastab above, since it is empty
+        syntab, plastab=tables.syn_plastabs(connections,plas)
+    if d1d2.spineYN:
+        spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 else:
-    spiketab, vmtab = net_output.SpikeTables(d1d2, population['pop'], param_sim.plot_netvm)
+    plots_per_neur=2
+    spiketab, vmtab, plastab, catab = net_output.SpikeTables(d1d2, population['pop'], param_sim.plot_netvm, plas, plots_per_neur)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
@@ -131,4 +147,4 @@ if __name__ == '__main__':
             writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,population)
 
     # block in non-interactive mode
-    _util.block_if_noninteractive()
+    util.block_if_noninteractive()

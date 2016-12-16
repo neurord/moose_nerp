@@ -4,17 +4,19 @@ Create table for spike generators of network, and Vm when not graphing.
 from __future__ import print_function, division
 import numpy as np
 import moose
+from spspine.calcium import NAME_CALCIUM
 from spspine.cell_proto import NAME_SOMA
-from spspine.tables import DATA_NAME
-
+from spspine.tables import DATA_NAME, add_one_table
 from spspine import logutil
 log = logutil.Logger()
 
-def SpikeTables(model, pop,plot_netvm):
+def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
     spiketab=[]
     vmtab=[]
+    plastabs=[]
+    catab=[]
     for typenum,neur_type in enumerate(pop.keys()):
         if plot_netvm:
             vmtab.append([moose.Table(DATA_NAME+'/Vm_%s' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
@@ -26,15 +28,35 @@ def SpikeTables(model, pop,plot_netvm):
             m=moose.connect(sg, 'spikeOut', spiketab[typenum][tabnum],'spike')
             if plot_netvm:
                 moose.connect(vmtab[typenum][tabnum], 'requestOut', moose.element(soma_name), 'getVm')
-    return spiketab, vmtab
-
-#also create function to store calcium and the change in synaptic weight for synapses in the network
-#modify graphtables to plot subset of synapses when fully connected?
-#        if model.calYN:
-#            catab.append([moose.Table(DATA_NAME+'/Ca%s_%d' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
-#            for ii,neur in enumerate(pop[neur_type]):
-#                cal=moose.element(neur+'/'+NAME_SOMA+'/'+NAME_CALCIUM)
-#                moose.connect(catab[typenum][ii], 'requestOut', cal, 'getCa')
+    #now plot calcium and plasticity, if created, but only from a few compartments for each neuron
+    if model.plasYN:
+        for neur_type in plas.keys():
+            for cell in plas[neur_type].keys():
+                cellname=moose.element(cell).name
+                choice_comps=plas[neur_type][cell].keys()
+                syncomp_names=np.random.choice(choice_comps,plots_per_neur,replace=False)
+                log.debug('{} {} {}', cell, cellname, syncomp_names)
+                for syncomp_name in syncomp_names:
+                    plas_entry = plas[neur_type][cell][syncomp_name]
+                    plastabs.append(add_one_table(DATA_NAME,plas_entry, cellname+syncomp_name))
+                    cal_name=plas_entry['syn'].parent.path+'/'+NAME_CALCIUM
+                    catab.append(moose.Table(DATA_NAME+'/Ca%s_%s' % (cellname, moose.element(cal_name).parent.name)))
+                    moose.connect(catab[-1], 'requestOut', moose.element(cal_name), 'getCa')
+    elif model.calYN:
+        #if no plasticity, just plot calcium and (synaptic input?) for some compartments
+        #add synaptic channels for the calcium compartments?  Or randomly select synchans with synapses and then plot those calcium comps
+        tabrows=0
+        for typenum,neur_type in enumerate(pop.keys()):
+            for neurnum,neurname in enumerate(pop[neur_type]):
+                allcomps = moose.wildcardFind(neurname+ '/#[TYPE=Compartment]')
+                plotcomps=np.random.choice(allcomps,plots_per_neur,replace=False)
+                catab.append([moose.Table(DATA_NAME+'/Ca%s_%s' % (moose.element(neurname).name,comp.name)) for comp in plotcomps])
+                for compnum,comp in enumerate(plotcomps):
+                    cal_name=comp.path+'/'+NAME_CALCIUM
+                    print(catab[tabrows][compnum].path,moose.element(cal_name).path)
+                    moose.connect(catab[tabrows][compnum], 'requestOut', moose.element(cal_name), 'getCa')
+                tabrows=tabrows+1
+    return spiketab, vmtab, plastabs, catab
 
 def writeOutput(model, outfilename,spiketab,vmtab,MSNpop):
     outvmfile='Vm'+outfilename
