@@ -65,3 +65,10 @@ FSI['gaba']={'FSI': FSIpre_FSIpost}
 cond_vel=0.8
 mindelay=1e-3
 
+###########plotting control - should go elsewhere
+plot_netvm=1
+plots_per_neur=2
+#number of neurons per neuron type for current injection
+#set to np.inf to inject entire population, set to 0 for no injection
+num_inject=2
+single=True

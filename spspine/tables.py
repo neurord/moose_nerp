@@ -55,7 +55,7 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
        comp_name=comp_name[1:]
     plastab=moose.Table(DATA_NAME+'/plas' + comp_name)
     plasCumtab=moose.Table(DATA_NAME+'/cum' + comp_name)
-    syntab=moose.Table(DATA_NAME+'/synwt' + comp_name)
+    syntab=moose.Table(DATA_NAME+'/syn' + comp_name)
     moose.connect(plastab, 'requestOut', plas_entry['plas'], 'getValue')
     moose.connect(plasCumtab, 'requestOut', plas_entry['cum'], 'getValue')
     shname=plas_entry['syn'].path+'/SH'
@@ -76,7 +76,7 @@ def syn_plastabs(connections, plas=[]):
                 synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
                 log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
                 synchan=synapse.parent.parent
-                syn_tabs.append(moose.Table(DATA_NAME+'/'+neur_type+compname+synchan.name))
+                syn_tabs.append(moose.Table(DATA_NAME+'/'+neur_type+'_'+compname+synchan.name))
                 log.debug('{} {} ', syn_tabs[-1], synchan)
                 moose.connect(syn_tabs[-1], 'requestOut', synchan, 'getGk')
     #tables of dictionaries with instantaneous plasticity (plas), cumulative plasticity (plasCum) and synaptic weight (syn)
