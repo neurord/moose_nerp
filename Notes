@@ -1,0 +1,51 @@
+1. single should not be defined in the d1d2/__init__.py
+   it should be defined in param_net.py
+
+2. d1d2/, ca1/ etc should be at same level, not below spspine prototypes
+
+3. possibly want to give shape_Shifter its own repo (and possibly rename it)
+
+4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
+                syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+   Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
+   Fix: Need to plot synchan current or conductance of some compartments
+   	same as calcium comps if calYN (net_output and net_graph)
+	independent subset of synchans if network and no calcium
+	all connected synchans if single (possibly add NMDA also in tables.syn_plastabs)
+	    fix syn_graph to plot multiple types of synchans, each in separate graph panel, and fix table name to facilitate extraction of syn type
+   Fix: only plotting one synapse connected to each timetable -sh.synapse[0] in add_one_table in tables.py.
+
+5. Code Refinements
+   A. refine NamedLists for connections to specify post-syn location dependence (optional)
+   B. refine select_branch to make use of location dependence 
+   C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
+                                         b. 3D arrays of elements
+   D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
+   E: Think about how to connect two different networks, e.g. striatum and GP
+
+6.Types of spike train correlations
+  1. number of synaptic terminals between single axon and single neuron
+       parameter specifying range or mean number.  Randomly select how many and repeat calls to
+           synpath,syncomps=select_entry(syncomps)
+           synconn(synpath,dist,presyn_tt,netparams.mindelay)
+  2. with and between neuron correlation due to correlation of the cortical region projecting to striatum
+      account for both of these (same source) with correlated spike trains
+  3.  between neuron correlations because a single axon can contact multiple neurons
+       implement using parameter syn_per_tt - associated with table object
+       this will also allow multiple synapses within single neuron, but unlikely if large neuron population
+
+#to eliminate MSNsyn, need to change specification of the synapse in plastic_synapse
+#PYTHONPATH=. py.test -v
+#PYTHONPATH=. py.test -v -x to stop after 1st failure (and print the problem)
+#PYTHONPATH=. py.test -v -x -k"test_net_injection[]" to execute a single test
+#PYTHONPATH=. py.test -v -x -k"test_net_injection" to execute all network test
+
+#add to tutorial
+#name=moose.element(path)
+#name.sourceFields
+#name.destFields
+#name.msgOut
+#name.msgOut.getFieldNames()
+#name.msgOut[0].e1 shows the source object, i.e. name
+#name.msgOut[0].e2 shows the destination object (what it is connected to)
+
