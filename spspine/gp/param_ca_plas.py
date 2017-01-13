@@ -15,10 +15,10 @@ cabuf={'CaMN':CaMN_params,'CaMC':CaMC_params}
 calcium=1
 
 #These params are for single time constant of decay calcium
-BufCapacity=2
-CaThick=0.1e-6
-CaBasal=0.05e-3
-CaTau=20e-3
+BufCapacity=1
+CaThick=20e-9
+CaBasal=50e-6
+CaTau=1e-3
 
 plasYesNo=1
 #These thresholds are applied to calcium concentration
