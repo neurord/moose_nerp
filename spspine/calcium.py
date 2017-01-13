@@ -25,14 +25,22 @@ def CaProto(params):
     return poolproto
 
 def addCaPool(model, comp):
+    caproto = moose.element('/library/' + NAME_CALCIUM)
+    capool = moose.copy(caproto, comp, NAME_CALCIUM)[0]
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
-    SA=np.pi*length*diam
-        #create the calcium pools in each compartment
-    caproto = moose.element('/library/'+NAME_CALCIUM)
-    capool = moose.copy(caproto, comp, NAME_CALCIUM)[0]
-    vol = SA * capool.thick
-    capool.B = 1 / (constants.Faraday*vol*2) / model.CaPlasticityParams.BufCapacity
+    if length == 0:
+        SA = np.pi * diam ** 2 #create the calcium pools in each compartment
+        rad = diam / 2
+        vol = (4/3) * np.pi * rad ** 3
+        rad_core= rad - capool.thick
+        core_vol= (4/3) * np.pi * rad_core ** 3
+        shell_vol = vol - core_vol
+        capool.B = 1 / (constants.Faraday * shell_vol * 2) / model.CaPlasticityParams.BufCapacity
+    else :
+        SA = np.pi * length * diam
+        vol = SA * capool.thick
+        capool.B = 1 / (constants.Faraday*vol*2) / model.CaPlasticityParams.BufCapacity
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
 
