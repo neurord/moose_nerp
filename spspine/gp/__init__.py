@@ -17,7 +17,7 @@ from . import param_ca_plas as CaPlasticityParams
 #plasYN:include or exclude plasticity based on calcium
 #calcium, spines and synapses are copied from d1d2.
 #Need to edit them if added to GP neuron
-calYN = False
+calYN = True
 plasYN = False
 ghkYN = False
 spineYN = False
