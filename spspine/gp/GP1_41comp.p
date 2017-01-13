@@ -1,7 +1,6 @@
 *absolute
 *asymmetric
 *cartesian
-
 *origin 0     0       0
 
 *set_global EREST_ACT   -0.060
