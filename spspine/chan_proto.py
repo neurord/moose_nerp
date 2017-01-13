@@ -42,8 +42,9 @@ AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                                 Bvhalf
                                 B_vslope''')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 kdtau=0 cahalf=0')
 BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
+
 
 ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
@@ -60,7 +61,7 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     b = A_max - a*V_max
     tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
     return tabA
-
+ 
 def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
         V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.Avhalf
@@ -98,12 +99,20 @@ def chan_proto(model, chanpath, params):
         chan.Zpower = params.channel.Zpow
         zGate = moose.HHGate(chan.path + '/gateZ')
         if params.Z.__class__==ZChannelParams:
+            #
             ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
             zGate.min = model.CAMIN
             zGate.max = model.CAMAX
             caterm = (ca_array/params.Z.Kd) ** params.Z.power
             inf_z = caterm / (1 + caterm)
-            tau_z = params.Z.tau * np.ones(len(ca_array))
+            if params.Z.taumax>0:
+                tauterm=(ca_array/params.Z.cahalf)**params.Z.kdtau
+                taumax_z=(params.Z.taumax-params.Z.tau)/(1+tauterm)
+                taumin_z= params.Z.tau * np.ones(len(ca_array))
+                tau_z = taumin_z+taumax_z
+            else:
+                tau_z = params.Z.tau * np.ones(len(ca_array))
+            #
             zGate.tableA = inf_z / tau_z
             zGate.tableB = 1 / tau_z
             chan.useConcentration = True
