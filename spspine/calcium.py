@@ -34,8 +34,19 @@ def addDifBuffer(dShell,bufferName,params):
     moose.connect(buf,"reactionOut",dShell,"reaction")
 
     return dbuf
+
+def addMMPump(dShell,pumpName,params):
     
+    shellName = dShell.path
+    pump = moose.MMPump(shellName+'_'+bufferName)
+    pump.Vmax = params.Vmax
+    pump.Kd = params.Kd
+
+    moose.connect(pump,"pumpOut",dShell,"mmPump")
+
+    return pump
     
+ 
 
     
 def CaProto(params):
@@ -62,23 +73,34 @@ def addCaPool(model, comp):
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
 
-def connectVDCC_KCa(model, ghkYN,comp,capool):
+def connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
     if ghkYN:
-        ghk=moose.element(comp.path + '/ghk')
-        moose.connect(capool,'concOut',ghk,'set_Cin')
-        moose.connect(ghk,'IkOut',capool,'current')
-        log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
-        #connect them to the channels
+            ghk = moose.element(comp.path + '/ghk')
+            moose.connect(capool,CaOutMessage,ghk,'set_Cin')
+            moose.connect(ghk,'IkOut',capool,CurrentMessage)
+            log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
+            #connect them to the channels
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
-                 moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
+                         moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
-            if ghkYN == 0:
+            if not ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
-                m = moose.connect(chan, 'IkOut', capool, 'current')
+                m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
+                    
         if model.Channels[chan.name].calciumDependent:
-            m = moose.connect(capool, 'concOut', chan, 'concen')
+            m = moose.connect(capool, CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
+                
+def connectVDCC_KCa(model, ghkYN,comp,capool):
+    if model.caltype == 1:
+        CaOutMessage = 'concOut'
+        CurrentMessgae = 'current'
+    elif model.caltype == 1:
+        CaOutMessage = 'concentrationOut'
+        CurrentMessgae = 'influx'
+                
+    connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage)
  
 def connectNMDA(nmdachans, ghkYesNo):
     for chan in nmdachans:
