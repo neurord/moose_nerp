@@ -75,13 +75,13 @@ def addCaPool(model, comp):
 
 def connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
     if ghkYN:
-            ghk = moose.element(comp.path + '/ghk')
-            moose.connect(capool,CaOutMessage,ghk,'set_Cin')
-            moose.connect(ghk,'IkOut',capool,CurrentMessage)
-            log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
-            #connect them to the channels
+        ghk = moose.element(comp.path + '/ghk')
+        moose.connect(capool,CaOutMessage,ghk,'set_Cin')
+        moose.connect(ghk,'IkOut',capool,CurrentMessage)
+        log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
+        #connect them to the channels
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
-                         moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
+                 moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
             if not ghkYN:
