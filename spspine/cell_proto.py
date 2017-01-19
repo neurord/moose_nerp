@@ -95,7 +95,7 @@ def neuronclasses(model):
     #   1: single tau
     #   2: diffusion, buffering, pumps
     #      this will require many additional function definitions
-    if model.calYN:
+    if (model.caltype == 1):
         #put all these calcium parameters into a dictionary
         calcium.CaProto(model.CaPlasticityParams)
         for ntype in model.neurontypes():

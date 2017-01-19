@@ -13,7 +13,7 @@ def plastic_synapse(model, syncomp, syn_pop, stimtimes):
     syn={}
     plast={}
     stimtab={}
-    if model.calYN and model.plasYN:
+    if (model.caltype == 1) and model.plasYN:
         neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
@@ -21,11 +21,11 @@ def plastic_synapse(model, syncomp, syn_pop, stimtimes):
             for syntype in ('ampa','nmda'):
                 synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
                 log.info('Synapse added to {.path}', synchan)
-                extern_conn.synconn(synchan,0,stimtab[neurtype],model.calYN)
+                extern_conn.synconn(synchan,0,stimtab[neurtype],model.caltype)
                 if syntype=='nmda':
                     synchanCa=moose.element(syn_pop[neurtype][syntype][syncomp].path+'/CaCurr')
                     log.info('Synapse added to {.path}', synchanCa)
-                    extern_conn.synconn(synchanCa,0,stimtab[neurtype],model.calYN)
+                    extern_conn.synconn(synchanCa,0,stimtab[neurtype],model.caltype)
             syn[neurtype]=moose.SynChan(syn_pop[neurtype]['ampa'][syncomp])
             ###Synaptic Plasticity
             print(syn_pop[neurtype]['ampa'][syncomp], model.CaPlasticityParams)

@@ -79,7 +79,7 @@ def CreateNetwork(model, inputelement, spineheads, synarray, MSNsyn, simtime):
 
     ##### Synaptic Plasticity, requires calcium
     #### Array of SynPlas has ALL neurons of a single type in one big array.  Might want to change this
-    if model.calYN and model.plasYN:
+    if (model.caltype == 1) and model.plasYN:
         #rolled back code because didn't know how to add loop over nnum (synchronized to ntype) in single line
         SynPlas={}
         if model.single:

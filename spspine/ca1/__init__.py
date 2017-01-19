@@ -16,7 +16,7 @@ from . import param_ca_plas as CaPlasticityParams
 #synYN:No point adding synapses unless they receive inputs
 #plasYN:include or exclude plasticity based on calcium
 
-calYN = False
+caltype = 0
 plasYN = False
 ghkYN = False
 spineYN = False
