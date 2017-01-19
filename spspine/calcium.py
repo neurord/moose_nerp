@@ -6,6 +6,38 @@ import moose
 from spspine import constants, logutil
 log = logutil.Logger()
 
+def createCaDifShell(shellName,params):
+    dif = moose.DifShell(shellName)
+    dif.Ceq = params.CaBasal
+    dif.D = params.DCa
+    dif.valence = 2
+    dif.leak = 0
+    dif.shapeMode = params.shellMode
+    dif.length = params.shellLength
+    dif.diameter = params.shellDiameter
+    dif.thickness = params.shellThickness
+    return dif
+
+def addDifBuffer(dShell,bufferName,params):
+    shellName = dShell.path
+    dbuf = moose.DifBuffer(shellName+'_'+bufferName)
+    dbuf.bTot = params.bTotal
+    dbuf.kf = params.kf
+    dbuf.kb = params.kb
+    dbuf.D = params.DBuf
+    dbuf.shapeMode = dShell.shellMode
+    dbuf.length = dShell.shellLength
+    dbuf.diameter = dShell.diameter
+    dbuf.thickness = dShell.thickness
+    
+    moose.connect(dShell,"concentrationOut",buf,"concentration")
+    moose.connect(buf,"reactionOut",dShell,"reaction")
+
+    return dbuf
+    
+    
+
+    
 def CaProto(params):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
