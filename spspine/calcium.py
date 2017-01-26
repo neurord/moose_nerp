@@ -6,16 +6,16 @@ import moose
 from spspine import constants, logutil
 log = logutil.Logger()
 
-def createCaDifShell(shellName,params):
-    dif = moose.DifShell(shellName)
-    dif.Ceq = params.CaBasal
-    dif.D = params.DCa
+def addCaDifShell(model,comp,difparams):
+    difproto = moose.element('/library/DifShell')
+    dif = moose.copy(difproto, comp, difparams.name)[0]
+    dif.D = difparams.DCa
     dif.valence = 2
     dif.leak = 0
-    dif.shapeMode = params.shellMode
-    dif.length = params.shellLength
-    dif.diameter = params.shellDiameter
-    dif.thickness = params.shellThickness
+    dif.shapeMode = difparams.shellMode
+    dif.length = difparams.shellLength
+    dif.diameter = difparams.shellDiameter
+    dif.thickness = difparams.Thickness
     return dif
 
 def addDifBuffer(dShell,bufferName,params):
@@ -52,14 +52,27 @@ def addMMPump(dShell,pumpName,params):
 def CaProto(params):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
+    if model.caltype = 0:
+        return
+    if model.caltype == 1:
     #if the proto as been created already, this will not create a duplicate
-    poolproto = moose.CaConc('/library/CaPool')
-    poolproto.CaBasal = params.CaBasal
-    poolproto.ceiling = 1
-    poolproto.floor = 0.0
-    poolproto.thick = params.CaThick
-    poolproto.tau = params.CaTau
-    return poolproto
+    
+        poolproto = moose.CaConc('/library/CaPool')
+        poolproto.CaBasal = params.CaBasal
+        poolproto.ceiling = 1
+        poolproto.floor = 0.0
+        poolproto.thick = params.Thick
+        poolproto.tau = params.CaTau
+        return poolproto, None
+
+    shellproto = moose.DifShell('/library/DifShell')
+    shellproto.Ceq = params.CaBasal
+    if params.difbuffers:
+        bufferproto = moose.DifBuffer('/library/DifBuffer')
+    else:
+        bufferproto = None
+    return shellproto, bufferproto
+    
 
 def addCaPool(model, comp):
     length=moose.Compartment(comp).length
