@@ -6,7 +6,7 @@ import moose
 from spspine import constants, logutil
 log = logutil.Logger()
 
-def addCaDifShell(model,comp,difparams):
+def addCaDifShell(comp,difparams):
     difproto = moose.element('/library/DifShell')
     dif = moose.copy(difproto, comp, difparams.name)[0]
     dif.D = difparams.DCa
@@ -18,20 +18,22 @@ def addCaDifShell(model,comp,difparams):
     dif.thickness = difparams.Thickness
     return dif
 
-def addDifBuffer(dShell,bufferName,params):
-    shellName = dShell.path
-    dbuf = moose.DifBuffer(shellName+'_'+bufferName)
-    dbuf.bTot = params.bTotal
-    dbuf.kf = params.kf
-    dbuf.kb = params.kb
-    dbuf.D = params.DBuf
+def addDifBuffer(comp,dShell,bufparams):
+    shellName = dShell.path.split('/')[-1]
+    bufferName = shellName+'_' + bufparams.name
+    dbufproto = moose.element('/library/DifBuffer')
+    dbuf = moose.copy(dbufproto,comp,bufferName)[0]
+    dbuf.bTot = bufparams.bTotal
+    dbuf.kf = bufparams.kf
+    dbuf.kb = bufparams.kb
+    dbuf.D = bufparams.DBuf
     dbuf.shapeMode = dShell.shellMode
     dbuf.length = dShell.shellLength
     dbuf.diameter = dShell.diameter
     dbuf.thickness = dShell.thickness
     
-    moose.connect(dShell,"concentrationOut",buf,"concentration")
-    moose.connect(buf,"reactionOut",dShell,"reaction")
+    moose.connect(dShell,"concentrationOut",dbuf,"concentration")
+    moose.connect(dbuf,"reactionOut",dShell,"reaction")
 
     return dbuf
 
