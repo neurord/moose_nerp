@@ -77,10 +77,10 @@ def CaProto(params):
     
 
 def addCaPool(model, comp):
-    length=moose.Compartment(comp).length
-    diam=moose.Compartment(comp).diameter
-    SA=np.pi*length*diam
-        #create the calcium pools in each compartment
+    length = moose.Compartment(comp).length
+    diam = moose.Compartment(comp).diameter
+    SA = np.pi*length*diam
+    #create the calcium pools in each compartment
     caproto = moose.element('/library/CaPool')
     capool = moose.copy(caproto, comp, 'CaPool')[0]
     vol = SA * capool.thick
@@ -111,7 +111,7 @@ def connectVDCC_KCa(model, ghkYN,comp,capool):
     if model.caltype == 1:
         CaOutMessage = 'concOut'
         CurrentMessgae = 'current'
-    elif model.caltype == 1:
+    elif model.caltype == 2:
         CaOutMessage = 'concentrationOut'
         CurrentMessgae = 'influx'
                 
