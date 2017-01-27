@@ -8,6 +8,11 @@ bTotal
 kf
 kb
 D''')
+PumpParams = NamedList('BufferParams','''
+Name
+Km
+Kcat
+''')
 #These params are for single time constant of decay calcium
 
 BufCapacity = 2
@@ -36,5 +41,8 @@ Fluo5f_Lovinger = BufferParams('Fluo5f_Lovinger', bTotal=300.0e-3, kf=2.36e5, kb
 Fluo4 = BufferParams('Fluo4', bTotal=100.0e-3, kf=2.36e5, kb=82.6, D=6e-11)
 Fluo4FF = BufferParams('Fluo4FF', bTotal=500.0e-3, kf=.8e5, kb=776, D=6e-11)
 
+MMpump_soma = PumpParams('MMpump_soma',Km=0.3e-3,Kcat=85e-8)
+MMpump_dend = PumpParams('MMpump_dend',Km=0.3e-3,Kcat=8e-8)
+NCX = PumpParams("NCX",Km=1e-3,Kcat=0)
 
 
