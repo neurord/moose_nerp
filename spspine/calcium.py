@@ -7,7 +7,7 @@ from spspine import constants, logutil
 log = logutil.Logger()
 
 def addCaDifShell(comp,difparams):
-    difproto = moose.element('/library/DifShell')
+    difproto = moose.element('/library/'+CaName)
     dif = moose.copy(difproto, comp, difparams.name)[0]
     dif.D = difparams.DCa
     dif.valence = 2
@@ -21,7 +21,7 @@ def addCaDifShell(comp,difparams):
 def addDifBuffer(comp,dShell,bufparams):
     shellName = dShell.path.split('/')[-1]
     bufferName = shellName+'_' + bufparams.name
-    dbufproto = moose.element('/library/DifBuffer')
+    dbufproto = moose.element('/library/'+CaName)
     dbuf = moose.copy(dbufproto,comp,bufferName)[0]
     dbuf.bTot = bufparams.bTotal
     dbuf.kf = bufparams.kf
@@ -49,26 +49,29 @@ def addMMPump(dShell,pumpName,params):
     return pump
     
     
-def CaProto(params):
+def CaProto(parameters):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
-    if model.caltype = 0:
+    if parameters.caltype = 0:
         return
-    if model.caltype == 1:
+    if parameters.caltype == 1:
     #if the proto as been created already, this will not create a duplicate
-    
-        poolproto = moose.CaConc('/library/CaPool')
+        params = parameters.CaPoolParams
+        poolproto = moose.CaConc('/library/'+params.CaName)
         poolproto.CaBasal = params.CaBasal
         poolproto.ceiling = 1
         poolproto.floor = 0.0
-        poolproto.thick = params.Thick
+        poolproto.thick = params.CaThick
         poolproto.tau = params.CaTau
         return poolproto, None
 
-    shellproto = moose.DifShell('/library/DifShell')
+    
+    shellproto = moose.DifShell('/library/'+params.CaName)
     shellproto.Ceq = params.CaBasal
-    if params.difbuffers:
-        bufferproto = moose.DifBuffer('/library/DifBuffer')
+    bufferproto = []
+    for buf in  params.ModelBuffers:
+        one_buffer = moose.DifBuffer('/library/'+buf.Name)
+        bufferproto.append(one_buffer)
     else:
         bufferproto = None
     return shellproto, bufferproto
@@ -108,9 +111,29 @@ def connectVDCC_KCa(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
                 
 
  
-def connectNMDA(model,nmdachans,ghkYesNo, capool):
+def connectNMDA(model,nmdachans,ghkYesNo,capool):
     for chan in nmdachans:
         caname = os.path.dirname(chan.path) + '/CaPool'
         capool = moose.element(caname)
         log.debug('CONNECT {.path} to {.path}', chan, capool)
         moose.connect(chan, 'ICaOut', capool, 'current')
+
+def addCalcium(model):
+    
+     if (model.caltype == 1):
+        #put all these calcium parameters into a dictionary
+        CaProto(model.CaPlasticityParams)
+        for ntype in model.neurontypes():
+            for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
+                capool=calcium.addCaPool(model, comp)
+                caPools[ntype].append(capool)
+                calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
+            #if there are spines, calcium will be added to the spine head
+            if model.spineYN:
+                for spcomp in headArray[ntype]:
+                    capool=calcium.addCaPool(model, spcomp)
+                    if model.SpineParams.spineChanList:
+                        calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
+            #if there are synapses, NMDA will be connected to set of calcium pools
+            if model.synYN:
+                calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)

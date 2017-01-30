@@ -87,29 +87,16 @@ def neuronclasses(model):
         if model.synYN:
             numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
         caPools[ntype]=[]
-    #Calcium concentration - also optional
-    #possibly when FS are added will change this to avoid calcium in the FSI
-    #This is single tau calcium. 
-    #Next step: change model.calYN to caltype, allowing
-    #   0: none
-    #   1: single tau
-    #   2: diffusion, buffering, pumps
-    #      this will require many additional function definitions
-    if (model.caltype == 1):
-        #put all these calcium parameters into a dictionary
-        calcium.CaProto(model.CaPlasticityParams)
-        for ntype in model.neurontypes():
-            for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-                capool=calcium.addCaPool(model, comp)
-                caPools[ntype].append(capool)
-                calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
-            #if there are spines, calcium will be added to the spine head
-            if model.spineYN:
-                for spcomp in headArray[ntype]:
-                    capool=calcium.addCaPool(model, spcomp)
-                    if model.SpineParams.spineChanList:
-                        calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
-            #if there are synapses, NMDA will be connected to set of calcium pools
-            if model.synYN:
-                calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)
+        #Calcium concentration - also optional
+        #possibly when FS are added will change this to avoid calcium in the FSI
+        #This is single tau calcium. 
+        #Next step: change model.calYN to caltype, allowing
+        #   0: none
+        #   1: single tau
+        #   2: diffusion, buffering, pumps
+        #      this will require many additional function definitions
+        calcium.addCalcium(model)
+
+                
     return synArray,neuron,caPools,numSynArray,headArray
+if (model.caltype == 1):

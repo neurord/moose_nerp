@@ -3,25 +3,38 @@
 #This is an attempt to transfer Ca_constants.g
 caltype = 1
 CDIYesNo = 1
+which_dye = 0 #just regular buffers
+plasYesNo = 1
+CaOutmessages = ['','concOut','concentrationOut']
+CurrentMessges = ['', 'current','influx']
+
+if caltype == 1:
+    CaName = "CaPool"
+elif caltype ==2:
+    CaName = "DifShell"
+
+totalshells = 3
 BufferParams = NamedList('BufferParams','''
 Name
 bTotal
 kf
 kb
 D''')
-PumpParams = NamedList('BufferParams','''
+PumpParams = NamedList('PumpParams','''
 Name
 Km
 Kcat
 ''')
+PoolParams = NamedList('PoolParams','''
+CaBasal
+CaThick
+CaTau
+BufCapacity
+''')
 #These params are for single time constant of decay calcium
-
-BufCapacity = 2
-CaThick = 0.1e-6
-CaBasal = 0.05e-3
-CaTau = 20e-3
-
-plasYesNo = 1
+CaBasal = 50e-6
+CaPoolParams = PoolParams('CaPool',CaBasal=CaBasal,CaThick=.1e-6,CaTau=20e-3,BufCapacity = 2)
+                          
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 highThresh = 0.3e-3
@@ -47,7 +60,6 @@ MMpump_dend = PumpParams('MMpump_dend',Km=0.3e-3,Kcat=8e-8)
 
 NCX = PumpParams("NCX",Km=1e-3,Kcat=0)
 
-which_dye = 0 #just regular buffers
 cadyes = { #aka buffer combinations
     0: [calbindin,camn,camc,fixed_buffer],
     1: [Fura2,fixed_buffer],
@@ -55,9 +67,8 @@ cadyes = { #aka buffer combinations
     3: [Fluo4,fixed_buffer],
     4: [Fluo4FF,fixed_buffer],
     5: [Fluo5f_Lovinger,fixed_buffer]
-}
+ }
     
 ModelBuffers =  BufferCombinations[cadye]                    
 
-CaOutmessages = ['','concOut','concentrationOut']
-CurrentMessges = ['', 'current','influx']
+
