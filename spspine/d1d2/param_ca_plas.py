@@ -1,8 +1,8 @@
 #if calcium=0, then calcium pools not implemented
 #if calcium=2, then diffusion,buffers and pumps implemented (eventually)
+#This is an attempt to transfer Ca_constants.g
 caltype = 1
 CDIYesNo = 1
-cadye = 0
 BufferParams = NamedList('BufferParams','''
 Name
 bTotal
@@ -44,16 +44,20 @@ Fluo4FF = BufferParams('Fluo4FF', bTotal=500.0e-3, kf=.8e5, kb=776, D=6e-11)
 
 MMpump_soma = PumpParams('MMpump_soma',Km=0.3e-3,Kcat=85e-8)
 MMpump_dend = PumpParams('MMpump_dend',Km=0.3e-3,Kcat=8e-8)
+
 NCX = PumpParams("NCX",Km=1e-3,Kcat=0)
 
-BufferCombinations = {
+which_dye = 0 #just regular buffers
+cadyes = { #aka buffer combinations
     0: [calbindin,camn,camc,fixed_buffer],
     1: [Fura2,fixed_buffer],
     2: [Fluo5f_Wickens,fixed_buffer],
     3: [Fluo4,fixed_buffer],
     4: [Fluo4FF,fixed_buffer],
     5: [Fluo5f_Lovinger,fixed_buffer]
-
 }
     
 ModelBuffers =  BufferCombinations[cadye]                    
+
+CaOutmessages = ['','concOut','concentrationOut']
+CurrentMessges = ['', 'current','influx']

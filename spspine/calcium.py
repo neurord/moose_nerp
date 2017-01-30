@@ -48,8 +48,6 @@ def addMMPump(dShell,pumpName,params):
 
     return pump
     
- 
-
     
 def CaProto(params):
     if not moose.exists('/library'):
@@ -77,6 +75,7 @@ def CaProto(params):
     
 
 def addCaPool(model, comp):
+
     length = moose.Compartment(comp).length
     diam = moose.Compartment(comp).diameter
     SA = np.pi*length*diam
@@ -88,7 +87,7 @@ def addCaPool(model, comp):
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
 
-def connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
+def connectVDCC_KCa(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
     if ghkYN:
         ghk = moose.element(comp.path + '/ghk')
         moose.connect(capool,CaOutMessage,ghk,'set_Cin')
@@ -107,17 +106,9 @@ def connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
             m = moose.connect(capool, CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
                 
-def connectVDCC_KCa(model, ghkYN,comp,capool):
-    if model.caltype == 1:
-        CaOutMessage = 'concOut'
-        CurrentMessgae = 'current'
-    elif model.caltype == 2:
-        CaOutMessage = 'concentrationOut'
-        CurrentMessgae = 'influx'
-                
-    connectVDCC_KCa_pools(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage)
+
  
-def connectNMDA(nmdachans, ghkYesNo):
+def connectNMDA(model,nmdachans,ghkYesNo, capool):
     for chan in nmdachans:
         caname = os.path.dirname(chan.path) + '/CaPool'
         capool = moose.element(caname)
