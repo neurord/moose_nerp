@@ -5,6 +5,10 @@ import moose
 
 from spspine import constants, logutil
 log = logutil.Logger()
+def get_path(s):
+    l = len(s.split('/')[-1])
+    return s[:-l]
+    
 
 def addCaDifShell(comp,difparams):
     difproto = moose.element('/library/'+CaName)
@@ -59,7 +63,7 @@ def CaProto(parameters):
         params = parameters.CaPoolParams
         poolproto = moose.CaConc('/library/'+params.CaName)
         poolproto.CaBasal = params.CaBasal
-        poolproto.ceiling = 1
+        poolproto.ceiling = 1.
         poolproto.floor = 0.0
         poolproto.thick = params.CaThick
         poolproto.tau = params.CaTau
@@ -90,37 +94,36 @@ def addCaPool(comp, caproto):
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
 
-def connectVDCC_KCa(model, comp,capool):
+def connectVDCC_KCa(model,comp,capool):
     if model.ghkYN:
         ghk = moose.element(comp.path + '/ghk')
-        moose.connect(capool,CaOutMessage,ghk,'set_Cin')
-        moose.connect(ghk,'IkOut',capool,CurrentMessage)
+        moose.connect(capool,model.CaPlasticityParams.CaOutMessage,ghk,'set_Cin')
+        moose.connect(ghk,'IkOut',capool,model.CaPlasticityParams.CurrentMessage)
         log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
         #connect them to the channels
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
                  moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
-    CurrentMessage =
-    CaOutMessage = 
+
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
             if not ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
-                m = moose.connect(chan, 'IkOut', capool, model.CurrentMessage)
+                m = moose.connect(chan, 'IkOut', capool, model.CaPlasticityParams.CurrentMessage)
                     
         if model.Channels[chan.name].calciumDependent:
-            m = moose.connect(capool, model.CaOutMessage, chan, 'concen')
+            m = moose.connect(capool, model.CaPlasticityParams.CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
                 
 
  
-def connectNMDA(model,nmdachans,ghkYesNo,capool):
+def connectNMDA(nmdachans,capool,CurrentMessage,path):
+    #nmdachans!!!
     for chan in nmdachans:
-        caname = os.path.dirname(chan.path) + '/CaPool'
-        capool = moose.element(caname)
-        log.debug('CONNECT {.path} to {.path}', chan, capool)
-        moose.connect(chan, 'ICaOut', capool, 'current')
+        if get_path(chan) == path:
+            log.debug('CONNECT {.path} to {.path}', chan, capool)
+            moose.connect(chan, 'ICaOut', capool, CurrentMessage)
 
-def addCalcium(model):
+def addCalcium(model,synArray,headArray,ntype):
     if model.caltype == 0:
         return
     
@@ -128,23 +131,24 @@ def addCalcium(model):
     if (model.caltype == 1):
         #put all these calcium parameters into a dictionary
         protopool = pools[0]
-        for ntype in model.neurontypes():
-            for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-
-                capool = calcium.addCaPool(comp, protopool)
-                caPools[ntype].append(capool)
-                calcium.connectVDCC_KCa(model,comp,capool)
+        caPools = []
+        for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
+            capool = calcium.addCaPool(comp, protopool)
+            caPools.append(capool)
+            calcium.connectVDCC_KCa(model,comp,capool)
             #if there are spines, calcium will be added to the spine head
             if model.spineYN:
                 
-                for spcomp in headArray[ntype]:
+                for spcomp in headArray:
 
                     capool = calcium.addCaPool(spcomp, protopool)
                     
                     if model.SpineParams.spineChanList:
                         calcium.connectVDCC_KCa(model, spcomp,capool)
-            #if there are synapses, NMDA will be connected to set of calcium pools
-            if model.synYN:
-                calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)
-            return
-        
+                    #if there are synapses, NMDA will be connected to set of calcium pools
+                    if model.synYN:
+                        calcium.connectNMDA(synArray['nmda'],capool,model.CaPlasticityParams.CurrentMessage,get_path(spcomp.path))
+            else:
+                
+                calcium.connectNMDA(synArray['nmda'],capool,model.CaPlasticityParams.CurrentMessage,get_path(comp.path))
+        return caPools  

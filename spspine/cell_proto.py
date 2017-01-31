@@ -83,10 +83,14 @@ def neuronclasses(model):
         #optionally add spines
         if model.spineYN:
             headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN)
-        #optionally add synapses to dendrites, and possibly to spines
+        else:
+            headArray[ntype] = []
+            #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
-        caPools[ntype]=[]
+        else:
+            synArray[ntype] = []
+            
         #Calcium concentration - also optional
         #possibly when FS are added will change this to avoid calcium in the FSI
         #This is single tau calcium. 
@@ -95,8 +99,8 @@ def neuronclasses(model):
         #   1: single tau
         #   2: diffusion, buffering, pumps
         #      this will require many additional function definitions
-        calcium.addCalcium(model)
+        caPools[ntype] = calcium.addCalcium(model,synArray[ntype],headArray[ntype])
 
                 
     return synArray,neuron,caPools,numSynArray,headArray
-if (model.caltype == 1):
+
