@@ -5,15 +5,16 @@ caltype = 1
 CDIYesNo = 1
 which_dye = 0 #just regular buffers
 plasYesNo = 1
-CaOutmessages = ['','concOut','concentrationOut']
-CurrentMessges = ['', 'current','influx']
+CaOutMessages = ['','concOut','concentrationOut']
+CurrentMessages = ['', 'current','influx']
+CaNames = ['',"CaPool","DifShell"]
 
-if caltype == 1:
-    CaName = "CaPool"
-elif caltype ==2:
-    CaName = "DifShell"
+CurrentMessage = CurrentMessages[caltype]
+CaOutMessage = CaOutMessages[caltype]
+CaName = CaNames[caltype]
 
 totalshells = 3
+
 BufferParams = NamedList('BufferParams','''
 Name
 bTotal

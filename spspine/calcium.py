@@ -63,6 +63,7 @@ def CaProto(parameters):
         poolproto.floor = 0.0
         poolproto.thick = params.CaThick
         poolproto.tau = params.CaTau
+        poolproto.B = params.BufCapacity
         return poolproto, None
 
     
@@ -77,21 +78,20 @@ def CaProto(parameters):
     return shellproto, bufferproto
     
 
-def addCaPool(model, comp):
+def addCaPool(comp, caproto):
+    el = moose.Compartment(comp)
 
-    length = moose.Compartment(comp).length
-    diam = moose.Compartment(comp).diameter
-    SA = np.pi*length*diam
+    SA = np.pi*el.length*el.diameter
     #create the calcium pools in each compartment
-    caproto = moose.element('/library/CaPool')
+
     capool = moose.copy(caproto, comp, 'CaPool')[0]
     vol = SA * capool.thick
-    capool.B = 1 / (constants.Faraday*vol*2) / model.CaPlasticityParams.BufCapacity
+    capool.B = 1 / (constants.Faraday*vol*2) / capool.B #volume correction
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
 
-def connectVDCC_KCa(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
-    if ghkYN:
+def connectVDCC_KCa(model, comp,capool):
+    if model.ghkYN:
         ghk = moose.element(comp.path + '/ghk')
         moose.connect(capool,CaOutMessage,ghk,'set_Cin')
         moose.connect(ghk,'IkOut',capool,CurrentMessage)
@@ -99,14 +99,16 @@ def connectVDCC_KCa(model, ghkYN,comp,capool,CaOutMessage,CurrentMessage):
         #connect them to the channels
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
                  moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
+    CurrentMessage =
+    CaOutMessage = 
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
             if not ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
-                m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
+                m = moose.connect(chan, 'IkOut', capool, model.CurrentMessage)
                     
         if model.Channels[chan.name].calciumDependent:
-            m = moose.connect(capool, CaOutMessage, chan, 'concen')
+            m = moose.connect(capool, model.CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
                 
 
@@ -119,21 +121,30 @@ def connectNMDA(model,nmdachans,ghkYesNo,capool):
         moose.connect(chan, 'ICaOut', capool, 'current')
 
 def addCalcium(model):
+    if model.caltype == 0:
+        return
     
-     if (model.caltype == 1):
+    pools = CaProto(model.CaPlasticityParams)
+    if (model.caltype == 1):
         #put all these calcium parameters into a dictionary
-        CaProto(model.CaPlasticityParams)
+        protopool = pools[0]
         for ntype in model.neurontypes():
             for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-                capool=calcium.addCaPool(model, comp)
+
+                capool = calcium.addCaPool(comp, protopool)
                 caPools[ntype].append(capool)
-                calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
+                calcium.connectVDCC_KCa(model,comp,capool)
             #if there are spines, calcium will be added to the spine head
             if model.spineYN:
+                
                 for spcomp in headArray[ntype]:
-                    capool=calcium.addCaPool(model, spcomp)
+
+                    capool = calcium.addCaPool(spcomp, protopool)
+                    
                     if model.SpineParams.spineChanList:
-                        calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
+                        calcium.connectVDCC_KCa(model, spcomp,capool)
             #if there are synapses, NMDA will be connected to set of calcium pools
             if model.synYN:
                 calcium.connectNMDA(synArray[ntype]['nmda'], model.ghkYN)
+            return
+        
