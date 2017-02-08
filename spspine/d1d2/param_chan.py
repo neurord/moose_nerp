@@ -199,7 +199,7 @@ CaL12_X_params = AlphaBetaChannelParams(A_rate = -110000.0*.00399*qfactCaL,#Chec
                                         Bvhalf = -3.99e-3,
                                         B_vslope = 5e-3)
 
-CaL12_X_params = AlphaBetaChannelParams(A_rate = -219.45*qfactCaL,#TODO
+CaL12_Y_params = AlphaBetaChannelParams(A_rate = -219.45*qfactCaL,#TODO
                                         A_B = -55000*qfactCaL,
                                         A_C = -1.0,
                                         Avhalf = 3.99e-3,

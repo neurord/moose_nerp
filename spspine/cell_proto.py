@@ -99,7 +99,7 @@ def neuronclasses(model):
         #   1: single tau
         #   2: diffusion, buffering, pumps
         #      this will require many additional function definitions
-        caPools[ntype] = calcium.addCalcium(model,synArray[ntype],headArray[ntype])
+        caPools[ntype] = calcium.addCalcium(model,synArray[ntype],headArray[ntype],ntype)
 
                 
     return synArray,neuron,caPools,numSynArray,headArray

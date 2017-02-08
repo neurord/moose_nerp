@@ -1,7 +1,8 @@
 #if calcium=0, then calcium pools not implemented
 #if calcium=2, then diffusion,buffers and pumps implemented (eventually)
 #This is an attempt to transfer Ca_constants.g
-
+from spspine.util import NamedList
+from spspine.util import NamedDict
 
 BufferParams = NamedList('BufferParams','''
 Name
@@ -85,7 +86,7 @@ NCX = PumpParams("NCX",Km=1e-3,Kcat=0)
 
 Pumps = NamedDict('Pumps',MMPump = {soma:MMpump_soma,dend:MMpump_dend}, NCXPump = {soma:None,dend:NCX})
 
-cadyes = { #aka buffer combinations
+BufferCombinations = { #aka buffer combinations
     0: [calbindin,camn,camc,fixed_buffer],
     1: [Fura2,fixed_buffer],
     2: [Fluo5f_Wickens,fixed_buffer],
@@ -94,8 +95,8 @@ cadyes = { #aka buffer combinations
     5: [Fluo5f_Lovinger,fixed_buffer]
  }
     
-ModelBuffers =  BufferCombinations[cadye]                    
+ModelBuffers =  BufferCombinations[which_dye]                    
 DifShellGeometryDend = CalciumConfig(shellMode=0,outershell_thickness=.1e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=1)
 DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=0)
 
-CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dendrite:DifShellGeometryDend},spine=DifShellGeometrySpine)
+CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dend:DifShellGeometryDend},spine=DifShellGeometrySpine)

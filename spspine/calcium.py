@@ -103,8 +103,8 @@ def CaProto(params):
         #if the proto as been created already, this will not create a duplicate
         poolproto = moose.CaConc('/library/'+capar.CaName)
         poolproto.CaBasal = capar.CaBasal
-        poolproto.CaTau = capar.CaTau
-        poolproto.BufCapacity = capar.BufCapacity
+        poolproto.tau = capar.CaTau
+        poolproto.B = capar.BufCapacity
         poolproto.ceiling = 1.
         poolproto.floor = 0.0
         return poolproto, None
@@ -160,14 +160,14 @@ def addCaPool(comp, caproto):
     capool.thick = comp.diameter/2
     vol = np.pi*capool.thick**2*comp.length
     capool.B = 1 / (constants.Faraday*vol*2) / capool.B #volume correction
-    log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
+    log.debug('CALCIUM {} {} {} {} {}', capool.path, comp.length,comp.diameter,capool.thick,vol)
     return capool
 
 def connectVDCC_KCa(model,comp,capool):
     if model.ghkYN:
         ghk = moose.element(comp.path + '/ghk')
-        moose.connect(capool,model.CaOutMessage,ghk,'set_Cin')
-        moose.connect(ghk,'IkOut',capool,model.CurrentMessage)
+        moose.connect(capool,model.CaPlasticityParams.CaOutMessage,ghk,'set_Cin')
+        moose.connect(ghk,'IkOut',capool,model.CaPlasticityParams.CurrentMessage)
         log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
         #connect them to the channels
     chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
@@ -175,12 +175,12 @@ def connectVDCC_KCa(model,comp,capool):
 
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
-            if not ghkYN:
+            if not model.ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
-                m = moose.connect(chan, 'IkOut', capool, model.CurrentMessage)
+                m = moose.connect(chan, 'IkOut', capool, model.CaPlasticityParams.CurrentMessage)
                     
         if model.Channels[chan.name].calciumDependent:
-            m = moose.connect(capool, model.CaOutMessage, chan, 'concen')
+            m = moose.connect(capool, model.CaPlasticityParams.CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
                 
 
@@ -202,23 +202,23 @@ def addCalcium(model,synArray,headArray,ntype):
         protopool = pools[0]
         caPools = []
         for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-            capool = calcium.addCaPool(comp, protopool)
+            capool = addCaPool(comp, protopool)
             caPools.append(capool)
-            calcium.connectVDCC_KCa(model,comp,capool)
+            connectVDCC_KCa(model,comp,capool)
     
             #if there are spines, calcium will be added to the spine head
         if model.spineYN:
                 
             for spcomp in headArray:
                 
-                capool = calcium.addCaPool(spcomp, protopool)
+                capool = addCaPool(spcomp, protopool)
                 
                 if model.SpineParams.spineChanList:
-                    calcium.connectVDCC_KCa(model.CaPlasticityParams, spcomp,capool)
+                    connectVDCC_KCa(model, spcomp,capool)
                     #if there are synapses, NMDA will be connected to set of calcium pools
                 
         if model.synYN:
-            calcium.connectNMDA(synArray['nmda'],capool,model.CaPlasticityParams.CurrentMessage)
+            connectNMDA(synArray['nmda'],capool,model.CaPlasticityParams.CurrentMessage)
         return caPools
     
     protodif = pools[0]
@@ -238,4 +238,5 @@ def addCalcium(model,synArray,headArray,ntype):
         if model.spineYN:
             for spcomp in headArray:
                 if comp.path in spcomp.path:
+                    pass
                 
