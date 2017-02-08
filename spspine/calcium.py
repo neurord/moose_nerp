@@ -12,9 +12,6 @@ def get_path(s):
     return s[:-l]
 
 def difshell_geometry(diameter, shell_params):
-     
-   
-    
     res = [] #[[diameter,shell_params.outershell_thickness]]
     
     if shell_params.shellMode == 0:

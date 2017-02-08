@@ -1,15 +1,9 @@
-from spspine.calcium import cabuf_params,NAME_CALCIUM
-
 #example of how to specify calcium buffers.
 #new def in calcium.py will loop over items in cabuf dictionary and create buffers
 #add lines,items for calbindin, fixed buffer, and calcium indicators
 #exclude or include buffers by changing cabuf dictionary, not params
 #alternative is to have separate dictionary specifying total and bound
 #need method to estimate/calculate bound from total and CaBasal
-CaMN_params=cabuf_params(bufname='CaMN',kf=0.1e6,kb=1e3,diffconst=66e-12,total=15e-3,bound=3e-3)
-CaMC_params=cabuf_params(bufname='CaMC',kf=0.006e6,kb=9.1,diffconst=66e-12,total=15e-3,bound=3e-3)
-cabuf={'CaMN':CaMN_params,'CaMC':CaMC_params}
-
 #if calcium=0, then calcium pools not implemented
 #if calcium=2, then diffusion,buffers and pumps implemented (eventually)
 #This is an attempt to transfer Ca_constants.g
@@ -117,3 +111,5 @@ DifShellGeometryDend = CalciumConfig(shellMode=0,outershell_thickness=.1e-6,thic
 DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=0)
 
 CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dend:DifShellGeometryDend},spine=DifShellGeometrySpine)
+
+NAME_CALCIUM = CaParams.CaName

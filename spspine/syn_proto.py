@@ -103,8 +103,8 @@ def add_synchans(model, container):
             Gbarvar=model.SYNAPSE_TYPES[key].var
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
 
-            if NAME_HEAD in spcomp.path:
-                synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
+                if NAME_HEAD in spcomp.path:
+                    synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
         ########### delete from here to allsynchans= once pop_funcs debugged ################
 
         #calculate distance from soma

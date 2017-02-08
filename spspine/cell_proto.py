@@ -77,6 +77,7 @@ def neuronclasses(model):
     neuron={}
     synArray={}
     headArray={}
+    caPools = {}
     for ntype in model.neurontypes():
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
@@ -92,7 +93,7 @@ def neuronclasses(model):
             numSynArray[ntype], synArray[ntype] = syn_proto.add_synchans(model, ntype)
         else:
             synArray[ntype] = []
-            
+               
         #Calcium concentration - also optional
         #possibly when FS are added will change this to avoid calcium in the FSI
         #This is single tau calcium. 
@@ -104,5 +105,5 @@ def neuronclasses(model):
         caPools[ntype] = calcium.addCalcium(model,synArray[ntype],headArray[ntype],ntype)
 
                 
-    return synArray,neuron,caPools,numSynArray,headArray
+    return synArray,neuron
 

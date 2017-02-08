@@ -22,10 +22,10 @@ from spspine.chan_proto import (
 # where x is membrane voltage and y is the rate constant
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 #Parameters for Ca channels may need to be shifted - see Dorman model
-krev=-9e-3
+krev=-87e-3
 narev=50e-3
-carev=0.14 #assumes CaExt=2 mM and CaIn=50e-3
-ZpowCDI = 1
+carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
+ZpowCDI=2
 
 VMIN = -120e-3
 VMAX = 50e-3
@@ -126,7 +126,7 @@ KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 # activation constants for alphas and betas (obtained by
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
 
-qfactKaF = 2
+qfactKaF = 1.5
 KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
@@ -186,34 +186,23 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 2.5*qfactKaS,
 # CDI measured by Kasai
 #Note that CaL13 for D1 has mvhalf 10 mV more negative than for D2
 #CaL12 does not differ between D1 and D2.
-CaL12param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL12')
-qfactCaL = 2
-CaL12_X_params = AlphaBetaChannelParams(A_rate = -110000.0*.00399*qfactCaL,#Checked JJS
-                                        A_B = -110000.0*qfactCaL,
+CaL12param = ChannelSettings(Xpow=1, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL12')
+qfactCaL = 1
+CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
+                                        A_B = -220e3*qfactCaL,
                                         A_C = -1.0,
-                                        Avhalf = 3.99e-3,
+                                        Avhalf = 4.0003e-3,
                                         A_vslope = -7.5e-3,
-                                        B_rate = -35500.0*.00399*qfactCaL,
-                                        B_B = 35500.0*qfactCaL,
+                                        B_rate = -284*qfactCaL,
+                                        B_B = 71e3*qfactCaL,
                                         B_C = -1.0,
-                                        Bvhalf = -3.99e-3,
-                                        B_vslope = 5e-3)
-
-CaL12_Y_params = AlphaBetaChannelParams(A_rate = -219.45*qfactCaL,#TODO
-                                        A_B = -55000*qfactCaL,
-                                        A_C = -1.0,
-                                        Avhalf = 3.99e-3,
-                                        A_vslope = -7.5e-3,
-                                        B_rate = 70.82*qfactCaL,
-                                        B_B = 17750*qfactCaL,
-                                        B_C = -1.0,
-                                        Bvhalf = -3.99e-3,
+                                        Bvhalf = -4.0003e-3,
                                         B_vslope = 5e-3)
 
 # Using Xpow=1 produced too high a basal calcium,
-# so used Xpow=2 and retuned params - much better basal calcium 
-CaL13param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL13')
-CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL, #Checked JJS
+# so used Xpow=2 and retuned params - much better basal calcium
+CaL13param = ChannelSettings(Xpow=2, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL13')
+CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
                                         A_B = 0,
                                         A_C = 1.0,
                                         Avhalf = -5.0e-3,
@@ -222,43 +211,34 @@ CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL, #Checked JJS
                                         B_B = 0,
                                         B_C = 1.0,
                                         Bvhalf = 52e-3,
-                                        B_vslope = 7e-3)
-CaL13_Y_params = AlphaBetaChannelParams(A_rate = 42.2*qfactCaL, #Checked JJS
-                                        A_B = -8.1,
-                                        A_C = 1.9,
-                                        Avhalf = 40e-3,
-                                        A_vslope = 5.0e-3,
-                                        B_rate =  45*qfactCaL,
-                                        B_B = 8.0,
-                                        B_C = 2.0,
-                                        Bvhalf = 34e-3,
-                                        B_vslope = -5.0e-3)
+                                        B_vslope = 6.5e-3)
+
 #Params from McRory J Biol Chem, alpha1I subunit
 CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaT')
 qfactCaT = 2
-CaT_X_params = AlphaBetaChannelParams(A_rate = 5342.5*qfactCaT,
-                                      A_B = 2100*qfactCaT,
-                                      A_C = 11.9,
-                                      Avhalf = 1e-3,
-                                      A_vslope = -12e-3,
-                                      B_rate = 289.7*qfactCaT,
-                                      B_B = 0.,
-                                      B_C = 1.,
-                                      Bvhalf = 0.0969,
-                                      B_vslope = 0.0141)
+CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
+                                      A_B = 0.0,
+                                      A_C = 0.0,
+                                      Avhalf = 0.0,
+                                      A_vslope = -19e-3,
+                                      B_rate = 1340*qfactCaT,
+                                      B_B = 16500*qfactCaT,
+                                      B_C = -1.0,
+                                      Bvhalf = 81.0003e-3,
+                                      B_vslope = 7.12e-3)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
+CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
+                                      A_B = 34000*qfactCaT,
+                                      A_C = -1.0,
+                                      Avhalf = 113.0003e-3,
+                                      A_vslope = 5.12e-3,
+                                      B_rate = 320*qfactCaT,
+                                      B_B = 0,
+                                      B_C = 0.0,
+                                      Bvhalf = 0.0,
+                                      B_vslope = -17e-3)
 
-CaT_Y_params = AlphaBetaChannelParams(A_rate = 0*qfactCaT,
-                                      A_B = -74.,
-                                      A_C = 1,
-                                      Avhalf = 0.09,
-                                      A_vslope = 5e-3,
-                                      B_rate = 15*qfactCaT,
-                                      B_B = -1.5*qfactCaT,
-                                      B_C = 1.5,
-                                      Bvhalf = 50e-3,
-                                      B_vslope = -15e-3)
 # CaN SS parameters tuned so m2 fits Bargas and Surmeier 1994 boltzmann curve
 # CaN tau from kasai 1992.
 # Kasai measures calcium dependent inactivation
@@ -320,7 +300,7 @@ BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
              BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 #These CDI params can be used with every channel, make ZpowCDI=2
 #If ZpowCDI=0 the CDI will not be used, power=-4 is to transform
-#(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow) Why 2? JJS
+#(Ca/Kd)^pow/(1+(Ca/Kd)^pow) to 1/(1+(ca/Kd)^-pow)
 CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
                               power = -4,
                               tau = 142e-3)
@@ -335,8 +315,8 @@ Channels = NamedDict(
     KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
     KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),
     Kir =   TypicalOneDalpha(Kirparam,  Kir_X_params, []),
-    CaL12 = TypicalOneDalpha(CaL12param, CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaL12 = TypicalOneDalpha(CaL12param, CaL12_X_params, [], CDI_Z_params, calciumPermeable=True),
+    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params, [], CDI_Z_params, calciumPermeable=True),
     CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, [], CDI_Z_params, calciumPermeable=True),
     CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
     CaT =   TypicalOneDalpha(CaTparam, CaT_X_params, CaT_Y_params, CDI_Z_params, calciumPermeable=True),
