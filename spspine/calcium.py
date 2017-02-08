@@ -6,29 +6,48 @@ import moose
 from spspine import constants, logutil
 
 log = logutil.Logger()
+
 def get_path(s):
     l = len(s.split('/')[-1])
     return s[:-l]
 
-def how_many_difshells(diameter, outershell_thick,thick_increase,min_thickness):
+def difshell_geometry(diameter, shell_params):
+     
+   
+    
+    res = [] #[[diameter,shell_params.outershell_thickness]]
+    
+    if shell_params.shellMode == 0:
+        multiplier = 2.
+        new_rad = diameter/2.
+    else:
+        multiplier = 1.
+        new_rad = diameter
 
-    radius = diameter/2.
-    denominator = np.log(thick_increase)
-    numerator = np.log((min_thickness-radius)*(1-thick_increase)/outershell_thick +1)
+    i = 1
+    new_thick = shell_params.outershell_thickness
+    if shell_params.increase_mode:
+        while new_rad > shell_params.min_thickness + new_thick:
+            res.append([new_rad*multiplier,new_thick])
+            new_rad = new_rad - new_thick
+            new_thick = shell_params.outershell_thickness*shell_params.thick_increase**i
+            i = i+1
+        res.append([new_rad,new_rad])
+        return res
+    
+    while new_rad >shell_params.min_thickness+ new_thick:
 
-    return numerator/denominator
-
-def difshell_geometry(diameter, outershell_thick,thick_increase,min_thickness,n):
-    n = how_many_difshells(diameter, outershell_thick,thick_increase,min_thickness)
-    res = [[diameter,outershell_thick]]
-    new_rad = diameter/2.
-    new_thick = outershell_thick
-    for i in range(1,n):
-        new_rad = new_rad - outershell_thick
-        new_thick = outershell_thick*thick_increase**i
-        res.append([new_rad*2,new_thick])
+       
+        res.append([new_rad*multiplier,new_thick])
+        new_rad = new_rad - new_thick
+        new_thick = shell_params.outershell_thickness + i*shell_params.thick_increase*shell_params.outershell_thickness
+        i = i+1
+        
+    res.append([new_rad,new_rad])    
     return res
 
+
+        
 def addCaDifShell(comp,difparams,difproto):
 
     dif = moose.copy(difproto, comp, difparams.name)[0]
@@ -105,13 +124,13 @@ def CaProto(params):
     
 
 def addCaPool(comp, caproto):
+
     el = moose.Compartment(comp)
 
-    SA = np.pi*el.length*el.diameter
     #create the calcium pools in each compartment
-
     capool = moose.copy(caproto, comp, 'CaPool')[0]
-    vol = SA * capool.thick
+    capool.thick = el.diameter/2
+    vol = np.pi*capool.thick**2*el.length
     capool.B = 1 / (constants.Faraday*vol*2) / capool.B #volume correction
     log.debug('CALCIUM {} {} {} {} {}', capool.path, length,diam,capool.thick,vol)
     return capool
@@ -145,11 +164,13 @@ def connectNMDA(nmdachans,capool,CurrentMessage,path):
             log.debug('CONNECT {.path} to {.path}', chan, capool)
         moose.connect(chan, 'ICaOut', capool, CurrentMessage)
 
+
 def addCalcium(model,synArray,headArray,ntype):
     if model.CaPlasticityParams.caltype == 0:
         return
     
     pools = CaProto(model.CaPlasticityParams)
+    
     if model.CaPlasticityParams.caltype == 1:
         #put all these calcium parameters into a dictionary
         protopool = pools[0]
@@ -177,21 +198,24 @@ def addCalcium(model,synArray,headArray,ntype):
     
     protodif = pools[0]
     protobufs = pools[1]
-    shell_parameters = {}
+    shell_geometry_dendrite =  params.CaMorphologyShell.dendrite
+    shell_geometry_spine = params.CaMorphologyShell.dendrite
     params = models.CaPlasticityParams
-    sg = params.ShellGeometry
     dparam = params.ShellParams
     buffers = models.CaPlasticityParams.ModelBuffers
-   
+    shell_parameters = {}
     for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-
-        if comp.diameter not in shell_parameters: 
-            shell_parameters[comp.diameter] = difshell_geometry(comp.diameter, sh.outershell_thickness,sh.thickness_increase,sh.min_thickness)
+        xloc = moose.Compartment(comp).x
+        yloc = moose.Compartment(comp).y
+        dist = np.sqrt(xloc*xloc+yloc*yloc)
+        sgh = distance_mapping(shell_geometry_dendrite, dist)
+        shell_parameters = difshell_geometry(comp.diameter, sgh)
             
         difshell = []
         
-        for i,(diameter,thickness) in enumerate(shell_parameters[comp.diameter]):
-                difparams = models.CaPlasticityParams.DifShellParams(Name=dparam.Name+str(i),CaBasal=dparam.CaBasal,DCa=dparam.DCa,shellMode=dparam.shellMode, shellLength = comp.length,shellDiameter=diameter,Thickness=thickness)
+        for i,(diameter,thickness) in enumerate(shell_parameters):
+            
+            difparams = models.CaPlasticityParams.DifShellParams(Name=dparam.Name+str(i),CaBasal=dparam.CaBasal,DCa=dparam.DCa,shellMode=dparam.shellMode, shellLength = comp.length,shellDiameter=diameter,Thickness=thickness)
           
             dShell = addCaDifShell(comp,difparams,protodif)
             difshell.append(dShell)

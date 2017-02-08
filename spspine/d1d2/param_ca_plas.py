@@ -24,14 +24,18 @@ CaTau
 BufCapacity
 ''')
 
-CalciumConfig = NamedList('','''
+CalciumConfig = NamedList('CalciumConfig','''
 shellMode
 increase_mode
 outershell_thickness
-thickness_incease
+thickness_increase
 min_thickness
 ''')
-#shellMode=-1 (CaPool), shellMode = 
+
+
+
+#shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3
+#increase_mode linear = 0, geometric = 1
 #These params are for single time constant of decay calcium
 
 caltype = 1
@@ -91,5 +95,7 @@ cadyes = { #aka buffer combinations
  }
     
 ModelBuffers =  BufferCombinations[cadye]                    
-DifShellGeometry = DifShellConfig(outershell_thickness=1.e-6,thickness_increase = 2.,min_thickness = 1.1*outer_shell_thickness)
+DifShellGeometryDend = CalciumConfig(shellMode=0,outershell_thickness=.1e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=1)
+DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=0)
 
+CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dendrite:DifShellGeometryDend},spine=DifShellGeometrySpine)
