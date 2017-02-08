@@ -5,7 +5,6 @@ import moose
 
 from spspine import constants, logutil
 
-
 log = logutil.Logger()
 
 def get_path(s):
@@ -99,6 +98,7 @@ def CaProto(params):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
 
+
     if capar.DCa == 0 and capar.CaTau >0 and capar.BufCapacity>0:
         #if the proto as been created already, this will not create a duplicate
         poolproto = moose.CaConc('/library/'+capar.CaName)
@@ -188,6 +188,7 @@ def connectVDCC_KCa(model,comp,capool):
 def connectNMDA(nmdachans,capool,CurrentMessage):
     #nmdachans!!!
     for chan in nmdachans:
+
         moose.connect(chan, 'ICaOut', capool, CurrentMessage)
 
 

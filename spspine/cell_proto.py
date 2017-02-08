@@ -13,11 +13,14 @@ from spspine import (calcium,
                      util as _util,
                      logutil)
 log = logutil.Logger()
+NAME_SOMA='soma'
 
 def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
     diam=moose.Compartment(comp).diameter
     SA=np.pi*length*diam
+    if length==0:
+        SA=np.pi*diam**2
     proto = moose.element('/library/'+chanpath)
     chan = moose.copy(proto, comp, chanpath)[0]
     chan.Gbar = gbar * SA
@@ -30,18 +33,20 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         m=moose.connect(chan, 'channel', comp, 'channel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
+def find_morph_file(model):
+    return _util.maybe_find_file(model.morph_file,
+                                 _os.path.dirname(model.__file__))
+
 def create_neuron(model, ntype, ghkYN):
-    p_file = _util.maybe_find_file(model.morph_file,
-                                   _os.path.dirname(model.__file__))
+    p_file = find_morph_file(model)
     try:
         cellproto=moose.loadModel(p_file, ntype)
     except IOError:
         print('could not load model from {!r}'.format(p_file))
         raise
-    comps=[]
     #######channels
+    Cond = model.Condset[ntype]
     for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
-        comps.append(comp)
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y
         #Possibly this should be replaced by pathlength
@@ -56,14 +61,13 @@ def create_neuron(model, ntype, ghkYN):
             moose.connect(ghk,'channel',comp,'channel')
         else:
             ghk=[]
-        Cond = model.Condset[ntype]
         for channame, chanparams in model.Channels.items():
             c = _util.distance_mapping(Cond[channame], dist)
             if c > 0:
                 log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = chanparams.calciumPermeable
                 addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
-    return {'comps': comps, 'cell': cellproto}
+    return cellproto
 
 def neuronclasses(model):
     ##create channels in the library
@@ -72,8 +76,6 @@ def neuronclasses(model):
     ##now create the neuron prototypes
     neuron={}
     synArray={}
-    numSynArray={}
-    caPools={}
     headArray={}
     for ntype in model.neurontypes():
         protoname='/library/'+ntype

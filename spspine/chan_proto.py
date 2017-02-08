@@ -98,16 +98,23 @@ def chan_proto(model, chanpath, params):
 
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
-        zgate = moose.HHGate(chan.path + '/gateZ')
-        ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
-        zgate.min = model.CAMIN
-        zgate.max = model.CAMAX
-        caterm = (ca_array/params.Z.Kd) ** params.Z.power
-        inf_z = caterm / (1 + caterm)
-        tau_z = params.Z.tau * np.ones(len(ca_array))
-        zgate.tableA = inf_z**2# / tau_z #CDI in SP12 model, 8/12/16 JJS
-        zgate.tableB = 1 / tau_z
-        chan.useConcentration = True
+
+        zGate = moose.HHGate(chan.path + '/gateZ')
+        if params.Z.__class__==ZChannelParams:
+            ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
+            zGate.min = model.CAMIN
+            zGate.max = model.CAMAX
+            caterm = (ca_array/params.Z.Kd) ** params.Z.power
+            inf_z = caterm / (1 + caterm)
+            tau_z = params.Z.tau * np.ones(len(ca_array))
+            zGate.tableA = inf_z / tau_z
+            zGate.tableB = 1 / tau_z
+            chan.useConcentration = True
+        else:
+            zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.Z, zGate)
+            chan.useConcentration = False
+
     chan.Ek = params.channel.Erev
     return chan
 

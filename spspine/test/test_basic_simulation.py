@@ -3,7 +3,7 @@ from spspine import (cell_proto,
                      create_network,
                      inject_func,
                      tables,
-                     d1d2)
+                     d1d2, param_net)
 
 import pytest
 
@@ -37,16 +37,19 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = True
 
-    MSNsyn,neuron,capools,synarray,spineHeads = \
+    MSNsyn,neuron = \
         cell_proto.neuronclasses(d1d2)
 
-    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
+    all_neurons={}
+    for ntype in neuron.keys():
+        all_neurons[ntype]=list([neuron[ntype].path])
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, all_neurons)
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)
@@ -76,7 +79,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
 def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     "Create the neuron and run a very short simulation"
 
-    pytest.skip("skipping network tests")
+    #pytest.skip("skipping network tests")
 
     if ghk and not hasattr(moose, 'GHK'):
         pytest.skip("GHK is missing")
@@ -91,18 +94,17 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = bool(single)
 
-    MSNsyn,neuron,capools,synarray,spineHeads = cell_proto.neuronclasses(d1d2)
+    MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
-    MSNpop, SynPlas = \
-        create_network.CreateNetwork(d1d2, '/input', spineHeads, synarray, MSNsyn, neuron)
+    population,connection, plas = create_network.create_network(d1d2, param_net, neuron)
 
-    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron)
-    pg.firstLevel = 1e-8
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
+    pg.firstLevel = 1e-9
 
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', capools, {}, {})
+        tables.graphtables(d1d2, neuron, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)
@@ -112,8 +114,8 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    assert 0.15 < vm1[250] < 0.25
-    assert 0.15 < vm2[250] < 0.25
-    assert 0.00 < vm1[499] < 0.05
-    assert 0.00 < vm2[499] < 0.05
+    assert -0.01 < vm1[250] < 0.05
+    assert -0.01 < vm2[250] < 0.05
+    assert -0.01 < vm1[499] < 0.05
+    assert -0.01 < vm2[499] < 0.05
     return vm1, vm2
