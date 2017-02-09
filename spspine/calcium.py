@@ -154,9 +154,11 @@ def addCaPool(comp, caproto):
 
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, 'CaPool')[0]
-    capool.thick = comp.diameter/2
-    vol = np.pi*capool.thick**2*comp.length
-    capool.B = 1 / (constants.Faraday*vol*2) / capool.B #volume correction
+    capool.thick = comp.diameter/2.
+    SA = comp.diameter*comp.length*np.pi
+    vol = SA*capool.thick/2.
+    bc = capool.B
+    capool.B = 1. / (constants.Faraday*vol*2) / bc #volume correction
     log.debug('CALCIUM {} {} {} {} {}', capool.path, comp.length,comp.diameter,capool.thick,vol)
     return capool
 
@@ -167,9 +169,9 @@ def connectVDCC_KCa(model,comp,capool):
         moose.connect(ghk,'IkOut',capool,model.CaPlasticityParams.CurrentMessage)
         log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
         #connect them to the channels
-    chan_list = (moose.wildcardFind(comp.path + '/#[TYPE=HHChannel]') +
-                 moose.wildcardFind(comp.path + '/#[TYPE=HHChannel2D]'))
-
+        
+    chan_list = [c for c in comp.neighbors['VmOut'] if c.className == 'HHChannel' or c.className == 'HHChannel2D']
+  
     for chan in chan_list:
         if model.Channels[chan.name].calciumPermeable:
             if not model.ghkYN:
@@ -182,14 +184,14 @@ def connectVDCC_KCa(model,comp,capool):
                 
 
  
-def connectNMDA(nmdachans,capool,CurrentMessage):
+def connectNMDA(comp,capool,CurrentMessage):
     #nmdachans!!!
-    for chan in nmdachans:
+    for chan in moose.element(comp).neighbors['VmOut']:
+        if chan.className == 'NMDAChan':
+            moose.connect(chan, 'ICaOut', capool, CurrentMessage)
 
-        moose.connect(chan, 'ICaOut', capool, CurrentMessage)
+def addCalcium(model,ntype):
 
-
-def addCalcium(model,synArray,headArray,ntype):
     if model.CaPlasticityParams.caltype == 0:
         return
     
@@ -203,20 +205,20 @@ def addCalcium(model,synArray,headArray,ntype):
             capool = addCaPool(comp, protopool)
             caPools.append(capool)
             connectVDCC_KCa(model,comp,capool)
-    
             #if there are spines, calcium will be added to the spine head
-        if model.spineYN:
-                
-            for spcomp in headArray:
-                
-                capool = addCaPool(spcomp, protopool)
-                
-                if model.SpineParams.spineChanList:
-                    connectVDCC_KCa(model, spcomp,capool)
-                    #if there are synapses, NMDA will be connected to set of calcium pools
-                
-        if model.synYN:
-            connectNMDA(synArray['nmda'],capool,model.CaPlasticityParams.CurrentMessage)
+            if model.spineYN:
+                spines = list(set(comp.children)&set(comp.neighbors['raxial']))
+                for sp in spines:
+                    capool = addCaPool(sp, protopool)
+                    connectVDCC_KCa(model, sp,capool)
+                    heads = moose.element(sp).neighbors['raxial']
+                    for head in heads:
+                        capool = addCaPool(head, protopool)
+                        connectVDCC_KCa(model,head,capool)
+                        if model.synYN:
+                            connectNMDA(head,capool,model.CaPlasticityParams.CurrentMessage)
+            if model.synYN:
+                connectNMDA(comp,capool,model.CaPlasticityParams.CurrentMessage)
         return caPools
     
     protodif = pools[0]
