@@ -119,49 +119,6 @@ def CaProto(params):
         bufferproto = None
     return shellproto, bufferproto
     
-
-def addDifMachineryToComp(comp,sgh,params):
-    
-        diam_thick = difshell_geometry(comp.diameter, sgh)
-        difshell = []
-        
-        for i,(diameter,thickness) in enumerate(diam_thick):
-            name = params.CaParams.Name+'_'+str(i)
-            dShell = addCaDifShell(comp,protodif,sgh.shellMode,diameter,thickness,name)
-            difshell.append(dShell)
-
-            for bufparams in buffers:
-                b = addDifBuffer(comp,dShell,protobufs,bufparams)
-            if i>0:
-                moose.connect(difshell[i-1],"outerDifSourceOut",difshell[i],"fluxFromOut")
-                moose.connect(difshell[i],"innerDifSourceOut",difshell[i-1],"fluxFromIn")
-            else:
-                #Add pumps
-                xloc = moose.Compartment(comp).x
-                yloc = moose.Compartment(comp).y
-                dist = np.sqrt(xloc*xloc+yloc*yloc)
-                log.debug('comp {.path} dist {}', comp, dist)
-                for pump in params.Pumps:
-                    pparams = distance_mapping(pump, dist)
-                    if pparams:
-                        p = addMMPump(dShell,pparams)
-                #connect channels        
-                connectVDCC_KCa(params,comp,dShell)
-
-
-def addCaPool(comp, caproto):
-
-
-    #create the calcium pools in each compartment
-    capool = moose.copy(caproto, comp, 'CaPool')[0]
-    capool.thick = comp.diameter/2.
-    SA = comp.diameter*comp.length*np.pi
-    vol = SA*capool.thick/2.
-    bc = capool.B
-    capool.B = 1. / (constants.Faraday*vol*2) / bc #volume correction
-    log.debug('CALCIUM {} {} {} {} {}', capool.path, comp.length,comp.diameter,capool.thick,vol)
-    return capool
-
 def connectVDCC_KCa(model,comp,capool):
     if model.ghkYN:
         ghk = moose.element(comp.path + '/ghk')
@@ -181,7 +138,57 @@ def connectVDCC_KCa(model,comp,capool):
         if model.Channels[chan.name].calciumDependent:
             m = moose.connect(capool, model.CaPlasticityParams.CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
-                
+            
+def addDifMachineryToComp(comp,sgh,params):
+    
+        diam_thick = difshell_geometry(comp.diameter, sgh)
+        difshell = []
+        buffers = []
+        for i,(diameter,thickness) in enumerate(diam_thick):
+            name = params.CaParams.Name+'_'+str(i)
+            dShell = addCaDifShell(comp,protodif,sgh.shellMode,diameter,thickness,name)
+            difshell.append(dShell)
+            
+            b = []
+            for bufparams in buffers:
+                b.append(addDifBuffer(comp,dShell,protobufs,bufparams))
+            buffers.append(b)
+            
+            if i>0:
+                #connect shells
+                moose.connect(difshell[i-1],"outerDifSourceOut",difshell[i],"fluxFromOut")
+                moose.connect(difshell[i],"innerDifSourceOut",difshell[i-1],"fluxFromIn")
+                #connect buffers
+                for j,b in buffers[i]:
+                    moose.connect(buffers[i-1][j],"outerDifSourceOut",buffers[i][j],"fluxFromOut")
+                    moose.connect(buffers[i][j],"innerDifSourceOut",buffers[i-1][j],"fluxFromIn")
+            else:
+                #Add pumps
+                xloc = moose.Compartment(comp).x
+                yloc = moose.Compartment(comp).y
+                dist = np.sqrt(xloc*xloc+yloc*yloc)
+                log.debug('comp {.path} dist {}', comp, dist)
+                for pump in params.Pumps:
+                    pparams = distance_mapping(pump, dist)
+                    if pparams:
+                        p = addMMPump(dShell,pparams)
+                #connect channels        
+                connectVDCC_KCa(params,comp,dShell)
+        return difshell
+    
+def addCaPool(model,comp, caproto):
+    #create the calcium pools in each compartment
+    capool = moose.copy(caproto, comp, caproto.CaName)[0]
+    capool.thick = comp.diameter/2.
+    SA = comp.diameter*comp.length*np.pi
+    vol = SA*capool.thick/2.
+    bc = capool.B
+    capool.B = 1. / (constants.Faraday*vol*2) / bc #volume correction
+    log.debug('CALCIUM {} {} {} {} {}', capool.path, comp.length,comp.diameter,capool.thick,vol)
+    connectVDCC_KCa(model,comp,capool)
+    return capool
+
+
 
  
 def connectNMDA(comp,capool,CurrentMessage):
@@ -202,19 +209,15 @@ def addCalcium(model,ntype):
         protopool = pools[0]
         caPools = []
         for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-            capool = addCaPool(comp, protopool)
-            caPools.append(capool)
-            connectVDCC_KCa(model,comp,capool)
+            capool = addCaPool(model,comp, protopool)
             #if there are spines, calcium will be added to the spine head
             if model.spineYN:
                 spines = list(set(comp.children)&set(comp.neighbors['raxial']))
                 for sp in spines:
-                    capool = addCaPool(sp, protopool)
-                    connectVDCC_KCa(model, sp,capool)
+                    capool = addCaPool(model,sp, protopool)
                     heads = moose.element(sp).neighbors['raxial']
                     for head in heads:
-                        capool = addCaPool(head, protopool)
-                        connectVDCC_KCa(model,head,capool)
+                        capool = addCaPool(model,head, protopool)
                         if model.synYN:
                             connectNMDA(head,capool,model.CaPlasticityParams.CurrentMessage)
             if model.synYN:
@@ -233,10 +236,17 @@ def addCalcium(model,ntype):
         xloc = moose.Compartment(comp).x
         yloc = moose.Compartment(comp).y
         dist = np.sqrt(xloc*xloc+yloc*yloc)
-        sgh = distance_mapping(shell_geometry_dendrite, dist)
+        sgh = distance_mapping(CaMorphologyShell.dendrite, dist)
         addDifMachineryToComp(comp,sgh,params)
         if model.spineYN:
-            for spcomp in headArray:
-                if comp.path in spcomp.path:
-                    pass
-                
+           spines = list(set(comp.children)&set(comp.neighbors['raxial']))
+           for sp in spines:
+               sgh = distance_mapping(CaMorphologyShell.spine, dist)
+               addDifMachineryToComp(sp,sgh,params)
+               heads = moose.element(sp).neighbors['raxial']
+               for head in heads:
+                   addDifMachineryToComp(comp,sgh,params)
+                   if model.synYN:
+                       connectNMDA(head,capool,model.CaPlasticityParams.CurrentMessage)
+            if model.synYN:
+                connectNMDA(comp,capool,model.CaPlasticityParams.CurrentMessage

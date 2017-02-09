@@ -110,6 +110,6 @@ ModelBuffers =  BufferCombinations[which_dye]
 DifShellGeometryDend = CalciumConfig(shellMode=0,outershell_thickness=.1e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=1)
 DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=0)
 
-CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dend:DifShellGeometryDend},spine=DifShellGeometrySpine)
+CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dend:DifShellGeometryDend},spine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine})
 
 NAME_CALCIUM = CaParams.CaName
