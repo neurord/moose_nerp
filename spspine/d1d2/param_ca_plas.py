@@ -19,12 +19,12 @@ D''')
 
 PumpParams = NamedList('PumpParams','''
 Name
-Km
-Kcat
+Kd
+Vmax
 ''')
 
 CalciumParams = NamedList('CalciumParams','''
-CaName
+Name
 CaBasal
 DCa
 CaTau
@@ -46,7 +46,7 @@ min_thickness
 #These params are for single time constant of decay calcium
 
 
-caltype = 1
+caltype = 2
 CDIYesNo = 1
 which_dye = 0 #just regular buffers
 plasYesNo = 1
@@ -61,11 +61,6 @@ ShellParams =  CalciumParams('DifShell',CaBasal=CaBasal,DCa=200.0e-12,CaTau=0,Bu
 
 CalciumParamsList = [None,CaPoolParams,ShellParams]
 CaParams = CalciumParamsList[caltype]
-
-soma = (0,14e-6)
-dend = (14.1e-6,1000e-6)
-
-
 
 syntype='ampa'
 
@@ -90,10 +85,13 @@ Fluo5f_Lovinger = BufferParams('Fluo5f_Lovinger', bTotal=100.0e-3, kf=2.36e5, kb
 Fluo4 = BufferParams('Fluo4', bTotal=100.0e-3, kf=2.36e5, kb=82.6, D=6e-11)
 Fluo4FF = BufferParams('Fluo4FF', bTotal=500.0e-3, kf=.8e5, kb=776, D=6e-11)
 
-MMpump_soma = PumpParams('MMpump_soma',Km=0.3e-3,Kcat=85e-8)
-MMpump_dend = PumpParams('MMpump_dend',Km=0.3e-3,Kcat=8e-8)
+soma = (0,14e-6)
+dend = (14.000000000000000001e-6,1000e-6)
 
-NCX = PumpParams("NCX",Km=1e-3,Kcat=0)
+MMpump_soma = PumpParams('MMpump_soma',Kd=0.3e-3,Vmax=85e-8)
+MMpump_dend = PumpParams('MMpump_dend',Kd=0.3e-3,Vmax=8e-8)
+
+NCX = PumpParams("NCX",Kd=1e-3,Vmax=0)
 
 Pumps = NamedDict('Pumps',MMPump = {soma:MMpump_soma,dend:MMpump_dend}, NCXPump = {soma:None,dend:NCX})
 
@@ -106,10 +104,12 @@ BufferCombinations = { #aka buffer combinations
     5: [Fluo5f_Lovinger,fixed_buffer]
  }
     
-ModelBuffers =  BufferCombinations[which_dye]                    
+ModelBuffers =  BufferCombinations[which_dye]
+
 DifShellGeometryDend = CalciumConfig(shellMode=0,outershell_thickness=.1e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=1)
 DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,thickness_increase = 2.,min_thickness = .11e-6,increase_mode=0)
 
-CaMorphologyShell = NamedDict('CaMorphConf',dendrite = {soma:DifShellGeometryDend,dend:DifShellGeometryDend},spine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine})
+CaMorphologyShellDendrite =  {soma:DifShellGeometryDend,dend:DifShellGeometryDend}
+CaMorphologyShellSpine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine}
 
-NAME_CALCIUM = CaParams.CaName
+NAME_CALCIUM = CaParams.Name

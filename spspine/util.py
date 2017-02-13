@@ -38,6 +38,8 @@ def distance_mapping(mapping, dist):
 
     if isinstance(v, _numbers.Number):
         return v
+    elif isinstance(v, list):
+        return v
     return v(dist)
 
 try:

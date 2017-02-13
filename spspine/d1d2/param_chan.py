@@ -324,3 +324,4 @@ Channels = NamedDict(
     NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
     BKCa =  TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
+print(Channels)
