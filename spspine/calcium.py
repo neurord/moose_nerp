@@ -84,16 +84,14 @@ def addMMPump(dShell,params):
     pump = moose.MMPump(shellName+'_'+params.Name)
     pump.Vmax = params.Vmax
     pump.Kd = params.Kd
-    print(pump)
-    print(dShell)
     moose.connect(pump,"PumpOut",dShell,"mmPump")
     
     return pump
     
     
-def CaProto(params):
+def CaProto(model):
     
-    capar = params.CaParams
+    capar = model.CaPlasticityParams.CaParamsList[model.caltype]
 
     if not capar:
         return
@@ -121,15 +119,16 @@ def CaProto(params):
     for buf in  params.ModelBuffers:
         one_buffer = moose.DifBuffer('/library/'+buf.Name)
         bufferproto.append(one_buffer)
-        print(one_buffer)
     
     return shellproto, bufferproto
     
 def connectVDCC_KCa(model,comp,capool):
+    CurrentMessage = model.CaPlasticityParams.CurrentMessages[model.caltype]
+    CaOutMessage = model.CaPlasticityParams.CaOutMessages[model.caltype]
     if model.ghkYN:
         ghk = moose.element(comp.path + '/ghk')
-        moose.connect(capool,model.CaPlasticityParams.CaOutMessage,ghk,'set_Cin')
-        moose.connect(ghk,'IkOut',capool,model.CaPlasticityParams.CurrentMessage)
+        moose.connect(capool,CaOutMessage,ghk,'set_Cin')
+        moose.connect(ghk,'IkOut',capool,CurrentMessage)
         log.debug('CONNECT GHK {.path} to Ca {.path}', ghk, capool)
         #connect them to the channels
         
@@ -139,10 +138,10 @@ def connectVDCC_KCa(model,comp,capool):
         if model.Channels[chan.name].calciumPermeable:
             if not model.ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
-                m = moose.connect(chan, 'IkOut', capool, model.CaPlasticityParams.CurrentMessage)
+                m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
                     
         if model.Channels[chan.name].calciumDependent:
-            m = moose.connect(capool, model.CaPlasticityParams.CaOutMessage, chan, 'concen')
+            m = moose.connect(capool,CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
 
 def connectNMDA(comp,capool,CurrentMessage):
@@ -157,11 +156,11 @@ def addDifMachineryToComp(model,comp,sgh,capools):
     protodif = capools[0]
     protobufs = capools[1]
     diam_thick = difshell_geometry(comp.diameter, sgh)
-    print(protobufs)
+    CaParams = model.CaPlasticityParams.CalciumParamsList[model.caltype]
     difshell = []
     buffers = []
     for i,(diameter,thickness) in enumerate(diam_thick):
-        name = model.CaPlasticityParams.CaParams.Name+'_'+str(i)
+        name = CaParams.Name+'_'+str(i)
         dShell = addCaDifShell(comp,protodif,sgh.shellMode,diameter,thickness,name)
         difshell.append(dShell)
         
@@ -169,7 +168,7 @@ def addDifMachineryToComp(model,comp,sgh,capools):
         for j,bufparams in enumerate(model.CaPlasticityParams.ModelBuffers):
             b.append(addDifBuffer(comp,dShell,protobufs[j],bufparams))
         buffers.append(b)
-        print(buffers)
+
         if i>0:
             #connect shells
             moose.connect(difshell[i-1],"outerDifSourceOut",difshell[i],"fluxFromOut")
@@ -209,11 +208,11 @@ def addCaPool(model,comp, caproto):
 
 
 def addCalcium(model,ntype):
-
-    if model.CaPlasticityParams.caltype == 0:
+    print(model.caltype)
+    if model.caltype == 0:
         return
     
-    pools = CaProto(model.CaPlasticityParams)
+    pools = CaProto(model)
     shell_geometry_dendrite =  model.CaPlasticityParams.CaMorphologyShellDendrite
     shell_geometry_spine = model.CaPlasticityParams.CaMorphologyShellSpine
   
@@ -221,12 +220,13 @@ def addCalcium(model,ntype):
     dparam = model.CaPlasticityParams.ShellParams
     buffers = model.CaPlasticityParams.ModelBuffers
     capool = []
+ 
     for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
         xloc = moose.Compartment(comp).x
         yloc = moose.Compartment(comp).y
         dist = np.sqrt(xloc*xloc+yloc*yloc)
-
-        if model.CaPlasticityParams.caltype == 1:
+    
+        if model.caltype == 1:
             capool.append( addCaPool(model,comp, pools[0]))
             #if there are spines, calcium will be added to the spine head
         else:
@@ -236,19 +236,20 @@ def addCalcium(model,ntype):
         if model.spineYN:
             spines = list(set(comp.children)&set(comp.neighbors['raxial']))
             for sp in spines:
-                if model.CaPlasticityParams.caltype == 1:
+                if model.caltype == 1:
                     capool.append(addCaPool(model,sp, pools[0]))
                 else:
+                    print(sp)
                     sgh = util.distance_mapping(shell_geometry_spine, dist)
-                    capool.append(addDifMachineryToComp(model,sp,sgh,params))
+                    capool.append(addDifMachineryToComp(model,moose.element(sp),sgh,pools))
                     
                 heads = moose.element(sp).neighbors['raxial']
                 for head in heads:
-                    if model.CaPlasticityParams.caltype == 1:
+                    if model.caltype == 1:
                         capool.append(addCaPool(model,head, pools[0]))
                     else:
                         sgh = util.distance_mapping(shell_geometry_spine, dist)
-                        capool.append(AddDifMachineryToComp(model,comp,sgh,params,pools))
+                        capool.append(addDifMachineryToComp(model,moose.element(head),sgh,pools))
 
-
+  
     return capool

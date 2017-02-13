@@ -46,21 +46,16 @@ min_thickness
 #These params are for single time constant of decay calcium
 
 
-caltype = 2
+
 CDIYesNo = 1
 which_dye = 0 #just regular buffers
 plasYesNo = 1
-CaOutMessages = ['','concOut','concentrationOut']
-CurrentMessages = ['', 'current','influx']
 
-CurrentMessage = CurrentMessages[caltype]
-CaOutMessage = CaOutMessages[caltype]
 CaBasal = 50e-6
 CaPoolParams = CalciumParams('CaPool',CaBasal=CaBasal,DCa=0,CaTau=20e-3,BufCapacity = 2)
 ShellParams =  CalciumParams('DifShell',CaBasal=CaBasal,DCa=200.0e-12,CaTau=0,BufCapacity=0)
 
 CalciumParamsList = [None,CaPoolParams,ShellParams]
-CaParams = CalciumParamsList[caltype]
 
 syntype='ampa'
 
@@ -112,4 +107,4 @@ DifShellGeometrySpine = CalciumConfig(shellMode=1,outershell_thickness=0.07e-6,t
 CaMorphologyShellDendrite =  {soma:DifShellGeometryDend,dend:DifShellGeometryDend}
 CaMorphologyShellSpine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine}
 
-NAME_CALCIUM = CaParams.Name
+#NAME_CALCIUM = CaParams.Name
