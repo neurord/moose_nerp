@@ -13,7 +13,7 @@ log = logutil.Logger()
 def plastic_synapse(model, syncomp, syn_pop, stimtimes):
     plast={}
     stimtab={}
-    if (model.caltype == 1) and model.plasYN:
+    if model.calYN  and model.plasYN:
         neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))

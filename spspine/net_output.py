@@ -44,7 +44,7 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
                     # cal_name=plas_entry['syn'].parent.path+'/'+NAME_CALCIUM
                     # moose.connect(catab[tabrow][compnum], 'requestOut', moose.element(cal_name), 'getCa')
                 tabrow=tabrow+1
-    elif model.caltype:
+    elif model.calYN:
         #if no plasticity, just plot calcium and (synaptic input?) for some compartments
         #add synaptic channels for the calcium compartments?  Or randomly select synchans with synapses and then plot those calcium comps
         # tabrow=0

@@ -30,7 +30,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     if ghk and not hasattr(moose, 'GHK'):
         pytest.skip("GHK is missing")
 
-    d1d2.caltype = bool(calcium)
+    d1d2.calYN = bool(calcium)
     d1d2.plasYN = bool(plasticity)
     d1d2.ghkYN = bool(ghk)
     d1d2.spineYN = bool(spines)
@@ -87,7 +87,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     if spines and not single:
         pytest.skip("spines are too much with multiple neurons")
 
-    d1d2.caltype = bool(calcium)
+    d1d2.calYN = bool(calcium)
     d1d2.plasYN = bool(plasticity)
     d1d2.ghkYN = bool(ghk)
     d1d2.spineYN = bool(spines)
