@@ -232,16 +232,23 @@ def addCalcium(model,ntype):
         else:
 
             sgh = util.distance_mapping(shell_geometry_dendrite, dist)
-            capool.append(addDifMachineryToComp(model,comp,sgh,pools))
+            dshells_dend = addDifMachineryToComp(model,comp,sgh,pools) 
+            capool.append(dshells_dend)
         if model.spineYN:
             spines = list(set(comp.children)&set(comp.neighbors['raxial']))
+            
             for sp in spines:
                 if model.caltype == 1:
                     capool.append(addCaPool(model,sp, pools[0]))
                 else:
                     print(sp)
                     sgh = util.distance_mapping(shell_geometry_spine, dist)
-                    capool.append(addDifMachineryToComp(model,moose.element(sp),sgh,pools))
+                    dshells_neck = addDifMachineryToComp(model,moose.element(sp),sgh,pools)
+                    if dshells_dend: #diffusion between neck and dendrite
+                        moose.connect(dshells_neck[-1],"outerDifSourceOut",dshells_dend[0],"fluxFromOut")
+                        moose.connect(dshells_dend[0],"innerDifSourceOut",dshells_neck[-1],"fluxFromIn")
+                    
+                    capool.append(dshells_neck)
                     
                 heads = moose.element(sp).neighbors['raxial']
                 for head in heads:
@@ -249,7 +256,10 @@ def addCalcium(model,ntype):
                         capool.append(addCaPool(model,head, pools[0]))
                     else:
                         sgh = util.distance_mapping(shell_geometry_spine, dist)
-                        capool.append(addDifMachineryToComp(model,moose.element(head),sgh,pools))
+                        dshells_head = addDifMachineryToComp(model,moose.element(head),sgh,pools)
+                        moose.connect(dshells_neck[0],"outerDifSourceOut",dshells_head[-1],"fluxFromOut")
+                        moose.connect(dshells_head[-1],"innerDifSourceOut",dshells_neck[0],"fluxFromIn")
+                        capool.append(dshells_head)
 
   
     return capool
