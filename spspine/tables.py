@@ -26,11 +26,25 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
         vmtab.append([moose.Table(DATA_NAME+'/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
-        # if model.calYN:
-        #     catab.append([moose.Table(DATA_NAME+'/Ca%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
-            # for ii,comp in enumerate(neur_comps):
-            #     cal=moose.element(comp.path+'/'+NAME_CALCIUM)
-            #     moose.connect(catab[typenum][ii], 'requestOut', cal, 'getCa')
+        if model.calYN:
+            
+            for ii,comp in enumerate(neur_comps):
+                for child in comp.children:
+                    if child.className == "CaConc" :
+
+                        NAME_CALCIUM = child.name
+                       
+                        catab.append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+NAME_CALCIUM) )
+               
+                        cal = moose.element(comp.path+'/'+NAME_CALCIUM)
+                        moose.connect(catab[-1], 'requestOut', cal, 'getCa')
+                    elif  child.className == 'DifShell':
+                        NAME_CALCIUM = child.name
+                        catab.append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
+               
+                        cal = moose.element(comp.path+'/'+NAME_CALCIUM)
+                        moose.connect(catab[-1], 'requestOut', cal, 'getC')
+                    
         if pltcurr:
             #CHANNEL CURRENTS (Optional)
             for channame in model.Channels:
@@ -72,7 +86,7 @@ def syn_plastabs(connections, plas=[]):
     for neur_type in connections.keys():
         for syntype in connections[neur_type].keys():
             for compname in connections[neur_type][syntype].keys():
-                tt=moose.element(connections[neur_type][syntype][compname])
+                tt = moose.element(connections[neur_type][syntype][compname])
                 synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
                 log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
                 synchan=synapse.parent.parent
@@ -101,9 +115,17 @@ def spinetabs(model,neuron):
             spvmtab[typenum].append(moose.Table(DATA_NAME+'/Vm%s_%s%s' % (neurtype,sp_num,compname)))
             log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
             moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
-            # if model.calYN:
-            #     spcatab[typenum].append(moose.Table(DATA_NAME+'/Ca%s_%s%s' % (neurtype,sp_num,compname)))
-            #     spcal=moose.element(spine.path+'/'+NAME_CALCIUM)
-            #     moose.connect(spcatab[typenum][spinenum], 'requestOut', spcal, 'getCa')
+            if model.calYN:
+                for child in spine.children:
+                    if child.className == "CaConc"  :
+                        NAME_CALCIUM = child.name
+                        spcatab.append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
+                        spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
+                        moose.connect(spcatab[-1], 'requestOut', spcal, 'getCa')
+                    elif child.className == 'DifShell':
+                        NAME_CALCIUM = child.name
+                        spcatab.append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
+                        spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
+                        moose.connect(spcatab[-1], 'requestOut', spcal, 'getC')
     return spcatab,spvmtab
 
