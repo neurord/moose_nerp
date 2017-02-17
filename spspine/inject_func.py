@@ -19,5 +19,34 @@ def setupinj(model, delay,width,neuron_pop):
         for num, name in enumerate(neuron_pop[ntype]):
             injectcomp=moose.element(name +'/'+NAME_SOMA)
             print("INJECT:", name, injectcomp.path)
-            moose.connect(pg, 'output', injectcomp, 'injectMsg')  
+            moose.connect(pg, 'output', injectcomp, 'injectMsg')
     return pg
+
+###Voltage Clamp (incomplete)
+def Vclam(delay,width,delay_2,r,c,gain,sat,gain_p,tau_1,tau_2,psat):
+    pulseg=moose.PulseGen('pulse')
+    pulseg.firstDelay=delay
+    pulseg.firstWidth=width
+    pulseg.secondDelay=delay_2
+    lp=moose.RC('lowpass')
+    lp.R=r
+    lp.C=c
+    DA=moose.DiffAmp('diffamp')
+    DA.gain=gain
+    DA.saturation=sat
+    pid=moose.PIDController('PID')
+    pid.gain=gain_p
+    pid.tauI=tau_1
+    pid.tauD=tau_2
+    pid.saturation=psat
+    comp=moose.element("/proto")
+    moose.connect(pulseg,"output",lp,"injectIn")
+    moose.connect(lp, "output", DA, "plusIn")
+    moose.connect(DA,"output",pid,"commandIn")
+    moose.connect(comp, "VmOut",pid, "sensedIn")
+    moose.connect(pid,"output",comp,"injectMsg")
+    tab=moose.Table("/data/Im")
+    moose.connect(tab,"requestOut",comp,"getIm")
+    return tab
+
+
