@@ -37,31 +37,34 @@ dist = (1e-6, 1000e-6)
 # _proto for prototypical GP neuron
 _proto = _util.NamedDict(
     'proto',
-    KDr = {prox:320,dist:64 },#, med:40.2},
-    Kv3 = {prox:640 , dist:128 },#, med:38.4},
+    KDr = {prox:320,dist:64},#, med:40.2},
+    Kv3 = {prox:640 , dist:128},#, med:38.4},
     KvF = {prox:160,dist:160 },#, med: 48},
     KvS = {prox:240, dist:240},#, med: 100
-    NaF = {prox:2500, dist: 40},#, med: 100
-    HCN1 = {prox:0.2, dist: 0.2},#, med: 0
-    HCN2 = {prox:0.5, dist: 0.5}, #med: 0,
+    NaF = {prox:2500, dist:40},#, med: 100
+    HCN1 = {prox:0.1, dist:0.1},#, med: 0
+    HCN2 = {prox:0.5, dist:0.5}, #med: 0,
     KCNQ = {prox:0.4, dist:0.4},#, med: 2.512
-    NaS = {prox: 1,  dist: 1},#med: 251.2,
-    Ca = {prox: 2, dist: 0.15},#med: 0,
-    SKCa = {prox: 50, dist: 4},# med: 0,
-   # KDr = {prox:0,dist:0 },#, med:40.2},
-    #Kv3 = {prox:0 , dist:0 },#, med:38.4},
-    #KvF = {prox:0,dist:0 },#, med: 48},
-    #KvS = {prox:0, dist:0},#, med: 100
-    #NaF = {prox:0, dist: 0},#, med: 100
-    #HCN1 = {prox:0, dist: 0},#, med: 0
-    #HCN2 = {prox:0, dist:0}, #med: 0,
-    #KCNQ = {prox:0, dist:0},#, med: 2.512
-    #NaS = {prox:0,  dist:0},#med: 251.2,
-    #Ca = {prox: 0, dist: 0},#med: 0,
-    #SKCa = {prox: 0, dist:0},# med: 0,
-    #Ca = {prox: 5.73, med: 0, dist: 5.73},
+    NaS = {prox:1,  dist:1},#med: 251.2,
+    Ca = {prox:2, dist:0.15},#med: 0,
+    SKCa = {prox:50 , dist:4},# med: 0,
+    BKCa={prox:0.1, dist:0.1},# med: 10,
 )
-
+#_arky = _util.NamedDict(
+#    'arky',
+#    KDr = {prox:0,dist:0 },#, med:40.2},
+#    Kv3 = {prox:0 , dist:0 },#, med:38.4},
+#    KvF = {prox:0,dist:0 },#, med: 48},
+#    KvS = {prox:0, dist:0},#, med: 100
+#    NaF = {prox:0, dist:0},#, med: 100
+#    HCN1 = {prox:0, dist:0},#, med: 0
+#    HCN2 = {prox:0, dist:0}, #med: 0,
+#    KCNQ = {prox:0, dist:0},#, med: 2.512
+#    NaS = {prox: 0,  dist:0},#med: 251.2,
+#    Ca = {prox:0, dist:0},#med: 0,
+#    SKCa = {prox:0, dist:0},# med: 0,
+#    BKCa={prox:0, dist:0},# med: 10,
+#)
 chanvar = _util.NamedDict(
     'chanvar',
     KDr=0.04,
@@ -73,12 +76,12 @@ chanvar = _util.NamedDict(
     HCN2=0.04,
     KCNQ=0.04,
     NaS = 0.04,
-    # Hva = 0.04,
-     SKCa= 0.04,
-     Ca = 0.04,
+    SKCa= 0.04,
+    Ca = 0.04,
 )
 
 Condset  = _util.NamedDict(
     'Condset',
     proto = _proto,
+#    arky=_arky,
 )
