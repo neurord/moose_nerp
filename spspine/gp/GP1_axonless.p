@@ -5,7 +5,7 @@
 *cartesian
 
 *origin 0       0       0
-*set_global RA        1.74
+*set_global RA     1.74
 *set_global EREST_ACT   -0.060
 
 *set_compt_param RM	1.47
