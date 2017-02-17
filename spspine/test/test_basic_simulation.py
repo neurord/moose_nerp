@@ -79,7 +79,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
 def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     "Create the neuron and run a very short simulation"
 
-    pytest.skip("skipping network tests")
+    #pytest.skip("skipping network tests")
 
     if ghk and not hasattr(moose, 'GHK'):
         pytest.skip("GHK is missing")
@@ -96,10 +96,10 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
 
-    population,connection, plas = create_network.CreateNetwork(d1d2, param_net)
+    population,connection, plas = create_network.create_network(d1d2, param_net, neuron)
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
-    pg.firstLevel = 1e-8
+    pg.firstLevel = 1e-9
 
     data = moose.Neutral('/data')
 
@@ -114,8 +114,8 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
-    assert 0.15 < vm1[250] < 0.25
-    assert 0.15 < vm2[250] < 0.25
-    assert 0.00 < vm1[499] < 0.05
-    assert 0.00 < vm2[499] < 0.05
+    assert -0.01 < vm1[250] < 0.05
+    assert -0.01 < vm2[250] < 0.05
+    assert -0.01 < vm1[499] < 0.05
+    assert -0.01 < vm2[499] < 0.05
     return vm1, vm2

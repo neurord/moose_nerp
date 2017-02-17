@@ -45,24 +45,24 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
         f.tight_layout()
         f.canvas.draw()
 
-    if plastab and plastab['plas']:
-        f = _get_graph('D1/D2 plasticity', figsize=(6,8))
-        for plasnum,plastype in enumerate(['plas','cum','syn']):
+    if len(plastab):
+        fig,axes =pyplot.subplots(len(plastab)+1, 1,sharex=True)
+        fig.suptitle('Plasticity')
+        for item_num,item in enumerate(plastab):
+          for plasnum,plastype in enumerate(['plas','cum','syn']):
             if plastype=='plas':
                 title='wt change'
                 scaling=1000
             else:
                 title=plastype
                 scaling=1
-            axes = f.add_subplot(3, 1, plasnum + 1)
-            for oid in plastab[plastype]:
-                neurnum=oid.name.split('_')[-1].split('[')[0]
-                axes.plot(t,scaling*oid.vector, label=neurnum)
-            axes.set_ylabel(str(scaling)+'*'+title)
-            axes.set_title(title +' vs. time')
-            axes.legend(loc='best', fontsize=8)
-        f.tight_layout()
-        f.canvas.draw()
+            neurnum=item[plastype].name.split(plastype)[-1]
+            axes[plasnum].plot(t,scaling*item[plastype].vector, label=neurnum)
+            axes[plasnum].set_ylabel(str(scaling)+'*'+title)
+            axes[plasnum].legend(loc='best', fontsize=8)
+        axes[plasnum].set_xlabel('time')
+        fig.tight_layout()
+        fig.canvas.draw()
 
     if plotcurr:
         f = _get_graph('D1/D2 currents', figsize=(6,12))

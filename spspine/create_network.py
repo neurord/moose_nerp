@@ -14,12 +14,12 @@ from spspine import (pop_funcs,
                      logutil)
 log = logutil.Logger()
 
-def create_network(model, param_net,neur_protos=[]):
+def create_network(model, param_net,neur_protos={}):
     #create all timetables
     param_net.TableSet.create_all()
     connections={}
     #
-    if model.single:
+    if param_net.single:
         striatum_pop={'pop':{},'location':{}}
         for ntype in neur_protos.keys():
             striatum_pop['pop'][ntype]=list([neur_protos[ntype].path])

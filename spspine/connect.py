@@ -53,7 +53,7 @@ def select_entry(table):
     if table[row][1]==0: 
         table[row]=table[len(table)-1]
         table=np.resize(table,(len(table)-1,2))
-    return element,table
+    return element
 
 def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
@@ -73,15 +73,17 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams):
     postsyn_fraction=post_connection.postsyn_fraction
     num_tt=len(tt_list)
     connections={}
+    #calculate how many of these timetables should be connected to this synapse type
+    #randomly select a timetable (presyn_tt), and post-synaptic branch (synpath) for each connection
     for i in range(np.int(np.round(totalsyn*postsyn_fraction))):
-        presyn_tt,tt_list=select_entry(tt_list)
-        synpath,syncomps=select_entry(syncomps)
+        presyn_tt=select_entry(tt_list)
+        synpath=select_entry(syncomps)
         log.debug('CONNECT: TT {} POST {} ', presyn_tt.path,synpath)
         #connect the time table with mindelay (dist=0)
         synconn(synpath,dist,presyn_tt,netparams.mindelay)
         postbranch=util.syn_name(synpath,NAME_HEAD)
         connections[postbranch]=presyn_tt.path
-    return syncomps,connections
+    return connections
 
 def timetable_input(cells, netparams, postype, NumSyn):
     #connect post-synaptic synapses to time tables
@@ -92,13 +94,13 @@ def timetable_input(cells, netparams, postype, NumSyn):
     postcell = cells[postype][0]
     for syntype in post_connections.keys():
         connect_list[syntype]={}
-        #using the following, can remove "if syncomp.name==syntype:" from create_synpath_array
         allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
         syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,NumSyn)
         log.info('SYN TABLE for {} has {} compartments and {} synapses', syntype, len(syncomps),totalsyn)
         for pretype in post_connections[syntype].keys():
             if 'extern' in pretype:
-                syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+                #This is going to overwrite pretype1 dictionary with pretype2 dictionary
+                connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, NumSyn):
@@ -125,7 +127,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
             for pretype in post_connections[syntype].keys():
                 if 'extern' in pretype:
                     ####### connect to time tables instead of other neurons in network
-                    syncomps,connect_list[postcell][syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
+                    connect_list[postcell][syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
                 else:
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
                     for precell in cells[pretype]:
@@ -144,7 +146,7 @@ def connect_neurons(cells, netparams, postype, NumSyn):
                             spikegen=moose.wildcardFind(presoma+'/#[TYPE=SpikeGen]')[0]
                             #if so, randomly select a branch, and then eliminate that branch from the table.
                             #presently only a single synapse established.  Need to expand this to allow multiple conns
-                            synpath,syncomps=select_entry(syncomps)
+                            synpath=select_entry(syncomps)
                             log.debug('CONNECT: PRE {} POST {} DIST {}', spikegen,synpath,dist)
                             #list of connections for further processing if desired.  Assumes one conn per synpath (which might be a problem)
                             postbranch=util.syn_name(synpath,NAME_HEAD)
