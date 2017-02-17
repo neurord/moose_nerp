@@ -11,7 +11,7 @@ import numpy as np
 import moose
 
 from spspine import logutil, util
-from spspine.d1d2.param_syn import NAME_AMPA,NAME_NMDA
+from spspine.gp.param_syn import NAME_AMPA,NAME_NMDA
 from spspine.cell_proto import NAME_SOMA
 from spspine.spines import NAME_HEAD
 log = logutil.Logger()
