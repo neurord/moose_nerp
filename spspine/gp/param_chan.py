@@ -243,7 +243,7 @@ SK_Z_params= ZChannelParams(Kd=0.00035,
                             kdtau=4.6,
                             cahalf=0.002703
                              )
-#persistnet Na_channel - doubt in NaS_h params
+#persistnet Na_channel
 
 NaS_m_params = AlphaBetaChannelParams(A_rate=7600e3,
                                      A_B=0,
@@ -279,6 +279,11 @@ NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
                                     B_vslope=-2.63e-3)
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
 
+#BK channel
+BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
+
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),]
+
 Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneDalpha(KDrparam, KDr_X_params, KDr_Y_params),
@@ -292,5 +297,6 @@ Channels = NamedDict(
     Ca =   TypicalOneDalpha(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneDalpha(SKparam, [], [], SK_Z_params , calciumDependent=True),
     NaS= TypicalOneDalpha(NaSparam,NaS_m_params,NaS_h_params,NaS_s_params),
+    BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
 # have to add NaP and calcium channels
