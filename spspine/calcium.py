@@ -129,8 +129,8 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
             if not model.ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
                 m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
-            
         if model.Channels[chan.name].calciumDependent:
+
             m = moose.connect(capool,CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
             
@@ -150,7 +150,6 @@ def addDifMachineryToComp(model,comp,sgh,capools):
 
     difshell = []
     buffers = []
-
     for i,(diameter,thickness) in enumerate(diam_thick):
         
         name = protodif.name+'_'+str(i)
@@ -163,7 +162,7 @@ def addDifMachineryToComp(model,comp,sgh,capools):
             b.append(addDifBuffer(comp,dShell,protobuf,BufferParams[buf],sgh.Buffers[buf]))
         buffers.append(b)
 
-        if i>0:
+        if i:
             #connect shells
             moose.connect(difshell[i-1],"outerDifSourceOut",difshell[i],"fluxFromOut")
             moose.connect(difshell[i],"innerDifSourceOut",difshell[i-1],"fluxFromIn")
@@ -174,25 +173,37 @@ def addDifMachineryToComp(model,comp,sgh,capools):
         else:
             #Add pumps
             for pump in sgh.Pumps:
-                Km = PumpKm[pump]
+               Km = PumpKm[pump]
                 
-                p = addMMPump(dShell,PumpKm[pump],sgh.Pumps[pump])
-                #connect channels        
+               p = addMMPump(dShell,PumpKm[pump],sgh.Pumps[pump])
+               #connect channels
+
             connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
             connectNMDA(comp,dShell,'influx')
        
             
     return difshell
     
-def addCaPool(model,params,comp, caproto):
+def addCaPool(model,params,comp, caproto,spine=False):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
     
     capool.thick = params.outershell_thickness
-    SA = comp.diameter*comp.length*np.pi
-    vol = SA*capool.thick/2.
-    bc = params.BufCapacity
-    capool.B = 1. / (constants.Faraday*vol*2) / bc #volume correction
+    capool.diameter = comp.diameter
+    capool.length = comp.length
+    radius = comp.diameter/2.
+
+    if spine:
+        vol = np.pi*radius**2*capool.thick
+    else:
+        if capool.length:
+            vol = np.pi*capool.length*(radius**2-(radius-capool.thick)**2)
+        else:
+            vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
+
+        
+    capool.B = 1. / (constants.Faraday*vol*2) / params.BufCapacity #volume correction
+
     connectVDCC_KCa(model,comp,capool,'current','concOut')
     
     connectNMDA(comp,capool,'current')
@@ -231,7 +242,7 @@ def addCalcium(model,ntype):
             params = util.distance_mapping(paramsspine, dist)
             for sp in spines:
                 if params.shellMode == -1:
-                    pool = addCaPool(model,params,moose.element(sp), pools[0])
+                    pool = addCaPool(model,params,moose.element(sp), pools[0],spine=True)
                     capool.append(pool)
                 elif params.shellMode == 0 or params.shellMode == 1 or params.shellMode == 3:
                     dshells_neck = addDifMachineryToComp(model,moose.element(sp),params,pools[1:])
@@ -246,7 +257,7 @@ def addCalcium(model,ntype):
 
                 for head in heads:
                     if params.shellMode == -1:
-                        pool = addCaPool(model,params,moose.element(head), pools[0])
+                        pool = addCaPool(model,params,moose.element(head), pools[0],spine=True)
                         
                         capool.append(pool)
                     elif params.shellMode == 0 or params.shellMode == 1 or params.shellMode == 3:
@@ -258,5 +269,5 @@ def addCalcium(model,ntype):
                     else:
                         print('Unknown shellMode. Leaving')
                         return
-   
+    
     return capool

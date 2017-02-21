@@ -102,11 +102,9 @@ CaPoolGeometrySpine = CalciumConfig(shellMode=-1,outershell_thickness=0.07e-6,th
 CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=20e-3)
 
 
-Calcium = NamedDict('CalciumConfig',dendrite={soma:DifShellGeometrySoma,dend:DifShellGeometryDend},spine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine})
+#Calcium = NamedDict('CalciumConfig',dendrite={soma:DifShellGeometrySoma,dend:DifShellGeometryDend},spine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine})
 
 #Calcium = NamedDict('CalciumConfig',dendrite={soma:CaPoolGeometrySoma,dend:CaPoolGeometryDend},spine={soma:DifShellGeometrySpine,dend:DifShellGeometrySpine})
 #Calcium = NamedDict('CalciumConfig',dendrite={soma:DifShellGeometrySoma,dend:DifShellGeometryDend},spine={soma:CaPoolGeometryDend,dend:CaPoolGeometryDend})
-#Calcium = NamedDict('CalciumConfig',dendrite={soma:CaPoolGeometrySoma,dend:CaPoolGeometryDend},spine={soma:CaPoolGeometryDend,dend:CaPoolGeometryDend})
+Calcium = NamedDict('CalciumConfig',dendrite={soma:CaPoolGeometrySoma,dend:CaPoolGeometryDend},spine={soma:CaPoolGeometryDend,dend:CaPoolGeometryDend})
 
-CaOutMessages = {-1:'concOut',0:'concentrationOut',1:'concentrationOut',3:'concentrationOut'}
-CurrentMessages = {-1: 'current',0:'influx',1:'influx',3:'influx'}

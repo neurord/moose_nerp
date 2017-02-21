@@ -30,7 +30,8 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         moose.connect(chan,'permeability',ghk,'addPermeability')
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
-        m=moose.connect(chan, 'channel', comp, 'channel')
+        m=moose.connect(comp,'VmOut',chan,'Vm')
+        m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
 def find_morph_file(model):
