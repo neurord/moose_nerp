@@ -15,7 +15,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
-    catab=[]
+    catab=[[],[]]
     currtab=defaultdict(list)
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
@@ -24,6 +24,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     for typenum,neur_type in enumerate(neuron.keys()):
         neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
         vmtab.append([moose.Table(DATA_NAME+'/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
+        
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
         if model.calYN:
@@ -34,16 +35,16 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
 
                         NAME_CALCIUM = child.name
                        
-                        catab.append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+NAME_CALCIUM) )
+                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+NAME_CALCIUM) )
                
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
-                        moose.connect(catab[-1], 'requestOut', cal, 'getCa')
+                        moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
                         NAME_CALCIUM = child.name
-                        catab.append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
+                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
                
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
-                        moose.connect(catab[-1], 'requestOut', cal, 'getC')
+                        moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
                     
         if pltcurr:
             #CHANNEL CURRENTS (Optional)
@@ -119,13 +120,13 @@ def spinetabs(model,neuron):
                 for child in spine.children:
                     if child.className == "CaConc"  :
                         NAME_CALCIUM = child.name
-                        spcatab.append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
+                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
                         spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
-                        moose.connect(spcatab[-1], 'requestOut', spcal, 'getCa')
+                        moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getCa')
                     elif child.className == 'DifShell':
                         NAME_CALCIUM = child.name
-                        spcatab.append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
+                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
                         spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
-                        moose.connect(spcatab[-1], 'requestOut', spcal, 'getC')
+                        moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
     return spcatab,spvmtab
 
