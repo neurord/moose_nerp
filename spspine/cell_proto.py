@@ -39,7 +39,7 @@ def find_morph_file(model):
                                  _os.path.dirname(model.__file__))
 
 def create_neuron(model, ntype, ghkYN):
-    p_file = find_morph_file(model)
+    p_file = find_morph_file(model.morph_file[ntype])
     try:
         cellproto=moose.loadModel(p_file, ntype)
     except IOError:
