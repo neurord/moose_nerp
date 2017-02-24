@@ -101,5 +101,5 @@ def neuronclasses(model):
         caPools[ntype] = calcium.addCalcium(model,ntype)
 
                 
-    return synArray,neuron,caPools
+    return synArray,neuron
 

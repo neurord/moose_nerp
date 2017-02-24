@@ -27,12 +27,61 @@ def inclusive_range(start, stop=None, step=None):
         step = stop - start
     return _np.arange(start, stop + step/2, step)
 
+def get_dist_name(comp):
+    name = comp.name
+    xloc = comp.x
+    yloc = comp.y
+    dist = _np.sqrt(xloc*xloc+yloc*yloc)
+    return dist,name
+
 def distance_mapping(mapping, dist):
     # We assume that the dictionary is very small, so a linear search is OK.
+ 
+        
+    if isinstance(dist,moose.Compartment):
+        
+        dist,name = get_dist_name(dist)
+
+    elif isinstance(dist,moose.vec):
+        comp = moose.element(dist)
+        if comp.className == 'Compartment':
+            dist,name = get_dist_name(comp)
+        else:
+            print('Wrong element class '+dist)
+            return 0
+
+    elif isinstance(dist,str):
+        try:
+            comp =  moose.element(dist)
+        except ValueError:
+            print('No element '+dist)
+            return 0
+        if comp.className == 'Compartment':
+            dist,name = get_dist_name(comp)
+        else:
+            print('Wrong element class '+dist)
+            return 0
+    elif isinstance(dist, _numbers.Number):
+        name = ''
+    else:
+        print('Wrong distance/element passed in distance mapping '+dist)
+        return 0
+
     for k, v in mapping.items():
-        left, right = k
+        if len(k)  == 3:
+            left, right, description = k
+        elif len(k) == 2:
+            left, right = k
+            description = ''
+        else:
+            print(k)
+            continue
         if left <= dist < right:
-            break
+            if description:
+                if name.startswith(description) or name.endswith(description):
+                    break
+            else:
+                break
     else:
         return 0
 
@@ -40,6 +89,9 @@ def distance_mapping(mapping, dist):
         return v
     elif isinstance(v, list):
         return v
+    elif isinstance(v, dict):
+        return v
+    
     return v(dist)
 
 try:

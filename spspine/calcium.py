@@ -5,6 +5,16 @@ import moose
 
 from spspine import constants, logutil
 import util
+from spspine.spines import NAME_NECK, NAME_HEAD
+
+CalciumConfig = util.NamedList('CalciumConfig','''
+shellMode
+increase_mode
+outershell_thickness
+thickness_increase
+min_thickness
+''')
+
 
 log = logutil.Logger()
 
@@ -141,9 +151,8 @@ def connectNMDA(comp,capool,CurrentMessage):
             moose.connect(chan, 'ICaOut', capool, CurrentMessage)
 
             
-def addDifMachineryToComp(model,comp,sgh,capools):
-    protodif = capools[0]
-    protobuf = capools[1]
+def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
+    protodif, protobuf = capools
     diam_thick = difshell_geometry(comp.diameter, sgh)
     BufferParams = model.CaPlasticityParams.BufferParams
     PumpKm = model.CaPlasticityParams.PumpKm 
@@ -158,8 +167,8 @@ def addDifMachineryToComp(model,comp,sgh,capools):
         difshell.append(dShell)
         
         b = []
-        for j,buf in enumerate(sgh.Buffers):
-            b.append(addDifBuffer(comp,dShell,protobuf,BufferParams[buf],sgh.Buffers[buf]))
+        for j,buf in enumerate(Buffers):
+            b.append(addDifBuffer(comp,dShell,protobuf,BufferParams[buf],Buffers[buf]))
         buffers.append(b)
 
         if i:
@@ -172,10 +181,10 @@ def addDifMachineryToComp(model,comp,sgh,capools):
                 moose.connect(buffers[i][j],"innerDifSourceOut",buffers[i-1][j],"fluxFromIn")
         else:
             #Add pumps
-            for pump in sgh.Pumps:
+            for pump in Pumps:
                Km = PumpKm[pump]
                 
-               p = addMMPump(dShell,PumpKm[pump],sgh.Pumps[pump])
+               p = addMMPump(dShell,PumpKm[pump],Pumps[pump])
                #connect channels
 
             connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
@@ -184,11 +193,11 @@ def addDifMachineryToComp(model,comp,sgh,capools):
             
     return difshell
     
-def addCaPool(model,params,comp, caproto,spine=False):
+def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,spine=False):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
     
-    capool.thick = params.outershell_thickness
+    capool.thick = OutershellThickness
     capool.diameter = comp.diameter
     capool.length = comp.length
     radius = comp.diameter/2.
@@ -202,13 +211,50 @@ def addCaPool(model,params,comp, caproto,spine=False):
             vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
 
         
-    capool.B = 1. / (constants.Faraday*vol*2) / params.BufCapacity #volume correction
+    capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
 
     connectVDCC_KCa(model,comp,capool,'current','concOut')
     
     connectNMDA(comp,capool,'current')
     return capool
 
+def extract_and_add_capool(model,comp,pools,spine=False):
+    params = model.CaPlasticityParams
+    
+    OuterShellThick = util.distance_mapping(params.OutershellThicknessDensity,comp)
+    BufCapacity = util.distance_mapping(params.BufferCapacityDensity,comp)
+    
+    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,spine)
+
+    return pool
+
+def extract_and_add_difshell(model, shellMode, comp, pools):
+    params = model.CaPlasticityParams
+
+    OuterShellThick = util.distance_mapping(params.OutershellThicknessDensity,comp)
+    Pumps = util.distance_mapping(params.PumpDensity,comp)
+    Buffers = util.distance_mapping(params.BufferDensity,comp)
+    ThicknessIncrease = util.distance_mapping(params.ThicknessIncreaseDensity,comp)
+    ThincknessIncreaseMode = util.distance_mapping(params.ThicknessModeDensity,comp)
+    
+    shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=ThincknessIncreaseMode,outershell_thickness=OuterShellThick,thickness_increase=ThicknessIncrease, min_thickness=OuterShellThick*1.1)
+            
+    dshells_dend = addDifMachineryToComp(model,comp,pools,Buffers,Pumps,shellsparams)
+    
+    return dshells_dend        
+
+def add_calcium_to_compartment(model, shellMode, comp, pools,capool):
+    if shellMode == -1:
+        capool.extend(extract_and_add_capool(model,comp,pools[0]))
+        dshells_dend = None
+        return dshells_dend
+    if shellMode == 0 or shellMode == 1 or shellMode == 3:
+        dshells_dend = extract_and_add_difshell(model, shellMode, comp, pools[1:])
+        capool.extend(dshells_dend)
+        return dshells_dend
+    
+    print('Unknown shellMode. Leaving')
+    return -1
 
 def addCalcium(model,ntype):
     
@@ -217,57 +263,54 @@ def addCalcium(model,ntype):
     
     pools = CaProto(model)
     capool = []
-    paramsdend = model.CaPlasticityParams.Calcium.dendrite
-    paramsspine = model.CaPlasticityParams.Calcium.spine
+    params = model.CaPlasticityParams
+
     for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-        xloc = moose.Compartment(comp).x
-        yloc = moose.Compartment(comp).y
-        dist = np.sqrt(xloc*xloc+yloc*yloc)
-        params = util.distance_mapping(paramsdend, dist)
-        
-        if params.shellMode == -1:
-            pool = addCaPool(model,params,comp, pools[0])
-            capool.append(pool)
-           
-            dshells_dend = None
-            #if there are spines, calcium will be added to the spine head
-        elif params.shellMode == 0 or params.shellMode == 1 or params.shellMode == 3:
-            dshells_dend = addDifMachineryToComp(model,comp,params,pools[1:]) 
-            capool.append(dshells_dend)
-        else:
-            print('Unknown shellMode. Leaving')
-            return
-        if model.spineYN:
-            spines = list(set(comp.children)&set(comp.neighbors['raxial']))
-            params = util.distance_mapping(paramsspine, dist)
-            for sp in spines:
-                if params.shellMode == -1:
-                    pool = addCaPool(model,params,moose.element(sp), pools[0],spine=True)
-                    capool.append(pool)
-                elif params.shellMode == 0 or params.shellMode == 1 or params.shellMode == 3:
-                    dshells_neck = addDifMachineryToComp(model,moose.element(sp),params,pools[1:])
-                    if dshells_dend: #diffusion between neck and dendrite
+        if NAME_NECK not in comp.name and NAME_HEAD not in comp.name: #Look for spines connected to the dendrite
+            shellMode = util.distance_mapping(params.CaShellModeDensity,comp)
+            dshells_dend = add_calcium_to_compartment(model, shellMode, comp, pools,capool)
+            if dshells_dend == -1:
+                return
+            if model.spineYN:
+                spines = []
+                neighbors = list(comp.neighbors['raxial'])
+                neighbors.extend(list(comp.neighbors['axial']))
+                for neighbor in neighbors:
+                    if NAME_NECK in neighbor.name:
+                        spines.append(neighbor)
+                else:
+                    'Could not find spines!!!'
+                
+                for sp in spines:
+                    
+                    shellMode = util.distance_mapping(params.CaShellModeDensity,moose.element(sp))
+                    dshells_neck = add_calcium_to_compartment(model,shellMode,moose.element(sp),pools,capool)
+                    if dshells_neck == -1:
+                        return
+                    if dshells_dend and dshells_neck: #diffusion between neck and dendrite
                         moose.connect(dshells_neck[-1],"outerDifSourceOut",dshells_dend[0],"fluxFromOut")
                         moose.connect(dshells_dend[0],"innerDifSourceOut",dshells_neck[-1],"fluxFromIn")
-                    capool.append(dshells_neck)
-                else:
-                    print('Unknown shellMode. Leaving')
-                    return  
-                heads = moose.element(sp).neighbors['raxial']
-
-                for head in heads:
-                    if params.shellMode == -1:
-                        pool = addCaPool(model,params,moose.element(head), pools[0],spine=True)
+                    heads = []
+                    neighbors = list(moose.element(sp).neighbors['raxial'])
+                    neighbors.extend(list(moose.element(sp).neighbors['axial']))
+                    for neighbor in neighbors:
+                        if NAME_HEAD in neighbor.name:
+                            heads.append(neighbor)
+                    if not heads:
+                        'Could not find heads!!!'
                         
-                        capool.append(pool)
-                    elif params.shellMode == 0 or params.shellMode == 1 or params.shellMode == 3:
-                        dshells_head = addDifMachineryToComp(model,moose.element(head),params,pools[1:])
-                        moose.connect(dshells_neck[0],"outerDifSourceOut",dshells_head[-1],"fluxFromOut")
-                        moose.connect(dshells_head[-1],"innerDifSourceOut",dshells_neck[0],"fluxFromIn")
-                        capool.append(dshells_head)
-                    
-                    else:
-                        print('Unknown shellMode. Leaving')
-                        return
-    
+                    for head in heads:
+                        shellMode =  util.distance_mapping(params.CaShellModeDensity,head)
+
+                        dshells_head = add_calcium_to_compartment(model,shellMode,moose.element(head),pools,capool)
+                        if dshells_head == -1:
+                            return
+                        if dshells_head and dshells_neck: #diffusion between neck and dendrite
+                            moose.connect(dshells_head[-1],"outerDifSourceOut",dshells_neck[0],"fluxFromOut")
+                            moose.connect(dshells_neck[0],"innerDifSourceOut",dshells_head[-1],"fluxFromIn")
+
+    for pool in capool:
+        print(pool)
+        print(pool.neighbors["outerDifSourceOut"])
+
     return capool
