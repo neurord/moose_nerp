@@ -96,7 +96,6 @@ def addMMPump(dShell,pumpparams,Vmax):
     pump.Vmax = Vmax
     pump.Kd = pumpparams.Kd
     moose.connect(pump,"PumpOut",dShell,"mmPump")
-    
     return pump
     
     
@@ -245,7 +244,7 @@ def extract_and_add_difshell(model, shellMode, comp, pools):
 
 def add_calcium_to_compartment(model, shellMode, comp, pools,capool):
     if shellMode == -1:
-        capool.extend(extract_and_add_capool(model,comp,pools[0]))
+        capool.append(extract_and_add_capool(model,comp,pools[0]))
         dshells_dend = None
         return dshells_dend
     if shellMode == 0 or shellMode == 1 or shellMode == 3:
@@ -264,7 +263,6 @@ def addCalcium(model,ntype):
     pools = CaProto(model)
     capool = []
     params = model.CaPlasticityParams
-
     for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
         if NAME_NECK not in comp.name and NAME_HEAD not in comp.name: #Look for spines connected to the dendrite
             shellMode = util.distance_mapping(params.CaShellModeDensity,comp)
@@ -308,9 +306,5 @@ def addCalcium(model,ntype):
                         if dshells_head and dshells_neck: #diffusion between neck and dendrite
                             moose.connect(dshells_head[-1],"outerDifSourceOut",dshells_neck[0],"fluxFromOut")
                             moose.connect(dshells_neck[0],"innerDifSourceOut",dshells_head[-1],"fluxFromIn")
-
-    for pool in capool:
-        print(pool)
-        print(pool.neighbors["outerDifSourceOut"])
 
     return capool

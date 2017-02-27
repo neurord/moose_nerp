@@ -57,13 +57,13 @@ Fluo4 = BufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
 Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
 
 which_dye = 0
-soma = (0,14e-6)
-dend = (14.000000000000000001e-6,1000e-6)
+soma = (0,141e-6)
+dend = (14.100000000000000001e-6,1000e-6)
 everything = (0.,1.)
 MMPump = PumpParams('MMpump',Kd=0.3e-3)
 NCX = PumpParams("NCX",Kd=1e-3)
 
-PumpKm = NamedDict('PumpKM',MMPump=MMPump,NCX=NCX)
+PumpKm = {'MMPump':MMPump,'NCX':NCX}
 
 BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
 
@@ -75,15 +75,15 @@ BufferTotals ={0:{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
                5:{'Fluo5F':100e-3,'FixedBuffer':1},
     }
 
-PumpVmaxDend = NamedDict('PumpVmax', NCX = 0,MMPump=8e-8)
-PumpVmaxSoma = NamedDict('PumpVmax', MMPump=85e-8)
+PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
+PumpVmaxSoma = {'MMPump':85e-8}
 spines = (0.,1.,'sp')
 
 BufferDensity = {everything:BufferTotals[0]}
 BufferCapacityDensity = {soma:2.,dend:2.}
 PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
-CaShellModeDensity = {soma:0, dend:0, spines:1}
+CaShellModeDensity = {soma:-1, dend:-1, spines:-1}
 OutershellThicknessDensity = {soma : .1e-6,dend:.1e-6,spines:.07e-6}
 ThicknessIncreaseDensity = {soma : 2,dend : 2,spines: 0.}
-ThicknessModeDensity= {soma:1,dend:1,spines:0.}
+ThicknessModeDensity= {soma:1,dend:1,spines:0}
 CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=20e-3)
