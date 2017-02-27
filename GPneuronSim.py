@@ -31,8 +31,10 @@ from spspine import (cell_proto,
 from spspine import gp
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[-200e-12,-175e-12,-150e-12,-125e-12,-100e-12,-75e-12,-50e-12,-25e-12,0,25e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+option_parser = standard_options.standard_options(default_injection_current=[-160e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
 param_sim = option_parser.parse_args()
+param_sim.simtime=0.6
+param_sim.injection_width=0.4
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -43,34 +45,35 @@ log = logutil.Logger()
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
 
 #axon conductance(Gbar) assigned directly until
-ax_cond= moose.element('/proto/axon/NaF')
-ax_cond.Gbar=1.413715381e-6
-ax_cond= moose.element('/proto/axon/NaS')
-ax_cond.Gbar= 1.130972382e-08
-ax_cond= moose.element('/proto/axon/KDr')
-ax_cond.Gbar= 1.809555812e-07
-ax_cond= moose.element('/proto/axon/KvF')
-ax_cond.Gbar= 4.523889174e-07
-ax_cond= moose.element('/proto/axon/KvS')
-ax_cond.Gbar= 6.785833762e-07
-ax_cond= moose.element('/proto/axon/Kv3')
-ax_cond.Gbar= 3.619111624e-07
-ax_cond= moose.element('/proto/axon/KCNQ')
-ax_cond.Gbar= 1.13097233e-10
+#ax_cond= moose.element('/proto/axon/NaF')
+#ax_cond.Gbar=1.413715381e-6
+#ax_cond= moose.element('/proto/axon/NaS')
+#ax_cond.Gbar= 1.130972382e-08
+#ax_cond= moose.element('/proto/axon/KDr')
+#ax_cond.Gbar= 1.809555812e-07
+#ax_cond= moose.element('/proto/axon/KvF')
+#ax_cond.Gbar= 4.523889174e-07
+##ax_cond= moose.element('/proto/axon/KvS')
+#ax_cond.Gbar= 6.785833762e-07
+#ax_cond= moose.element('/proto/axon/Kv3')
+#ax_cond.Gbar= 3.619111624e-07
+#ax_cond= moose.element('/proto/axon/KCNQ')
+#ax_cond.Gbar= 1.13097233e-10
 ax_cond= moose.element('/proto/axon/HCN1')
 ax_cond.Gbar= 0
 ax_cond= moose.element('/proto/axon/HCN2')
 ax_cond.Gbar= 0
-ax_cond= moose.element('/proto/axon/SKCa')
-ax_cond.Gbar= 0
-ax_cond= moose.element('/proto/axon/Ca')
-ax_cond.Gbar= 0
-ax_cond=moose.element('/proto/axon/BKCa')
-ax_cond.Gbar=0
-#
-soma_R=moose.element('/proto/soma')
-soma_R.Ra=557992.5
-#
+#ax_cond= moose.element('/proto/axon/SKCa')
+#ax_cond.Gbar= 0
+#ax_cond= moose.element('/proto/axon/Ca')
+#ax_cond.Gbar= 0
+#ax_cond=moose.element('/proto/axon/BKCa')
+#ax_cond.Gbar=0
+##
+#soma_R=moose.element('/proto/soma')
+#soma_R.Ra=557992.5 *2
+##
+##
 Bval=moose.element('/proto/soma/CaPool')
 Bval.B=4.586150298e+10
 
@@ -89,10 +92,10 @@ Bval.B=4.586150298e+10
 #ax_cond.Gbar= 3.619111624e-07
 #ax_cond= moose.element('/arky/axon/KCNQ')
 #ax_cond.Gbar= 1.13097233e-10
-#ax_cond= moose.element('/arky/axon/HCN1')
-#ax_cond.Gbar= 0
-#ax_cond= moose.element('/arky/axon/HCN2')
-#ax_cond.Gbar= 0
+ax_cond= moose.element('/arky/axon/HCN1')
+ax_cond.Gbar= 0
+ax_cond= moose.element('/arky/axon/HCN2')
+ax_cond.Gbar= 0
 #ax_cond= moose.element('/arky/axon/SKCa')
 #ax_cond.Gbar= 0
 #ax_cond= moose.element('/arky/axon/Ca')
@@ -103,8 +106,8 @@ Bval.B=4.586150298e+10
 #soma_R=moose.element('/arky/soma')
 #soma_R.Ra=557992.5
 #
-#Bval=moose.element('/arky/soma/CaPool')
-#Bval.B=4.586150298e+10
+Bval=moose.element('/arky/soma/CaPool')
+Bval.B=4.586150298e+10
 
 
 
