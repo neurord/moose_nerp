@@ -5,9 +5,9 @@
 
 *set_global EREST_ACT   -0.060
 
-*set_compt_param RM	1.47
+*set_compt_param RM	1.3
 *set_compt_param RA	1.74
-*set_compt_param CM	0.024
+*set_compt_param CM	0.014
 *set_compt_param ELEAK	-0.060
 
 
