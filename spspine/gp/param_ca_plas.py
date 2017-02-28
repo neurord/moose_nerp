@@ -1,4 +1,4 @@
-from spspine.calcium import cabuf_params
+#from spspine.calcium import cabuf_params
 
 #example of how to specify calcium buffers.
 #new def in calcium.py will loop over items in cabuf dictionary and create buffers
@@ -6,19 +6,74 @@ from spspine.calcium import cabuf_params
 #exclude or include buffers by changing cabuf dictionary, not params
 #alternative is to have separate dictionary specifying total and bound
 #need method to estimate/calculate bound from total and CaBasal
-CaMN_params=cabuf_params(bufname='CaMN',kf=0.1e6,kb=1e3,diffconst=66e-12,total=15e-3,bound=3e-3)
-CaMC_params=cabuf_params(bufname='CaMC',kf=0.006e6,kb=9.1,diffconst=66e-12,total=15e-3,bound=3e-3)
-cabuf={'CaMN':CaMN_params,'CaMC':CaMC_params}
+from spspine.util import NamedList
+from spspine.util import NamedDict
 
+BufferParams = NamedList('BufferParams','''
+Name
+kf
+kb
+D''')
+
+PumpParams = NamedList('PumpParams','''
+Name
+Kd
+''')
+
+CaBasal = 50e-6
+CellCalcium = NamedList('CellCalcium','''
+CaPoolName
+CaName
+Ceq
+DCa
+tau
+''')
+calbindin = BufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
+camc = BufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
+camn = BufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
+fixed_buffer = BufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
+Fura2 = BufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
+Fluo5F = BufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4 = BufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
+which_dye = 0
+soma = (0,141e-6)
+dend = (14.100000000000000001e-6,1000e-6)
+everything = (0.,1.)
+MMPump = PumpParams('MMpump',Kd=0.3e-3)
+NCX = PumpParams("NCX",Kd=1e-3)
+
+PumpKm = {'MMPump':MMPump,'NCX':NCX}
+
+BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
+
+BufferTotals ={0:{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
+               1:{'Fura2':100e-3,'FixedBuffer':1},
+               2:{'Fluo5F':300.0e-3,'FixedBuffer':1},
+               3:{'Fluo4':100.e-3,'FixedBuffer':1},
+               4:{'Fluo4FF':500e-3,'FixedBuffer':1},
+               5:{'Fluo5F':100e-3,'FixedBuffer':1},
+    }
+
+PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
+PumpVmaxSoma = {'MMPump':85e-8}
+spines = (0.,1.,'sp')
 #if calcium=0, then calcium pools not implemented
 #if calcium=2, then diffusion,buffers and pumps implemented (eventually)
-calcium=1
+calcium = 1
+BufferDensity = {everything:BufferTotals[0]}
+BufferCapacityDensity = {soma:1.,dend:1.}
+PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
+CaShellModeDensity = {soma:-1, dend:-1, spines:-1}
+OutershellThicknessDensity = {soma : 2.e-8,dend:2.e-8,spines:2.e-8}
+ThicknessIncreaseDensity = {soma : 2,dend : 2,spines: 0.}
+ThicknessModeDensity= {soma:1,dend:1,spines:0.}
+CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=1e-3)
 
 #These params are for single time constant of decay calcium
-BufCapacity=2
-CaThick=0.1e-6
-CaBasal=0.05e-3
-CaTau=20e-3
+BufCapacity=1
+CaThick=20e-9
+CaTau=1e-3
 
 plasYesNo=1
 #These thresholds are applied to calcium concentration

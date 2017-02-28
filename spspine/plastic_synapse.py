@@ -7,7 +7,7 @@ import moose
 from spspine import (connect,
                      plasticity,
                      logutil)
-from spspine.d1d2.param_syn import NAME_AMPA
+from spspine.gp.param_syn import NAME_AMPA
 log = logutil.Logger()
 
 def plastic_synapse(model, syncomp, syn_pop, stimtimes):

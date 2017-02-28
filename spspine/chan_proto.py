@@ -42,8 +42,9 @@ AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                                 Bvhalf
                                 B_vslope''')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau')
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 kdtau=0 cahalf=0')
 BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
+
 
 ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
@@ -101,12 +102,20 @@ def chan_proto(model, chanpath, params):
 
         zGate = moose.HHGate(chan.path + '/gateZ')
         if params.Z.__class__==ZChannelParams:
+            #
             ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
             zGate.min = model.CAMIN
             zGate.max = model.CAMAX
             caterm = (ca_array/params.Z.Kd) ** params.Z.power
             inf_z = caterm / (1 + caterm)
-            tau_z = params.Z.tau * np.ones(len(ca_array))
+            if params.Z.taumax>0:
+                tauterm=(ca_array/params.Z.cahalf)**params.Z.kdtau
+                taumax_z=(params.Z.taumax-params.Z.tau)/(1+tauterm)
+                taumin_z= params.Z.tau * np.ones(len(ca_array))
+                tau_z = taumin_z+taumax_z
+            else:
+                tau_z = params.Z.tau * np.ones(len(ca_array))
+            #
             zGate.tableA = inf_z / tau_z
             zGate.tableB = 1 / tau_z
             chan.useConcentration = True
@@ -164,8 +173,6 @@ def BKchan_proto(model, chanpath, params):
             gatingMatrix.append(pars.alphabeta/(1+ca_array[None,:]/pars.K*Vdepgating[:,None]))
             gatingMatrix[i] += gatingMatrix[0]
             #table.tableVector2D=gatingMatrix
-
-
     chan = moose.HHChannel2D(chanpath)
     chan.Xpower = params.channel.Xpow
     chan.Ek=params.channel.Erev
@@ -178,7 +185,7 @@ def BKchan_proto(model, chanpath, params):
     xGate.ymaxA=xGate.ymaxB=model.CAMAX
     xGate.ydivsA=xGate.ydivsB=model.CADIVS
     xGate.tableA=gatingMatrix[0]
-    xGate.tableB=gatingMatrix[1]
+    xGate.tableB=gatingMatrix[0]
     if log.isEnabledFor(logging.INFO):
         log.info("{}", chan.path)
         for ii in np.arange(0, model.VDIVS,1000):

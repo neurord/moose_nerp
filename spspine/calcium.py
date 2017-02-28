@@ -23,7 +23,7 @@ def get_path(s):
     return s[:-l]
 
 def difshell_geometry(diameter, shell_params):
-    res = [] #[[diameter,shell_params.outershell_thickness]]
+    res = []
 
     if shell_params.shellMode == 0:
         multiplier = 2.
@@ -107,6 +107,7 @@ def CaProto(model):
 
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
+
 
     concproto = moose.CaConc('/library/'+capar.CaPoolName)
     concproto.tau = capar.tau
