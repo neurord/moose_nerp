@@ -24,7 +24,7 @@ def get_path(s):
 
 def difshell_geometry(diameter, shell_params):
     res = [] #[[diameter,shell_params.outershell_thickness]]
-    
+
     if shell_params.shellMode == 0:
         multiplier = 2.
         new_rad = diameter/2.
@@ -44,8 +44,7 @@ def difshell_geometry(diameter, shell_params):
         return res
     
     while new_rad >shell_params.min_thickness+ new_thick:
-
-       
+      
         res.append([new_rad*multiplier,new_thick])
         new_rad = new_rad - new_thick
         new_thick = shell_params.outershell_thickness + i*shell_params.thickness_increase*shell_params.outershell_thickness
@@ -138,11 +137,13 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
             if not model.ghkYN:
                 # do nothing if ghkYesNo==1, since already connected the single GHK object
                 m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
+                log.debug('channel {.path} to Ca {.path}',chan, capool)
+
         if model.Channels[chan.name].calciumDependent:
 
             m = moose.connect(capool,CaOutMessage, chan, 'concen')
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
-            
+
 def connectNMDA(comp,capool,CurrentMessage):
     #nmdachans!!!
     for chan in moose.element(comp).neighbors['VmOut']:
@@ -152,19 +153,24 @@ def connectNMDA(comp,capool,CurrentMessage):
             
 def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
     protodif, protobuf = capools
-    diam_thick = difshell_geometry(comp.diameter, sgh)
+    if sgh.shellMode:
+        diam_thick = difshell_geometry(comp.diameter,sgh)
+    else:
+        diam_thick = difshell_geometry(comp.length, sgh)
+
     BufferParams = model.CaPlasticityParams.BufferParams
     PumpKm = model.CaPlasticityParams.PumpKm 
 
     difshell = []
     buffers = []
+    print('Adding DifShells to '+comp.path)
     for i,(diameter,thickness) in enumerate(diam_thick):
         
         name = protodif.name+'_'+str(i)
         dShell = addCaDifShell(comp,protodif,sgh.shellMode,diameter,thickness,name)
         
         difshell.append(dShell)
-        
+
         b = []
         for j,buf in enumerate(Buffers):
             b.append(addDifBuffer(comp,dShell,protobuf,BufferParams[buf],Buffers[buf]))
@@ -189,7 +195,7 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
             connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
             connectNMDA(comp,dShell,'influx')
        
-            
+
     return difshell
     
 def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,spine=False):
@@ -215,6 +221,7 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,spine=False):
     connectVDCC_KCa(model,comp,capool,'current','concOut')
     
     connectNMDA(comp,capool,'current')
+    print('Adding CaConc to '+capool.path)
     return capool
 
 def extract_and_add_capool(model,comp,pools,spine=False):
@@ -269,6 +276,7 @@ def addCalcium(model,ntype):
             dshells_dend = add_calcium_to_compartment(model, shellMode, comp, pools,capool)
             if dshells_dend == -1:
                 return
+
             if model.spineYN:
                 spines = []
                 neighbors = list(comp.neighbors['raxial'])
@@ -278,9 +286,8 @@ def addCalcium(model,ntype):
                         spines.append(neighbor)
                 else:
                     'Could not find spines!!!'
-                
                 for sp in spines:
-                    
+             
                     shellMode = util.distance_mapping(params.CaShellModeDensity,moose.element(sp))
                     dshells_neck = add_calcium_to_compartment(model,shellMode,moose.element(sp),pools,capool)
                     if dshells_neck == -1:
@@ -296,10 +303,8 @@ def addCalcium(model,ntype):
                             heads.append(neighbor)
                     if not heads:
                         'Could not find heads!!!'
-                        
                     for head in heads:
                         shellMode =  util.distance_mapping(params.CaShellModeDensity,head)
-
                         dshells_head = add_calcium_to_compartment(model,shellMode,moose.element(head),pools,capool)
                         if dshells_head == -1:
                             return

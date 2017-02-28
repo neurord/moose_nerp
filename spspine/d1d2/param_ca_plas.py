@@ -82,8 +82,8 @@ spines = (0.,1.,'sp')
 BufferDensity = {everything:BufferTotals[0]}
 BufferCapacityDensity = {soma:2.,dend:2.}
 PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
-CaShellModeDensity = {soma:-1, dend:-1, spines:-1}
+CaShellModeDensity = {soma:0, dend:0, spines:1}
 OutershellThicknessDensity = {soma : .1e-6,dend:.1e-6,spines:.07e-6}
 ThicknessIncreaseDensity = {soma : 2,dend : 2,spines: 0.}
-ThicknessModeDensity= {soma:1,dend:1,spines:0}
+ThicknessModeDensity= {soma:1,dend:1,spines:0.}
 CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=20e-3)
