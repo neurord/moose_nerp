@@ -117,14 +117,15 @@ def CaProto(model):
     #Old versions of moose don't have difshells. This should be removed.
     try:
         shellproto = moose.DifShell('/library/'+capar.CaName)
+        shellproto.Ceq = capar.Ceq
+        shellproto.D = capar.DCa
+        bufferproto = moose.DifBuffer('/library/'+capar.CaName+'_Buffer')
+    
+        return concproto, shellproto, bufferproto
     except:
         return concproto,
     
-    shellproto.Ceq = capar.Ceq
-    shellproto.D = capar.DCa
-    bufferproto = moose.DifBuffer('/library/'+capar.CaName+'_Buffer')
     
-    return concproto, shellproto, bufferproto
     
 def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
   
