@@ -114,8 +114,12 @@ def CaProto(model):
     concproto.CaBasal = capar.Ceq
     concproto.ceiling = 1.
     concproto.floor = 0.0
-     
-    shellproto = moose.DifShell('/library/'+capar.CaName)
+    #Old versions of moose don't have difshells. This should be removed.
+    try:
+        shellproto = moose.DifShell('/library/'+capar.CaName)
+    except:
+        return concproto,
+    
     shellproto.Ceq = capar.Ceq
     shellproto.D = capar.DCa
     bufferproto = moose.DifBuffer('/library/'+capar.CaName+'_Buffer')
