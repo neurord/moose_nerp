@@ -36,6 +36,7 @@ def get_dist_name(comp):
 
 def distance_mapping(mapping, dist):
     # We assume that the dictionary is very small, so a linear search is OK.
+    comp = dist
     if isinstance(dist,moose.Compartment):
         
         dist,name = get_dist_name(dist)
@@ -64,6 +65,8 @@ def distance_mapping(mapping, dist):
     else:
         print('Wrong distance/element passed in distance mapping '+dist)
         return 0
+
+    res = {}
     for k, v in mapping.items():
         if len(k)  == 3:
             left, right, description = k
@@ -71,17 +74,22 @@ def distance_mapping(mapping, dist):
             left, right = k
             description = ''
         else:
-            print(k)
+
             continue
         if left <= dist < right:
             if description:
                 if name.startswith(description) or name.endswith(description):
-                    break
+                    res['description'] = v
             else:
+                res['no_description'] = v
                 break
     else:
         return 0
-
+    
+    if 'description' in res:
+        v = res['description']
+    else:
+        v = res['no_description']
     if isinstance(v, _numbers.Number):
         return v
     elif isinstance(v, list):
