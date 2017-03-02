@@ -5,6 +5,8 @@ import moose
 from . import logutil
 log = logutil.Logger()
 
+#NAME_NECK and NAME_HEAD are used in calcium.py to add calcium objects to spines
+#If you get rid of them, you have to change calcium.py
 NAME_NECK = "neck"
 NAME_HEAD = "head"
 

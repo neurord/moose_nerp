@@ -1,0 +1,19 @@
+1. single should not be defined in the d1d2/__init__.py
+OR, it should be able to be overridden in param_net.py
+
+4. d1d2/, ca1/ etc should be at same level, not below spspine prototypes
+
+5. More functional: the dictionary of channel conductances should not have to include every channel defined in the library.  We tried this and it threw an error somewhere.
+
+7. possibly want to give shape_Shifter its own repo (and possibly rename it)
+
+8. can eliminate "neurons" - the list of compartments, and being returned from cell_proto.neuronclasses, and probably synArray - the array of all synapses, as well as caPools
+
+9. This works: 
+comp_list = moose.wildcardFind(postcell + '/##[TYPE=Compartment]')
+
+But I can't make this work:
+syn_list = moose.wildcardFind(postcell + '/##[TYPE=SynChan]')
+
+10. define 'soma' the name of the soma somewhere in prototypes so we don't need to use (or change) this somewhat arbitrary string in several places.  similar to what was done for spinehead name
+

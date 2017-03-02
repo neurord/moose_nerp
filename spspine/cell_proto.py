@@ -31,7 +31,8 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         moose.connect(chan,'permeability',ghk,'addPermeability')
         m=moose.connect(comp,'VmOut',chan,'Vm')
     else:
-        m=moose.connect(chan, 'channel', comp, 'channel')
+        m=moose.connect(comp,'VmOut',chan,'Vm')
+        m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
 def find_morph_file(model,ntype):
@@ -78,6 +79,7 @@ def neuronclasses(model):
     neuron={}
     synArray={}
     headArray={}
+    caPools = {}
     for ntype in model.neurontypes():
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
@@ -89,27 +91,16 @@ def neuronclasses(model):
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             synArray[ntype] = syn_proto.add_synchans(model, ntype)
-    #Calcium concentration - also optional
-    #This is single tau calcium. 
-    #Next step: change model.calYN to caltype, allowing
-    #   0: none
-    #   1: single tau
-    #   2: diffusion, buffering, pumps
-    #      this will require many additional function definitions
-    if model.calYN:
-        #put all these calcium parameters into a dictionary
-        calcium.CaProto(model.CaPlasticityParams)
-        for ntype in model.neurontypes():
-            for comp in moose.wildcardFind(ntype + '/#[TYPE=Compartment]'):
-                capool=calcium.addCaPool(model, comp)
-                calcium.connectVDCC_KCa(model, model.ghkYN,comp,capool)
-            #if there are spines, calcium will be added to the spine head
-            if model.spineYN:
-                for spcomp in headArray[ntype]:
-                    capool=calcium.addCaPool(model, spcomp)
-                    if model.SpineParams.spineChanList:
-                        calcium.connectVDCC_KCa(model, model.ghkYN,spcomp,capool)
-            #if there are synapses, NMDA will be connected to set of calcium pools
-            if model.synYN:
-                calcium.connectNMDA(synArray[ntype][model.param_syn.NAME_NMDA], model.ghkYN)
+        #Calcium concentration - also optional
+        #possibly when FS are added will change this to avoid calcium in the FSI
+        #This is single tau calcium. 
+        #Next step: change model.calYN to caltype, allowing
+        #   0: none
+        #   1: single tau
+        #   2: diffusion, buffering, pumps
+        #      this will require many additional function definitions
+        caPools[ntype] = calcium.addCalcium(model,ntype)
+
+                
     return synArray,neuron
+

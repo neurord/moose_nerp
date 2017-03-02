@@ -52,7 +52,7 @@ def make_synchan(model, chanpath, synparams):
         synchan.KMg_A = synparams.MgBlock.A
         synchan.KMg_B = synparams.MgBlock.B
         synchan.CMg = synparams.MgBlock.C
-        if model.calYN:
+        if (model.calYN):
             synchan.condFraction = synparams.nmdaCaFrac
             synchan.temperature = constants.celsius_to_kelvin(model.Temp)
             synchan.extCa = model.ConcOut
@@ -69,7 +69,9 @@ def synchanlib(model):
         print(synchan)
 
 def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
-    proto=moose.SynChan('/library/' +chanpath)
+     
+    proto = moose.element('/library/' +chanpath)
+        
     log.debug('adding channel {} to {.path} from {.path}', chanpath, syncomp, proto)
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
@@ -102,9 +104,11 @@ def add_synchans(model, container):
             Gbar = model.SYNAPSE_TYPES[key].Gbar
             Gbarvar=model.SYNAPSE_TYPES[key].var
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
+
                 if NAME_HEAD in spcomp.path:
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
         ########### delete from here to allsynchans= once pop_funcs debugged ################
+
         #calculate distance from soma
         xloc=moose.Compartment(comp).x
         yloc=moose.Compartment(comp).y

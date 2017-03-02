@@ -13,16 +13,18 @@ log = logutil.Logger()
 def plastic_synapse(model, syncomp, syn_pop, stimtimes):
     plast={}
     stimtab={}
-    if model.calYN and model.plasYN:
+    if model.calYN  and model.plasYN:
         neu = moose.Neutral('/input')
         for neurtype in model.neurontypes():
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
             stimtab[neurtype].vector = stimtimes
+
             syntype = model.CaPlasticityParams.syntype
             print(syntype,neurtype,syncomp)
             synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
             log.info('Synapse added to {.path}', synchan)
             connect.synconn(synchan,0,stimtab[neurtype])
+
             ###Synaptic Plasticity
             plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams.NAME_CALCIUM,
                                                     model.CaPlasticityParams.highThresh,

@@ -29,7 +29,9 @@ from spspine import (cell_proto,
                      util,
                      standard_options)
 from spspine import ca1
+
 from spspine.graph import plot_channel, neuron_graph, spine_graph
+
 
 option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
 param_sim = option_parser.parse_args()
@@ -40,11 +42,13 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
+
 MSNsyn,neuron = cell_proto.neuronclasses(ca1)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if ca1.synYN:
     plas,stimtab=plastic_synapse.plastic_synapse(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+
 else:
     plas = {}
 
@@ -52,6 +56,7 @@ else:
 all_neurons={}
 for ntype in neuron.keys():
     all_neurons[ntype]=list([neuron[ntype].path])
+
 pg=inject_func.setupinj(ca1, param_sim.injection_delay, param_sim.injection_width, neuron)
 
 ###############--------------output elements
@@ -60,6 +65,7 @@ if param_sim.plot_channels:
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       ca1.VMIN, ca1.VMAX, ca1.CAMIN, ca1.CAMAX)
+
 
 vmtab,catab,plastab,currtab = tables.graphtables(ca1, neuron,
                                                  param_sim.plot_current,
@@ -70,6 +76,7 @@ if ca1.spineYN:
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in ca1.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -89,6 +96,7 @@ if __name__ == '__main__':
             names.append('{} @ {}'.format(neurtype, inj))
         if ca1.spineYN:
             spine_graph.spineFig(ca1,spinecatab,spinevmtab,param_sim.simtime)
+
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode

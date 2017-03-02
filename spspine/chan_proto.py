@@ -92,11 +92,14 @@ def chan_proto(model, chanpath, params):
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
+
         yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
         fix_singularities(model, params.Y, yGate)
 
+
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
+
         zGate = moose.HHGate(chan.path + '/gateZ')
         if params.Z.__class__==ZChannelParams:
             #
@@ -120,6 +123,7 @@ def chan_proto(model, chanpath, params):
             zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Z, zGate)
             chan.useConcentration = False
+
     chan.Ek = params.channel.Erev
     return chan
 
