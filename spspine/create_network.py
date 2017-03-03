@@ -28,7 +28,7 @@ def create_network(model, param_net,neur_protos={}):
         tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells)
         #
         for ntype in striatum_pop['pop'].keys():
-            connections[ntype]=connect.timetable_input(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn )
+            connections[ntype]=connect.timetable_input(striatum_pop['pop'], param_net, ntype, model )
         #
     else:
         #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
@@ -41,7 +41,7 @@ def create_network(model, param_net,neur_protos={}):
         #
         #loop over all post-synaptic neuron types and create connections:
         for ntype in striatum_pop['pop'].keys():
-            connections[ntype]=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model.param_syn.NumSyn)
+            connections[ntype]=connect.connect_neurons(striatum_pop['pop'], param_net, ntype, model)
 
         #save/write out the list of connections and location of each neuron
         np.savez(param_net.confile,conn=connections,loc=striatum_pop['location'])

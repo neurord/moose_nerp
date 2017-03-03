@@ -270,9 +270,6 @@ def add_calcium_to_compartment(model, shellMode, comp, pools,capool):
 
 def addCalcium(model,ntype):
     
-    if model.calYN == 0:
-        return
-    
     pools = CaProto(model)
     capool = []
     params = model.CaPlasticityParams

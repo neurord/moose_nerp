@@ -52,11 +52,11 @@ def makeSpine(model, parentComp, compName,index, frac, necklen, neckdia, headdia
 
     return head
 
-def addSpines(model, container,ghkYN,NAME_SOMA):
+def addSpines(model, container,ghkYN,name_soma):
     headarray=[]
     SpineParams = model.SpineParams
     for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
-        if NAME_SOMA not in comp.path:
+        if name_soma not in comp.path:
             numSpines=int(np.round(SpineParams.spineDensity*comp.length))
             spineSpace=comp.length/(numSpines+1)
             for index in range(numSpines):

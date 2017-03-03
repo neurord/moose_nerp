@@ -5,7 +5,6 @@ from __future__ import print_function, division
 import numpy as np
 import moose
 #from spspine.calcium import NAME_CALCIUM
-from spspine.cell_proto import NAME_SOMA
 from spspine.tables import DATA_NAME, add_one_table
 from spspine import logutil
 log = logutil.Logger()
@@ -22,7 +21,7 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
             vmtab.append([moose.Table(DATA_NAME+'/Vm_%s' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
         spiketab.append([moose.Table(DATA_NAME+'/outspike_%s' % (moose.element(neurname).name)) for neurname in pop[neur_type]])
         for tabnum,neur in enumerate(pop[neur_type]):
-            soma_name=neur+'/'+NAME_SOMA
+            soma_name=neur+'/'+model.param_cond.NAME_SOMA
             sg=moose.element(soma_name+'/spikegen')
             log.debug('{} '*3, neur_type, sg.path, spiketab[typenum][tabnum])
             m=moose.connect(sg, 'spikeOut', spiketab[typenum][tabnum],'spike')

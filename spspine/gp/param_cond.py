@@ -26,6 +26,7 @@ compNameNum=2
 
 #will eventually use different morphologies also
 morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p'}
+NAME_SOMA='soma'
 
 #CONDUCTANCES
 #Kdr is Kv2

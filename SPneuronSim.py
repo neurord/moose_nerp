@@ -33,7 +33,7 @@ from spspine.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options()
 param_sim = option_parser.parse_args()
-
+d1d2.calYN=1
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
@@ -67,7 +67,7 @@ if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
-clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve, d1d2.param_cond.NAME_SOMA)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):

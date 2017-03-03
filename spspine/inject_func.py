@@ -3,7 +3,6 @@
 from __future__ import print_function, division
 import numpy as np
 import moose 
-from spspine.cell_proto import NAME_SOMA
 
 def setupinj(model, delay,width,neuron_pop):
     """Setup injections
@@ -18,7 +17,7 @@ def setupinj(model, delay,width,neuron_pop):
     pg.secondDelay = 1e9
     for ntype in neuron_pop.keys():
         for num, name in enumerate(neuron_pop[ntype]):
-            injectcomp=moose.element(name +'/'+NAME_SOMA)
+            injectcomp=moose.element(name +'/'+model.param_cond.NAME_SOMA)
             print("INJECT:", name, injectcomp.path)
             moose.connect(pg, 'output', injectcomp, 'injectMsg')
     return pg
