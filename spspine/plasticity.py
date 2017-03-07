@@ -6,8 +6,8 @@ import os
 import re
 import moose
 
-from spspine import logutil, util
-from spines import NAME_HEAD
+from spspine import logutil, util, spines
+
 log = logutil.Logger()
 NAME_PLAS='/plas'
 NAME_CUM='Cum'
@@ -56,10 +56,10 @@ def addPlasticity(cell_pop,caplas_params):
             #if synapse exists
             if moose.exists(synchan.path+'/SH'):
                 log.debug("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
-                synname=util.syn_name(synchan.path,NAME_HEAD)
-                plascum[cell][synname]=plasticity(synchan,caplas_params.NAME_CALCIUM,
-                                                       caplas_params.highThresh,
-                                                       caplas_params.lowThresh,
-                                                       caplas_params.highfactor,
-                                                       caplas_params.lowfactor)
+                synname=util.syn_name(synchan.path, spines.NAME_HEAD)
+                plascum[cell][synname]=plasticity(synchan, caplas_params.NAME_CALCIUM,
+                                                  caplas_params.highThresh,
+                                                  caplas_params.lowThresh,
+                                                  caplas_params.highfactor,
+                                                  caplas_params.lowfactor)
     return plascum
