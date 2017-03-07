@@ -34,9 +34,8 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
-def find_morph_file(model,ntype):
-    return _util.maybe_find_file(model.morph_file[ntype],
-                                 _os.path.dirname(model.__file__))
+def find_morph_file(model, ntype):
+    return _util.find_model_file(model, model.morph_file[ntype])
 
 def create_neuron(model, ntype, ghkYN):
     p_file = find_morph_file(model,ntype)

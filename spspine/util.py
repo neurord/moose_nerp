@@ -209,13 +209,16 @@ def block_if_noninteractive():
         except KeyboardInterrupt:
             pass
 
-def maybe_find_file(name, *paths):
+def find_file(name, *paths):
     if not _os.path.isabs(name):
         for path in paths:
             p = _os.path.join(path, name)
             if _os.path.exists(p):
                 return p
     return name
+
+def find_model_file(model, name):
+    return find_file(name, _os.path.dirname(model.__file__))
 
 def listize(func):
     def wrapper(*args, **kwargs):
