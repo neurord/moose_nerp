@@ -25,8 +25,8 @@ def neurontypes():
 compNameNum=2
 
 #will eventually use different morphologies also
-morph_file = 'out_ri04_v3.p'
-
+morph_file = ['CA1':'out_ri04_v3.p']
+NAME_SOMA='soma'
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
 # GnaCondD1=[60.5e3, 1894, 927]

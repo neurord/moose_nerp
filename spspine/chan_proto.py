@@ -61,7 +61,7 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     b = A_max - a*V_max
     tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
     return tabA
-
+ 
 def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
         V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.Avhalf
@@ -173,6 +173,8 @@ def BKchan_proto(model, chanpath, params):
             gatingMatrix.append(pars.alphabeta/(1+ca_array[None,:]/pars.K*Vdepgating[:,None]))
             gatingMatrix[i] += gatingMatrix[0]
             #table.tableVector2D=gatingMatrix
+
+
     chan = moose.HHChannel2D(chanpath)
     chan.Xpower = params.channel.Xpow
     chan.Ek=params.channel.Erev
@@ -185,7 +187,7 @@ def BKchan_proto(model, chanpath, params):
     xGate.ymaxA=xGate.ymaxB=model.CAMAX
     xGate.ydivsA=xGate.ydivsB=model.CADIVS
     xGate.tableA=gatingMatrix[0]
-    xGate.tableB=gatingMatrix[0]
+    xGate.tableB=gatingMatrix[1]
     if log.isEnabledFor(logging.INFO):
         log.info("{}", chan.path)
         for ii in np.arange(0, model.VDIVS,1000):

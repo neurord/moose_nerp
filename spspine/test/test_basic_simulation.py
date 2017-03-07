@@ -37,19 +37,16 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = True
 
-    MSNsyn,neuron = \
-        cell_proto.neuronclasses(d1d2)
-
-    all_neurons={}
-    for ntype in neuron.keys():
-        all_neurons[ntype]=list([neuron[ntype].path])
-    pg = inject_func.setupinj(d1d2, 0.02, 0.01, all_neurons)
+    MSNsyn, neurons = cell_proto.neuronclasses(d1d2)
+    neuron_paths = {ntype:[neuron.path]
+                    for ntype, neuron in neurons.items()}
+    pg = inject_func.setupinj(d1d2, 0.02, 0.01, neuron_paths)
     pg.firstLevel = 1e-8
 
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', {})
+        tables.graphtables(d1d2, neurons, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)
@@ -94,9 +91,9 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     d1d2.synYN = bool(synapses)
     d1d2.single = bool(single)
 
-    MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
+    MSNsyn, neurons = cell_proto.neuronclasses(d1d2)
 
-    population,connection, plas = create_network.create_network(d1d2, param_net, neuron)
+    population,connection, plas = create_network.create_network(d1d2, param_net, neurons)
 
     pg = inject_func.setupinj(d1d2, 0.02, 0.01, population['pop'])
     pg.firstLevel = 1e-9
@@ -104,7 +101,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neuron, False, 'getGk', {})
+        tables.graphtables(d1d2, neurons, False, 'getGk', {})
 
     moose.reinit()
     moose.start(0.05)

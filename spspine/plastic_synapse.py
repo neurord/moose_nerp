@@ -7,7 +7,6 @@ import moose
 from spspine import (connect,
                      plasticity,
                      logutil)
-from spspine.gp.param_syn import NAME_AMPA
 log = logutil.Logger()
 
 def plastic_synapse(model, syncomp, syn_pop, stimtimes):
@@ -23,7 +22,7 @@ def plastic_synapse(model, syncomp, syn_pop, stimtimes):
             print(syntype,neurtype,syncomp)
             synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
             log.info('Synapse added to {.path}', synchan)
-            connect.synconn(synchan,0,stimtab[neurtype])
+            connect.synconn(synchan,0,stimtab[neurtype], model.param_syn)
 
             ###Synaptic Plasticity
             plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams.NAME_CALCIUM,

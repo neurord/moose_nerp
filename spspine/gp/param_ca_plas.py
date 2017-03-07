@@ -1,13 +1,22 @@
-#from spspine.calcium import cabuf_params
-
-#example of how to specify calcium buffers.
-#new def in calcium.py will loop over items in cabuf dictionary and create buffers
-#add lines,items for calbindin, fixed buffer, and calcium indicators
-#exclude or include buffers by changing cabuf dictionary, not params
-#alternative is to have separate dictionary specifying total and bound
-#need method to estimate/calculate bound from total and CaBasal
 from spspine.util import NamedList
 from spspine.util import NamedDict
+
+#definitions
+CAPOOL = -1 #single time constant of decay
+#difshell types
+SHELL = 0
+SLAB = 1
+CUSTOM = 3
+
+#region/distance definitions
+soma = (0,141e-6)
+dend = (14.100000000000000001e-6,1000e-6)
+everything = (0.,1.)
+spines = (0.,1.,'sp')
+
+#difshell increase mode
+GEOMETRIC = 1
+LINEAR = 0
 
 BufferParams = NamedList('BufferParams','''
 Name
@@ -20,7 +29,8 @@ Name
 Kd
 ''')
 
-CaBasal = 50e-6
+
+
 CellCalcium = NamedList('CellCalcium','''
 CaPoolName
 CaName
@@ -28,6 +38,27 @@ Ceq
 DCa
 tau
 ''')
+
+ShapeParams = NamedList('ShapeParams','''
+OutershellThickness
+ThicknessIncreaseFactor
+ThicknessIncreaseMode
+''')
+
+which_dye = "no_dye"
+CaBasal = 50e-6
+
+BufCapacity = 1
+CaTau = 1e-3
+CaThick = 20e-9
+
+#intrinsic calcium params
+CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=CaTau)
+
+#shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
+#increase_mode linear = 0, geometric = 1
+
+#Buffer params
 calbindin = BufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
 camc = BufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
 camn = BufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
@@ -36,46 +67,54 @@ Fura2 = BufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11)
 Fluo5F = BufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
 Fluo4 = BufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
 Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
-which_dye = 0
-soma = (0,141e-6)
-dend = (14.100000000000000001e-6,1000e-6)
-everything = (0.,1.)
+
+#Buffer params dictionary
+BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
+
+#Pump params
 MMPump = PumpParams('MMpump',Kd=0.3e-3)
 NCX = PumpParams("NCX",Kd=1e-3)
 
+#Pump params dictionary
 PumpKm = {'MMPump':MMPump,'NCX':NCX}
 
-BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
+#dye used in simulations
 
-BufferTotals ={0:{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
-               1:{'Fura2':100e-3,'FixedBuffer':1},
-               2:{'Fluo5F':300.0e-3,'FixedBuffer':1},
-               3:{'Fluo4':100.e-3,'FixedBuffer':1},
-               4:{'Fluo4FF':500e-3,'FixedBuffer':1},
-               5:{'Fluo5F':100e-3,'FixedBuffer':1},
+
+#possible dye sets used in experiments
+BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
+               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1},
+               "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':1},
+               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1},
+               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1},
+               "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
     }
-
+#Pump Vmax
 PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
-spines = (0.,1.,'sp')
-#if calcium=0, then calcium pools not implemented
-#if calcium=2, then diffusion,buffers and pumps implemented (eventually)
-calcium = 1
-BufferDensity = {everything:BufferTotals[0]}
-BufferCapacityDensity = {soma:1.,dend:1.}
+
+#Buffer density specification -- this is used with difshells
+BufferDensity = {everything:BufferTotals[which_dye]}
+#Pump density specification -- used with diffshells
 PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
-CaShellModeDensity = {soma:-1, dend:-1, spines:-1}
-OutershellThicknessDensity = {soma : 2.e-8,dend:2.e-8,spines:2.e-8}
-ThicknessIncreaseDensity = {soma : 2,dend : 2,spines: 0.}
-ThicknessModeDensity= {soma:1,dend:1,spines:0.}
-CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=1e-3)
+#Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
+BufferCapacityDensity = {soma:BufCapacity,dend:BufCapacity}
+
+#Ca dynamics specification
+CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
+
+tree_shape = ShapeParams(OutershellThickness=CaThick, ThicknessIncreaseFactor=2, ThicknessIncreaseMode=GEOMETRIC)
+spines_shape = ShapeParams(OutershellThickness=.01e-6, ThicknessIncreaseFactor=0, ThicknessIncreaseMode=LINEAR)
+
+ShapeConfig = {everything:tree_shape,spines:spines_shape}
+
 
 #These params are for single time constant of decay calcium
-BufCapacity=1
-CaThick=20e-9
-CaTau=1e-3
 
-plasYesNo=1
+
+
+
+
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 highThresh=0.3e-3

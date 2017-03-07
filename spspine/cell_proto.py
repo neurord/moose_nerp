@@ -13,7 +13,6 @@ from spspine import (calcium,
                      util as _util,
                      logutil)
 log = logutil.Logger()
-NAME_SOMA='soma'
 
 def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     length=moose.Compartment(comp).length
@@ -35,9 +34,8 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
 
-def find_morph_file(model,ntype):
-    return _util.maybe_find_file(model.morph_file[ntype],
-                                 _os.path.dirname(model.__file__))
+def find_morph_file(model, ntype):
+    return _util.find_model_file(model, model.morph_file[ntype])
 
 def create_neuron(model, ntype, ghkYN):
     p_file = find_morph_file(model,ntype)
@@ -87,19 +85,17 @@ def neuronclasses(model):
         neuron[ntype]=create_neuron(model, ntype, model.ghkYN)
         #optionally add spines
         if model.spineYN:
-            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN,NAME_SOMA)
+            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN, model.param_cond.NAME_SOMA)
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             synArray[ntype] = syn_proto.add_synchans(model, ntype)
         #Calcium concentration - also optional
-        #possibly when FS are added will change this to avoid calcium in the FSI
-        #This is single tau calcium. 
-        #Next step: change model.calYN to caltype, allowing
         #   0: none
         #   1: single tau
         #   2: diffusion, buffering, pumps
         #      this will require many additional function definitions
-        caPools[ntype] = calcium.addCalcium(model,ntype)
+        if model.calYN:
+            caPools[ntype] = calcium.addCalcium(model,ntype)
 
                 
     return synArray,neuron

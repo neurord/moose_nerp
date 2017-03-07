@@ -34,36 +34,40 @@ def get_dist_name(comp):
     dist = _np.sqrt(xloc*xloc+yloc*yloc)
     return dist,name
 
-def distance_mapping(mapping, dist):
+def distance_mapping(mapping, where):
     # We assume that the dictionary is very small, so a linear search is OK.
-    if isinstance(dist,moose.Compartment):
+   
+    if isinstance(where,moose.Compartment):
         
-        dist,name = get_dist_name(dist)
+        dist,name = get_dist_name(where)
 
-    elif isinstance(dist,moose.vec):
-        comp = moose.element(dist)
+    elif isinstance(where,moose.vec):
+        comp = moose.element(where)
         if comp.className == 'Compartment':
             dist,name = get_dist_name(comp)
         else:
             print('Wrong element class '+dist)
             return 0
 
-    elif isinstance(dist,str):
+    elif isinstance(where,str):
         try:
-            comp =  moose.element(dist)
+            comp =  moose.element(where)
         except ValueError:
-            print('No element '+dist)
+            print('No element '+where)
             return 0
         if comp.className == 'Compartment':
             dist,name = get_dist_name(comp)
         else:
-            print('Wrong element class '+dist)
+            print('Wrong element class '+where)
             return 0
-    elif isinstance(dist, _numbers.Number):
+    elif isinstance(where, _numbers.Number):
         name = ''
+        dist = where
     else:
-        print('Wrong distance/element passed in distance mapping '+dist)
+        print('Wrong distance/element passed in distance mapping '+where)
         return 0
+
+    res = {}
     for k, v in mapping.items():
         if len(k)  == 3:
             left, right, description = k
@@ -71,17 +75,21 @@ def distance_mapping(mapping, dist):
             left, right = k
             description = ''
         else:
-            print(k)
             continue
         if left <= dist < right:
             if description:
                 if name.startswith(description) or name.endswith(description):
-                    break
+                    res['description'] = v
             else:
-                break
-    else:
+                res['no_description'] = v
+            
+    if not res: 
         return 0
 
+    if 'description' in res:
+        v = res['description']
+    else:
+        v = res['no_description']
     if isinstance(v, _numbers.Number):
         return v
     elif isinstance(v, list):
@@ -201,13 +209,16 @@ def block_if_noninteractive():
         except KeyboardInterrupt:
             pass
 
-def maybe_find_file(name, *paths):
+def find_file(name, *paths):
     if not _os.path.isabs(name):
         for path in paths:
             p = _os.path.join(path, name)
             if _os.path.exists(p):
                 return p
     return name
+
+def find_model_file(model, name):
+    return find_file(name, _os.path.dirname(model.__file__))
 
 def listize(func):
     def wrapper(*args, **kwargs):
