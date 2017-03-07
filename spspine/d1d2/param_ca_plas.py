@@ -95,7 +95,7 @@ PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
 BufferCapacityDensity = {soma:2.,dend:2.}
 
 #Ca dynamics specification
-CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
+CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC)
 spines_shape = ShapeParams(OutershellThickness=.01e-6,ThicknessIncreaseFactor=0,ThicknessIncreaseMode=LINEAR)
