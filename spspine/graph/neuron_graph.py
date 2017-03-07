@@ -96,6 +96,7 @@ def SingleGraphSet(traces, currents, simtime):
     axes.legend(fontsize=8,loc='best')
     f.canvas.draw()
 ##
+
 def CurrentGraphSet(value,g, keys, simtime):
     #
     f = pyplot.figure()
