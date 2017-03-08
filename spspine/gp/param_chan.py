@@ -282,8 +282,7 @@ NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
 #BK channel
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 
-BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),]
-
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneDalpha(KDrparam, KDr_X_params, KDr_Y_params),
