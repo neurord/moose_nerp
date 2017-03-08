@@ -27,7 +27,8 @@ from spspine import (cell_proto,
                      plastic_synapse,
                      logutil,
                      util,
-                     standard_options)
+                     standard_options,
+                     constants)
 from spspine import d1d2
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
@@ -68,28 +69,45 @@ if d1d2.spineYN:
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve, d1d2.param_cond.NAME_SOMA)
-
+print("simdt", param_sim.simdt, "hsolve", param_sim.hsolve)
+simtime=0.05
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
+    ####kluge to fix buffer capacity in CaPool
+    ####moose.reinit() calculates CaConc.B from thickness, length, diameter, and ignores buffer capacity
+    if param_sim.hsolve:
+        comptype='ZombieCompartment'
+    else:
+        comptype='Compartment'
+    for ntype in d1d2.neurontypes():
+        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
+            cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
+            if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
+                BufCapacity = 20#util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
+                vol=4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
+                cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
+                print(cacomp.path, cacomp.B, cacomp.className)
     moose.start(simtime)
 
 if __name__ == '__main__':
-    traces, names = [], []
+    traces, names, catraces = [], [], []
     for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
         neuron_graph.graphs(d1d2, vmtab, param_sim.plot_current, param_sim.simtime,
                             currtab,param_sim.plot_current_label, catab, plastab)
         for neurnum,neurtype in enumerate(d1d2.neurontypes()):
             traces.append(vmtab[neurnum][0].vector)
+            catraces.append(catab[neurnum][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
             # In Python3.6, the following syntax works:
             #names.append(f'{neurtype} @ {inj}')
         if d1d2.spineYN:
             spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+    neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
 
     # block in non-interactive mode
     util.block_if_noninteractive()
