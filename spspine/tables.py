@@ -15,8 +15,9 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
+    catab=[]
     for typenum, neur_type in enumerate(neuron.keys()):
-        catabs.append([])
+        catab.append([])
     currtab={}
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
