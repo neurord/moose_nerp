@@ -33,7 +33,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
             
             for ii,comp in enumerate(neur_comps):
                 for child in comp.children:
-                    if child.className == "CaConc" :
+                    if child.className == "CaConc" or  child.className == "ZombieCaConc":
 
                         NAME_CALCIUM = child.name
                        
@@ -121,7 +121,7 @@ def spinetabs(model,neuron):
             moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
             if model.calYN:
                 for child in spine.children:
-                    if child.className == "CaConc"  :
+                    if child.className == "CaConc" or  child.className == "ZombieCaConc" :
                         NAME_CALCIUM = child.name
                         spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
                         spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
