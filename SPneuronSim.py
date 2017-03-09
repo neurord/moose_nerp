@@ -32,6 +32,7 @@ from spspine import (cell_proto,
 from spspine import d1d2
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
+
 option_parser = standard_options.standard_options()
 param_sim = option_parser.parse_args()
 d1d2.calYN=1
@@ -86,8 +87,11 @@ def run_simulation(injection_current, simtime):
         for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
             cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
             if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
-                BufCapacity = 20#util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
-                vol=4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
+                BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
+                if cacomp.length:
+                    vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
+                else:
+                    vol = 4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
                 cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
                 print(cacomp.path, cacomp.B, cacomp.className)
     moose.start(simtime)
