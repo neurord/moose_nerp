@@ -62,7 +62,7 @@ def create_neuron(model, ntype, ghkYN):
         else:
             ghk=[]
         for channame, chanparams in model.Channels.items():
-            c = _util.distance_mapping(Cond[channame], dist)
+            c = _util.distance_mapping(Cond[channame], comp)
             if c > 0:
                 log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = chanparams.calciumPermeable

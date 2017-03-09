@@ -15,8 +15,10 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
-    catab=[[],[]]
-    currtab=defaultdict(list)
+    catab=[]
+    for typenum, neur_type in enumerate(neuron.keys()):
+        catab.append([])
+    currtab={}
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
@@ -47,6 +49,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
                     
         if pltcurr:
+            currtab[neur_type]={}
             #CHANNEL CURRENTS (Optional)
             for channame in model.Channels:
                 currtab[neur_type][channame]=[moose.Table(DATA_NAME+'/chan%s%s_%d' %(channame,neur_type,ii)) for ii in range(len(neur_comps))]

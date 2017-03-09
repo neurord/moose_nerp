@@ -95,3 +95,22 @@ def SingleGraphSet(traces, currents, simtime):
     axes.set_xlabel('Time, sec')
     axes.legend(fontsize=8,loc='best')
     f.canvas.draw()
+##
+
+def CurrentGraphSet(value,g, keys, simtime):
+    #
+    f = pyplot.figure()
+    f.canvas.set_window_title('Conductance')
+    axes = f.add_subplot(1, 1, 1)
+    #
+    if isinstance(value,dict):
+        for key in keys:
+            t = np.linspace(0, simtime, len(value[key]))
+            axes.plot(t, value[key], label=g[key])
+    else:
+        for i in range(len(value)):
+            axes.plot(t,value[i],label=g[i])
+    axes.set_ylabel('gk, volts')
+    axes.set_xlabel('Time, sec')
+    axes.legend(fontsize=10,loc='best')
+    f.canvas.draw()
