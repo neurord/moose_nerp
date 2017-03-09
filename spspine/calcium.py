@@ -151,6 +151,7 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
         if model.Channels[chan.name].calciumDependent:
 
             m = moose.connect(capool,CaOutMessage, chan, 'concen')
+
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
 
 def connectNMDA(comp,capool,CurrentMessage):
@@ -214,21 +215,19 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,spine):
     capool.thick = OutershellThickness
     capool.diameter = comp.diameter
     capool.length = comp.length
-    radius = comp.diameter/2.
+    #radius = comp.diameter/2.
 
-    if spine:
-        vol = np.pi*radius**2*capool.thick
-    else:
-        if capool.length:
-            vol = np.pi*capool.length*(radius**2-(radius-capool.thick)**2)
-        else:
-            vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
+    # if spine:
+    #     vol = np.pi*radius**2*capool.thick
+    # else:
+    #     if capool.length:
+    #         vol = np.pi*capool.length*(radius**2-(radius-capool.thick)**2)
+    #     else:
+    #         vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
 
-
+    vol = np.pi*comp.length*comp.diameter*capool.thick
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
-
     connectVDCC_KCa(model,comp,capool,'current','concOut')
-    
     connectNMDA(comp,capool,'current')
     print('Adding CaConc to '+capool.path)
     return capool
