@@ -37,7 +37,7 @@ param_sim = option_parser.parse_args()
 d1d2.calYN=1
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
-
+param_sim.hsolve=False
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
@@ -70,26 +70,29 @@ if d1d2.spineYN:
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve, d1d2.param_cond.NAME_SOMA)
 print("simdt", param_sim.simdt, "hsolve", param_sim.hsolve)
-simtime=0.05
+
+if param_sim.hsolve and d1d2.calYN:
+    ####kluge to fix buffer capacity in CaPool
+    ####initiating hsolve calculates CaConc.B from thickness, length, diameter; ignores buffer capacity
+    print('############# Fixing calcium buffer capacity for ZombieCaConc elements')
+    comptype='ZombieCompartment'
+    for ntype in d1d2.neurontypes():
+        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
+            cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
+            if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
+                BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
+                if cacomp.length:
+                    vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
+                else:
+                    vol = 4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
+                cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
+                print(cacomp.path, cacomp.B, cacomp.className)
+
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
-    ####kluge to fix buffer capacity in CaPool
-    ####moose.reinit() calculates CaConc.B from thickness, length, diameter, and ignores buffer capacity
-    if param_sim.hsolve:
-        comptype='ZombieCompartment'
-    else:
-        comptype='Compartment'
-    for ntype in d1d2.neurontypes():
-        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
-            cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
-            if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
-                BufCapacity = 20#util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
-                vol=4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
-                cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
-                print(cacomp.path, cacomp.B, cacomp.className)
     moose.start(simtime)
 
 if __name__ == '__main__':

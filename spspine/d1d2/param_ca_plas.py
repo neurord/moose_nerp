@@ -92,7 +92,7 @@ BufferDensity = {everything:BufferTotals[which_dye]}
 #Pump density specification -- used with diffshells
 PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
-BufferCapacityDensity = {soma:2.,dend:2.}
+BufferCapacityDensity = {soma:20.,dend:20.}
 
 #Ca dynamics specification
 CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
@@ -103,7 +103,7 @@ spines_shape = ShapeParams(OutershellThickness=.01e-6,ThicknessIncreaseFactor=0,
 ShapeConfig = {everything:tree_shape,spines:spines_shape}
 
 
-###From previous versions:
+###From previous versions (plasticity parameters):
 syntype='ampa'
 
 #These thresholds are applied to calcium concentration
