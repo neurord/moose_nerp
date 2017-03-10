@@ -42,15 +42,15 @@ _proto = _util.NamedDict(
     'proto',
     KDr = {prox:320,dist:64, axon:640},
     Kv3 = {prox:640, dist:128,axon:1280},#, med:38.4},
-    KvF = {prox:80,dist:80,axon:800 },#, med: 48},
-    KvS = {prox:48, dist:48,axon:480},#, med: 100
+    KvF = {prox:20,dist:20,axon:200 },#, med: 48},
+    KvS = {prox:12, dist:12,axon:120},#, med: 100
     NaF = {prox:2500, dist:40,axon:5000},#, med: 100
     HCN1 = {prox:0.2, dist:0.2,axon:0},#, med: 0
     HCN2 = {prox:0.5, dist:0.5,axon:0}, #med: 0,
     KCNQ = {prox:0.4, dist:0.4,axon:0.4},#, med: 2.512
     NaS = {prox:1,  dist:1,axon:40},#med: 251.2,
-    Ca = {prox:2, dist:0.15,axon:0},#med: 0,
-    SKCa = {prox:2, dist:0.3,axon:0},# med: 0,
+    Ca = {prox:0.1, dist:0.02,axon:0},#med: 0,
+    SKCa = {prox:7.14, dist:0.6,axon:0},# med: 0,
     BKCa={prox:0.1, dist:0.1,axon:0},# med: 10,
 )
 _arky = _util.NamedDict(
