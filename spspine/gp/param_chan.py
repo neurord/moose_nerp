@@ -76,7 +76,7 @@ KDr_X_params = AlphaBetaChannelParams(A_rate = 5.4e3,
                                       A_C = 1,
                                       Avhalf = -49e-3,
                                       A_vslope = -15e-3,
-                                      B_rate = 2.31e3,
+                                      B_rate = 2.3e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       Bvhalf = 120e-3,
@@ -194,16 +194,16 @@ KCNQ_Y_params = []
 
 HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN1')
 
-HCN1_X_params = AlphaBetaChannelParams(A_rate = 18e3,
+HCN1_X_params = AlphaBetaChannelParams(A_rate = 10e3,
                                         A_B = 0,
                                         A_C = 1,
-                                        Avhalf = 200e-3,
-                                        A_vslope = 6.9e-3,
-                                        B_rate = 80e3,
+                                        Avhalf = 140e-3,
+                                        A_vslope = 6e-3,
+                                        B_rate = 18000e3,
                                         B_B = 0,
                                         B_C = 1,
-                                        Bvhalf = -57e-3,
-                                        B_vslope = -6.9e-3)
+                                        Bvhalf = -56.5e-3,
+                                        B_vslope = -7.4e-3)
 HCN1_Y_params=[]
 
 HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN2')
@@ -240,7 +240,7 @@ SK_Z_params= ZChannelParams(Kd=0.00035,
                             power=4.6,
                             tau=0.002,
                             taumax=0.0037928,
-                            kdtau=4.6,
+                            kdtau=4.3,
                             cahalf=0.002703
                              )
 #persistnet Na_channel
@@ -261,11 +261,11 @@ NaS_h_params = AlphaBetaChannelParams(A_rate=32,
                                      A_C=1,
                                      Avhalf=58e-3,
                                      A_vslope=4.5e-3,
-                                     B_rate=31,
+                                     B_rate=32,
                                      B_B=0.0,
                                      B_C=1,
-                                    Bvhalf=57e-3,
-                                     B_vslope=-6.5e-3)
+                                    Bvhalf=50e-3,
+                                     B_vslope=-4e-3)
 
 NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
                                      A_B=-8.64,
@@ -282,7 +282,8 @@ NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
 #BK channel
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 
-BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
+BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
+BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneDalpha(KDrparam, KDr_X_params, KDr_Y_params),
