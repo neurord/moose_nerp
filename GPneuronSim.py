@@ -32,7 +32,7 @@ from spspine import (cell_proto,
 from spspine import gp
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[300e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+option_parser = standard_options.standard_options(default_injection_current=[100e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
 param_sim = option_parser.parse_args()
 param_sim.simtime=0.6
 param_sim.injection_width=0.4
@@ -144,16 +144,18 @@ if __name__ == '__main__':
             spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
     #
     #
-    subset1=['proto_KvF', 'proto_KvS']
-    #subset2=['arky_NaF', 'proto_NaF']
-    subset3=['proto_Ca','proto_SKCa']
+    subset1=['proto_HCN1','proto_HCN2' ]
+    subset2=['proto_NaS']
+    subset3=['proto_KCNQ']
     subset4=['proto_BKCa']
-    subset5=['proto_HCN1','proto_HCN2']
+    subset5=['proto_NaF']
+    subset6 = ['proto_KvS']
     neuron_graph.CurrentGraphSet(value,label,subset1, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subset2, param_sim.simtime)
+    neuron_graph.CurrentGraphSet(value, label, subset2, param_sim.simtime)
     neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
     neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
     neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
+    neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
     neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
