@@ -57,7 +57,7 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
         plt.subplot(211)
 
         plt.title(chan.path+'/gateX top: tau (ms), bottom: ss')
-        plt.imshow(1e3/mb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
+        plt.imshow(1e3/mb,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto',origin='lower')
         plt.colorbar()
 
         plt.subplot(212)
@@ -66,7 +66,7 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
         else:
             inf = ma/mb
 
-        plt.imshow(inf,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto')
+        plt.imshow(inf,extent=[CAMIN,CAMAX,VMIN,VMAX],aspect='auto',origin='lower')
         plt.xlabel('Ca [mM]')
         plt.ylabel('Vm [V]')
         plt.colorbar()
