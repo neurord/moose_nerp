@@ -154,11 +154,12 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
 
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
 
-def connectNMDA(comp,capool,CurrentMessage):
+def connectNMDA(comp,capool,CurrentMessage,CaOutMessage):
     #nmdachans!!!
     for chan in moose.element(comp).neighbors['VmOut']:
         if chan.className == 'NMDAChan':
             moose.connect(chan, 'ICaOut', capool, CurrentMessage)
+            moose.connect(capool,CaOutMessage,chan,'assignIntCa')
 
             
 def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
@@ -203,7 +204,7 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
                #connect channels
 
             connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
-            connectNMDA(comp,dShell,'influx')
+            connectNMDA(comp,dShell,'influx','concentrationOut')
        
 
     return difshell
@@ -225,7 +226,7 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
 
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
     connectVDCC_KCa(model,comp,capool,'current','concOut')
-    connectNMDA(comp,capool,'current')
+    connectNMDA(comp,capool,'current','concOut')
     print('Adding CaConc to '+capool.path)
     return capool
 
