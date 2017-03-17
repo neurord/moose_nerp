@@ -42,9 +42,9 @@ log = logutil.Logger()
 
 #################################-----------create the model
 #overrides:
-d1d2.synYN=True
-d1d2.calYN=True
-d1d2.plasYN=True
+d1d2.synYN = True
+d1d2.calYN = True
+d1d2.plasYN = False
 
 ##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
@@ -85,7 +85,7 @@ if param_net.single:
 else:
     #possibly need to setup an hsolver separately for each cell in the network
     simpath=[param_net.netname]
-clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,d1d2.param_cond.NAME_SOMA)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
