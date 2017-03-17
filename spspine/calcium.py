@@ -174,7 +174,7 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
 
     difshell = []
     buffers = []
-    print(diam_thick)
+
     #print('Adding DifShells to '+comp.path)
     for i,(diameter,thickness) in enumerate(diam_thick):
         
@@ -248,8 +248,6 @@ def extract_and_add_difshell(model, shellMode, comp, pools):
     Pumps = distance_mapping(params.PumpDensity,comp)
     Buffers = distance_mapping(params.BufferDensity,comp)
     shape = distance_mapping(params.ShapeConfig,comp)
-    
-    print(shape)
     shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.MinThickness)
 
     dshells_dend = addDifMachineryToComp(model,comp,pools,Buffers,Pumps,shellsparams)
@@ -288,9 +286,8 @@ def addCalcium(model,ntype):
                 for neighbor in neighbors:
                     if NAME_NECK in neighbor.name:
                         spines.append(neighbor)
-                        print(moose.element(neighbor).length,moose.element(neighbor).diameter,moose.element(neighbor).path)
-                else:
-                    'Could not find spines!!!'
+                    else:
+                        'Could not find spines!!!'
                 for sp in spines:
              
                     shellMode = distance_mapping(params.CaShellModeDensity,moose.element(sp))
@@ -306,7 +303,7 @@ def addCalcium(model,ntype):
                     for neighbor in neighbors:
                         if NAME_HEAD in neighbor.name:
                             heads.append(neighbor)
-                            print(moose.element(neighbor).length,moose.element(neighbor).diameter,moose.element(neighbor).path)
+
                     if not heads:
                         'Could not find heads!!!'
                     for head in heads:
