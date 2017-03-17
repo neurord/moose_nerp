@@ -174,7 +174,8 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
 
     difshell = []
     buffers = []
-    print('Adding DifShells to '+comp.path)
+    print(diam_thick)
+    #print('Adding DifShells to '+comp.path)
     for i,(diameter,thickness) in enumerate(diam_thick):
         
         name = protodif.name+'_'+str(i)
@@ -227,7 +228,7 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
     connectVDCC_KCa(model,comp,capool,'current','concOut')
     connectNMDA(comp,capool,'current','concOut')
-    print('Adding CaConc to '+capool.path)
+    #print('Adding CaConc to '+capool.path)
     return capool
 
 def extract_and_add_capool(model,comp,pools):
@@ -248,8 +249,8 @@ def extract_and_add_difshell(model, shellMode, comp, pools):
     Buffers = distance_mapping(params.BufferDensity,comp)
     shape = distance_mapping(params.ShapeConfig,comp)
     
-    
-    shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.OutershellThickness*1.1)
+    print(shape)
+    shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.MinThickness)
 
     dshells_dend = addDifMachineryToComp(model,comp,pools,Buffers,Pumps,shellsparams)
     
@@ -287,6 +288,7 @@ def addCalcium(model,ntype):
                 for neighbor in neighbors:
                     if NAME_NECK in neighbor.name:
                         spines.append(neighbor)
+                        print(moose.element(neighbor).length,moose.element(neighbor).diameter,moose.element(neighbor).path)
                 else:
                     'Could not find spines!!!'
                 for sp in spines:
@@ -304,6 +306,7 @@ def addCalcium(model,ntype):
                     for neighbor in neighbors:
                         if NAME_HEAD in neighbor.name:
                             heads.append(neighbor)
+                            print(moose.element(neighbor).length,moose.element(neighbor).diameter,moose.element(neighbor).path)
                     if not heads:
                         'Could not find heads!!!'
                     for head in heads:

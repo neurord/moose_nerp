@@ -43,6 +43,7 @@ ShapeParams = NamedList('ShapeParams','''
 OutershellThickness
 ThicknessIncreaseFactor
 ThicknessIncreaseMode
+MinThickness
 ''')
 
 #intrinsic calcium params
@@ -95,10 +96,10 @@ PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
 BufferCapacityDensity = {soma:20.,dend:20.}
 
 #Ca dynamics specification
-CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
+CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
 
-tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC)
-spines_shape = ShapeParams(OutershellThickness=.01e-6,ThicknessIncreaseFactor=0,ThicknessIncreaseMode=LINEAR)
+tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
+spines_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.03e-6)
 
 ShapeConfig = {everything:tree_shape,spines:spines_shape}
 
@@ -108,11 +109,16 @@ syntype='ampa'
 
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
-highThresh = 0.3e-3
-lowThresh = 0.15e-3
-#Thresholds need to be adjusted together with these factors for plasticity
-#Both the timeStep Factor - applied to both, and the Arbitrary constant
+SynapseParams = NamedList('SynapseParams','''
+Name
+highThreshold
+lowThreshold
+highDurationThreshold
+lowDurationThreshold
+highFactor
+lowFactor
+''')
 timeStepFactor = 100.0
-lowfactor='/'+str(lowThresh-highThresh)+'/'+str(timeStepFactor)
-#Arbitrary constant
-highfactor='(0.5/'+str(timeStepFactor)+')*'
+lowThreshold = 0.15e-3
+highThreshold = 0.3e-3
+Synapse = SynapseParams(Name='ampa',highThreshold=highThreshold,lowThreshold=lowThreshold, highDurationThreshold = 0.005,lowDurationThreshold=0.025,highFactor='(0.5/'+str(timeStepFactor)+')*',lowFactor =  '/'+str(lowThreshold-highThreshold)+'/'+str(timeStepFactor))
