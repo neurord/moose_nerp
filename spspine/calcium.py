@@ -154,11 +154,12 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage):
 
             log.debug('channel message {} {} {}', chan.path, comp.path, m)
 
-def connectNMDA(comp,capool,CurrentMessage):
+def connectNMDA(comp,capool,CurrentMessage,CaOutMessage):
     #nmdachans!!!
     for chan in moose.element(comp).neighbors['VmOut']:
         if chan.className == 'NMDAChan':
             moose.connect(chan, 'ICaOut', capool, CurrentMessage)
+            moose.connect(capool,CaOutMessage,chan,'assignIntCa')
 
             
 def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
@@ -173,7 +174,8 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
 
     difshell = []
     buffers = []
-    print('Adding DifShells to '+comp.path)
+
+    #print('Adding DifShells to '+comp.path)
     for i,(diameter,thickness) in enumerate(diam_thick):
         
         name = protodif.name+'_'+str(i)
@@ -203,7 +205,7 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh):
                #connect channels
 
             connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
-            connectNMDA(comp,dShell,'influx')
+            connectNMDA(comp,dShell,'influx','concentrationOut')
        
 
     return difshell
@@ -225,8 +227,8 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
 
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
     connectVDCC_KCa(model,comp,capool,'current','concOut')
-    connectNMDA(comp,capool,'current')
-    print('Adding CaConc to '+capool.path)
+    connectNMDA(comp,capool,'current','concOut')
+    #print('Adding CaConc to '+capool.path)
     return capool
 
 def extract_and_add_capool(model,comp,pools):
@@ -246,9 +248,7 @@ def extract_and_add_difshell(model, shellMode, comp, pools):
     Pumps = distance_mapping(params.PumpDensity,comp)
     Buffers = distance_mapping(params.BufferDensity,comp)
     shape = distance_mapping(params.ShapeConfig,comp)
-    
-    
-    shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.OutershellThickness*1.1)
+    shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.MinThickness)
 
     dshells_dend = addDifMachineryToComp(model,comp,pools,Buffers,Pumps,shellsparams)
     
@@ -286,8 +286,8 @@ def addCalcium(model,ntype):
                 for neighbor in neighbors:
                     if NAME_NECK in neighbor.name:
                         spines.append(neighbor)
-                else:
-                    'Could not find spines!!!'
+                    else:
+                        'Could not find spines!!!'
                 for sp in spines:
              
                     shellMode = distance_mapping(params.CaShellModeDensity,moose.element(sp))
@@ -303,6 +303,7 @@ def addCalcium(model,ntype):
                     for neighbor in neighbors:
                         if NAME_HEAD in neighbor.name:
                             heads.append(neighbor)
+
                     if not heads:
                         'Could not find heads!!!'
                     for head in heads:
