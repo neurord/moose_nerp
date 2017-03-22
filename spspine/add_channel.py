@@ -22,4 +22,4 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
         m = moose.connect(comp,'VmOut',chan,'Vm')
         m = moose.connect(chan, 'channelOut', comp, 'handleChannel')
     log.debug('channel message {.path} {.path} {}', chan, comp, m)
-    print(chan,chan.Gbar)
+    

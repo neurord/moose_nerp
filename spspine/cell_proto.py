@@ -10,29 +10,12 @@ from spspine import (calcium,
                      chan_proto,
                      spines,
                      syn_proto,
+                     add_channel,
                      util as _util,
-                     logutil)
-log = logutil.Logger()
+                     logutil
+                     )
 
-def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
-    length=moose.Compartment(comp).length
-    diam=moose.Compartment(comp).diameter
-    SA=np.pi*length*diam
-    if length==0:
-         SA=np.pi*diam**2
-         log.info('Check RA for spherical compartment',comp.name)
-    proto = moose.element('/library/'+chanpath)
-    chan = moose.copy(proto, comp, chanpath)[0]
-    chan.Gbar = gbar * SA
-    #If we are using GHK AND it is a calcium channel, connect it to GHK
-    if ghkYN and calciumPermeable:
-        ghk=moose.element(comp.path+'/ghk')
-        moose.connect(chan,'permeability',ghk,'addPermeability')
-        m=moose.connect(comp,'VmOut',chan,'Vm')
-    else:
-        m=moose.connect(comp,'VmOut',chan,'Vm')
-        m=moose.connect(chan, 'channelOut', comp, 'handleChannel')
-    log.debug('channel message {.path} {.path} {}', chan, comp, m)
+log = logutil.Logger()
 
 def find_morph_file(model, ntype):
     return _util.find_model_file(model, model.morph_file[ntype])
@@ -66,7 +49,7 @@ def create_neuron(model, ntype, ghkYN):
             if c > 0:
                 log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = chanparams.calciumPermeable
-                addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
+                add_channel.addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
     return cellproto
 
 def neuronclasses(model):
