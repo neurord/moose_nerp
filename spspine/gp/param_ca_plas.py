@@ -48,8 +48,8 @@ MinThickness
 which_dye = "no_dye"
 CaBasal = 50e-6
 
-BufCapacity = 1  # used 1 from Jadegers model to match the value of B (B=1/Z.F.V.KB)
-CaTau = 1e-3     # 0.001 sec used in Jadegers model
+BufCapacity = 20  # used 1 from Jadegers model to match the value of B (B=1/Z.F.V.KB)
+CaTau = 2e-3     # 0.001 sec used in Jadegers model
 CaThick = 20e-9
 
 #intrinsic calcium params
