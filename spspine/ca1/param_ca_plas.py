@@ -32,7 +32,6 @@ Kd
 
 
 CellCalcium = NamedList('CellCalcium','''
-CaPoolName
 CaName
 Ceq
 DCa
@@ -47,7 +46,7 @@ MinThickness
 ''')
 
 #intrinsic calcium params
-CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=20e-3)
+CalciumParams = CellCalcium(CaName='Shells',Ceq=50e-6,DCa=200.e-12,tau=20e-3)
 
 #shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
 #increase_mode linear = 0, geometric = 1

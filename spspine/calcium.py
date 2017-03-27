@@ -92,22 +92,28 @@ def difshell_geometry(comp, shell_params):
 
 
         
-def addCaDifShell(comp,difproto,shellMode,shellDiameter,shellThickness,name):
+def addCaDifShell(comp,shellMode,shellDiameter,shellThickness,name,capar):
+    shellName = ''
+    for s in comp.path.split('[0]'):
+        shellName += s
+    name = shellName+'/'+capar.CaName+'_'+name
 
-    dif = moose.copy(difproto, comp, name)[0]
+    dif = moose.DifShell(name)
+    dif.Ceq =  capar.Ceq
+    dif.D = capar.DCa
     dif.valence = 2
     dif.leak = 0
     dif.shapeMode = shellMode
-    dif.length = moose.element(comp).length
+    dif.length =comp.length
     dif.diameter = shellDiameter
     dif.thickness = shellThickness
     return dif
 
-def addDifBuffer(comp,dShell,dbufproto,bufparams,bTotal):
+def addDifBuffer(comp,dShell,bufparams,bTotal):
     
     name = dShell.name + '_' + bufparams.Name
 
-    dbuf = moose.copy(dbufproto,comp,name)[0]
+    dbuf = moose.DifBuffer(name)
     dbuf.bTot = bTotal
     dbuf.kf = bufparams.kf
     dbuf.kb = bufparams.kb
@@ -116,7 +122,7 @@ def addDifBuffer(comp,dShell,dbufproto,bufparams,bTotal):
     dbuf.length = dShell.length
     dbuf.diameter = dShell.diameter
     dbuf.thickness = dShell.thickness
-    
+
     moose.connect(dShell,"concentrationOut",dbuf,"concentration")
     moose.connect(dbuf,"reactionOut",dShell,"reaction")
 
@@ -146,22 +152,15 @@ def CaProto(model):
     if not moose.exists('/library'):
         lib = moose.Neutral('/library')
 
-
-    concproto = moose.CaConc('/library/'+capar.CaPoolName)
-    concproto.tau = capar.tau
-    concproto.CaBasal = capar.Ceq
-    concproto.ceiling = 1.
-    concproto.floor = 0.0
-    #Old versions of moose don't have difshells. This should be removed.
-    try:
-        shellproto = moose.DifShell('/library/'+capar.CaName)
-        shellproto.Ceq = capar.Ceq
-        shellproto.D = capar.DCa
-        bufferproto = moose.DifBuffer('/library/'+capar.CaName+'_Buffer')
-    
-        return concproto, shellproto, bufferproto
-    except:
-        return concproto,
+    if not moose.exists('/library/'+capar.CaName):
+            
+        concproto = moose.CaConc('/library/'+capar.CaName)
+        concproto.tau = capar.tau
+        concproto.CaBasal = capar.Ceq
+        concproto.ceiling = 1.
+        concproto.floor = 0.0
+        
+    return moose.element('/library/'+capar.CaName)
     
     
     
@@ -186,7 +185,7 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage,check_list=[])
                 if chan in check_list or chan.name in check_list:
                     m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
                     log.debug('channel {.path} to Ca {.path}',chan, capool)
-                    
+
 
         if model.Channels[chan.name].calciumDependent:
             if chan in check_list or chan.name in check_list:
@@ -202,17 +201,13 @@ def connectNMDA(comp,capool,CurrentMessage,CaOutMessage):
             moose.connect(capool,CaOutMessage,chan,'assignIntCa')
 
             
-def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh,spine):
+def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
     
-    protodif, protobuf = capools
-
     diam_thick = difshell_geometry(comp, sgh)
 
     BufferParams = model.CaPlasticityParams.BufferParams
 
     PumpKm = model.CaPlasticityParams.PumpKm 
-
-  
 
     difshell = []
     buffers = []
@@ -222,14 +217,14 @@ def addDifMachineryToComp(model,comp,capools,Buffers,Pumps,sgh,spine):
     
     for i,(diameter,thickness) in enumerate(diam_thick): #adding shells
         
-        name = protodif.name+'_'+str(i)
-        dShell = addCaDifShell(comp,protodif,sgh.shellMode,diameter,thickness,name)
+
+        dShell = addCaDifShell(comp,sgh.shellMode,diameter,thickness,str(i),model.CaPlasticityParams.CalciumParams)
         
         difshell.append(dShell)
 
         b = []
         for j,buf in enumerate(Buffers): #add buffers to shell
-            b.append(addDifBuffer(comp,dShell,protobuf,BufferParams[buf],Buffers[buf]))
+            b.append(addDifBuffer(comp,dShell,BufferParams[buf],Buffers[buf]))
         buffers.append(b)
         if i: #diffusion between neighboring shells
             #connect shells
@@ -315,7 +310,7 @@ def extract_and_add_capool(model,comp,pools):
 
     return pool
 
-def extract_and_add_difshell(model, shellMode, comp, pools,spine):
+def extract_and_add_difshell(model, shellMode, comp,spine):
     params = model.CaPlasticityParams
 
     
@@ -325,17 +320,17 @@ def extract_and_add_difshell(model, shellMode, comp, pools,spine):
     shape = distance_mapping(params.ShapeConfig,comp)
     shellsparams = CalciumConfig(shellMode=shellMode,increase_mode=shape.ThicknessIncreaseMode,outershell_thickness=shape.OutershellThickness,thickness_increase=shape.ThicknessIncreaseFactor, min_thickness=shape.MinThickness)
 
-    dshells_dend = addDifMachineryToComp(model,comp,pools,Buffers,Pumps,shellsparams,spine)
+    dshells_dend = addDifMachineryToComp(model,comp,Buffers,Pumps,shellsparams,spine)
     
     return dshells_dend        
 
 def add_calcium_to_compartment(model, shellMode, comp, pools,capool,spine):
     if shellMode == -1:
-        capool.append(extract_and_add_capool(model,comp,pools[0]))
+        capool.append(extract_and_add_capool(model,comp,pools))
         dshells_dend = None
         return dshells_dend
     if shellMode == 0 or shellMode == 1 or shellMode == 3:
-        dshells_dend = extract_and_add_difshell(model, shellMode, comp, pools[1:],spine)
+        dshells_dend = extract_and_add_difshell(model, shellMode, comp,spine)
         capool.extend(dshells_dend)
         return dshells_dend
     

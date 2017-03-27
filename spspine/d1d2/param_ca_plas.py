@@ -13,7 +13,8 @@ soma = (0,141e-6)
 dend = (14.100000000000000001e-6,1000e-6)
 everything = (0.,1.)
 spines = (0.,1.,'sp')
-
+heads = (0.,1.,'head')
+necks = (0.,1.,'neck')
 #difshell increase mode
 GEOMETRIC = 1
 LINEAR = 0
@@ -32,7 +33,6 @@ Kd
 
 
 CellCalcium = NamedList('CellCalcium','''
-CaPoolName
 CaName
 Ceq
 DCa
@@ -47,7 +47,7 @@ MinThickness
 ''')
 
 #intrinsic calcium params
-CalciumParams = CellCalcium(CaName='Shells',CaPoolName='Calc',Ceq=50e-6,DCa=200.,tau=20e-3)
+CalciumParams = CellCalcium(CaName='Shells',Ceq=50e-6,DCa=200e-12,tau=20e-3)
 
 #shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
 #increase_mode linear = 0, geometric = 1
@@ -83,15 +83,16 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
                "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1},
                "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1},
                "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
+               "no_buffers":{}
     }
 #Pump Vmax
 PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
-
+PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
 #Pump density specification -- used with diffshells
-PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxDend}
+PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxSpine}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:20.,dend:20.}
 
@@ -99,9 +100,10 @@ BufferCapacityDensity = {soma:20.,dend:20.}
 CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
 
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
-spines_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.03e-6)
+head_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.06e-6)
+neck_shape = ShapeParams(OutershellThickness=.12e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
 
-ShapeConfig = {everything:tree_shape,spines:spines_shape}
+ShapeConfig = {everything:tree_shape,heads:head_shape,necks:neck_shape}
 
 
 ###From previous versions (plasticity parameters):
