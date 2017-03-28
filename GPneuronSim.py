@@ -105,7 +105,7 @@ if param_sim.hsolve and gp.calYN:
   comptype = 'ZombieCompartment'
   for ntype in gp.neurontypes():
       for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
-          cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaPoolName)
+          cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaName)
           if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
               BufCapacity = util.distance_mapping(gp.CaPlasticityParams.BufferCapacityDensity,comp)
               if cacomp.length:
