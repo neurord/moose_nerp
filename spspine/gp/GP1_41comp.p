@@ -8,7 +8,7 @@
 *set_compt_param RM	1.3
 *set_compt_param RA	1.74
 *set_compt_param CM	0.014
-*set_compt_param ELEAK	-0.060
+*set_compt_param ELEAK	-0.056
 
 
 soma            none            0       0       0      13.4
