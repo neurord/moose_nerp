@@ -122,6 +122,17 @@ if param_sim.hsolve and gp.calYN:
 #Bval=moose.element('/arky/soma/Calc')
 #Bval.B=4.586150298e+10
 
+soma1=moose.element('/arky/soma')
+spikegen=moose.SpikeGen('/data/spikegen')
+spikegen.threshold=0.0
+spikegen.refractT=1.0e-3
+msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
+
+####
+spiketab=moose.Table('/data/spike')
+moose.connect(spikegen,'spikeOut',spiketab,'spike')
+
+
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -129,6 +140,7 @@ def run_simulation(injection_current, simtime):
     pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
+
 
 
 if __name__ == '__main__':
@@ -159,16 +171,16 @@ if __name__ == '__main__':
             spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
     #
     #
-    subset1=['proto_HCN1','proto_HCN2' ]
-    subset2=['proto_NaS']
-    subset3=['proto_Ca']
-    subset4=['proto_BKCa']
-    subset5=['proto_NaS']
-    subset6 = ['proto_KvS']
-    subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
-    subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
-    neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
+    #subset1=['proto_HCN1','proto_HCN2' ]
+    #subset2=['proto_NaS']
+    #subset3=['proto_Ca']
+    #subset4=['proto_BKCa']
+    #subset5=['proto_NaS']
+    #subset6 = ['proto_KvS']
+    #subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
+    #subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
+    #neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
@@ -176,7 +188,11 @@ if __name__ == '__main__':
     neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
+
+
     # block in non-interactive mode
     util.block_if_noninteractive()
 
     #End of inject loop
+l=len(spiketab.vector)
+print(l)
