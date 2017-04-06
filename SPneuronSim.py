@@ -79,7 +79,7 @@ if param_sim.hsolve and d1d2.calYN:
     for ntype in d1d2.neurontypes():
         for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
             cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
-            if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
+            if isinstance(cacomp, moose.ZombieCaConc):
                 BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
                 if cacomp.length:
                     vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
