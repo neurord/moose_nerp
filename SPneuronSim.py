@@ -77,11 +77,11 @@ if param_sim.hsolve and d1d2.calYN:
     print('############# Fixing calcium buffer capacity for ZombieCaConc elements')
     comptype='ZombieCompartment'
     for ntype in d1d2.neurontypes():
-        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
+        for comp in moose.wildcardFind('{}/##[TYPE={}]'.format(ntype,comptype)):
             calc = [c for c in comp.children if c.className == 'ZombieCaConc']
             if calc: 
                 cacomp = moose.element(calc[0])
-                if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
+                if isinstance(cacomp, moose.ZombieCaConc):
                     BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
                     if cacomp.length:
                         vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
