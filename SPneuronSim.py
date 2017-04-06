@@ -37,7 +37,7 @@ param_sim = option_parser.parse_args()
 d1d2.calYN=1
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
-param_sim.hsolve=False
+param_sim.hsolve=True
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
@@ -77,16 +77,18 @@ if param_sim.hsolve and d1d2.calYN:
     print('############# Fixing calcium buffer capacity for ZombieCaConc elements')
     comptype='ZombieCompartment'
     for ntype in d1d2.neurontypes():
-        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype,comptype)):
-            cacomp=moose.element(comp.path+'/'+d1d2.CaPlasticityParams.CalciumParams.CaPoolName)
-            if isinstance(cacomp, moose.ZombieCaConc):
-                BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
-                if cacomp.length:
-                    vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
-                else:
-                    vol = 4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
-                cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
-                print(cacomp.path, cacomp.B, cacomp.className)
+        for comp in moose.wildcardFind('{}/##[TYPE={}]'.format(ntype,comptype)):
+            calc = [c for c in comp.children if c.className == 'ZombieCaConc']
+            if calc: 
+                cacomp = moose.element(calc[0])
+                if isinstance(cacomp, moose.ZombieCaConc):
+                    BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
+                    if cacomp.length:
+                        vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
+                    else:
+                        vol = 4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
+                    cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
+                    print(cacomp.path, cacomp.B, cacomp.className)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):

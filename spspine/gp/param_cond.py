@@ -40,33 +40,33 @@ axon = (0.,1., 'axon')
 # _proto for prototypical GP neuron
 _proto = _util.NamedDict(
     'proto',
-    KDr = {prox:320,dist:64, axon:640},
-    Kv3 = {prox:640, dist:128,axon:1280},#, med:38.4},
-    KvF = {prox:20,dist:20,axon:200 },#, med: 48},
-    KvS = {prox:12, dist:12,axon:120},#, med: 100
-    NaF = {prox:2500, dist:40,axon:5000},#, med: 100
-    HCN1 = {prox:0.2, dist:0.2,axon:0},#, med: 0
-    HCN2 = {prox:0.5, dist:0.5,axon:0}, #med: 0,
-    KCNQ = {prox:0.4, dist:0.4,axon:0.4},#, med: 2.512
-    NaS = {prox:1,  dist:1,axon:40},#med: 251.2,
-    Ca = {prox:0.1, dist:0.02,axon:0},#med: 0,
-    SKCa = {prox:7.14, dist:0.6,axon:0},# med: 0,
-    BKCa={prox:0.1, dist:0.1,axon:0},# med: 10,
+    KDr={prox: 40, dist: 7.75, axon: 77.5},
+    Kv3={prox: 800, dist: 140, axon: 1400},  # , med:38.4},
+    KvF={prox: 10, dist: 10, axon: 100},  # , med: 48},
+    KvS={prox: 3, dist: 3, axon: 30},  # , med: 100
+    NaF={prox: 40000, dist: 400, axon: 40000},  # , med: 100
+    HCN1={prox: 0.2, dist: 0.2, axon: 0},  # , med: 0
+    HCN2={prox: 0.5, dist: 0.5, axon: 0},  # med: 0,
+    KCNQ={prox: 0.04, dist: 0.04, axon: 0.04},  # , med: 2.512
+    NaS={prox: 0.5, dist: 0.5, axon: 0.5},  # med: 251.2,
+    Ca={prox: 0.1, dist: 0.06, axon: 0},  # med: 0,
+    SKCa={prox: 2, dist: 0.15, axon: 0},  # med: 0,
+    BKCa={prox: 0.1, dist: 0.1, axon: 0},  # med: 10,
 )
 _arky = _util.NamedDict(
     'arky',
-    KDr = {prox:320,dist:64,axon:640 },#, med:40.2},
-    Kv3 = {prox:640 , dist:128,axon:1280 },#, med:38.4},
-    KvF = {prox:160,dist:160,axon:1600 },#, med: 48},
-    KvS = {prox:240, dist:240,axon:2400},#, med: 100
-    NaF = {prox:2500, dist:40,axon:5000},#, med: 100
-    HCN1 = {prox:0.2, dist:0.2,axon:0},#, med: 0
-    HCN2 = {prox:0.25, dist:0.25,axon:0}, #med: 0,
-    KCNQ = {prox:0.4, dist:0.4,axon:0.4},#, med: 2.512
-    NaS = {prox: 1,  dist:1,axon:40},#med: 251.2,
-    Ca = {prox:2, dist:0.15,axon:0},#med: 0,
-    SKCa = {prox:50, dist:4,axon:0},# med: 0,
-    BKCa={prox:0.1, dist:0.1,axon:0},# med: 10,
+    KDr={prox: 40, dist: 7.75, axon: 77.5},
+    Kv3={prox: 800, dist: 140, axon: 1400},  # , med:38.4},
+    KvF={prox: 2.5, dist: 2.5, axon: 25},  # , med: 48},
+    KvS={prox: 0.75, dist: 0.75, axon: 7.5},  # , med: 100
+    NaF={prox: 40000, dist: 400, axon: 40000},  # , med: 100
+    HCN1={prox: 0.2, dist: 0.2, axon: 0},  # , med: 0
+    HCN2={prox: 0.25, dist: 0.25, axon: 0},  # med: 0,
+    KCNQ={prox: 0.04, dist: 0.04, axon: 0.04},  # , med: 2.512
+    NaS={prox: 0.15, dist: 0.15, axon: 0.5},  # med: 251.2,
+    Ca={prox: 0.1, dist: 0.06, axon: 0},  # med: 0,
+    SKCa={prox: 2, dist: 0.15, axon: 0},  # med: 0,
+    BKCa={prox: 0.1, dist: 0.1, axon: 0},  # med: 10,
 )
 chanvar = _util.NamedDict(
     'chanvar',

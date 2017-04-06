@@ -3,12 +3,13 @@
 *cartesian
 *origin 0     0       0
 
+
 *set_global EREST_ACT   -0.060
 
-*set_compt_param RM	4
-*set_compt_param RA	4
+*set_compt_param RM	5
+*set_compt_param RA	5
 *set_compt_param CM	0.007
-*set_compt_param ELEAK	-0.060
+*set_compt_param ELEAK	-0.056
 
 
 soma            none            0       0       0      13.4

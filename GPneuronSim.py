@@ -32,13 +32,14 @@ from spspine import (cell_proto,
 from spspine import gp
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[100e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+option_parser = standard_options.standard_options(default_injection_current=[25e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
 param_sim = option_parser.parse_args()
 param_sim.simtime=0.6
 param_sim.injection_width=0.4
 param_sim.plot_current=1
-param_sim.hsolve=0
-
+param_sim.hsolve=1
+param_sim.plotdt=0.0001
+#param_sim.simdt=0.3e-05
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -49,12 +50,6 @@ log = logutil.Logger()
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
 
 
-Bval=moose.element('/proto/soma/Calc')
-Bval.B=4.586150298e+10
-
-
-Bval=moose.element('/arky/soma/Calc')
-Bval.B=4.586150298e+10
 
 
 
@@ -95,29 +90,57 @@ clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsol
 
 ##print soma conductances
 moose.reinit()
+if param_sim.hsolve:
+    chantype='ZombieHHChannel'
+else:
+    chantype='HHChannel'
 for neur in gp.neurontypes():
-  for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel]'):
+  for chan in moose.wildcardFind('{}/soma/#[TYPE={}]'.format(neur, chantype)):
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
   for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel2D]'):
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
+
+if param_sim.hsolve and gp.calYN:
+  print('######## Fixing calcium buffer capacity for ZombieCaConc element')
+  comptype = 'ZombieCompartment'
+  for ntype in gp.neurontypes():
+      for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
+          cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaName)
+          if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
+              BufCapacity = util.distance_mapping(gp.CaPlasticityParams.BufferCapacityDensity,comp)
+              if cacomp.length:
+                  vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
+              else:
+                  vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - ((cacomp.diameter / 2) - cacomp.thick) ** 3)
+              cacomp.B = 1. / (constants.Faraday * vol * 2) / BufCapacity
+              print(cacomp.path, cacomp.B, cacomp.className)
+
+#Bval=moose.element('/proto/soma/Calc')
+#Bval.B=4.586150298e+10
+
+
+#Bval=moose.element('/arky/soma/Calc')
+#Bval.B=4.586150298e+10
+
+soma1=moose.element('/arky/soma')
+spikegen=moose.SpikeGen('/data/spikegen')
+spikegen.threshold=0.0
+spikegen.refractT=1.0e-3
+msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
+
+####
+spiketab=moose.Table('/data/spike')
+moose.connect(spikegen,'spikeOut',spiketab,'spike')
+
+
+
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
     moose.reinit()
-    if param_sim.hsolve:
-        comptype = 'ZombieCompartment'
-    else:
-        comptype = 'Compartment'
-    for ntype in gp.neurontypes():
-        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
-            cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaPoolName)
-            if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
-                BufCapacity = 20  # util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
-                vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - ((cacomp.diameter / 2) - cacomp.thick) ** 3)
-                cacomp.B = 1. / (constants.Faraday * vol * 2) / BufCapacity  # volume correction
-                print(cacomp.path, cacomp.B, cacomp.className)
     moose.start(simtime)
+
 
 
 if __name__ == '__main__':
@@ -138,28 +161,38 @@ if __name__ == '__main__':
                     value[key] = currtab[neurtype][channame][0].vector
                     label[key] = '{} @ {}'.format(neurtype, channame)
             traces.append(vmtab[neurnum][0].vector)
+            #traces.append(vmtab[neurnum][2].vector)
             calcium_traces.append(catab[neurnum][0].vector)
-            names.append('{} @ {}'.format(neurtype, inj))
-        if gp.spineYN:
+            #calcium_traces.append(catab[neurnum][2].vector)
+            names.append('c0{} @ {}'.format(neurtype, inj))
+            #names.append('c1{} @ {}'.format(neurtype, inj))
+
+    if gp.spineYN:
             spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
     #
     #
-    subset1=['proto_HCN1','proto_HCN2' ]
-    subset2=['proto_NaS']
-    subset3=['proto_KCNQ']
-    subset4=['proto_BKCa']
-    subset5=['proto_NaF']
-    subset6 = ['proto_KvS']
-    neuron_graph.CurrentGraphSet(value,label,subset1, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subset2, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
-    neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
+    #subset1=['proto_HCN1','proto_HCN2' ]
+    #subset2=['proto_NaS']
+    #subset3=['proto_Ca']
+    #subset4=['proto_BKCa']
+    #subset5=['proto_NaS']
+    #subset6 = ['proto_KvS']
+    #subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
+    #subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
+    #neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
+    #neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
     neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime)
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+
+
 
     # block in non-interactive mode
     util.block_if_noninteractive()
 
     #End of inject loop
+l=len(spiketab.vector)
+print(l)
