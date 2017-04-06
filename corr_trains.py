@@ -5,6 +5,7 @@
 #         2: Frequency
 #         3: type of correlation
 #         4: for types 1 and 2, amount of corrlation
+#         5: maxTime
 # Need to add number of trains: num_trains or num_syn, either from check_netparams or as input
 # maxTime - either from standard options or as input
 # incorporate stuff from InputwithCorrelation2.py: within neuron correlation
@@ -45,7 +46,7 @@ corr=int(args[3])
 # 2: some trains are linear combinations of others
 #number of dependent inputs is function of correlation - additional parameter
 #Note that this is actually R^2 - so if sqrt(corr_val)=0.5, then half of trains are independent
-if (corr==1):
+if (corr==1): 
     shift=float(args[4])
     print (shift, type(shift))
 if (corr==2):
@@ -59,11 +60,11 @@ if (corr==2):
 #from spspine import check_connect, param_net, d1d2
 
 #standard_options provides simulation time
-from spspine import standard_options
-option_parser = standard_options.standard_options()
-param_sim = option_parser.parse_args()
-maxTime=param_sim.simtime
-
+# from spspine import standard_options
+# option_parser = standard_options.standard_options()
+# param_sim = option_parser.parse_args()
+# maxTime=param_sim.simtime
+maxTime = float(args[5])
 isi=1/Freq
 samples=np.int(2*Freq*maxTime)
 
