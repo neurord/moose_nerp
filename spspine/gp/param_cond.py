@@ -67,7 +67,7 @@ _arky = _util.NamedDict(
     Ca={prox: 0.1, dist: 0.06, axon: 0},  # med: 0,
     SKCa={prox: 2, dist: 0.15, axon: 0},  # med: 0,
     BKCa={prox: 0.1, dist: 0.1, axon: 0},  # med: 10,
-
+)
 chanvar = _util.NamedDict(
     'chanvar',
     KDr=0.04,
