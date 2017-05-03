@@ -52,8 +52,10 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
             currtab[neur_type]={}
             #CHANNEL CURRENTS (Optional)
             for channame in model.Channels:
-                currtab[neur_type][channame]=[moose.Table(DATA_NAME+'/chan%s%s_%d' %(channame,neur_type,ii)) for ii in range(len(neur_comps))]
-                for tab, comp in zip(currtab[neur_type][channame], neur_comps):
+                tabs = [moose.Table(DATA_NAME+'/chan%s%s_%d' %(channame,neur_type,ii))
+                        for ii in range(len(neur_comps))]
+                currtab[neur_type].append(tabs)
+                for tab, comp in zip(tabs, neur_comps):
                     path = comp.path+'/'+channame
                     try:
                         chan=moose.element(path)
