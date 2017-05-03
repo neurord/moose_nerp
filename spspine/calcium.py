@@ -338,7 +338,6 @@ def add_calcium_to_compartment(model, shellMode, comp, pools,capool,spine):
     return -1
 
 def addCalcium(model,ntype):
-    
     pools = CaProto(model)
     capool = []
     params = model.CaPlasticityParams
