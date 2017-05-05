@@ -11,6 +11,15 @@ DATA_NAME='/data'
 from . import logutil
 log = logutil.Logger()
 
+def vm_table_path(neuron, spine=None, comp=0):
+    return '{}/Vm{}_{}{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
+
+def find_compartments(neuron):
+    return moose.wildcardFind('{}/#[TYPE=Compartment]'.format(neuron))
+
+def find_vm_tables(neuron):
+    return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
+
 def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
@@ -24,8 +33,8 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
         moose.Neutral(DATA_NAME)
     
     for typenum,neur_type in enumerate(neuron.keys()):
-        neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
-        vmtab.append([moose.Table(DATA_NAME+'/Vm%s_%d' % (neur_type,ii)) for ii in range(len(neur_comps))])
+        neur_comps = find_compartments(neur_type)
+        vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
         
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
@@ -118,7 +127,7 @@ def spinetabs(model,neuron):
         for spinenum,spine in enumerate(spineHeads):
             compname = spine.parent.name
             sp_num=spine.name.split(NAME_HEAD)[0]
-            spvmtab[typenum].append(moose.Table(DATA_NAME+'/Vm%s_%s%s' % (neurtype,sp_num,compname)))
+            spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
             log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
             moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
             if model.calYN:

@@ -150,7 +150,7 @@ if __name__ == '__main__':
     calcium_traces=[]
     for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        #neuron_graph.graphs(gp, vmtab, param_sim.plot_current, param_sim.simtime,
+        #neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
         #                    currtab,param_sim.plot_current_label, catab, plastab)
         for neurnum,neurtype in enumerate(gp.neurontypes()):
             #
