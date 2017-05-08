@@ -22,14 +22,15 @@ def _get_graph(name, figsize=None):
         f.canvas.draw() # this is here to make it easier to see what changed
     return f
 
-def graphs(model, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[]):
+def graphs(model, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[], compartments=None):
     for typenum,neurtype in enumerate(model.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in tables.find_vm_tables(neurtype):
             compnum = oid.name.split('_')[-1].split('[')[0]
-            t = np.linspace(0, simtime, len(oid.vector))
-            axes.plot(t, oid.vector, label=compnum)
+            if compartments is None or int(compnum) in compartments:
+                t = np.linspace(0, simtime, len(oid.vector))
+                axes.plot(t, oid.vector, label=compnum)
         axes.set_ylabel('Vm {}'.format(neurtype))
         axes.legend(fontsize=8, loc='best')
         axes.set_title('voltage vs. time')
