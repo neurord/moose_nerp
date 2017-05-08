@@ -26,7 +26,8 @@ def standard_options(parser=None,
                      default_syncomp=4):
 
     if parser is None:
-        parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                         allow_abbrev=False)
 
     parser.add_argument('--simtime', '-t', type=float,
                         help='Simulation time',
@@ -88,3 +89,7 @@ def standard_options(parser=None,
     parser.add_argument('--plot-netvm', type=bool, nargs='?', metavar='BOOL',
                         const=True, default=False)
     return parser
+
+class AppendFlat(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        getattr(namespace, self.dest).extend(values)
