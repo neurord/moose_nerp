@@ -17,9 +17,16 @@ else:
 ConcOut=2e-3     # default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
-def neurontypes():
-    "Names of neurontypes of each neuron created"
-    return sorted(Condset.keys())
+_neurontypes = None
+def neurontypes(override=None):
+    "Query or set names of neurontypes of each neuron created"
+    global _neurontypes
+    if override is None:
+        return _neurontypes if _neurontypes is not None else sorted(Condset.keys())
+    else:
+        if any(key not in Condset.keys() for key in override):
+            raise ValueError('unknown neuron types requested')
+        _neurontypes = override
 
 ####These numbers are used with split to extract channel and compartment names
 compNameNum=2
