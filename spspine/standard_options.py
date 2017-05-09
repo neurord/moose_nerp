@@ -23,6 +23,7 @@ def standard_options(parser=None,
                      default_injection_width=0.4,
                      default_simulation_time=0.35,
                      default_stimtimes=[0.04,0.19,0.46],
+                     default_plotdt=0.2e-3,
                      default_syncomp=4):
 
     if parser is None:
@@ -37,7 +38,7 @@ def standard_options(parser=None,
                         default=10e-6)
     parser.add_argument('--plotdt', type=float,
                         help='Plot point distance',
-                        default=0.2e-3)
+                        default=default_plotdt)
     parser.add_argument('--hsolve', type=bool, nargs='?',
                         help='Use the HSOLVE solver',
                         const=True, default=True)

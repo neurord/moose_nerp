@@ -32,14 +32,16 @@ from spspine import (cell_proto,
 from spspine import gp
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[25e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+option_parser = standard_options.standard_options(
+    default_injection_current=[25e-12], #0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+    default_simulation_time=0.6,
+    default_injection_width=0.4,
+    default_plotdt=0.0001)
+
 param_sim = option_parser.parse_args()
-param_sim.simtime=0.6
-param_sim.injection_width=0.4
-param_sim.plot_current=1
-param_sim.hsolve=1
-param_sim.plotdt=0.0001
-#param_sim.simdt=0.3e-05
+
+if param_sim.plot_current is None:
+    param_sim.plot_current = True
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -48,10 +50,6 @@ log = logutil.Logger()
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
-
-
-
-
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
@@ -154,7 +152,7 @@ if __name__ == '__main__':
         #                    currtab,param_sim.plot_current_label, catab, plastab)
         for neurnum,neurtype in enumerate(gp.neurontypes()):
             #
-            if param_sim.plot_current == 1:
+            if param_sim.plot_current:
                 for channame in gp.Channels.keys():
                     key =  neurtype+'_'+channame
                     print(channame,key)
