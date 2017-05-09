@@ -17,6 +17,15 @@ def comma_seperated_list(float):
     def parser(arg):
         return [float(x) for x in arg.split(',')]
 
+def parse_boolean(s):
+    if s in {"1", "true", "yes"}:
+        return True
+
+    if s in {"0", "false", "no"}:
+        return False
+
+    raise ValueError("Invalid literal for bool(): {!r}".format(s))
+
 def standard_options(parser=None,
                      default_injection_current=[0.25e-9, 0.35e-9],
                      default_injection_delay=0.1,
@@ -39,7 +48,7 @@ def standard_options(parser=None,
     parser.add_argument('--plotdt', type=float,
                         help='Plot point distance',
                         default=default_plotdt)
-    parser.add_argument('--hsolve', type=bool, nargs='?',
+    parser.add_argument('--hsolve', type=parse_boolean, nargs='?',
                         help='Use the HSOLVE solver',
                         const=True, default=True)
 
@@ -64,7 +73,7 @@ def standard_options(parser=None,
                         help='Synapse compartment number',
                         default=default_syncomp)
 
-    parser.add_argument('--plot-current', type=bool, nargs='?',
+    parser.add_argument('--plot-current', type=parse_boolean, nargs='?',
                         help='Whether to plot the current',
                         const=True)
     parser.add_argument('--plot-current-message', metavar='NAME',
@@ -74,20 +83,20 @@ def standard_options(parser=None,
                         help='Current plot label',
                         default='Cond, S')
 
-    parser.add_argument('--plot-synapse', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-synapse', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
     parser.add_argument('--plot-synapse-message', metavar='NAME',
                         default='getGk')
     parser.add_argument('--plot-synapse-label', metavar='LABEL',
                         default='Cond, nS')
 
-    parser.add_argument('--plot-channels', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-channels', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
-    parser.add_argument('--plot-activation', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-activation', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
-    parser.add_argument('--plot-network', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-network', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
-    parser.add_argument('--plot-netvm', type=bool, nargs='?', metavar='BOOL',
+    parser.add_argument('--plot-netvm', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
     return parser
 
