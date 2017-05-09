@@ -65,7 +65,7 @@ def standard_options(parser=None,
 
     parser.add_argument('--plot-current', type=bool, nargs='?',
                         help='Whether to plot the current',
-                        const=True, default=False)
+                        const=True)
     parser.add_argument('--plot-current-message', metavar='NAME',
                         help='The moose message to use',
                         default='getGk')
@@ -74,20 +74,20 @@ def standard_options(parser=None,
                         default='Cond, S')
 
     parser.add_argument('--plot-synapse', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+                        const=True)
     parser.add_argument('--plot-synapse-message', metavar='NAME',
                         default='getGk')
     parser.add_argument('--plot-synapse-label', metavar='LABEL',
                         default='Cond, nS')
 
     parser.add_argument('--plot-channels', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+                        const=True)
     parser.add_argument('--plot-activation', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+                        const=True)
     parser.add_argument('--plot-network', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+                        const=True)
     parser.add_argument('--plot-netvm', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+                        const=True)
     return parser
 
 class AppendFlat(argparse.Action):
