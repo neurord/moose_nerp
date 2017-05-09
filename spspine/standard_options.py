@@ -73,8 +73,14 @@ def standard_options(parser=None,
                         help='Synapse compartment number',
                         default=default_syncomp)
 
+    parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
+                        help='Whether to plot membrane potential Vm',
+                        const=True, default=True)
     parser.add_argument('--plot-current', type=parse_boolean, nargs='?',
                         help='Whether to plot the current',
+                        const=True)
+    parser.add_argument('--plot-calcium', type=parse_boolean, nargs='?',
+                        help='Whether to plot calcium',
                         const=True)
     parser.add_argument('--plot-current-message', metavar='NAME',
                         help='The moose message to use',

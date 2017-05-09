@@ -89,14 +89,14 @@ def graphs(model, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[], 
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
         f.canvas.draw()
 
-def SingleGraphSet(traces, currents, simtime):
+def SingleGraphSet(traces, currents, simtime, title='Voltage'):
     t = np.linspace(0, simtime, len(traces[0]))
     f=pyplot.figure()
-    f.canvas.set_window_title('Voltage')
+    f.canvas.set_window_title(title)
     axes=f.add_subplot(1,1,1)
     for i in range(len(traces)):
         axes.plot(t,traces[i],label=currents[i])
-    axes.set_ylabel('Vm, volts')
+    axes.set_ylabel('Vm, volts') # FIXME
     axes.set_xlabel('Time, sec')
     axes.legend(fontsize=8,loc='best')
     f.canvas.draw()

@@ -40,9 +40,6 @@ option_parser = standard_options.standard_options(
 
 param_sim = option_parser.parse_args()
 
-if param_sim.plot_current is None:
-    param_sim.plot_current = True
-
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
@@ -183,10 +180,10 @@ if __name__ == '__main__':
     #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
-    neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime)
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-
-
+    if param_sim.plot_calcium:
+        neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
+    if param_sim.plot_vm:
+        neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode
     util.block_if_noninteractive()
