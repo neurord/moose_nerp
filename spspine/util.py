@@ -37,13 +37,12 @@ def get_dist_name(comp):
 def distance_mapping(mapping, where):
     # We assume that the dictionary is very small, so a linear search is OK.
    
-    if isinstance(where,moose.Compartment) or isinstance(where,moose.ZombieCompartment):
-        
+    if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
         dist,name = get_dist_name(where)
         
     elif isinstance(where,moose.vec):
         comp = moose.element(where)
-        if isinstance(comp,moose.Compartment) or isinstance(comp,moose.ZombieCompartment):
+        if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
             dist,name = get_dist_name(comp)
         else:
             print('Wrong element class ',dist)
@@ -56,7 +55,7 @@ def distance_mapping(mapping, where):
             print('No element ',where)
             return 0
         
-        if isinstance(comp,moose.Compartment) or isinstance(comp,moose.ZombieCompartment): 
+        if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
             dist,name = get_dist_name(comp)
         else:
             print('Wrong element class ',where)
