@@ -33,6 +33,7 @@ def standard_options(parser=None,
                      default_simulation_time=0.35,
                      default_stimtimes=[0.04,0.19,0.46],
                      default_plotdt=0.2e-3,
+                     default_plot_vm=True,
                      default_syncomp=4):
 
     if parser is None:
@@ -75,7 +76,7 @@ def standard_options(parser=None,
 
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',
-                        const=True, default=True)
+                        const=True, default=default_plot_vm)
     parser.add_argument('--plot-current', type=parse_boolean, nargs='?',
                         help='Whether to plot the current',
                         const=True)
