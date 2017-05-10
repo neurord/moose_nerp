@@ -21,6 +21,7 @@ from pprint import pprint
 import moose 
 
 from spspine import (cell_proto,
+                     calcium,
                      clocks,
                      inject_func,
                      tables,
@@ -96,19 +97,7 @@ for neur in gp.neurontypes():
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
 
 if param_sim.hsolve and gp.calYN:
-  print('######## Fixing calcium buffer capacity for ZombieCaConc element')
-  comptype = 'ZombieCompartment'
-  for ntype in gp.neurontypes():
-      for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
-          cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaName)
-          if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
-              BufCapacity = util.distance_mapping(gp.CaPlasticityParams.BufferCapacityDensity,comp)
-              if cacomp.length:
-                  vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
-              else:
-                  vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - ((cacomp.diameter / 2) - cacomp.thick) ** 3)
-              cacomp.B = 1. / (constants.Faraday * vol * 2) / BufCapacity
-              print(cacomp.path, cacomp.B, cacomp.className)
+    calcium.fix_calcium(gp.neurontypes(), model)
 
 #Bval=moose.element('/proto/soma/Calc')
 #Bval.B=4.586150298e+10
