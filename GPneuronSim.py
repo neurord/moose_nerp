@@ -44,10 +44,16 @@ param_sim = option_parser.parse_args()
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
+print(param_sim)
+print(gp.synYN)
+
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
+gp.neurontypes(['arky'])
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
+print('MSNsyn:', MSNsyn)
+print('neuron:', neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
@@ -106,11 +112,11 @@ if param_sim.hsolve and gp.calYN:
 #Bval=moose.element('/arky/soma/Calc')
 #Bval.B=4.586150298e+10
 
-soma1=moose.element('/arky/soma')
+#soma1=moose.element('/arky/soma')
 spikegen=moose.SpikeGen('/data/spikegen')
-spikegen.threshold=0.0
-spikegen.refractT=1.0e-3
-msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
+#spikegen.threshold=0.0
+#spikegen.refractT=1.0e-3
+#msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
 
 ####
 spiketab=moose.Table('/data/spike')
