@@ -97,7 +97,7 @@ for neur in gp.neurontypes():
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
 
 if param_sim.hsolve and gp.calYN:
-    calcium.fix_calcium(gp.neurontypes(), model)
+    calcium.fix_calcium(gp.neurontypes(), gp)
 
 #Bval=moose.element('/proto/soma/Calc')
 #Bval.B=4.586150298e+10
