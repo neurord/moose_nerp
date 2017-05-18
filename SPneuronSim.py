@@ -21,6 +21,7 @@ from pprint import pprint
 import moose 
 
 from spspine import (cell_proto,
+                     calcium,
                      clocks,
                      inject_func,
                      tables,
@@ -72,23 +73,7 @@ clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsol
 print("simdt", param_sim.simdt, "hsolve", param_sim.hsolve)
 
 if param_sim.hsolve and d1d2.calYN:
-    ####kluge to fix buffer capacity in CaPool
-    ####initiating hsolve calculates CaConc.B from thickness, length, diameter; ignores buffer capacity
-    print('############# Fixing calcium buffer capacity for ZombieCaConc elements')
-    comptype='ZombieCompartment'
-    for ntype in d1d2.neurontypes():
-        for comp in moose.wildcardFind('{}/##[TYPE={}]'.format(ntype,comptype)):
-            calc = [c for c in comp.children if c.className == 'ZombieCaConc']
-            if calc: 
-                cacomp = moose.element(calc[0])
-                if isinstance(cacomp, moose.ZombieCaConc):
-                    BufCapacity = util.distance_mapping(d1d2.CaPlasticityParams.BufferCapacityDensity,comp)
-                    if cacomp.length:
-                        vol = np.pi*cacomp.diameter*cacomp.thick*cacomp.length
-                    else:
-                        vol = 4./3.*np.pi*((cacomp.diameter/2)**3-((cacomp.diameter/2)-cacomp.thick)**3)
-                    cacomp.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
-                    print(cacomp.path, cacomp.B, cacomp.className)
+    calcium.fix_calcium(d1d2.neurontypes(), d1d2)
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -101,7 +86,7 @@ if __name__ == '__main__':
     traces, names, catraces = [], [], []
     for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(d1d2, vmtab, param_sim.plot_current, param_sim.simtime,
+        neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
                             currtab,param_sim.plot_current_label, catab, plastab)
         for neurnum,neurtype in enumerate(d1d2.neurontypes()):
             traces.append(vmtab[neurnum][0].vector)

@@ -46,7 +46,7 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neurons, False, 'getGk', {})
+        tables.graphtables(d1d2, neurons, False, 'getGk')
 
     moose.reinit()
     moose.start(0.05)
@@ -101,7 +101,7 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
     data = moose.Neutral('/data')
 
     vmtab,catab,plastab,currtab = \
-        tables.graphtables(d1d2, neurons, False, 'getGk', {})
+        tables.graphtables(d1d2, neurons, False, 'getGk')
 
     moose.reinit()
     moose.start(0.05)

@@ -80,6 +80,4 @@ def neuronclasses(model):
         if model.calYN:
             caPools[ntype] = calcium.addCalcium(model,ntype)
 
-                
     return synArray,neuron
-

@@ -3,9 +3,10 @@ import numpy as np
 import moose
 import random
 random.seed(1)
+
 from . import logutil
-from util import distance_mapping
-from spspine.add_channel import addOneChan
+from .util import distance_mapping
+from .add_channel import addOneChan
 log = logutil.Logger()
 
 #NAME_NECK and NAME_HEAD are used in calcium.py to add calcium objects to spines

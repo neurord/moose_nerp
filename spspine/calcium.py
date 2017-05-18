@@ -338,7 +338,6 @@ def add_calcium_to_compartment(model, shellMode, comp, pools,capool,spine):
     return -1
 
 def addCalcium(model,ntype):
-    
     pools = CaProto(model)
     capool = []
     params = model.CaPlasticityParams
@@ -386,3 +385,29 @@ def addCalcium(model,ntype):
                             moose.connect(dshells_neck[0],"innerDifSourceOut",dshells_head[-1],"fluxFromIn")
 
     return capool
+
+def fix_calcium(neurontypes, model):
+    """kluge to fix buffer capacity in CaPool
+
+    Initiating hsolve calculates CaConc.B from thickness, length,
+    diameter; ignores buffer capacity.
+    """
+
+    comptype = 'ZombieCompartment'
+    cacomptype = 'ZombieCaConc'
+    ca_elem_suffix = model.CaPlasticityParams.CalciumParams.CaName
+    buffer_capacity_density = model.CaPlasticityParams.BufferCapacityDensity
+
+    log.info('Fixing calcium buffer capacity for {} elements'.format(comptype))
+
+    for ntype in neurontypes:
+        for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
+          cacomp = moose.element(comp.path + '/' + ca_elem_suffix)
+          if cacomp.className == cacomptype:
+              buf_capacity = distance_mapping(buffer_capacity_density, comp)
+              if cacomp.length:
+                  vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
+              else:
+                  vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - (cacomp.diameter / 2 - cacomp.thick) ** 3)
+              cacomp.B = 1. / (constants.Faraday * vol * 2) / buf_capacity # volume correction
+              # print(cacomp.path, cacomp.B, cacomp.className)

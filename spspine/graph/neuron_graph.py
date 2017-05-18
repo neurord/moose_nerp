@@ -5,6 +5,7 @@ from matplotlib import pyplot
 import numpy as np
 
 from spspine.iso_scaling import iso_scaling
+from spspine import tables
 
 try:
     _GRAPHS
@@ -21,23 +22,25 @@ def _get_graph(name, figsize=None):
         f.canvas.draw() # this is here to make it easier to see what changed
     return f
 
-def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[]):
-    t = np.linspace(0, simtime, len(vmtab[0][0].vector))
-
+def graphs(model, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[], compartments=None):
     for typenum,neurtype in enumerate(model.neurontypes()):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
-        for oid in vmtab[typenum]:
-            neurnum=oid.name.split('_')[-1].split('[')[0]
-            axes.plot(t, oid.vector, label=neurnum)
+        for oid in tables.find_vm_tables(neurtype):
+            compnum = oid.name.split('_')[-1].split('[')[0]
+            if compartments is None or int(compnum) in compartments:
+                t = np.linspace(0, simtime, len(oid.vector))
+                axes.plot(t, oid.vector, label=compnum)
         axes.set_ylabel('Vm {}'.format(neurtype))
         axes.legend(fontsize=8, loc='best')
         axes.set_title('voltage vs. time')
         if len(catab):
             axes = f.add_subplot(212)
-            for oid in catab[typenum]:
-                neurnum=oid.name.split('_')[-1].split('[')[0]
-                axes.plot(t, oid.vector*1e3, label=neurnum)
+            if len(catab) > typenum:
+                for oid in catab[typenum]:
+                    neurnum=oid.name.split('_')[-1].split('[')[0]
+                    t = np.linspace(0, simtime, len(oid.vector))
+                    axes.plot(t, oid.vector*1e3, label=neurnum)
             axes.set_ylabel('calcium, uM')
             axes.set_xlabel('Time (sec)')
             axes.legend(fontsize=8, loc='best')
@@ -57,7 +60,8 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
                 title=plastype
                 scaling=1
             neurnum=item[plastype].name.split(plastype)[-1]
-            axes[plasnum].plot(t,scaling*item[plastype].vector, label=neurnum)
+            t = np.linspace(0, simtime, len(item[plastype].vector))
+            axes[plasnum].plot(t, scaling*item[plastype].vector, label=neurnum)
             axes[plasnum].set_ylabel(str(scaling)+'*'+title)
             axes[plasnum].legend(loc='best', fontsize=8)
         axes[plasnum].set_xlabel('time')
@@ -74,6 +78,7 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
                           for tab in currtab[neurtype][channame]]
                 scaling = iso_scaling(*toplot)
                 for vec in toplot:
+                    t = np.linspace(0, simtime, len(vec))
                     axes.plot(t, vec / scaling.divisor)
                     labelstring=u'{}, {}{}'.format(channame, scaling.unit, curlabl)
                 axes.set_ylabel(labelstring)
@@ -84,14 +89,14 @@ def graphs(model, vmtab,plotcurr, simtime, currtab=[],curlabl="",catab=[],plasta
         f.subplots_adjust(left=0.16, bottom=0.05, right=0.95, top=0.95, hspace=0.26)
         f.canvas.draw()
 
-def SingleGraphSet(traces, currents, simtime):
+def SingleGraphSet(traces, currents, simtime, title='Voltage'):
     t = np.linspace(0, simtime, len(traces[0]))
     f=pyplot.figure()
-    f.canvas.set_window_title('Voltage')
+    f.canvas.set_window_title(title)
     axes=f.add_subplot(1,1,1)
     for i in range(len(traces)):
         axes.plot(t,traces[i],label=currents[i])
-    axes.set_ylabel('Vm, volts')
+    axes.set_ylabel('Vm, volts') # FIXME
     axes.set_xlabel('Time, sec')
     axes.legend(fontsize=8,loc='best')
     f.canvas.draw()

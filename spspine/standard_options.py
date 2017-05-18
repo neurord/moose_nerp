@@ -17,16 +17,28 @@ def comma_seperated_list(float):
     def parser(arg):
         return [float(x) for x in arg.split(',')]
 
+def parse_boolean(s):
+    if s in {"1", "true", "yes"}:
+        return True
+
+    if s in {"0", "false", "no"}:
+        return False
+
+    raise ValueError("Invalid literal for bool(): {!r}".format(s))
+
 def standard_options(parser=None,
                      default_injection_current=[0.25e-9, 0.35e-9],
                      default_injection_delay=0.1,
                      default_injection_width=0.4,
                      default_simulation_time=0.35,
                      default_stimtimes=[0.04,0.19,0.46],
+                     default_plotdt=0.2e-3,
+                     default_plot_vm=True,
                      default_syncomp=4):
 
     if parser is None:
-        parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                         allow_abbrev=False)
 
     parser.add_argument('--simtime', '-t', type=float,
                         help='Simulation time',
@@ -36,8 +48,8 @@ def standard_options(parser=None,
                         default=10e-6)
     parser.add_argument('--plotdt', type=float,
                         help='Plot point distance',
-                        default=0.2e-3)
-    parser.add_argument('--hsolve', type=bool, nargs='?',
+                        default=default_plotdt)
+    parser.add_argument('--hsolve', type=parse_boolean, nargs='?',
                         help='Use the HSOLVE solver',
                         const=True, default=True)
 
@@ -62,9 +74,15 @@ def standard_options(parser=None,
                         help='Synapse compartment number',
                         default=default_syncomp)
 
-    parser.add_argument('--plot-current', type=bool, nargs='?',
+    parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
+                        help='Whether to plot membrane potential Vm',
+                        const=True, default=default_plot_vm)
+    parser.add_argument('--plot-current', type=parse_boolean, nargs='?',
                         help='Whether to plot the current',
-                        const=True, default=False)
+                        const=True)
+    parser.add_argument('--plot-calcium', type=parse_boolean, nargs='?',
+                        help='Whether to plot calcium',
+                        const=True)
     parser.add_argument('--plot-current-message', metavar='NAME',
                         help='The moose message to use',
                         default='getGk')
@@ -72,19 +90,23 @@ def standard_options(parser=None,
                         help='Current plot label',
                         default='Cond, S')
 
-    parser.add_argument('--plot-synapse', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+    parser.add_argument('--plot-synapse', type=parse_boolean, nargs='?', metavar='BOOL',
+                        const=True)
     parser.add_argument('--plot-synapse-message', metavar='NAME',
                         default='getGk')
     parser.add_argument('--plot-synapse-label', metavar='LABEL',
                         default='Cond, nS')
 
-    parser.add_argument('--plot-channels', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
-    parser.add_argument('--plot-activation', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
-    parser.add_argument('--plot-network', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
-    parser.add_argument('--plot-netvm', type=bool, nargs='?', metavar='BOOL',
-                        const=True, default=False)
+    parser.add_argument('--plot-channels', type=parse_boolean, nargs='?', metavar='BOOL',
+                        const=True)
+    parser.add_argument('--plot-activation', type=parse_boolean, nargs='?', metavar='BOOL',
+                        const=True)
+    parser.add_argument('--plot-network', type=parse_boolean, nargs='?', metavar='BOOL',
+                        const=True)
+    parser.add_argument('--plot-netvm', type=parse_boolean, nargs='?', metavar='BOOL',
+                        const=True)
     return parser
+
+class AppendFlat(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        getattr(namespace, self.dest).extend(values)

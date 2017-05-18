@@ -21,6 +21,7 @@ from pprint import pprint
 import moose 
 
 from spspine import (cell_proto,
+                     calcium,
                      clocks,
                      inject_func,
                      tables,
@@ -32,26 +33,27 @@ from spspine import (cell_proto,
 from spspine import gp
 from spspine.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[25e-12])#0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+option_parser = standard_options.standard_options(
+    default_injection_current=[25e-12], #0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+    default_simulation_time=0.6,
+    default_injection_width=0.4,
+    default_plotdt=0.0001)
+
 param_sim = option_parser.parse_args()
-param_sim.simtime=0.6
-param_sim.injection_width=0.4
-param_sim.plot_current=1
-param_sim.hsolve=1
-param_sim.plotdt=0.0001
-#param_sim.simdt=0.3e-05
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
+print(param_sim)
+print(gp.synYN)
+
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
+gp.neurontypes(['arky'])
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
-
-
-
-
+print('MSNsyn:', MSNsyn)
+print('neuron:', neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
@@ -101,19 +103,7 @@ for neur in gp.neurontypes():
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
 
 if param_sim.hsolve and gp.calYN:
-  print('######## Fixing calcium buffer capacity for ZombieCaConc element')
-  comptype = 'ZombieCompartment'
-  for ntype in gp.neurontypes():
-      for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
-          cacomp = moose.element(comp.path + '/' + gp.CaPlasticityParams.CalciumParams.CaName)
-          if isinstance(cacomp, moose.CaConc) or isinstance(cacomp, moose.ZombieCaConc):
-              BufCapacity = util.distance_mapping(gp.CaPlasticityParams.BufferCapacityDensity,comp)
-              if cacomp.length:
-                  vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
-              else:
-                  vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - ((cacomp.diameter / 2) - cacomp.thick) ** 3)
-              cacomp.B = 1. / (constants.Faraday * vol * 2) / BufCapacity
-              print(cacomp.path, cacomp.B, cacomp.className)
+    calcium.fix_calcium(gp.neurontypes(), gp)
 
 #Bval=moose.element('/proto/soma/Calc')
 #Bval.B=4.586150298e+10
@@ -122,11 +112,11 @@ if param_sim.hsolve and gp.calYN:
 #Bval=moose.element('/arky/soma/Calc')
 #Bval.B=4.586150298e+10
 
-soma1=moose.element('/arky/soma')
+#soma1=moose.element('/arky/soma')
 spikegen=moose.SpikeGen('/data/spikegen')
-spikegen.threshold=0.0
-spikegen.refractT=1.0e-3
-msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
+#spikegen.threshold=0.0
+#spikegen.refractT=1.0e-3
+#msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
 
 ####
 spiketab=moose.Table('/data/spike')
@@ -150,11 +140,11 @@ if __name__ == '__main__':
     calcium_traces=[]
     for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        #neuron_graph.graphs(gp, vmtab, param_sim.plot_current, param_sim.simtime,
+        #neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
         #                    currtab,param_sim.plot_current_label, catab, plastab)
         for neurnum,neurtype in enumerate(gp.neurontypes()):
             #
-            if param_sim.plot_current == 1:
+            if param_sim.plot_current:
                 for channame in gp.Channels.keys():
                     key =  neurtype+'_'+channame
                     print(channame,key)
@@ -185,10 +175,10 @@ if __name__ == '__main__':
     #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
     #neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
-    neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime)
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-
-
+    if param_sim.plot_calcium:
+        neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
+    if param_sim.plot_vm:
+        neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
     # block in non-interactive mode
     util.block_if_noninteractive()

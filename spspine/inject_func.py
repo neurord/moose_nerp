@@ -55,5 +55,4 @@ def inject_pop(population, num_inject):
     for neurtype in population.keys():
        choice_neurs[neurtype]=list(np.random.choice(population[neurtype],num_inject,replace=False))
     return choice_neurs
-    
 
