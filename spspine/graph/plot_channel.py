@@ -3,20 +3,24 @@ import matplotlib.pyplot as plt
 #from spspine import chan_proto
 import moose
 
-def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
+def plot_gate_params(chan,plotpow, VMIN=-0.1, VMAX=0.05, CAMIN=0, CAMAX=1):
     #print "PLOT POWER", plotpow, chan.path,chan.Xpower
     """Plot the gate parameters like m and h of the channel."""
     if chan.className == 'HHChannel':
         cols=1
         #n=range(0,2,1)
-        rows=2
+        if chan.Zpower~=0 and chan.Xpower~=0 and chan.Ypower~=0 and chan.useConcentration == True:
+            rows=3
+        else:
+            rows=2
         fig,axes=plt.subplots(rows,cols,sharex=True)
         plt.title(chan.path)
         if chan.Xpower > 0:
-            ma = moose.element(chan.path + '/gateX').tableA
-            mb = moose.element(chan.path + '/gateX').tableB
-            varray = np.linspace(VMIN, VMAX, len(ma))
-            axes[0].plot(varray, 1e3 / mb, label='m ' + chan.path)
+            gate=moose.element(chan.path + '/gateX')
+            ma = gate.tableA
+            mb = gate.tableB
+            varray = np.linspace(gate.min, gate.max, len(ma))
+            axes[0].plot(varray, 1e3 / mb, label='mtau ' + chan.path)
             if plotpow:
                 label = '(minf)**{}'.format(chan.Xpower)
                 inf = (ma / mb) ** chan.Xpower
@@ -24,26 +28,37 @@ def plot_gate_params(chan,plotpow, VMIN, VMAX, CAMIN, CAMAX):
                 label = 'minf'
                 inf = ma / mb
             axes[1].plot(varray, inf, label=label)
-            axes[1].axis([-0.12, 0.05, 0, 1])
+            axes[1].axis([gate.min, gate.max, 0, 1])
         if chan.Ypower > 0:
-                ha = moose.element(chan.path + '/gateY').tableA
-                hb = moose.element(chan.path + '/gateY').tableB
-                varray = np.linspace(VMIN, VMAX, len(ha))
-                axes[0].plot(varray, 1e3 / hb, label='h ' + chan.path)
-                axes[1].plot(varray, ha / hb, label='hinf ' + chan.path)
-                axes[1].axis([-0.12, 0.05, 0, 1])
+            gate=moose.element(chan.path + '/gateY')
+            ha = gate.tableA
+            hb = gate.tableB
+            varray = np.linspace(gate.min, gate.max, len(ha))
+            axes[0].plot(varray, 1e3 / hb, label='htau ' + chan.path)
+            axes[1].plot(varray, ha / hb, label='hinf ' + chan.path)
+            axes[1].axis([gate.min, gate.max, 0, 1])
         #
-        if chan.Zpower>0:
-            za = moose.element(chan.path + '/gateZ').tableA
-            zb = moose.element(chan.path + '/gateZ').tableB
-            if chan.useConcentration == True:
-                carray=np.linspace(CAMIN,CAMAX,len(za))
-                axes[0].plot(carray,1e3/zb,label='m ' + chan.path)
-                axes[1].plot(carray, za / zb, label='minf' + chan.path)
-        #
-        #
-        axes[1].set_xlabel('voltage')
+        if chan.Zpower~=0:
+            gate=moose.element(chan.path + '/gateZ')
+            za = gate.tableA
+            zb = gate.tableB
+            xarray=np.linspace(gate.min,gate.max,len(za))
+            if (chan.Xpower==0 and chan.Ypower==0) or chan.useConcentration == False:
+                axes[0].plot(xarray,1e3/zb,label='ztau ' + chan.path)
+                axes[1].plot(xarray, za / zb, label='zinf' + chan.path)
+                axnum=1
+            else:
+                axes[2].plot(xarray,1e3/zb,label='ztau ' + chan.path)
+                axes[2].plot(xarray, za / zb, label='zinf' + chan.path)
+                axnum=2
+        else:
+            axnum=1
+        if chan.useConcentration == True:
+            axes[axnum].set_xlabel('Calcium')
+        else:
+            axes[axnum].set_xlabel('voltage')
         axes[0].set_ylabel('tau, ms')
+        axes[1].set_ylabel('steady state')
         axes[0].legend(loc='best', fontsize=8)
         axes[1].legend(loc='best', fontsize=8)
     else:  #Must be two-D tab channel

@@ -3,8 +3,6 @@
 
 2. d1d2/, ca1/ etc should be at same level, not below spspine prototypes
 
-3. possibly want to give shape_Shifter its own repo (and possibly rename it)
-
 4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
                 syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
    Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
