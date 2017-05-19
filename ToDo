@@ -5,6 +5,8 @@
       see code for Neur 634
    c. Change both TypicalOneDalpha and AtypicalOneD to OneD (keep TwoD)
       chane both param_chan and chan_proto _FUNCTIONS
+      
+2. Move chanvar from param_cond to str_net/param_net, since it is only used when creating networks
 
 4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
                 syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
