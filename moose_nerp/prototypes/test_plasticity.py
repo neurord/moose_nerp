@@ -25,5 +25,5 @@ def test_plasticity(model, syncomp, syn_pop, stimtimes):
             connect.synconn(synchan,0,stimtab[neurtype], model.param_syn)
 
             ###Synaptic Plasticity
-            plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams)
+            plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams.Plas_syn)
     return plast, stimtab
