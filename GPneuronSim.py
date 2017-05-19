@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 ######## SPneuronSim.py ############
-## Code to create two SP neuron classes 
+## Code to create two globus pallidus neurons
 ##      using dictionaries for channels and synapses
 ##      calcium based learning rule/plasticity function, optional
 ##      spines, optionally with ion channels and synpases
@@ -68,13 +68,7 @@ for ntype in neuron.keys():
 pg=inject_func.setupinj(gp, param_sim.injection_delay, param_sim.injection_width, all_neurons)
 
 
-###-------Voltage clamp
-#neu=moose.element('/proto')
-#tab= inject_func.Vclam(2.0,50.0,0.0,1.0,0.03,0.0,1e10,0.5,0.02,0.005,1e10)
-
-
 ###############--------------output elements
-param_sim.plot_channels=0
 if param_sim.plot_channels:
     for chan in gp.Channels.keys():
         libchan=moose.element('/library/'+chan)
@@ -105,14 +99,6 @@ for neur in gp.neurontypes():
 if param_sim.hsolve and gp.calYN:
     calcium.fix_calcium(gp.neurontypes(), gp)
 
-#Bval=moose.element('/proto/soma/Calc')
-#Bval.B=4.586150298e+10
-
-
-#Bval=moose.element('/arky/soma/Calc')
-#Bval.B=4.586150298e+10
-
-#soma1=moose.element('/arky/soma')
 spikegen=moose.SpikeGen('/data/spikegen')
 #spikegen.threshold=0.0
 #spikegen.refractT=1.0e-3
@@ -121,8 +107,6 @@ spikegen=moose.SpikeGen('/data/spikegen')
 ####
 spiketab=moose.Table('/data/spike')
 moose.connect(spikegen,'spikeOut',spiketab,'spike')
-
-
 
 ###########Actually run the simulation
 def run_simulation(injection_current, simtime):
