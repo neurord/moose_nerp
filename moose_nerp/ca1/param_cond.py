@@ -28,28 +28,10 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-####These numbers are used with split to extract channel and compartment names
-compNameNum=2
-
-#will eventually use different morphologies also
+#can use different morphologies for different neuron types
 morph_file = ['CA1':'out_ri04_v3.p']
 NAME_SOMA='soma'
 #CONDUCTANCES
-#RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
-# GnaCondD1=[60.5e3, 1894, 927]
-# GnaCondD2=[69.0e3, 2503, 1073]
-# GnaCondset={'D1':GnaCondD1,'D2':GnaCondD2}
-# GbkCondD1=[10, 10, 10]
-# GbkCondD2=[10, 10, 10]
-# GbkCondset={'D1':GbkCondD1,'D2':GbkCondD2}
-#CaL values are taken from GHK model, with arbitrary 1e-6 incr conduct
-#
-#RE has much lower KaF prox: 300; sl lower KaS prox: 200
-#RE has Kir=11, Krp=14 (double), gSK=1.0
-#RE uses dist dep Ca currents, esp CaT=0 in soma
-#CaL13=0.3e-6 soma,0.005e-6 dend
-#CaL12=0.6e-6 soma, 0.1e-6 dend
-#CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
 
 # helper variables to index the Conductance and synapses with distance
 inclu = (0, 1000e-6)

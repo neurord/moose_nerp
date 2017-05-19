@@ -4,7 +4,6 @@ from .param_chan import (VMIN, VMAX, VDIVS, CAMIN, CAMAX, CADIVS,
 from .param_cond import (ghKluge,
                          neurontypes,
                          ConcOut, Temp,
-                         compNameNum,
                          morph_file,
                          Condset)
 from .param_spine import SpineParams

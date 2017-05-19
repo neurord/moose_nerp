@@ -28,10 +28,6 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-####These numbers are used with split to extract channel and compartment names
-compNameNum=2
-
-#will eventually use different morphologies also
 morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p'}
 NAME_SOMA='soma'
 

@@ -17,9 +17,4 @@ SpineParams = _util.NamedDict(
     spineChanList = [], #['CaL13']
     spineCond = [0.1 * param_cond.ghKluge],
 
-    ####These numbers are used with split to extract channel and compartment names
-    spineNameNum = 3,
-    spineChanNum = 4,
-    #within SpineName, character 5 has spine number
-    spineNumLoc = 5,
 )
