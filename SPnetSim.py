@@ -22,7 +22,7 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from spspine import (cell_proto,
+from moose_nerp.prototypes import (cell_proto,
                      clocks,
                      inject_func,
                      create_network,
@@ -31,8 +31,8 @@ from spspine import (cell_proto,
                      logutil,
                      util,
                      standard_options)
-from spspine import (param_net, d1d2)
-from spspine.graph import net_graph, neuron_graph, spine_graph
+from moose_nerp import (d1d2,str_net)
+from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
 param_sim = option_parser.parse_args()
@@ -54,17 +54,17 @@ all_neur_types=neuron
 #all_neur_types.update(neuron)
 
 #create network and plasticity
-population,connections,plas=create_network.create_network(d1d2, param_net, all_neur_types)
+population,connections,plas=create_network.create_network(d1d2, str_net, all_neur_types)
 
 ###------------------Current Injection
-if param_net.num_inject<np.inf and not param_net.single :
-    inject_pop=inject_func.inject_pop(population['pop'],param_net.num_inject)
+if str_net.num_inject<np.inf and not str_net.single :
+    inject_pop=inject_func.inject_pop(population['pop'],str_net.num_inject)
 else:
     inject_pop=population['pop']
 pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_width,inject_pop)
 moose.showmsg(pg)
 ##############--------------output elements
-if param_net.single:
+if str_net.single:
     vmtab,catab,plastab,currtab = tables.graphtables(d1d2, all_neur_types,
                                                  param_sim.plot_current,
                                                  param_sim.plot_current_message,
@@ -75,16 +75,16 @@ if param_net.single:
     if d1d2.spineYN:
         spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 else:
-    spiketab, vmtab, plastab, catab = net_output.SpikeTables(d1d2, population['pop'], param_net.plot_netvm, plas, param_net.plots_per_neur)
+    spiketab, vmtab, plastab, catab = net_output.SpikeTables(d1d2, population['pop'], str_net.plot_netvm, plas, str_net.plots_per_neur)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-if param_net.single:
+if str_net.single:
     simpath=['/'+neurotype for neurotype in all_neur_types]
 else:
     #possibly need to setup an hsolver separately for each cell in the network
-    simpath=[param_net.netname]
+    simpath=[str_net.netname]
 clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,d1d2.param_cond.NAME_SOMA)
 
 ################### Actually run the simulation
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     traces, names = [], []
     for inj in param_sim.injection_current:
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if param_net.single:
+        if str_net.single:
             for neurnum,neurtype in enumerate(d1d2.neurontypes()):
                 traces.append(vmtab[neurnum][0].vector)
                 names.append('{} @ {}'.format(neurtype, inj))
@@ -107,11 +107,11 @@ if __name__ == '__main__':
             if d1d2.spineYN:
                 spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
         else: 
-            if param_net.plot_netvm:
+            if str_net.plot_netvm:
                 net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
-            net_output.writeOutput(d1d2, param_net.outfile+str(inj),spiketab,vmtab,population)
+            net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
 
-    if param_net.single:
+    if str_net.single:
         neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
     util.block_if_noninteractive()

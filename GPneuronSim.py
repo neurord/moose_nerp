@@ -20,18 +20,18 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from spspine import (cell_proto,
+from moose_nerp.prototypes import (cell_proto,
                      calcium,
                      clocks,
                      inject_func,
                      tables,
-                     plastic_synapse,
+                     test_plasticity,
                      logutil,
                      util,
                      standard_options,
                      constants)
-from spspine import gp
-from spspine.graph import plot_channel, neuron_graph, spine_graph
+from moose_nerp import gp
+from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
     default_injection_current=[25e-12], #0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
@@ -57,7 +57,7 @@ print('neuron:', neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
-    plas,stimtab=plastic_synapse.plastic_synapse(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=test_plasticity.test_plasticity(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
     plas = {}
 

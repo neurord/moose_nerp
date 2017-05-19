@@ -20,31 +20,31 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from spspine import (cell_proto,
+from moose_nerp.prototypes import (cell_proto,
                      calcium,
                      clocks,
                      inject_func,
                      tables,
-                     plastic_synapse,
+                     test_plasticity,
                      logutil,
                      util,
                      standard_options,
                      constants)
-from spspine import d1d2
-from spspine.graph import plot_channel, neuron_graph, spine_graph
+from moose_nerp import d1d2
+from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options()
 param_sim = option_parser.parse_args()
 d1d2.calYN=1
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
-param_sim.hsolve=True
+
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
-    plas,stimtab=plastic_synapse.plastic_synapse(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=test_plasticity.test_plasticity(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
     plas = {}
 

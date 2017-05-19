@@ -1,7 +1,10 @@
-1. single should not be defined in the d1d2/__init__.py
-   it should be defined in param_net.py
-
-2. d1d2/, ca1/ etc should be at same level, not below spspine prototypes
+1. Edit chan_proto to allow
+   a. use of setupTau with moose standard steady state - tau parameters
+      change  current sstau to sstaumin, and add in standard sstau
+   b. integrate the NaChan with standard chan_proto by testing for standard (or atypical) parameters for each gate separately
+      see code for Neur 634
+   c. Change both TypicalOneDalpha and AtypicalOneD to OneD (keep TwoD)
+      chane both param_chan and chan_proto _FUNCTIONS
 
 4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
                 syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
