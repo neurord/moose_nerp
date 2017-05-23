@@ -245,18 +245,22 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
                 
         surface = shell_surface(dShell,head=head,prevd=prevd)
         
-        
+        if not i:
+            connectNMDA(comp,dShell,'influx','concentrationOut')
         
         if dShell.shapeMode == 1:
-            if spine:
+            if spine and comp.name.endswith(NAME_HEAD):
                 try:
                     check_list=model.SpineParams.spineChanList[i]
+                    connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut',check_list)
                 except IndexError:
-                    check_list = []
-                else:
-                    check_list = []
-            connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut',check_list)
-            connectNMDA(comp,dShell,'influx','concentrationOut')
+                    pass
+            else:
+                
+                connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
+            
+  
+
             
             leak = 0
 
@@ -271,7 +275,7 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
         else:
             if not i:
                 connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
-                connectNMDA(comp,dShell,'influx','concentrationOut')
+                
                 for pump in Pumps:
                     Km = PumpKm[pump]
                     p = addMMPump(dShell,PumpKm[pump],Pumps[pump],surface)
@@ -402,12 +406,13 @@ def fix_calcium(neurontypes, model):
 
     for ntype in neurontypes:
         for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
-          cacomp = moose.element(comp.path + '/' + ca_elem_suffix)
-          if cacomp.className == cacomptype:
-              buf_capacity = distance_mapping(buffer_capacity_density, comp)
-              if cacomp.length:
-                  vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
-              else:
-                  vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - (cacomp.diameter / 2 - cacomp.thick) ** 3)
-              cacomp.B = 1. / (constants.Faraday * vol * 2) / buf_capacity # volume correction
+            cacomps = [m for m in moose.element(comp).children if m.className==cacomptype]
+            for cacomp in cacomps:
+
+                buf_capacity = distance_mapping(buffer_capacity_density, comp)
+                if cacomp.length:
+                    vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
+                else:
+                    vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - (cacomp.diameter / 2 - cacomp.thick) ** 3)
+                cacomp.B = 1. / (constants.Faraday * vol * 2) / buf_capacity # volume correction
               # print(cacomp.path, cacomp.B, cacomp.className)
