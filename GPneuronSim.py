@@ -11,8 +11,6 @@
 from __future__ import print_function, division
 import logging
 
-import os
-os.environ['NUMPTHREADS'] = '1'
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
