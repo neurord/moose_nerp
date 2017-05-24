@@ -8,15 +8,16 @@ import numpy as np
 import moose
 
 from moose_nerp.prototypes import (pop_funcs,
-                     connect,
-                     check_connect,
-                     plasticity,
-                     logutil)
+                                   connect,
+                                   check_connect,
+                                   plasticity,
+                                   ttables,
+                                   logutil)
 log = logutil.Logger()
 
 def create_network(model, param_net,neur_protos={}):
     #create all timetables
-    param_net.TableSet.create_all()
+    ttables.TableSet.create_all()
     connections={}
     #
     if param_net.single:
