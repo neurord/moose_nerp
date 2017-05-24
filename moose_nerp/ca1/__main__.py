@@ -85,21 +85,18 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-if __name__ == '__main__':
-    traces, names = [], []
-    for inj in param_sim.injection_current:
-        run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(ca1, param_sim.plot_current, param_sim.simtime,
-                            currtab,param_sim.plot_current_label, catab, plastab)
-        for neurnum,neurtype in enumerate(ca1.neurontypes()):
-            traces.append(vmtab[neurnum][0].vector)
-            names.append('{} @ {}'.format(neurtype, inj))
-        if ca1.spineYN:
-            spine_graph.spineFig(ca1,spinecatab,spinevmtab,param_sim.simtime)
+traces, names = [], []
+for inj in param_sim.injection_current:
+    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    neuron_graph.graphs(ca1, param_sim.plot_current, param_sim.simtime,
+                        currtab,param_sim.plot_current_label, catab, plastab)
+    for neurnum,neurtype in enumerate(ca1.neurontypes()):
+        traces.append(vmtab[neurnum][0].vector)
+        names.append('{} @ {}'.format(neurtype, inj))
+    if ca1.spineYN:
+        spine_graph.spineFig(ca1,spinecatab,spinevmtab,param_sim.simtime)
 
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
-    # block in non-interactive mode
-    util.block_if_noninteractive()
-
-    #End of inject loop
+# block in non-interactive mode
+util.block_if_noninteractive()

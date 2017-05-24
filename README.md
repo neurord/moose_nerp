@@ -3,12 +3,17 @@
 [![Build Status](https://semaphoreci.com/api/v1/neurord/spspine/branches/master/badge.svg)](https://semaphoreci.com/neurord/spspine)
 
 Set of prototype files and parameter files to simplify creation of neuron and network models in a declarative format.
-SPneuronSim.py is the main program demonstrating creation and simulation of a single instance of two types of spiny projection neurons
-CA1neuronSim.py and GPneuronSim.py are additional examples creating a CA1 neuron and two GP neurons, respectively
-Each neuron or set of neurons has its own package in moose_nerp, d1d2 for SPneuronSim, gp for GPneuronSim, and ca1 for CA1neuronSim
-Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creating ion channels, synaptic channels, neuron morphology, plasticity, spines and calcium dynamics
+Each neuron or set of neurons has its own package in moose_nerp, d1d2 for two types of spiny projection neurons, gp for two types of globus pallidus neurons, and ca1 for hippocampal CA1 neurons.
+Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creating ion channels, synaptic channels, neuron morphology, plasticity, spines and calcium dynamics, as well as the main program, which both creates and simulates the neurons.
+
+run the simulation from a terminal window (in spspine directory) using the command:
+python -m moose_nerp.d1d2
+
+from a python window, run using the command:
+import moose_nerp.d1d2.__main__
 
 **Files in each package**
+
 1. param_chan.py: parameters governing channel gating
 2. param_cond.py: channel conductances, which can be distance dependent, morphology file, external Ca concentration and Temperature
 3. param_syn.py: synaptic channel parameters, including the distance dependent synaptic density
@@ -18,6 +23,7 @@ Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creati
 7. __init__.py: specifies all the parameter files, and also some binary variables indicating whether to add spines, synapses, calcium, plasticity
 
 **To create a new neuron type**
+
 1. clone one of the packages, e.g. d1d2 
 2. edit param_chan to specify ion channels and their gating
 3. edit param_cond to list morphology file and conductance of channels.  Note that you need only specify a subset of channels listed in param_chan
