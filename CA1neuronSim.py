@@ -23,7 +23,7 @@ from moose_nerp.prototypes import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     test_plasticity,
+                     plasticity_test,
                      logutil,
                      util,
                      standard_options,
@@ -47,7 +47,7 @@ MSNsyn,neuron = cell_proto.neuronclasses(ca1)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if ca1.synYN:
-    plas,stimtab=test_plasticity.test_plasticity(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=plasticity_test.plasticity_test(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 
 else:
     plas = {}

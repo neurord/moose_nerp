@@ -52,3 +52,11 @@
 #name.msgOut[0].e1 shows the source object, i.e. name
 #name.msgOut[0].e2 shows the destination object (what it is connected to)
 
+#git grep -e test_plasticity -l|xargs sed -i s/test_plasticity/plasticity_test/g
+
+-e because git is stupid and will not recognize -l otherwise
+-l list filenames only
+|xargs: pipe into sed
+-i inplace (don't print to standard output, instead overwrite original file)
+s/string1/string2/ replace string1 with string2
+g more than one string per line
