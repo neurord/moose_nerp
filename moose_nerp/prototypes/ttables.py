@@ -18,12 +18,12 @@ class TableSet:
         path="/input"
         if not moose.exists('/input'):
             moose.Neutral('/input')
-        spike_file=np.load(self.filename+'.npz')
-        spike_set = spike_file.keys()[0]
-        self.numtt=len(spike_file[spike_set])
+        spike_file = np.load(self.filename+'.npz', encoding='latin1')
+        spike_times = spike_file['spikeTime']
+        self.numtt = len(spike_times)
         print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: {} ', self.numtt)
         self.stimtab=[]
-        for ii,stimtimes in enumerate(spike_file[spike_set]):
+        for ii,stimtimes in enumerate(spike_times):
             self.stimtab.append([moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)),self.syn_per_tt])
             self.stimtab[ii][0].vector=stimtimes
 
