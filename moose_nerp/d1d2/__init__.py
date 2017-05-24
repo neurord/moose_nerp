@@ -20,6 +20,6 @@ plasYN = False
 ghkYN = False
 spineYN = False
 synYN = False
-calYN=False
+calYN = False
 
 #note that if ghkYN=0, make sure that ghKluge = 1
