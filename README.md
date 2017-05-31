@@ -34,6 +34,6 @@ from a python window, run using the command:
 6. edit param_syn for your neuron type.  Note that if you don't want synapses, no need to edit this, just make synYN=0 in `__init__.py`
 7. Note that if calYN=0 or synYN=0, no plasticity will be created, even if plasYN=1
 8. make sure the .p file for your neuron is in thie package
-9. copy and edit SPneuronSim.py: global search and replace d1d2 with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
+9. edit `__main__.py`: global search and replace d1d2 with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
 
 **Networks**
