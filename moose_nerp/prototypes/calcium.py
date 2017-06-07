@@ -187,7 +187,7 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage,check_list=[])
                     log.debug('channel {.path} to Ca {.path}',chan, capool)
 
 
-        if model.Channels[chan.name].calciumDependent or  model.Channels[chan.name].Zpow:
+        if model.Channels[chan.name].calciumDependent or  model.Channels[chan.name].channel.Zpow:
             if chan in check_list or chan.name in check_list:
                 m = moose.connect(capool,CaOutMessage, chan, 'concen')
                 
