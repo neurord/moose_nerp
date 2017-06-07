@@ -13,8 +13,6 @@ The graphs won't work for multiple spines per compartment
 from __future__ import print_function, division
 import logging
 
-import os
-os.environ['NUMPTHREADS'] = '1'
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
@@ -94,25 +92,23 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-if __name__ == '__main__':
-    traces, names = [], []
-    for inj in param_sim.injection_current:
-        run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        if str_net.single:
-            for neurnum,neurtype in enumerate(d1d2.neurontypes()):
-                traces.append(vmtab[neurnum][0].vector)
-                names.append('{} @ {}'.format(neurtype, inj))
-            if d1d2.synYN:
-                net_graph.syn_graph(connections, syntab, param_sim.simtime)
-            if d1d2.spineYN:
-                spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
-        else: 
-            if str_net.plot_netvm:
-                net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
-            net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
-
+traces, names = [], []
+for inj in param_sim.injection_current:
+    run_simulation(injection_current=inj, simtime=param_sim.simtime)
     if str_net.single:
-        neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    # block in non-interactive mode
-    util.block_if_noninteractive()
-    #End of inject loop
+        for neurnum,neurtype in enumerate(d1d2.neurontypes()):
+            traces.append(vmtab[neurnum][0].vector)
+            names.append('{} @ {}'.format(neurtype, inj))
+        if d1d2.synYN:
+            net_graph.syn_graph(connections, syntab, param_sim.simtime)
+        if d1d2.spineYN:
+            spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
+    else: 
+        if str_net.plot_netvm:
+            net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
+        net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
+
+if str_net.single:
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+# block in non-interactive mode
+util.block_if_noninteractive()

@@ -11,8 +11,6 @@
 from __future__ import print_function, division
 import logging
 
-import os
-os.environ['NUMPTHREADS'] = '1'
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
@@ -25,7 +23,7 @@ from moose_nerp.prototypes import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     test_plasticity,
+                     plasticity_test,
                      logutil,
                      util,
                      standard_options,
@@ -44,7 +42,7 @@ log = logutil.Logger()
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if d1d2.synYN:
-    plas,stimtab=test_plasticity.test_plasticity(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=plasticity_test.plasticity_test(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
     plas = {}
 
@@ -82,24 +80,21 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-if __name__ == '__main__':
-    traces, names, catraces = [], [], []
-    for inj in param_sim.injection_current:
-        run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
-                            currtab,param_sim.plot_current_label, catab, plastab)
-        for neurnum,neurtype in enumerate(d1d2.neurontypes()):
-            traces.append(vmtab[neurnum][0].vector)
-            catraces.append(catab[neurnum][0].vector)
-            names.append('{} @ {}'.format(neurtype, inj))
-            # In Python3.6, the following syntax works:
-            #names.append(f'{neurtype} @ {inj}')
-        if d1d2.spineYN:
-            spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+traces, names, catraces = [], [], []
+for inj in param_sim.injection_current:
+    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
+                        currtab,param_sim.plot_current_label, catab, plastab)
+    for neurnum,neurtype in enumerate(d1d2.neurontypes()):
+        traces.append(vmtab[neurnum][0].vector)
+        catraces.append(catab[neurnum][0].vector)
+        names.append('{} @ {}'.format(neurtype, inj))
+        # In Python3.6, the following syntax works:
+        #names.append(f'{neurtype} @ {inj}')
+    if d1d2.spineYN:
+        spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
+neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
 
-    # block in non-interactive mode
-    util.block_if_noninteractive()
-
-    #End of inject loop
+# block in non-interactive mode
+util.block_if_noninteractive()

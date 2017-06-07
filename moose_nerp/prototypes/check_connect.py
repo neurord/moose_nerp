@@ -7,7 +7,10 @@ import numpy as np
 import moose
 import logging
 
-from moose_nerp.prototypes import logutil,pop_funcs,connect
+from moose_nerp.prototypes import (pop_funcs,
+                                   connect,
+                                   ttables,
+                                   logutil)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -62,7 +65,7 @@ def count_presyn(netparams,num_cells,volume):
 def count_total_tt(netparams,num_postsyn,num_postcells):
     tt_needed_per_syntype={}
     tt_per_ttfile={}
-    for each in netparams.TableSet.ALL:
+    for each in ttables.TableSet.ALL:
         tt_per_ttfile[each.tablename]={}
         each.needed=0
     #Determine how many trains of synaptic input are needed needed.
@@ -80,7 +83,7 @@ def count_total_tt(netparams,num_postsyn,num_postcells):
                       tt_per_ttfile[ttname.tablename][ntype]={'num':num_postsyn[ntype][syntype]*postsyn_fraction/dups, 'syn_per_tt': dups}
                       log.debug('tt {} syn_per_tt {} postsyn_fraction {} needed_trains {}',key, dups,postsyn_fraction,needed_trains)
                 tt_needed_per_syntype[ntype][syntype]=needed_trains
-    for each in netparams.TableSet.ALL:
+    for each in ttables.TableSet.ALL:
         for ntype in tt_per_ttfile[each.tablename].keys():
             each.needed+=tt_per_ttfile[ttname.tablename][ntype]['num']
             log.info('ttname {}, {} needed for neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype )

@@ -9,7 +9,7 @@ from moose_nerp.prototypes import (connect,
                      logutil)
 log = logutil.Logger()
 
-def test_plasticity(model, syncomp, syn_pop, stimtimes):
+def plasticity_test(model, syncomp, syn_pop, stimtimes):
     plast={}
     stimtab={}
     if model.calYN  and model.plasYN:

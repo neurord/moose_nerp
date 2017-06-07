@@ -11,8 +11,6 @@
 from __future__ import print_function, division
 import logging
 
-import os
-os.environ['NUMPTHREADS'] = '1'
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
@@ -25,7 +23,7 @@ from moose_nerp.prototypes import (cell_proto,
                      clocks,
                      inject_func,
                      tables,
-                     test_plasticity,
+                     plasticity_test,
                      logutil,
                      util,
                      standard_options,
@@ -57,7 +55,7 @@ print('neuron:', neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 if gp.synYN:
-    plas,stimtab=test_plasticity.test_plasticity(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
 else:
     plas = {}
 
@@ -115,58 +113,53 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-
-
-if __name__ == '__main__':
     traces, names = [], []
-    value = {}
-    label = {}
-    calcium_traces=[]
-    for inj in param_sim.injection_current:
-        run_simulation(injection_current=inj, simtime=param_sim.simtime)
-        #neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
-        #                    currtab,param_sim.plot_current_label, catab, plastab)
-        for neurnum,neurtype in enumerate(gp.neurontypes()):
-            #
-            if param_sim.plot_current:
-                for channame in gp.Channels.keys():
-                    key =  neurtype+'_'+channame
-                    print(channame,key)
-                    value[key] = currtab[neurtype][channame][0].vector
-                    label[key] = '{} @ {}'.format(neurtype, channame)
-            traces.append(vmtab[neurnum][0].vector)
-            #traces.append(vmtab[neurnum][2].vector)
-            calcium_traces.append(catab[neurnum][0].vector)
-            #calcium_traces.append(catab[neurnum][2].vector)
-            names.append('c0{} @ {}'.format(neurtype, inj))
-            #names.append('c1{} @ {}'.format(neurtype, inj))
+value = {}
+label = {}
+calcium_traces=[]
+for inj in param_sim.injection_current:
+    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    #neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
+    #                    currtab,param_sim.plot_current_label, catab, plastab)
+    for neurnum,neurtype in enumerate(gp.neurontypes()):
+        #
+        if param_sim.plot_current:
+            for channame in gp.Channels.keys():
+                key =  neurtype+'_'+channame
+                print(channame,key)
+                value[key] = currtab[neurtype][channame][0].vector
+                label[key] = '{} @ {}'.format(neurtype, channame)
+        traces.append(vmtab[neurnum][0].vector)
+        #traces.append(vmtab[neurnum][2].vector)
+        calcium_traces.append(catab[neurnum][0].vector)
+        #calcium_traces.append(catab[neurnum][2].vector)
+        names.append('c0{} @ {}'.format(neurtype, inj))
+        #names.append('c1{} @ {}'.format(neurtype, inj))
 
-    if gp.spineYN:
-            spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
-    #
-    #
-    #subset1=['proto_HCN1','proto_HCN2' ]
-    #subset2=['proto_NaS']
-    #subset3=['proto_Ca']
-    #subset4=['proto_BKCa']
-    #subset5=['proto_NaS']
-    #subset6 = ['proto_KvS']
-    #subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
-    #subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
-    #neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
-    #neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
-    if param_sim.plot_calcium:
-        neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
-    if param_sim.plot_vm:
-        neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+if gp.spineYN:
+        spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
+#
+#
+#subset1=['proto_HCN1','proto_HCN2' ]
+#subset2=['proto_NaS']
+#subset3=['proto_Ca']
+#subset4=['proto_BKCa']
+#subset5=['proto_NaS']
+#subset6 = ['proto_KvS']
+#subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
+#subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
+#neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
+#neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
+#neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
+#neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
+#neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
+#neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
+if param_sim.plot_calcium:
+    neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
+if param_sim.plot_vm:
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 
-    # block in non-interactive mode
-    util.block_if_noninteractive()
+# block in non-interactive mode
+util.block_if_noninteractive()
 
-    #End of inject loop
-l=len(spiketab.vector)
-print(l)
+print("number of spikes", len(spiketab.vector))
