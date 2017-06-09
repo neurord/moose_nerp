@@ -18,8 +18,8 @@ from . import param_ca_plas as CaPlasticityParams
 
 plasYN = False
 ghkYN = False
-spineYN = False
-synYN = False
-calYN = False
+spineYN = True
+synYN = True
+calYN = True
 
 #note that if ghkYN=0, make sure that ghKluge = 1
