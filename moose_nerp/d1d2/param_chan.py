@@ -294,6 +294,8 @@ SK_Z_params = ZChannelParams(Kd = 0.57e-3,
                              power = 5.2,
                              tau = 4.9e-3)
 
+#Reference: Berkefeld et al. Science 2006 314(5799):615-20. Moczydlowski and Latorre 1983, J. Gen. Physiol. 82:511-542.
+
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 
 BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
