@@ -31,7 +31,7 @@ from moose_nerp.prototypes import (cell_proto,
 from moose_nerp import d1d2
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[0.1e-9, 0.2e-9, 0.3e-9])
+option_parser = standard_options.standard_options(default_injection_current=[0.1e-9, 0.2e-9, 0.3e-9,.4e-9,.5e-9])
 param_sim = option_parser.parse_args()
 d1d2.calYN=1
 logging.basicConfig(level=logging.INFO)
@@ -79,19 +79,20 @@ def run_simulation(injection_current, simtime):
     pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
-
-fname = 'D1D2_neurons_in_sim_{}_neuron_{}_{}_simtime_{}_inject_{}.txt'
+calcium = d1d2.CaPlasticityParams.CaShellModeDensity[d1d2.CaPlasticityParams.soma]
+fname = 'D1D2_neurons_in_sim_{}_neuron_{}_{}_simtime_{}_inject_{}_5_inj_Ca_{}.txt'
 traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
     neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
                         currtab,param_sim.plot_current_label, catab, plastab)
     for neurnum,neurtype in enumerate(d1d2.neurontypes()):
+        print(fname.format(len(d1d2.neurontypes()),neurtype,'Vm',param_sim.simtime,inj,calcium))
         traces.append(vmtab[neurnum][0].vector)
         catraces.append(catab[neurnum][0].vector)
         names.append('{} @ {}'.format(neurtype, inj))
-        np.savetxt(fname.format(len(d1d2.neurontypes()),neurtype,'Vm',param_sim.simtime,inj),vmtab[neurnum][0].vector,comments='',header=vmtab[neurnum][0].neighbors['requestOut'][0].path)
-        np.savetxt(fname.format(inj,len(d1d2.neurontypes()),neurtype,'Ca',param_sim.simtime),catab[neurnum][0].vector,comments='',header=catab[neurnum][0].neighbors['requestOut'][0].path)
+        np.savetxt(fname.format(len(d1d2.neurontypes()),neurtype,'Vm',param_sim.simtime,inj,calcium),vmtab[neurnum][0].vector,comments='',header=vmtab[neurnum][0].neighbors['requestOut'][0].path)
+        np.savetxt(fname.format(len(d1d2.neurontypes()),neurtype,'Ca',param_sim.simtime,inj,calcium),catab[neurnum][0].vector,comments='',header=catab[neurnum][0].neighbors['requestOut'][0].path)
 
         # In Python3.6, the following syntax works:
         #names.append(f'{neurtype} @ {inj}')
