@@ -21,20 +21,17 @@ log = logutil.Logger()
 def shell_surface(dShell,head=False,prevd=0):
 
     if dShell.shapeMode:
-        if dShell.length:
+        if not dShell.length:
             cos_alpha = (dShell.diameter/2-prevd)/(dShell.diameter/2)
             cos_alpha_beta = (dShell.diameter/2-prevd-dShell.thickness)/(dShell.diameter/2)
             surfaceArea = np.pi*(dShell.diameter)*(cos_alpha-cos_alpha_beta)
         else:
             surfaceArea = np.pi*dShell.diameter*dShell.thickness
     else:
-        if dShell.length:
-            surfaceArea = np.pi*dShell.diameter*dShell.length
-        else:
-            surfaceArea =  np.pi*dShell.diameter**2
+        surfaceArea = dShell.outerArea
     if head and dShell.shapeMode:
         if dShell.length:
-            surfaceArea += np.pi*(dShell.diameter/2)**2
+            surfaceArea += dShell.outerArea
         
             
     return surfaceArea
@@ -238,51 +235,49 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
 
         #pumps
         #There is a surface correction for the pumps for the PSD
-        if comp.name.endswith(NAME_HEAD) and i ==0:
+        if not i:
+            connectNMDA(comp,dShell,'influx','concentrationOut')
+            
+        if comp.name.endswith(NAME_HEAD) and i == 0:
             head = True
         else:
             head = False
                 
         surface = shell_surface(dShell,head=head,prevd=prevd)
-        
-        if not i:
-            connectNMDA(comp,dShell,'influx','concentrationOut')
-        
-        if dShell.shapeMode == 1:
-            if spine and comp.name.endswith(NAME_HEAD):
-                try:
-                    check_list=model.SpineParams.spineChanList[i]
-                    connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut',check_list)
-                except IndexError:
-                    pass
-            else:
-                
-                connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
-            
-  
-
-            
-            leak = 0
-
-            for pump in Pumps:
-                Km = PumpKm[pump]
-                p = addMMPump(dShell,PumpKm[pump],Pumps[pump],surface)
-                leak += p.Vmax*dShell.Ceq/shell_volume(dShell)/(dShell.Ceq+p.Kd)
-            if spine:
-                dShell.leak = leak
  
-
+        if spine and comp.name.endswith(NAME_HEAD):
+            try:
+                check_list = model.SpineParams.spineChanList[i]
+                connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut',check_list)
+            except IndexError:
+                pass
         else:
             if not i:
                 connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut')
                 
-                for pump in Pumps:
-                    Km = PumpKm[pump]
-                    p = addMMPump(dShell,PumpKm[pump],Pumps[pump],surface)
-             
+ 
+        if dShell.shapeMode == 1:
+            addPumps(dShell,PumpKm,Pumps,surface)
+        else:
+            if i == 0:
+                addPumps(dShell,PumpKm,Pumps,surface)
+                
         prevd += dShell.thickness
+
+        
     return difshell
-    
+
+def addPumps(dShell,PumpKm,Pumps,surface):
+    leak = 0
+
+    for pump in Pumps:
+        Km = PumpKm[pump]
+        p = addMMPump(dShell,PumpKm[pump],Pumps[pump],surface)
+        leak += p.Vmax*dShell.Ceq/shell_volume(dShell)/(dShell.Ceq+p.Kd)
+        
+    dShell.leak = leak
+
+
 def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
