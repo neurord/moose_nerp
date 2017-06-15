@@ -86,7 +86,7 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
                "no_buffers":{}
     }
 #Pump Vmax
-PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
+PumpVmaxDend = {'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
 PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
 #Buffer density specification -- this is used with difshells
