@@ -64,7 +64,7 @@ def compensate_for_spines(comp,total_spine_surface,surface_area):
     old_Cm = comp.Cm
     old_Rm = comp.Rm
     scaling_factor = (surface_area+total_spine_surface)/surface_area
-    print(comp.path, scaling_factor,surface_area,total_spine_surface)
+   
     comp.Cm = old_Cm/scaling_factor
     comp.Rm = old_Rm/scaling_factor
     
