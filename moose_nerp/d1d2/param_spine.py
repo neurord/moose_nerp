@@ -13,7 +13,7 @@ SpineParams = _util.NamedDict(
     neckRA = 11.3,
     spineRM = 1.875,
     spineCM = 0.01,
-    spineELEAK = -50e-3,
+    spineELEAK = -70e-3,
     spineEREST = -80e-3,
 
     spineChanList = [['CaL13'],['CaL12','CaR','CaT']],

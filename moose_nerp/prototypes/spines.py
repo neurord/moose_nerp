@@ -15,14 +15,17 @@ NAME_NECK = "neck"
 NAME_HEAD = "head"
 
 def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
+    
     comp.diameter = compdia
     comp.length = complen
-    XArea = np.pi*compdia*compdia/4
+    
+    XArea = np.pi*comp.diameter*comp.diameter/4
+    
     circumf = np.pi*compdia
     log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
               comp.path, XArea, circumf,
               CM*complen*circumf)
-    comp.Ra = RA*complen/XArea
+    comp.Ra = 4*RA*complen/XArea
     comp.Rm = RM/(complen*circumf)
     cm = CM*compdia*circumf
     if cm < 1e-15:
@@ -54,8 +57,26 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
 
     setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
 
-    return head
+    return head, neck
 
+
+def compensate_for_spines(comp,total_spine_surface,surface_area):
+    old_Cm = comp.Cm
+    old_Rm = comp.Rm
+    scaling_factor = (surface_area+total_spine_surface)/surface_area
+   
+    comp.Cm = old_Cm/scaling_factor
+    comp.Rm = old_Rm/scaling_factor
+    
+def spine_surface(SpineParams):
+    headdia = SpineParams.headdia
+    headlen = SpineParams.headlen
+    neckdia = SpineParams.neckdia
+    necklen = SpineParams.necklen
+    surface = headdia*(headlen+headdia/4) + neckdia*necklen
+
+    return surface*np.pi
+    
 def addSpines(model, container,ghkYN,name_soma):
     headarray=[]
     SpineParams = model.SpineParams
@@ -63,6 +84,8 @@ def addSpines(model, container,ghkYN,name_soma):
 
     modelcond = model.Condset[container]
     
+    single_spine_surface = spine_surface(SpineParams)
+    print('Single spine surface ', single_spine_surface)
     for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
         if name_soma not in comp.path:
             numSpines = int(np.round(SpineParams.spineDensity*comp.length))
@@ -71,12 +94,17 @@ def addSpines(model, container,ghkYN,name_soma):
                  if rand > SpineParams.spineDensity*comp.length:
                      numSpines = 1
                      suma += 1
-           
+            total_spine_surface = numSpines*single_spine_surface
+            surface_area = comp.diameter*comp.length*np.pi
+            compensate_for_spines(comp,total_spine_surface,surface_area)
+            
             spineSpace = comp.length/(numSpines+1)
             for index in range(numSpines):
                 frac = (index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
-                head = makeSpine(model, comp, 'sp',index, frac, SpineParams)
+                head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
+                compensate_for_spines(head,total_spine_surface,surface_area)
+                compensate_for_spines(neck,total_spine_surface,surface_area)
                 headarray.append(head)
                 if SpineParams.spineChanList:
                     if ghkYN:
