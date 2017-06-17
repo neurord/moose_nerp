@@ -28,7 +28,7 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-morph_file = {'D1':'MScell-Entire.p', 'D2': 'MScell-Entire.p'}
+morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScell-Entire.p'}
 NAME_SOMA='soma'
 #CONDUCTANCES
 #RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
