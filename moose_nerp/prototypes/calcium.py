@@ -73,7 +73,8 @@ def difshell_geometry(comp, shell_params):
             new_rad = new_rad - new_thick
             new_thick = shell_params.outershell_thickness+shell_params.outershell_thickness*shell_params.thickness_increase**i
             i = i+1
-        res.append([new_rad,new_rad])
+            
+        res.append([new_rad*multiplier,new_rad])
         return res
     
     while new_rad >shell_params.min_thickness+ new_thick:
@@ -83,7 +84,7 @@ def difshell_geometry(comp, shell_params):
         new_thick = shell_params.outershell_thickness + i*shell_params.thickness_increase*shell_params.outershell_thickness
         i = i+1
         
-    res.append([new_rad,new_rad])
+    res.append([new_rad*multiplier,new_rad])
 
     return res
 
@@ -101,9 +102,14 @@ def addCaDifShell(comp,shellMode,shellDiameter,shellThickness,name,capar):
     dif.valence = 2
     dif.leak = 0
     dif.shapeMode = shellMode
-    dif.length =comp.length
-    dif.diameter = shellDiameter
     dif.thickness = shellThickness
+    if shellMode:
+        dif.diameter = comp.diameter
+        dif.length = shellThickness
+    else:
+        dif.length = comp.length
+        dif.diameter = shellDiameter
+
     return dif
 
 def addDifBuffer(comp,dShell,bufparams,bTotal):
@@ -216,7 +222,7 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
         
 
         dShell = addCaDifShell(comp,sgh.shellMode,diameter,thickness,str(i),model.CaPlasticityParams.CalciumParams)
-        
+
         difshell.append(dShell)
 
         b = []
@@ -273,6 +279,7 @@ def addPumps(dShell,PumpKm,Pumps,surface):
     for pump in Pumps:
         Km = PumpKm[pump]
         p = addMMPump(dShell,PumpKm[pump],Pumps[pump],surface)
+
         leak += p.Vmax*dShell.Ceq/shell_volume(dShell)/(dShell.Ceq+p.Kd)
         
     dShell.leak = leak
