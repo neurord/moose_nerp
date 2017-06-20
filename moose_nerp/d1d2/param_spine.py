@@ -4,7 +4,7 @@ from moose_nerp.prototypes import util as _util
 
 SpineParams = _util.NamedDict(
     'SpineParams',
-    spineDensity = 0.8e6,      #should make this distance dependent
+    spineDensity = 1.01e6,      #should make this distance dependent
     necklen = 0.5e-6,          #define all these parameters elsewhere
     neckdia = 0.12e-6,
     headdia = 0.5e-6,
@@ -15,7 +15,10 @@ SpineParams = _util.NamedDict(
     spineCM = 0.01,
     spineELEAK = -70e-3,
     spineEREST = -80e-3,
-
+    spineStart = 26.1e-6,
+    spineEnd = 300e-6,
+    
+    compensationSpineDensity = 0,
     spineChanList = [['CaL13'],['CaL12','CaR','CaT']],
     #spineCond = [0.65 *cond for  param_cond.ghKluge],
 
