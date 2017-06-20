@@ -101,7 +101,7 @@ CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
 
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
 head_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.06e-6)
-neck_shape = ShapeParams(OutershellThickness=.12e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
+neck_shape = ShapeParams(OutershellThickness=.1667e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
 
 ShapeConfig = {everything:tree_shape,heads:head_shape,necks:neck_shape}
 

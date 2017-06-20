@@ -22,6 +22,7 @@ def find_morph_file(model, ntype):
 
 def create_neuron(model, ntype, ghkYN):
     p_file = find_morph_file(model,ntype)
+    print(p_file)
     try:
         cellproto=moose.loadModel(p_file, ntype)
     except IOError:

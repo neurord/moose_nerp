@@ -48,27 +48,31 @@ NAME_SOMA='soma'
 #CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
 
 # helper variables to index the Conductance and synapses with distance
-prox = (0, 26.1e-6)
-med =  (26.1e-6, 50e-6)
-dist = (50e-6, 1000e-6)
-
+#prox = (0, 26.1e-6)
+soma = (0,11.3137e-6)
+prox = (11.3137e-6, 26.1e-6)
+med =  (26.1e-6, 60e-6)
+dist = (60e-6, 1000e-6)
+entire = (0,1000e-6)
+dend = (11.3137,1000e-6)
+spine = (26.1e-6,300e-6,'head')
 _D1 = _util.NamedDict(
     'D1',
     #Krp = {prox:77.963, med:77.25, dist:7.25},
-    Krp = {prox:150.963, med:70.25, dist:77.25},
+    Krp = {soma:9., dend:8},
     #KaF = {prox:3214, med: 571, dist: 314},
     #KaF = {prox:1157, med:500, dist:200},
-    KaF = {prox:600, med:500, dist:100},
-    KaS = {prox:404.7, med: 35.2, dist: 0},
-    Kir = {prox:9.4644, med: 9.4644, dist: 9.4644},
-    CaL13 = {prox:12*ghKluge, med: 5.6*ghKluge, dist: 5.6*ghKluge},
-    CaL12 = {prox:8*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
-    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 44*ghKluge},
-    CaN = {prox:4.0*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
-    NaF = {prox:130e3, med: 1894, dist: 927},
-    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
-    BKCa = {prox:10.32, med: 10, dist: 10},
+    KaF = {entire:200},
+    KaS = {entire:12},
+    Kir = {entire:8.5},
+    CaL13 = {entire:2*ghKluge,spine:1.3*ghKluge},
+    CaL12 = {entire:1*ghKluge,spine:0.65*ghKluge},
+    CaR = {soma:3*ghKluge,prox: 3*ghKluge,med: 5*ghKluge,dist: 5*ghKluge,spine:3.25*ghKluge},
+    CaN = {soma:1.0*ghKluge, dend:0},
+    CaT = {soma:0,prox:0.0*ghKluge, med: 1*ghKluge, dist: 1*ghKluge,spine:.65*ghKluge},
+    NaF = {soma:460e3,prox:2600, med: 0, dist: 0},
+    SKCa = {entire:1},
+    BKCa = {entire:8}
 )
 _D2 = _util.NamedDict(
     'D2',
@@ -77,11 +81,11 @@ _D2 = _util.NamedDict(
     KaF = {prox:641, med:300, dist:100},
     KaS = {prox:372, med: 32.9, dist: 0},
     Kir = {prox:6.2, med: 6.2, dist: 6.2},
-    CaL13 = {prox:10*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
+    CaL13 = {entire:2*ghKluge},
     CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
     CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 45*ghKluge},
     CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
+    CaT = {soma:0,prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
     NaF = {prox:150.0e3, med: 2503, dist: 1073},
     SKCa = {prox:0.5, med: 0.5, dist: 0.5},
     BKCa = {prox:10, med: 10, dist: 10},

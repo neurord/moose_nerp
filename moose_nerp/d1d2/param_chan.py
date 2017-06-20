@@ -39,7 +39,7 @@ CADIVS = 4001 #10 nM steps
 #inactivation hinf fits Ogata 1990 figure 6B
 #htau fits the main -50 through -10 slope of Ogata figure 9 (log tau), but a qfact of 2 is already taken into account.
 
-qfactNaF = 1.3
+qfactNaF = 2.5
 
 Na_m_params = SSTauChannelParams(Arate = 1.0,
                                  A_B = 0.0,
@@ -108,25 +108,25 @@ Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
                                       B_vslope = -18e-3)
 
 Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
-qfactKir = 1
+qfactKir = 1.2
 
-Kir_X_params = AlphaBetaChannelParams(A_rate = 0.008*qfactKir,
+Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
                                       A_B = 0,
                                       A_C = 0.0,
                                       Avhalf = 0,
                                       A_vslope = 11.0e-3,
-                                      B_rate = 1000*qfactKir,
+                                      B_rate = 1200*qfactKir,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = -40e-3,
-                                      B_vslope = -40e-3)
+                                      Bvhalf = -30e-3,
+                                      B_vslope = -50e-3)
 
 KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 
 # activation constants for alphas and betas (obtained by
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
 
-qfactKaF = 1.5
+qfactKaF = 2.
 KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
@@ -187,7 +187,7 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 2.5*qfactKaS,
 #Note that CaL13 for D1 has mvhalf 10 mV more negative than for D2
 #CaL12 does not differ between D1 and D2.
 CaL12param = ChannelSettings(Xpow=1, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL12')
-qfactCaL = 1
+qfactCaL = 2
 CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                         A_B = -220e3*qfactCaL,
                                         A_C = -1.0,
@@ -216,16 +216,16 @@ CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
 #Params from McRory J Biol Chem, alpha1I subunit
 CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaT')
 qfactCaT = 2
-CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
-                                      A_B = 0.0,
-                                      A_C = 0.0,
-                                      Avhalf = 0.0,
-                                      A_vslope = -19e-3,
-                                      B_rate = 1340*qfactCaT,
-                                      B_B = 16500*qfactCaT,
-                                      B_C = -1.0,
-                                      Bvhalf = 81.0003e-3,
-                                      B_vslope = 7.12e-3)
+CaT_X_params = AlphaBetaChannelParams(A_rate = 1230*qfactCaT,
+                                      A_B = 14552,
+                                      A_C = -1,
+                                      Avhalf = 8.45e-2,
+                                      A_vslope = 7.12e-3,
+                                      B_rate = 4.98e-3*qfactCaT,
+                                      B_B = 0,
+                                      B_C = .0,
+                                      Bvhalf = 0,
+                                      B_vslope =-1.3e-2)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
 CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,

@@ -2,13 +2,12 @@
 *relative
 *cartesian
 *asymmetric
-
 *set_global RA 3.2599
 //change Cm to account for no spines - make 3x higher?
 *set_global CM 0.030612
 *set_global RM 2.135
-*set_global EREST_ACT -80e-3
-*set_global ELEAK -70e-3
+*set_global EREST_ACT -86e-3
+*set_global ELEAK -72e-3
 
 *start_cell
 soma none 14.000 0 0 14.000
