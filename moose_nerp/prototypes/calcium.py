@@ -217,13 +217,12 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
     prevd = 0 #important only for spherical compartments with SLABS, we might have them one day, right!?
     
     #print('Adding DifShells to '+comp.path)
-    print(diam_thick,comp.length,comp.diameter,sgh.shellMode)
     
     for i,(diameter,thickness) in enumerate(diam_thick): #adding shells
         
 
         dShell = addCaDifShell(comp,sgh.shellMode,diameter,thickness,str(i),model.CaPlasticityParams.CalciumParams)
-        moose.showfields(dShell)
+
         difshell.append(dShell)
 
         b = []

@@ -24,15 +24,16 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
     circumf = np.pi*compdia
     log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
               comp.path, XArea, circumf,
-              CM*complen*circumf)
-    comp.Ra = 4*RA*complen/XArea
-    comp.Rm = RM/(complen*circumf)
-    cm = CM*compdia*circumf
+              CM*np.pi*comp.diameter*comp.length)
+    comp.Ra = 4*RA*comp.length/XArea
+    comp.Rm = RM/(np.pi*comp.diameter*comp.length)
+    cm = CM*np.pi*comp.diameter*comp.length
     if cm < 1e-15:
         cm = 1e-15
     comp.Cm = cm
     comp.Em = model.SpineParams.spineELEAK
     comp.initVm = model.SpineParams.spineEREST
+    
 
 def makeSpine(model, parentComp, compName,index,frac,SpineParams):
     #frac is where along the compartment the spine is attached
@@ -66,17 +67,17 @@ def compensate_for_spines(comp,total_spine_surface,surface_area):
     scaling_factor = (surface_area+total_spine_surface)/surface_area
 
     comp.Cm = old_Cm/scaling_factor
-    comp.Rm = old_Rm/scaling_factor
+    comp.Rm = old_Rm*scaling_factor
 
 
-def decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface):
-    old_Cm = comp.Cm
-    old_Rm = comp.Rm
-    new_scaling_factor = (surface_area+total_spine_surface)/surface_area
-    old_scaling_factor = (surface_area+compensation_spine_surface)/surface_area
+# def decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface):
+#     old_Cm = comp.Cm
+#     old_Rm = comp.Rm
+#     new_scaling_factor = (surface_area+total_spine_surface)/surface_area
+#     old_scaling_factor = (surface_area+compensation_spine_surface)/surface_area
 
-    comp.Cm = old_Cm/old_scaling_factor*new_scaling_factor
-    comp.Rm = old_Rm/old_scaling_factor*new_scaling_factor
+#     comp.Cm = old_Cm/old_scaling_factor*new_scaling_factor
+#     comp.Rm = old_Rm*old_scaling_factor*new_scaling_factor
     
 
 def spine_surface(SpineParams):
@@ -84,7 +85,7 @@ def spine_surface(SpineParams):
     headlen = SpineParams.headlen
     neckdia = SpineParams.neckdia
     necklen = SpineParams.necklen
-    surface = headdia*(headlen+headdia/4) + neckdia*necklen
+    surface = headdia*headlen + neckdia*necklen
 
     return surface*np.pi
     
@@ -98,7 +99,8 @@ def addSpines(model, container,ghkYN,name_soma):
     single_spine_surface = spine_surface(SpineParams)
 
     for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
-        if name_soma not in comp.path:
+        dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
+        if name_soma not in comp.path and (SpineParams.spineEnd > dist > SpineParams.spineStart):
             numSpines = int(np.round(SpineParams.spineDensity*comp.length))
             if not numSpines:
                  rand = random.random()
@@ -108,11 +110,11 @@ def addSpines(model, container,ghkYN,name_soma):
                      
             total_spine_surface = numSpines*single_spine_surface
             surface_area = comp.diameter*comp.length*np.pi
-            if SpineParams.compensationSpineDensity:
-                compensation_spine_surface = int(np.round(SpineParams.compensationSpineDensity*comp.length))*single_spine_surface
-                decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
-            else:
-                compensate_for_spines(comp,total_spine_surface,surface_area)
+            # if SpineParams.compensationSpineDensity:
+            #     compensation_spine_surface = int(np.round(SpineParams.compensationSpineDensity*comp.length))*single_spine_surface
+            #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
+            # else:
+            compensate_for_spines(comp,total_spine_surface,surface_area)
      
             #spineSpace = comp.length/(numSpines+1)
             
