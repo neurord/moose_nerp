@@ -49,12 +49,19 @@ NAME_SOMA='soma'
 
 # helper variables to index the Conductance and synapses with distance
 #prox = (0, 26.1e-6)
-soma = (0,11.3137e-6)
-prox = (11.3137e-6, 26.1e-6)
+
+soma = (0,11.32e-6)
+
+prox = (11.32e-6, 26.1e-6)
+
 med =  (26.1e-6, 60e-6)
+
 dist = (60e-6, 1000e-6)
+
 entire = (0,1000e-6)
-dend = (11.3137,1000e-6)
+
+dend = (11.32e-6,1000e-6)
+
 spine = (26.1e-6,300e-6,'head')
 _D1 = _util.NamedDict(
     'D1',
@@ -65,12 +72,12 @@ _D1 = _util.NamedDict(
     KaF = {entire:200},
     KaS = {entire:12},
     Kir = {entire:8.5},
-    CaL13 = {entire:2*ghKluge,spine:1.3*ghKluge},
-    CaL12 = {entire:1*ghKluge,spine:0.65*ghKluge},
-    CaR = {soma:3*ghKluge,prox: 3*ghKluge,med: 5*ghKluge,dist: 5*ghKluge,spine:3.25*ghKluge},
-    CaN = {soma:1.0*ghKluge, dend:0},
-    CaT = {soma:0,prox:0.0*ghKluge, med: 1*ghKluge, dist: 1*ghKluge,spine:.65*ghKluge},
-    NaF = {soma:460e3,prox:2600, med: 0, dist: 0},
+    CaL13 = {entire:2e-7*ghKluge,spine:1.3e-7*ghKluge},
+    CaL12 = {entire:1e-7*ghKluge,spine:0.65e-7*ghKluge},
+    CaR = {soma:3e-7*ghKluge,prox: 3e-7*ghKluge,med: 5e-7*ghKluge,dist: 5e-7*ghKluge,spine:3.25e-7*ghKluge},
+    CaN = {soma:1.0e-8*ghKluge, dend:0},
+    CaT = {soma:0,prox:0.0*ghKluge, med: 1e-7*ghKluge, dist: 1e-7*ghKluge,spine:.65e-7*ghKluge},
+    NaF = {soma:460e3,prox:2600, med: 2600, dist: 0},
     SKCa = {entire:1},
     BKCa = {entire:8}
 )
@@ -81,7 +88,7 @@ _D2 = _util.NamedDict(
     KaF = {prox:641, med:300, dist:100},
     KaS = {prox:372, med: 32.9, dist: 0},
     Kir = {prox:6.2, med: 6.2, dist: 6.2},
-    CaL13 = {entire:2*ghKluge},
+    CaL13 = {entire:2e-7*ghKluge},
     CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
     CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 45*ghKluge},
     CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
