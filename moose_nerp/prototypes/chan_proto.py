@@ -149,7 +149,7 @@ def NaFchan_proto(model, chanpath, params):
     hgate = moose.HHGate(chan.path + '/gateY')
     hgate.min = model.VMIN
     hgate.max = model.VMAX
-    tau_y = (params.Y.taumin + (params.Y.tauVdep/(1+np.exp((v_array+params.Y.tauVhalf)/params.Y.tauVslope)))) / model.qfactNaF
+    tau_y = (params.Y.taumin + (params.Y.tauVdep/(1+np.exp((v_array+params.Y.tauVhalf)/params.Y.tauVslope)))) / model.qfactNaF*2
     inf_y = params.Y.Arate / (params.Y.A_C + np.exp(( v_array+params.Y.Avhalf)/params.Y.Avslope))
     log.debug("NaF hgate:{} inf:{} tau:{}", hgate, inf_y, tau_y)
     hgate.tableA = inf_y / tau_y
