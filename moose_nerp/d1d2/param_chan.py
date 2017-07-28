@@ -22,7 +22,7 @@ from moose_nerp.prototypes.chan_proto import (
 # where x is membrane voltage and y is the rate constant
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 #Parameters for Ca channels may need to be shifted - see Dorman model
-krev=-87e-3
+krev=-90.e-3
 narev=50e-3
 carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
@@ -56,8 +56,8 @@ Na_h_params = SSTauChannelParams(Arate = 1.0,
                                  A_C = 1.0,
                                  Avhalf = 60e-3,
                                  Avslope = 6e-3,
-                                 taumin = 0.2754e-3,
-                                 tauVdep = 1.2e-3,
+                                 taumin = 0.2754e-3*2,
+                                 tauVdep = 1.2e-3*2,
                                  tauPow = 1,
                                  tauVhalf = 42e-3,
                                  tauVslope = 3e-3)
@@ -110,12 +110,12 @@ Krp_Y_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKrp,
 Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
 qfactKir = 1.2
 
-Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir,
+Kir_X_params = AlphaBetaChannelParams(A_rate = 0.01*qfactKir/2.,
                                       A_B = 0,
                                       A_C = 0.0,
                                       Avhalf = 0,
                                       A_vslope = 11.0e-3,
-                                      B_rate = 1200*qfactKir,
+                                      B_rate = 1200*qfactKir/2.,
                                       B_B = 0.0,
                                       B_C = 1.0,
                                       Bvhalf = -30e-3,
@@ -127,11 +127,11 @@ KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
 
 qfactKaF = 2.
-KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
+KaF_X_params = AlphaBetaChannelParams(A_rate = 1.5e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
-                                      Avhalf = 18e-3,
-                                      A_vslope = -13.0e-3,
+                                      Avhalf = 16e-3,
+                                      A_vslope = -14.0e-3,
                                       B_rate = 0.45e3*qfactKaF,
                                       B_B = 0.0,
                                       B_C = 1.0,
@@ -141,16 +141,16 @@ KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
 #inactivation consts for alphas and betas obtained by matching Tkatch et al., 2000 Fig 3b,
 #and tau voltage dependence consistent with their value for V=0 in fig 3c.
 #slowing down inact improves spike shape tremendously
-KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.105e3/qfactKaF,
+KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.15e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
-                                      Avhalf = 121e-3,
-                                      A_vslope = 22.0e-3,
-                                      B_rate = 0.065e3/qfactKaF,
+                                      Avhalf = 135e-3,
+                                      A_vslope = 21.0e-3,
+                                      B_rate = 0.06e3*qfactKaF,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = 55.0e-3,
-                                      B_vslope = -11.0e-3)
+                                      Bvhalf = 40.0e-3,
+                                      B_vslope = -18.0e-3)
 
 KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
 qfactKaS = 2
@@ -188,6 +188,7 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 2.5*qfactKaS,
 #CaL12 does not differ between D1 and D2.
 CaL12param = ChannelSettings(Xpow=1, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL12')
 qfactCaL = 2
+
 CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                         A_B = -220e3*qfactCaL,
                                         A_C = -1.0,
@@ -199,6 +200,18 @@ CaL12_X_params = AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                         Bvhalf = -4.0003e-3,
                                         B_vslope = 5e-3)
 
+
+
+# CaL12_Y_params = AlphaBetaChannelParams(A_rate = 0.02*qfactCaL,
+#                                         A_B = 0.,
+#                                         A_C = 0.,
+#                                         Avhalf = -17e-3,
+#                                         A_vslope = 9e-3,
+#                                         B_rate = -6*qfactCaL,
+#                                         B_B = 0*qfactCaL,
+#                                         B_C = 0,
+#                                         Bvhalf = 48.5e-3,
+#                                         B_vslope = 7e-3)
 # Using Xpow=1 produced too high a basal calcium,
 # so used Xpow=2 and retuned params - much better basal calcium
 CaL13param = ChannelSettings(Xpow=2, Ypow=0, Zpow=ZpowCDI, Erev=carev, name='CaL13')
@@ -216,16 +229,17 @@ CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
 #Params from McRory J Biol Chem, alpha1I subunit
 CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaT')
 qfactCaT = 2
-CaT_X_params = AlphaBetaChannelParams(A_rate = 1230*qfactCaT,
-                                      A_B = 14552,
-                                      A_C = -1,
-                                      Avhalf = 8.45e-2,
-                                      A_vslope = 7.12e-3,
-                                      B_rate = 4.98e-3*qfactCaT,
-                                      B_B = 0,
-                                      B_C = .0,
-                                      Bvhalf = 0,
-                                      B_vslope =-1.3e-2)
+CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
+                                      A_B = 0.0,
+                                      A_C = 0.0,
+                                      Avhalf = 0.0,
+                                      A_vslope = -19e-3,
+                                      B_rate = 1340*qfactCaT,
+                                      B_B = 16500*qfactCaT,
+                                      B_C = -1.0,
+                                      Bvhalf = 81.0003e-3,
+                                      B_vslope = 7.12e-3)
+
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
 CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
