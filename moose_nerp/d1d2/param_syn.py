@@ -13,8 +13,8 @@ from . import param_cond
 #Classic (allows significant calcium at resting potential):
 #mgparams={'A':(1/3.57), 'B':(1/62.0), 'C': 1.4}
 #Intermediate
-_NMDA_MgParams = MgParams(A = 1/6.0,
-                           B = 1/80.0,
+_NMDA_MgParams = MgParams(A = 1/18.0,
+                           B = 1/99.0,
                            C = 1.4)
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
@@ -22,12 +22,22 @@ _SynGaba = SynChannelParams(Erev = -60e-3,
                              tau1 = 0.25e-3,
                              tau2 = 3.75e-3,
                              Gbar = 0.2e-9,
+                            nmdaCaFrac = 0.0,
                              var=0.05)
+
+SynGabaNPY = SynChannelParams(Erev = -60e-3, #NPY 
+                             tau1 = 0.25e-3,
+                             tau2 = 80.75e-3,
+                             Gbar = 0.5e-9,
+                              nmdaCaFrac = 0.0,
+                             var=0.05)
+
 _SynAMPA = SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
-                             tau2 = 5.75e-3,
-                             Gbar = 2e-9,
-                             var=0.05,
+                             tau2 = 2.0e-3,
+                            Gbar = 2e-9,
+                            var=0.05,
+                            nmdaCaFrac = 0.001,
                              spinic = True)
 _SynNMDA = SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
@@ -37,7 +47,7 @@ _SynNMDA = SynChannelParams(Erev = 5e-3,
                              MgBlock = _NMDA_MgParams,
                              spinic = True,
                              NMDA=True,
-                             nmdaCaFrac = 0.05
+                             nmdaCaFrac = 0.05,
 )
 
 #nmdaCaFra fraction of nmda current carried by calcium

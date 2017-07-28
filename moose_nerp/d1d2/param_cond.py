@@ -9,9 +9,9 @@ from moose_nerp.prototypes import util as _util
 #if ghkYesNo=0 then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
 if False: # param_sim.Config['ghkYN']:
-    ghKluge=0.35e-6
+    ghKluge= 0.35e-7
 else:
-    ghKluge=1
+    ghKluge= 1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 ConcOut=2e-3     # default for GHK is 2e-3
@@ -63,6 +63,7 @@ entire = (0,1000e-6)
 dend = (11.32e-6,1000e-6)
 
 spine = (26.1e-6,300e-6,'head')
+
 _D1 = _util.NamedDict(
     'D1',
     #Krp = {prox:77.963, med:77.25, dist:7.25},
@@ -72,11 +73,11 @@ _D1 = _util.NamedDict(
     KaF = {entire:200},
     KaS = {entire:12},
     Kir = {entire:8.5},
-    CaL13 = {entire:2e-7*ghKluge,spine:1.3e-7*ghKluge},
-    CaL12 = {entire:1e-7*ghKluge,spine:0.65e-7*ghKluge},
-    CaR = {soma:3e-7*ghKluge,prox: 3e-7*ghKluge,med: 5e-7*ghKluge,dist: 5e-7*ghKluge,spine:3.25e-7*ghKluge},
-    CaN = {soma:1.0e-8*ghKluge, dend:0},
-    CaT = {soma:0,prox:0.0*ghKluge, med: 1e-7*ghKluge, dist: 1e-7*ghKluge,spine:.65e-7*ghKluge},
+    CaL13 = {entire:2*ghKluge,spine:1.3*ghKluge},
+    CaL12 = {entire:1*ghKluge,spine:0.65*ghKluge},
+    CaR = {soma:3*ghKluge,prox: 3*ghKluge,med: 5*ghKluge,dist: 5*ghKluge,spine:3.25*ghKluge},
+    CaN = {soma:1.0e-1*ghKluge, dend:0},
+    CaT = {soma:0,prox:0.0*ghKluge, med: 1*ghKluge, dist: 1*ghKluge,spine:.65*ghKluge},
     NaF = {soma:460e3,prox:2600, med: 2600, dist: 0},
     SKCa = {entire:1},
     BKCa = {entire:8}
@@ -88,11 +89,11 @@ _D2 = _util.NamedDict(
     KaF = {prox:641, med:300, dist:100},
     KaS = {prox:372, med: 32.9, dist: 0},
     Kir = {prox:6.2, med: 6.2, dist: 6.2},
-    CaL13 = {entire:2e-7*ghKluge},
+    CaL13 = {entire:2*ghKluge},
     CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
     CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 45*ghKluge},
     CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {soma:0,prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
+    CaT = {soma:0,prox:0.0*ghKluge, med: 1.*ghKluge, dist: 1.*ghKluge},
     NaF = {prox:150.0e3, med: 2503, dist: 1073},
     SKCa = {prox:0.5, med: 0.5, dist: 0.5},
     BKCa = {prox:10, med: 10, dist: 10},
