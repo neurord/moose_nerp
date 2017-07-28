@@ -160,8 +160,8 @@ def addSpines(model, container,ghkYN,name_soma):
                     for chanpath in chan_list:
                         cond = distance_mapping(modelcond[chanpath],head)
                         if cond > 0:
-                            log.debug('Testing Cond If {} {}', channame, c)
-                            calciumPermeable = chanparams.calciumPermeable
+                            log.debug('Testing Cond If {} {}', chanpath, cond)
+                            calciumPermeable = model.Channels[chanpath].calciumPermeable
                             addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
             #end for index
     #end for comp
