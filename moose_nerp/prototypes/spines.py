@@ -88,7 +88,18 @@ def spine_surface(SpineParams):
     surface = headdia*headlen + neckdia*necklen
 
     return surface*np.pi
+
+def getChildren(parentname,childrenlist):
     
+    children = moose.element(parentname).neighbors['axialOut']
+
+    if len(children):
+        for child in children:
+            childrenlist.append(child.name)
+            getChildren(child,childrenlist)
+    
+
+
 def addSpines(model, container,ghkYN,name_soma):
     headarray=[]
     SpineParams = model.SpineParams
@@ -97,10 +108,15 @@ def addSpines(model, container,ghkYN,name_soma):
     modelcond = model.Condset[container]
     
     single_spine_surface = spine_surface(SpineParams)
-
+   
+    
+    parentComp = container+'/'+SpineParams.spineParent
+    compList = [SpineParams.spineParent]
+    getChildren(parentComp,compList)
     for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
         dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
-        if name_soma not in comp.path and (SpineParams.spineEnd > dist > SpineParams.spineStart):
+        if name_soma not in comp.path and comp.name in compList and (SpineParams.spineEnd > dist > SpineParams.spineStart):
+
             numSpines = int(np.round(SpineParams.spineDensity*comp.length))
             if not numSpines:
                  rand = random.random()
@@ -143,7 +159,10 @@ def addSpines(model, container,ghkYN,name_soma):
                         chan_list.extend(c)
                     for chanpath in chan_list:
                         cond = distance_mapping(modelcond[chanpath],head)
-                        addOneChan(chanpath,cond,head,ghkYN)
+                        if cond > 0:
+                            log.debug('Testing Cond If {} {}', channame, c)
+                            calciumPermeable = chanparams.calciumPermeable
+                            addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
             #end for index
     #end for comp
     

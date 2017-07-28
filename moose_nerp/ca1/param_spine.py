@@ -17,7 +17,7 @@ SpineParams = _util.NamedDict(
     spineEREST = -80e-3,
     spineStart = 26.1e-6,
     spineEnd = 300e-6,
-    
+    spineParent = 'secdend11',
     spineChanList = [], #['CaL13']
    
 

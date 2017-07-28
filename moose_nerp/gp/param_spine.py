@@ -19,5 +19,5 @@ SpineParams = _util.NamedDict(
     spineEnd = 300e-6,
     spineChanList = [], #['CaL13']
 
-
+    spineParent = 'soma',
 )
