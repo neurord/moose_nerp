@@ -9,6 +9,8 @@ from .param_cond import (ghKluge,
 from .param_spine import SpineParams
 from .param_syn import (SYNAPSE_TYPES,
                         NumSyn)
+from .param_stim import Stimulation
+
 from . import param_ca_plas as CaPlasticityParams
 
 #calcium: include or exclude calcium concentration dynamics, single tau
