@@ -33,7 +33,11 @@ Paradigm
 which_spines
 spine_density
 pulse_sequence
-stim_delay''')
+stim_dendrites
+phasic_GABA
+phasic_GABA_delay
+stim_delay
+injection_compartment''')
                            
 Fino_Pre = ParadigmParams(PreStim=2, f_pulse=50., n_pulse=1, A_inject=0.38e-9, f_burst=1, n_burst=1, f_train=1, n_train=100, width_AP=0.030, AP_interval=0.01, n_AP=1, ISI=-0.010)
 Fino_Post = ParadigmParams(PreStim=2, f_pulse=50., n_pulse=1, A_inject=0.38e-9, f_burst=1, n_burst=1, f_train=1, n_train=100, width_AP=0.030, AP_interval=0.01, n_AP=1, ISI=-0.040)
@@ -61,4 +65,5 @@ Shen_Post = ParadigmParams(PreStim=2,f_pulse = 50., n_pulse = 1.,A_inject=1e-9, 
 TBS =  ParadigmParams(PreStim=2,f_pulse = 50., n_pulse = 4.,A_inject=.1e-9, f_burst=8, n_burst=10, f_train=0.1, n_train=1, width_AP=1.1, AP_interval=2., n_AP=1, ISI=0)
 
 
-Stimulation = StimParams(Paradigm = Fino_Pre,which_spines='all',spine_density = 0.2,stim_delay = 0.2)
+Stimulation = StimParams(Paradigm = Fino_Pre,which_spines='all',spine_density = 0.2,stim_delay = 0.2,pulse_sequence=None,
+                         stim_dendrites=['tertdend1_1'],phasic_GABA=0,phasic_GABA_delay=0.02,injection_compartment="soma")
