@@ -1,7 +1,7 @@
 import moose
 
 
-def make_generators(model,container,Stimulation):
+def MakeGenerators(container,Stimulation):
     
     StimParams = Stimulation.Paradigm
     pulse0 = moose.PulseGen(container+'/pulse0')
@@ -43,5 +43,65 @@ def make_generators(model,container,Stimulation):
     moose.connect(experiment_gate,'output',train_gate,'input')
 
     return [pulse0,burst_gate,train_gate,experiment_gate]
-   
-   
+
+def loop_through_spines(spines,time_tables,delay,StimParams):
+    for spine in spines:
+        if spine not in time_tables:
+            time_tables[spine] = []
+            
+        time_tables[spine].append(delay+i*1./StimParams.f_train+j*1./StimParams.f_burst+k*1./StimParams.f_pulse)
+
+def MakeTimeTables(Stimulation,spine_no):
+
+    StimParams = Stimulation.Paradigm
+       
+    if not StimParams.PreStim:
+        return
+
+    AP_delay = Stimulation.stim_delay+StimParams.ISI
+    delay = Stimulation.stim_delay
+    
+    time_tables = {}
+    if Stimulation.which_spines in ['all','ALL','All']:
+        how_many  = round(Stimulation.spine_density*spine_no)
+    elif Stimulation.which_spines:
+        how_many  = round(Stimulation.spine_density*len(Stimulation.which_spines))
+    for i in range(StimParams.n_trains):
+        for j in range(StimParams.n_bursts):
+            for k in range(StimParam.n_pulses):
+                if Stimulation.spine_sequence:
+                    spines = Stimulation.spine_sequence[k]
+                    loop_through_spines(spines,time_tables,delay,StimParams)
+
+                elif Stimulation.which_spines in ['all','ALL','All']:
+                    spines = []
+                    how_man_spines = 0
+                    while True:
+                        spine = randint(0,spine_no-1)
+                        if spine not in spines:
+                            spines.append(spine)
+                            how_many_spines += 1
+                            if how_many_spines == how_many:
+                                break
+                    
+                    loop_through_spines(spines,time_tables,delay,StimParams)
+                        
+                elif  Stimulation.which_spines:
+                    spines = []
+                    how_man_spines = 0
+                    while True:
+                        r = randint(0,len(Stimulation.which_spines)-1)
+                        spine = Stimulation.which_spines[r]
+                        if spine not in spines:
+                            spines.append(spine)
+                            how_many_spines += 1
+                            if how_many_spines == how_many:
+                                break
+                        
+                    loop_through_spines(spines,time_tables,delay,StimParams)
+                    
+        return timetables
+    
+def StimulationHookUp(model):
+
+    pass
