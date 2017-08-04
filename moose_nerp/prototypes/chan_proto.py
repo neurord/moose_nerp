@@ -199,17 +199,87 @@ def BKchan_proto(model, chanpath, params):
     return chan
 #Channels (model.py) includes channel function name in the dictionary
 
+def Gates_from_file_proto(model, chanpath,params):
+    data = np.loadtxt(params.fname)
+    log.info("{}: {}", chanpath, params)
+    chan = moose.HHChannel(chanpath)
+    chan.Xpower = params.channel.Xpow
+    if params.channel.Xpow > 0:
+        xGate = moose.HHGate(chan.path + '/gateX')
+        if params.X:
+            xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.X, xGate)
+        else:
+            xGate.min = data[0,0]
+            xGate.max = data[-1,0]
+            xGate.divs = len(data[:,0])
+            xGate.tableA = data[:,1]
+            xGate.tableB = data[:,1]+data[:,2]
+            
+    if params.channel.Ypow > 0:
+        yGate = moose.HHGate(chan.path + '/gateY')
+        if params.Y:
+            yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.Y, yGate)
+        else:
+            xGate.min = data[0,0]
+            xGate.max = data[-1,0]
+            xGate.divs = len(data[:,0])
+            xGate.tableA = data[:,3]
+            xGate.tableB = data[:,3]+data[:,4]
+    
+    if params.channel.Zpow > 0:
+        chan.Zpower = params.channel.Zpow
+
+        zGate = moose.HHGate(chan.path + '/gateZ')
+        if params.Z.__class__==ZChannelParams:
+            #
+            ca_array = np.linspace(model.CAMIN, model.CAMAX, model.CADIVS)
+            zGate.min = model.CAMIN
+            zGate.max = model.CAMAX
+            caterm = (ca_array/params.Z.Kd) ** params.Z.power
+            inf_z = caterm / (1 + caterm)
+            if params.Z.taumax>0:
+                tauterm=(ca_array/params.Z.cahalf)**params.Z.kdtau
+                taumax_z=(params.Z.taumax-params.Z.tau)/(1+tauterm)
+                taumin_z= params.Z.tau * np.ones(len(ca_array))
+                tau_z = taumin_z+taumax_z
+            else:
+                tau_z = params.Z.tau * np.ones(len(ca_array))
+            #
+            zGate.tableA = inf_z / tau_z
+            zGate.tableB = 1 / tau_z
+            chan.useConcentration = True
+        else:
+            zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.Z, zGate)
+            chan.useConcentration = False
+            
+    chan.Ek = params.channel.Erev
+    return chan
+    
+    
+
+
+
+
+
+    
+
 TypicalOneDalpha = NamedList('TypicalOneDalpha',
                              '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
 AtypicalOneD     = NamedList('AtypicalOneD',
                              '''channel X Y      calciumPermeable=False calciumDependent=False''')
 TwoD             = NamedList('TwoD',
                              '''channel X        calciumPermeable=False calciumDependent=False''')
+Untypical = NamedList('UntypicalOneD',
+                             '''channel X=[] Y=[] Z=[] calciumPermeable=False calciumDependent=False fname=None ''')
 
 _FUNCTIONS = {
     TypicalOneDalpha: chan_proto,
     AtypicalOneD: NaFchan_proto,
     TwoD: BKchan_proto,
+    Untypical: Gates_from_file_proto,
 }
 
 def make_channel(model, chanpath, params):

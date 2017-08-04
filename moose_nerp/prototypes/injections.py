@@ -136,12 +136,7 @@ def HookUpDend(model,dendrite,path):
         for synapse in synapses[spine]:
             synchan = moose.element(synapse)
             connect.plain_synconn(synchan,stimtab[spine],0)
-            #      print(synchan)
-            #         shname = synchan.path+'/SH'
-            #         sh = moose.SimpleSynHandler(shname)
-            # if sh.synapse.num==0:
-            #     moose.connect(sh, 'activationOut', synchan, 'activation')
-            #         moose.connect(stimtab[spine], 'eventOut',synchan, 'addSpike')
+
 
     
 
