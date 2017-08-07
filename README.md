@@ -14,6 +14,9 @@ from a python window, run using the command:
 
   `import moose_nerp.d1d2.__main__`
 
+to evaluate variables created in __main__, use the following syntax:
+   `moose_nerp.d1d2.__main__.variable_name`
+
 **Files in each package**
 
 1. `param_chan.py`: parameters governing channel gating
