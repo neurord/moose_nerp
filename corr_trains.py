@@ -130,6 +130,7 @@ if (corr==2):
         print ("num trains:", shape(spikeTime))
 
 ################Save the spike times array#############
+##### Probably could just save to plain text file  ####
 savez(fname, spikeTime=spikeTime)
 
 ################ Created jittered version of spike times

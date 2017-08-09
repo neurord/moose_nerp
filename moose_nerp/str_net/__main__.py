@@ -41,8 +41,8 @@ log = logutil.Logger()
 #################################-----------create the model
 #overrides:
 d1d2.synYN = True
-d1d2.calYN = True
 d1d2.plasYN = False
+str_net.single=False
 
 ##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
@@ -106,9 +106,9 @@ for inj in param_sim.injection_current:
     else: 
         if str_net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
-        net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
+            net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
 
 if str_net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-# block in non-interactive mode
+    # block in non-interactive mode
 util.block_if_noninteractive()
