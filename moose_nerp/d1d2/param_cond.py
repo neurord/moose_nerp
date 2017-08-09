@@ -87,22 +87,6 @@ _D2 = _util.NamedDict(
     BKCa = {prox:10, med: 10, dist: 10},
 )
 
-chanvar = _util.NamedDict(
-    'chanvar',
-    Krp = 0.04,
-    KaF = 0.04,
-    KaS = 0.04,
-    Kir = 0.04,
-    CaL13 = 0.04,
-    CaL12 = 0.04,
-    CaR = 0.04,
-    CaN = 0.04,
-    CaT = 0.04,
-    NaF = 0.0,
-    BKCa = 0.04,
-    SKCa = 0.04,
-)
-
 Condset  = _util.NamedDict(
     'Condset',
     D1 = _D1,

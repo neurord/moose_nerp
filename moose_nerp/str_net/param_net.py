@@ -2,6 +2,7 @@
 ####################### Populations
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.ttables import TableSet
+from moose_nerp.prototypes import util as _util
 
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
@@ -21,6 +22,22 @@ D1pop=neur_distr(neuronname='D1', spacing=grid,percent=0.49)
 D2pop=neur_distr(neuronname='D2', spacing=grid,percent=0.49)
 FSIpop=neur_distr(neuronname='FSI', spacing=grid,percent=0.02)
 pop_dict={'D1':D1pop,'D2': D2pop, 'FSI': FSIpop}
+
+chanvarSPN = {
+    'Krp': 0.04,
+    'KaF': 0.04,
+    'KaS': 0.04,
+    'Kir': 0.04,
+    'CaL13': 0.04,
+    'CaL12': 0.04,
+    'CaR': 0.04,
+    'CaN': 0.04,
+    'CaT': 0.04,
+    'NaF': 0.0,
+    'BKCa': 0.04,
+    'SKCa': 0.04,
+}
+chanvar={'D1':chanvarSPN, 'D2':chanvarSPN}
 
 ####################### Connections
 connect=NamedList('connect','synapse pre post space_const=None probability=None')

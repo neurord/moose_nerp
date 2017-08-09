@@ -73,22 +73,6 @@ _arky = _util.NamedDict(
     BKCa={prox: 200, dist: 200, axon: 0},
 )
 
-chanvar = _util.NamedDict(
-    'chanvar',
-    KDr=0.04,
-    Kv3=0.04,
-    KvF=0.04,
-    Kvs=0.04,
-    NaF=0.0,
-    HCN1=0.04,
-    HCN2=0.04,
-    KCNQ=0.04,
-    NaS = 0.04,
-    SKCa= 0.04,
-    Ca = 0.04,
-    BKCa=0.04
-)
-
 Condset  = _util.NamedDict(
     'Condset',
     proto = _proto,
