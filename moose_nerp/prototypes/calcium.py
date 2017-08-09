@@ -71,7 +71,7 @@ def difshell_geometry(comp, shell_params):
             
             res.append([new_rad*multiplier,new_thick])
             new_rad = new_rad - new_thick
-            new_thick = shell_params.outershell_thickness+shell_params.outershell_thickness*shell_params.thickness_increase**i
+            new_thick = shell_params.outershell_thickness*shell_params.thickness_increase**i
             i = i+1
             
         res.append([new_rad*multiplier,new_rad])
