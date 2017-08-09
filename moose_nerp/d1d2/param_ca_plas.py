@@ -46,14 +46,20 @@ ThicknessIncreaseMode
 MinThickness
 ''')
 
+############################################
 #intrinsic calcium params
-CalciumParams = CellCalcium(CaName='Shells',Ceq=50e-6,DCa=200e-12,tau=20e-3)
+#diffusion constant from Allbritton et al.1992.  Tau is used only if using single time constant of decay instead of pumps and buffers
+CaBasal = 50e-6
+CalciumParams = CellCalcium(CaName='Shells',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
 
 #shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
 #increase_mode linear = 0, geometric = 1
 
-#Buffer params
+#################################
+#kinetic parameters of various calcium Buffers / indicators
+#Calbindin binding rates from Schmidt et al. 2007 J Physiol
 calbindin = BufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
+#Calmodulin binding rates from Brown SE, Martin SR, Bayley PM (1997) J Biol Chem and Putkey JA, Kleerekoper Q, Gaertner TR, Waxham MN (2003) J Biol Chem
 camc = BufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
 camn = BufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
 fixed_buffer = BufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
@@ -65,18 +71,22 @@ Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11)
 #Buffer params dictionary
 BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
 
-#Pump params
+####################################################
+#Kinetic parameters for calcium extrusion (pump) mechanisms
+#PMCA (mmpump) Km from sedova, Blatter 1999 cell calcium, Km=150-320
 MMPump = PumpParams('MMpump',Kd=0.3e-3)
+#NCX affinity from Gall et al. 1999 Biophys J, Km=1.5 uM
 NCX = PumpParams("NCX",Kd=1e-3)
 
 #Pump params dictionary
 PumpKm = {'MMPump':MMPump,'NCX':NCX}
 
+##################### VARY THESE PARAMETERS TO CONTROL CALCIUM DYNAMICS #############
 #dye used in simulations
 which_dye = "no_dye"
-CaBasal = 50e-6
-
-#possible dye sets used in experiments
+#Quantity of calcium buffers.  "no_dye" is specifies the exogenous buffer quantity. 
+#Other possible dye sets are for replicating calcium imaging experiments, and assume the diffusible buffers are dialyzed
+#Quantities of calcium indicators taken directly from experimental papers
 BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
                "Fura_2":{'Fura2':100e-3,'FixedBuffer':1},
                "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':1},
@@ -85,10 +95,12 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
                "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
                "no_buffers":{}
     }
-#Pump Vmax
+#Pump Vmax, NCX distribution from Lorincz et al. 2007 PNAS
 PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
 PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
+
+##########################################################
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
 #Pump density specification -- used with diffshells
@@ -97,15 +109,20 @@ PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxSpine}
 BufferCapacityDensity = {soma:20.,dend:20.}
 
 #Ca dynamics specification
+#CAPOOL implements single time constant of Ca decay, 
+#SHELL subdivides dendrite in cylinderical sheels, with diffusion between outer/submembrane shell and central core
+#SLAB subdivides spines (or dendrite) into slices, with diffusion in the axial dimension
 CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 
+#Specificy the size of the smaller calcium compartments
+#When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
 head_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.06e-6)
 neck_shape = ShapeParams(OutershellThickness=.12e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
 
 ShapeConfig = {everything:tree_shape,heads:head_shape,necks:neck_shape}
 
-
+#################### Plasticity ##########################
 #These thresholds are applied to calcium concentration
 ##Note that these must be much larger if there are spines
 PlasParams = NamedList('PlasParams','''
