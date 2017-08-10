@@ -27,7 +27,7 @@ from moose_nerp.prototypes.chan_proto import (
 #Parameters for Ca channels may need to be shifted - see Dorman model
 krev=-90e-3
 narev=50e-3
-carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
+carev=140e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
 
 VMIN = -120e-3
@@ -189,16 +189,17 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 10.*qfactKaS,
 #CaL12 does not differ between D1 and D2.
 CaL12param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL12')
 qfactCaL = 2
-CaL12_X_params = AlphaBetaChannelParams(A_rate = 100*qfactCaL,
-                                        A_B = 2040*qfactCaL,
-                                        A_C = 0,
-                                        Avhalf = 40.003e-3,
-                                        A_vslope = -21.4e-3,
-                                        B_rate = 20*qfactCaL,
-                                        B_B = -600*qfactCaL,
-                                        B_C = 0.0,
-                                        Bvhalf = -41.667e-3,
-                                        B_vslope = 19.3e-3)
+CaL12_X_params =AlphaBetaChannelParams(A_rate = -880*qfactCaL,
+                                         A_B = -220e3*qfactCaL,
+                                         A_C = -1.0,
+                                         Avhalf = 4.0003e-3,
+                                         A_vslope = -8e-3,
+                                         B_rate = -284*qfactCaL,
+                                         B_B = 71e3*qfactCaL,
+                                         B_C = -1.0,
+                                         Bvhalf = -4.0003e-3,
+                                         B_vslope = 5e-3)
+ 
 
 CaL12_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
                                         T_max = 0,
@@ -212,17 +213,17 @@ CaL12_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
 # Using Xpow=1 produced too high a basal calcium,
 # so used Xpow=2 and retuned params - much better basal calcium
 CaL13param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL13')
-CaL13_X_params = AlphaBetaChannelParams(A_rate = 132*qfactCaL,
-                                        A_B = 2050*qfactCaL,
-                                        A_C = 0,
-                                        Avhalf = 60e-3,
-                                        A_vslope = -10.0e-3,
-                                        B_rate =  0*qfactCaL,
-                                        B_B = -250*qfactCaL,
-                                        B_C = 0.0,
-                                        Bvhalf = -100e-3,
-                                        B_vslope = 39e-3)
 
+CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
+                                        A_B = 0*qfactCaL,
+                                        A_C = 1,
+                                        Avhalf =- 5.e-3,
+                                        A_vslope = -18e-3,
+                                        B_rate = 2000*qfactCaL,
+                                        B_B = 0*qfactCaL,
+                                        B_C = 1.0,
+                                        Bvhalf = 52.e-3,
+                                        B_vslope = 8.e-3)
 CaL13_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
                                        T_max = 0,
                                         Tvhalf = 37.0e-3,
@@ -263,12 +264,12 @@ CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
 #McNaughton has act and inact, tau and ss for human CaN
 CaNparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaN')
 qfactCaN = 2
-CaN_X_params = AlphaBetaChannelParams(A_rate = 304.2*qfactCaN,
+CaN_X_params = AlphaBetaChannelParams(A_rate = 304*qfactCaN,
                                       A_B = 0,
                                       A_C = 0.0,
                                       Avhalf = 0.0,
                                       A_vslope = -14.0e-3,
-                                      B_rate = 749*qfactCaN,
+                                      B_rate = 750*qfactCaN,
                                       B_B = 52800*qfactCaN,
                                       B_C = -1.0,
                                       Bvhalf = 14.20003e-3,
@@ -309,7 +310,7 @@ CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100,
                                       B_B = 0,
                                       B_C = 0.0,
                                       Bvhalf = 0.0,
-                                      B_vslope = -35.0e-3)
+                                      B_vslope = -30.0e-3)
 
 #Reference: Maylie Bond Herson Lee Adelman 2004, Fig 2 steady state
 #Fast component has tau~4 ms; not used: slow tau = 70 ms
@@ -344,7 +345,7 @@ Channels = NamedDict(
     KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),
     Kir =   TypicalOneDalpha(Kirparam,  Kir_X_params, []),
     CaL12 = TypicalOneDalpha(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params, CaL13_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True),
     CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True),
     CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
     CaT =   TypicalOneDalpha(CaTparam,CaT_X_params, CaT_Y_params, [], calciumPermeable=True),

@@ -78,7 +78,7 @@ _D1 = _util.NamedDict(
     CaR = {soma:3*ghKluge,prox: 3*ghKluge,med: 5*ghKluge,dist: 5*ghKluge,spine:3.25*ghKluge},
     CaN = {soma:1.0e-1*ghKluge, dend:0},
     CaT = {soma:0,prox:0.0*ghKluge, med: 1*ghKluge, dist: 1*ghKluge,spine:.65*ghKluge},
-    NaF = {soma:460e3,prox:2600, med: 2600, dist: 0},
+    NaF = {soma:46e3,prox:2600, med: 2600, dist: 0},
     SKCa = {entire:1},
     BKCa = {entire:8}
 )
@@ -99,21 +99,7 @@ _D2 = _util.NamedDict(
     BKCa = {prox:10, med: 10, dist: 10},
 )
 
-chanvar = _util.NamedDict(
-    'chanvar',
-    Krp = 0.04,
-    KaF = 0.04,
-    KaS = 0.04,
-    Kir = 0.04,
-    CaL13 = 0.04,
-    CaL12 = 0.04,
-    CaR = 0.04,
-    CaN = 0.04,
-    CaT = 0.04,
-    NaF = 0.0,
-    BKCa = 0.04,
-    SKCa = 0.04,
-)
+
 
 Condset  = _util.NamedDict(
     'Condset',
