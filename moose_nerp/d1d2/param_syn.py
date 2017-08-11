@@ -1,5 +1,5 @@
 from moose_nerp.prototypes.util import NamedList, NamedDict
-from moose_nerp.prototypes.syn_proto import SynChannelParams, MgParams
+from moose_nerp.prototypes.syn_proto import SynChannelParams, MgParams, DesensitizationParams
 
 from . import param_cond
 
@@ -13,6 +13,7 @@ from . import param_cond
 #Classic (allows significant calcium at resting potential):
 #mgparams={'A':(1/3.57), 'B':(1/62.0), 'C': 1.4}
 #Intermediate
+desenYN =  0
 _NMDA_MgParams = MgParams(A = 1/18.0,
                            B = 1/99.0,
                            C = 1.4)
@@ -60,11 +61,13 @@ SYNAPSE_TYPES = NamedDict(
     gaba = _SynGaba,
     nmda = _SynNMDA,
 )
+DesensitizationParams = NamedDict('Synapse_desensitization',gaba = None, nmda=None, ampa=DesensitizationParams(dep_per_spike=0.39,dep_tau=0.8))
 
 #These will be used by synconn in connect.py, since AMPA and NMDA synapses usually go together
 #for same reason, the next lines only list ampa and gaba, and nmda are created the same as ampa
 NAME_AMPA='ampa'
 NAME_NMDA='nmda'
+
 
 # number of synapses at each distance
 _gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
@@ -72,3 +75,4 @@ _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
 NumSyn={'gaba':_gaba,
         'ampa':_ampa}
+

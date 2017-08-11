@@ -1,7 +1,7 @@
 import moose
 import numpy as np
 import random
-from moose_nerp.prototypes import connect
+from moose_nerp.prototypes import connect, plasticity, util, spines
 
 def MakeGenerators(container,Stimulation):
  
@@ -58,8 +58,8 @@ def MakeGenerators(container,Stimulation):
 
     return [pulse0,burst_gate,train_gate,experiment_gate]
 
-def loop_through_spines(i,j,k,spines,time_tables,delay,StimParams):
-    for spine in spines:
+def loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams):
+    for spine in my_spines:
         if spine not in time_tables:
             time_tables[spine] = []
             
@@ -84,49 +84,49 @@ def MakeTimeTables(Stimulation,spine_no):
         for j in range(StimParams.n_burst):
             for k in range(StimParams.n_pulse):
                 if Stimulation.pulse_sequence:
-                    spines = Stimulation.pulse_sequence[k]
-                    loop_through_spines(i,j,k,spines,time_tables,delay,StimParams)
+                    my_spines = Stimulation.pulse_sequence[k]
+                    loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams)
 
                 elif Stimulation.which_spines in ['all','ALL','All']:
-                    spines = []
+                    my_spines = []
                     how_many_spines = 0
                     while True:
                         spine = random.randint(0,spine_no-1)
-                        if spine not in spines:
-                            spines.append(spine)
+                        if spine not in my_spines:
+                            my_spines.append(spine)
                             how_many_spines += 1
                             if how_many_spines == how_many:
                                 break
 
-                    loop_through_spines(i,j,k,spines,time_tables,delay,StimParams)
+                    loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams)
                         
                 elif  Stimulation.which_spines:
-                    spines = []
+                    my_spines = []
                     how_many_spines = 0
                     while True:
                         r = random.randint(0,len(Stimulation.which_spines)-1)
                         spine = Stimulation.which_spines[r]
-                        if spine not in spines:
-                            spines.append(spine)
+                        if spine not in my_spines:
+                            my_spines.append(spine)
                             how_many_spines += 1
                             if how_many_spines == how_many:
                                 break
                     
-                    loop_through_spines(i,j,k,spines,time_tables,delay,StimParams)
+                    loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams)
                     
     return time_tables
     
 def HookUpDend(model,dendrite,container):
     
     #for dend in model.Stimulation.StimParams.which_dendrites:
-    spines = list(set(moose.element(dendrite).neighbors['handleAxial']).intersection(set(moose.element(dendrite).children)))
-    spine_no = len(spines)
+    my_spines = list(set(moose.element(dendrite).neighbors['handleAxial']).intersection(set(moose.element(dendrite).children)))
+    spine_no = len(my_spines)
     
     if not spine_no:
         return
 
     synapses = {}
-    for spine in spines:
+    for spine in my_spines:
         spine_no = int(''.join(c for c in spine.name if c.isdigit()))
         synapses[spine_no] = []
         heads = moose.element(spine).neighbors['handleAxial']
@@ -140,17 +140,26 @@ def HookUpDend(model,dendrite,container):
     time_tables = MakeTimeTables(model.Stimulation,spine_no)
     stimtab = {}
  
-   
+    stim_synapses = {}
     for spine in time_tables:
         stimtab[spine] = moose.TimeTable('%s/TimTab%s_%s' % (container.path, dendrite.name,str(spine)))
         stimtab[spine].vector = np.array(time_tables[spine])
+
         
+
         for synapse in synapses[spine]:
             synchan = moose.element(synapse)
             connect.plain_synconn(synchan,stimtab[spine],0)
-
-
-    print(time_tables)    
+            synname = util.syn_name(synchan.path, spines.NAME_HEAD)
+      
+            if model.DesensitizationParams[synchan.name]:
+                dep,weight = plasticity.desensitization(synchan, model.DesensitizationParams[synchan.name])
+                stim_synapses[synname] = {}
+                stim_synapses[synname]['plas'] = dep
+                stim_synapses[synname]['cum'] = weight
+                stim_synapses[synname]['syn'] = synchan
+    
+    return stim_synapses
 
 def ConnectPreSynapticPostSynapticStimulation(model,ntype):
     container_name = '/input'
@@ -163,12 +172,15 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
         injectcomp = '/'+ntype+'/'+model.Stimulation.injection_compartment
         moose.connect(pg[0], 'output', injectcomp, 'injectMsg')
 
+    stim_spines = {}
     for dend in model.Stimulation.stim_dendrites:
         name_dend = '/'+ntype+'/'+dend
         dendrite = moose.element(name_dend)
-        HookUpDend(model,dendrite,container)
+        new_spines = HookUpDend(model,dendrite,container)
+        stim_spines.update(new_spines)
+
         
     if SP.A_inject:
-        return exp_duration,pg
+        return exp_duration,stim_spines,pg
     
-    return exp_duration
+    return exp_duration,stim_spines, None
