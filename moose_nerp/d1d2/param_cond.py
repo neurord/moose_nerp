@@ -11,7 +11,7 @@ from moose_nerp.prototypes import util as _util
 if False: # param_sim.Config['ghkYN']:
     ghKluge= 0.35e-7
 else:
-    ghKluge= 1
+    ghKluge= 0.35
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 ConcOut=2e-3     # default for GHK is 2e-3
