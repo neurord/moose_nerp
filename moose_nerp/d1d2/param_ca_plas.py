@@ -1,5 +1,6 @@
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
+from moose_nerp.prototypes.calcium import SingleBufferParams, PumpParams, CellCalcium, ShapeParams
 
 #definitions
 CAPOOL = -1 #single time constant of decay
@@ -19,32 +20,6 @@ necks = (0.,1.,'neck')
 GEOMETRIC = 1
 LINEAR = 0
 
-BufferParams = NamedList('BufferParams','''
-Name
-kf
-kb
-D''')
-
-PumpParams = NamedList('PumpParams','''
-Name
-Kd
-''')
-
-
-
-CellCalcium = NamedList('CellCalcium','''
-CaName
-Ceq
-DCa
-tau
-''')
-
-ShapeParams = NamedList('ShapeParams','''
-OutershellThickness
-ThicknessIncreaseFactor
-ThicknessIncreaseMode
-MinThickness
-''')
 
 ############################################
 #intrinsic calcium params
@@ -54,6 +29,7 @@ CalciumParams = CellCalcium(CaName='Shells',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
 
 #shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
 #increase_mode linear = 0, geometric = 1
+
 
 #################################
 #kinetic parameters of various calcium Buffers / indicators
@@ -84,17 +60,23 @@ PumpKm = {'MMPump':MMPump,'NCX':NCX}
 ##################### VARY THESE PARAMETERS TO CONTROL CALCIUM DYNAMICS #############
 #dye used in simulations
 which_dye = "no_dye"
+
 #Quantity of calcium buffers.  "no_dye" is specifies the exogenous buffer quantity. 
 #Other possible dye sets are for replicating calcium imaging experiments, and assume the diffusible buffers are dialyzed
 #Quantities of calcium indicators taken directly from experimental papers
-BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
-               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1},
+
+CaBasal = 50e-6
+
+#possible dye sets used in experiments
+BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1}, #endogenous immobile low affinity buffer (e.g. see Matthews, Scoch, & Dietrich, J. Neuro, 2013 (hippocampus))
+               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1}, #Kerr
                "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':1},
-               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1},
-               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1},
+               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1}, #Plotkin use 100uM or 200
+               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1}, #500 uM used by Plotkin
                "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
                "no_buffers":{}
     }
+
 #Pump Vmax, NCX distribution from Lorincz et al. 2007 PNAS
 PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
@@ -118,7 +100,7 @@ CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
 head_shape = ShapeParams(OutershellThickness=.07e-6,ThicknessIncreaseFactor=2.,ThicknessIncreaseMode=LINEAR,MinThickness=.06e-6)
-neck_shape = ShapeParams(OutershellThickness=.12e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
+neck_shape = ShapeParams(OutershellThickness=.1667e-6,ThicknessIncreaseFactor=1.,ThicknessIncreaseMode=LINEAR,MinThickness=.13e-6)
 
 ShapeConfig = {everything:tree_shape,heads:head_shape,necks:neck_shape}
 
