@@ -1,6 +1,6 @@
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
-from moose_nerp.prototypes.calcium import SingleBufferParams, PumpParams, CellCalcium, ShapeParams
+from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, PumpParams, CellCalcium, ShapeParams
 
 #definitions
 CAPOOL = -1 #single time constant of decay
