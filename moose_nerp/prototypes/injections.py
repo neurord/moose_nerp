@@ -1,7 +1,44 @@
 import moose
 import numpy as np
 import random
+from moose_nerp.prototypes.util import NamedList
+from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes import connect, plasticity, util, spines
+
+
+ParadigmParams = NamedList('ParadigmParams','''
+PreStim
+f_pulse
+n_pulse
+A_inject
+f_burst
+n_burst
+f_train
+n_train
+width_AP
+AP_interval
+n_AP
+ISI
+name''')
+
+'''
+which_spines -- which spines get stimulated.
+If 'all' -- spines are randomly chosen with a probability of spine_density
+if a sequencea list -- stimulated spines are randomly chosen from the list
+stim_delay -- delay of the stimulation onset
+pulse_sequence -- which spine gets which pulses
+'''
+
+StimParams = NamedList('PresynapticStimulation','''
+Paradigm
+which_spines
+spine_density
+pulse_sequence
+stim_dendrites
+phasic_GABA
+phasic_GABA_delay
+stim_delay''')
+                          
 
 def MakeGenerators(container,Stimulation):
  
@@ -169,7 +206,7 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
     
     if SP.A_inject:
         pg = MakeGenerators(container,model.Stimulation)
-        injectcomp = '/'+ntype+'/'+model.Stimulation.injection_compartment
+        injectcomp = '/'+ntype+'/'+model.param_cond.NAME_SOMA
         moose.connect(pg[0], 'output', injectcomp, 'injectMsg')
 
     stim_spines = {}
