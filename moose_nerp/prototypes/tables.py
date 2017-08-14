@@ -1,5 +1,4 @@
 from __future__ import print_function, division
-
 import moose
 import numpy as np
 
@@ -52,6 +51,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
                         NAME_CALCIUM = child.name
+                        
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
                
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
@@ -74,9 +74,11 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     #
     # synaptic weight and plasticity (Optional) for one synapse per neuron
     plastab=[]
-    if len(plas):
-        for num,neur_type in enumerate(plas.keys()):
-            plastab.append(add_one_table(DATA_NAME,plas[neur_type],neur_type))
+    
+    for num,neur_type in enumerate(plas.keys()):
+        if len(plas[neur_type]):
+            for comp_name in plas[neur_type]:
+                plastab.append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
     return vmtab,catab,plastab,currtab
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):
@@ -85,6 +87,7 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
     plastab=moose.Table(DATA_NAME+'/plas' + comp_name)
     plasCumtab=moose.Table(DATA_NAME+'/cum' + comp_name)
     syntab=moose.Table(DATA_NAME+'/syn' + comp_name)
+    print(plas_entry)
     moose.connect(plastab, 'requestOut', plas_entry['plas'], 'getValue')
     moose.connect(plasCumtab, 'requestOut', plas_entry['cum'], 'getValue')
     shname=plas_entry['syn'].path+'/SH'

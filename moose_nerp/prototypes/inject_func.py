@@ -106,9 +106,6 @@ def MakeTimeTables(Stimulation,spine_no):
 
     StimParams = Stimulation.Paradigm
 
-    if not StimParams.PreStim:
-        return
-
     delay = Stimulation.stim_delay
 
     time_tables = {}

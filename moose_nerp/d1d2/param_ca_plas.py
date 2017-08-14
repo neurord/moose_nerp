@@ -34,15 +34,15 @@ CalciumParams = CellCalcium(CaName='Shells',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
 #################################
 #kinetic parameters of various calcium Buffers / indicators
 #Calbindin binding rates from Schmidt et al. 2007 J Physiol
-calbindin = BufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
+calbindin = SingleBufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
 #Calmodulin binding rates from Brown SE, Martin SR, Bayley PM (1997) J Biol Chem and Putkey JA, Kleerekoper Q, Gaertner TR, Waxham MN (2003) J Biol Chem
-camc = BufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
-camn = BufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
-fixed_buffer = BufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
-Fura2 = BufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
-Fluo5F = BufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4 = BufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
+camc = SingleBufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
+camn = SingleBufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
+fixed_buffer = SingleBufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
+Fura2 = SingleBufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
+Fluo5F = SingleBufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4 = SingleBufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4FF = SingleBufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
 
 #Buffer params dictionary
 BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)

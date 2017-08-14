@@ -5,12 +5,36 @@ from __future__ import print_function, division
 import os
 import re
 import moose
+import numpy as np
 
 from moose_nerp.prototypes import logutil, util, spines
 
 log = logutil.Logger()
 NAME_PLAS='/plas'
 NAME_CUM='Cum'
+
+def desensitization(synchan,SynParams):
+    sh = moose.element(synchan).children[0]
+    
+    deppath = synchan.path +'/dep'
+    weightpath = synchan.path +'/weight'
+    dep = moose.Func(deppath)
+    weight = moose.Func(weightpath)
+
+    help_dep = moose.Func(deppath+"/help")
+
+    dep_const = np.exp(-synchan.dt/SynParams.dep_tau)
+    dep.expr = "x*"+str(dep_const)+"+y*"+str(SynParams.dep_per_spike)
+       
+    help_dep.expr = "x"
+    weight.expr = "(1./(1+x))/"+str(synchan.dt)
+
+    moose.connect(dep,"valueOut",weight,"xIn")
+    moose.connect(sh,'activationOut',dep,'yIn')
+    moose.connect(dep,'valueOut',help_dep,'xIn')
+    moose.connect(help_dep,'valueOut',dep,'xIn')
+    moose.connect(weight,"valueOut",synchan,'activation')
+    return dep, weight
 
 def plasticity(synchan,plas_params):
 
@@ -83,4 +107,5 @@ def addPlasticity(cell_pop,caplas_params):
                 log.debug("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
                 synname = util.syn_name(synchan.path, spines.NAME_HEAD)
                 plascum[cell][synname] = plasticity(synchan, caplas_params.Plas_syn)
+  
     return plascum
