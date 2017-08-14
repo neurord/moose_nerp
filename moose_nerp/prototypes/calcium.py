@@ -14,6 +14,32 @@ outershell_thickness
 thickness_increase
 min_thickness
 ''')
+SingleBufferParams = NamedList('SingleBufferParams','''
+Name
+kf
+kb
+D''')
+
+PumpParams = NamedList('PumpParams','''
+Name
+Kd
+''')
+
+
+
+CellCalcium = NamedList('CellCalcium','''
+CaName
+Ceq
+DCa
+tau
+''')
+
+ShapeParams = NamedList('ShapeParams','''
+OutershellThickness
+ThicknessIncreaseFactor
+ThicknessIncreaseMode
+MinThickness
+''')
 
 
 log = logutil.Logger()
@@ -283,7 +309,6 @@ def addPumps(dShell,PumpKm,Pumps,surface):
         leak += p.Vmax*dShell.Ceq/shell_volume(dShell)/(dShell.Ceq+p.Kd)
         
     dShell.leak = leak
-
 
 def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
     #create the calcium pools in each compartment

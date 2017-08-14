@@ -1,5 +1,6 @@
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
+from moose_nerp.prototypes.calcium import SingleBufferParams, PumpParams, CellCalcium, ShapeParams
 
 #definitions
 CAPOOL = -1 #single time constant of decay
@@ -19,32 +20,6 @@ necks = (0.,1.,'neck')
 GEOMETRIC = 1
 LINEAR = 0
 
-BufferParams = NamedList('BufferParams','''
-Name
-kf
-kb
-D''')
-
-PumpParams = NamedList('PumpParams','''
-Name
-Kd
-''')
-
-
-
-CellCalcium = NamedList('CellCalcium','''
-CaName
-Ceq
-DCa
-tau
-''')
-
-ShapeParams = NamedList('ShapeParams','''
-OutershellThickness
-ThicknessIncreaseFactor
-ThicknessIncreaseMode
-MinThickness
-''')
 
 #intrinsic calcium params
 CalciumParams = CellCalcium(CaName='Shells',Ceq=50e-6,DCa=200e-12,tau=20e-3)
@@ -53,14 +28,14 @@ CalciumParams = CellCalcium(CaName='Shells',Ceq=50e-6,DCa=200e-12,tau=20e-3)
 #increase_mode linear = 0, geometric = 1
 
 #Buffer params
-calbindin = BufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
-camc = BufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
-camn = BufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
-fixed_buffer = BufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
-Fura2 = BufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
-Fluo5F = BufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4 = BufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4FF = BufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
+calbindin = SingleBufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
+camc = SingleBufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
+camn = SingleBufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
+fixed_buffer = SingleBufferParams('Fixed_SingleBuffer',  kf=0.4e6, kb=20e3, D=0) 
+Fura2 = SingleBufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
+Fluo5F = SingleBufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4 = SingleBufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
+Fluo4FF = SingleBufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
 
 #Buffer params dictionary
 BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
@@ -77,11 +52,11 @@ which_dye = "no_dye"
 CaBasal = 50e-6
 
 #possible dye sets used in experiments
-BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1},
-               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1},
+BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1}, #endogenous immobile low affinity buffer (e.g. see Matthews, Scoch, & Dietrich, J. Neuro, 2013 (hippocampus))
+               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1}, #Kerr
                "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':1},
-               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1},
-               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1},
+               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1}, #Plotkin use 100uM or 200
+               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1}, #500 uM used by Plotkin
                "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
                "no_buffers":{}
     }
