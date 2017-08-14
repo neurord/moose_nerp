@@ -1,5 +1,5 @@
 from moose_nerp.prototypes.util import NamedList, NamedDict
-from moose_nerp.prototypes.syn_proto import SynChannelParams, MgParams
+from moose_nerp.prototypes.syn_proto import SynChannelParams, MgParams, DesensitizationParams
 
 from . import param_cond
 
@@ -13,8 +13,9 @@ from . import param_cond
 #Classic (allows significant calcium at resting potential):
 #mgparams={'A':(1/3.57), 'B':(1/62.0), 'C': 1.4}
 #Intermediate
-_NMDA_MgParams = MgParams(A = 1/6.0,
-                           B = 1/80.0,
+desenYN =  0
+_NMDA_MgParams = MgParams(A = 1/18.0,
+                           B = 1/99.0,
                            C = 1.4)
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
@@ -22,12 +23,22 @@ _SynGaba = SynChannelParams(Erev = -60e-3,
                              tau1 = 0.25e-3,
                              tau2 = 3.75e-3,
                              Gbar = 0.2e-9,
+                            nmdaCaFrac = 0.0,
                              var=0.05)
+
+SynGabaNPY = SynChannelParams(Erev = -60e-3, #NPY 
+                             tau1 = 0.25e-3,
+                             tau2 = 80.75e-3,
+                             Gbar = 0.5e-9,
+                              nmdaCaFrac = 0.0,
+                             var=0.05)
+
 _SynAMPA = SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
-                             tau2 = 5.75e-3,
-                             Gbar = 2e-9,
-                             var=0.05,
+                             tau2 = 2.0e-3,
+                            Gbar = 2e-9,
+                            var=0.05,
+                            nmdaCaFrac = 0.001,
                              spinic = True)
 _SynNMDA = SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
@@ -37,7 +48,7 @@ _SynNMDA = SynChannelParams(Erev = 5e-3,
                              MgBlock = _NMDA_MgParams,
                              spinic = True,
                              NMDA=True,
-                             nmdaCaFrac = 0.05
+                             nmdaCaFrac = 0.05,
 )
 
 #nmdaCaFra fraction of nmda current carried by calcium
@@ -50,11 +61,13 @@ SYNAPSE_TYPES = NamedDict(
     gaba = _SynGaba,
     nmda = _SynNMDA,
 )
+DesensitizationParams = NamedDict('Synapse_desensitization',gaba = None, nmda=None, ampa=DesensitizationParams(dep_per_spike=0.39,dep_tau=0.8))
 
 #These will be used by synconn in connect.py, since AMPA and NMDA synapses usually go together
 #for same reason, the next lines only list ampa and gaba, and nmda are created the same as ampa
 NAME_AMPA='ampa'
 NAME_NMDA='nmda'
+
 
 # number of synapses at each distance
 _gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
@@ -62,3 +75,4 @@ _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
 NumSyn={'gaba':_gaba,
         'ampa':_ampa}
+
