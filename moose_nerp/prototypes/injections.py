@@ -189,7 +189,7 @@ def HookUpDend(model,dendrite,container):
             connect.plain_synconn(synchan,stimtab[spine],0)
             synname = util.syn_name(synchan.path, spines.NAME_HEAD)
       
-            if model.DesensitizationParams[synchan.name]:
+            if model.desenYN and model.DesensitizationParams[synchan.name]:
                 dep,weight = plasticity.desensitization(synchan, model.DesensitizationParams[synchan.name])
                 stim_synapses[synname] = {}
                 stim_synapses[synname]['plas'] = dep
