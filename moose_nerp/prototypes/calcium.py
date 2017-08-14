@@ -7,6 +7,12 @@ from moose_nerp.prototypes import constants, logutil
 from moose_nerp.prototypes.util import distance_mapping, NamedList
 from moose_nerp.prototypes.spines import NAME_NECK, NAME_HEAD
 
+CalciumConfig = NamedList('CalciumConfig','''
+shellMode
+increase_mode
+outershell_thickness
+thickness_increase
+min_thickness''')
 
 SingleBufferParams = NamedList('SingleBufferParams','''
 Name
