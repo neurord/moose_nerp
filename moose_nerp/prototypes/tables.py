@@ -7,6 +7,7 @@ from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
 DATA_NAME='/data'
+HDF5WRITER_NAME='/hdf5'
 
 from . import logutil
 log = logutil.Logger()
@@ -20,7 +21,7 @@ def find_compartments(neuron):
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
 
-GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
+GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab hdf5writer')
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
@@ -30,6 +31,17 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     for typenum, neur_type in enumerate(neuron.keys()):
         catab.append([])
     currtab={}
+
+    # Make sure /hdf5 exists
+    if not moose.exists(HDF5WRITER_NAME):
+        print('creating', HDF5WRITER_NAME)
+        writer = moose.HDF5DataWriter(HDF5WRITER_NAME)
+        writer.mode = 2 # Truncate existing file
+        moose.useClock(7, HDF5WRITER_NAME, 'process')
+    else:
+        print('using', HDF5WRITER_NAME)
+        writer = moose.element(HDF5WRITER_NAME)
+
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
@@ -40,6 +52,8 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
         
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
+            moose.connect(writer, 'requestOut', comp, 'getVm')
+
         if model.calYN:
             
             for ii,comp in enumerate(neur_comps):
@@ -79,7 +93,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     if len(plas):
         for num,neur_type in enumerate(plas.keys()):
             plastab.append(add_one_table(DATA_NAME,plas[neur_type],neur_type))
-    return GraphTables(vmtab, catab, plastab, currtab)
+    return GraphTables(vmtab, catab, plastab, currtab, writer)
 
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):

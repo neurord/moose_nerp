@@ -25,6 +25,10 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
         # 2 — channels
         # 4 — compartments
         # 6 — hsolver
+
+    moose.setClock(7, 0.0002)
+    # 7 — hdf5datawriter
+
     for path in model_container_list:
         if hsolveYN:
             hsolve = moose.HSolve(path + '/hsolve')
