@@ -31,9 +31,15 @@ from moose_nerp.prototypes import (cell_proto,
 from moose_nerp import d1d2
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options()
+option_parser = standard_options.standard_options(default_calcium=True, default_spines=False)
 param_sim = option_parser.parse_args()
-d1d2.calYN=1
+
+# set the model settings if specified by command-line options and retain model defaults otherwise
+if param_sim.calcium is not None:
+    d1d2.calYN = param_sim.calcium
+if param_sim.spines is not None:
+    d1d2.spineYN = param_sim.spines
+
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
@@ -87,14 +93,16 @@ for inj in param_sim.injection_current:
                         currtab,param_sim.plot_current_label, catab, plastab)
     for neurnum,neurtype in enumerate(d1d2.neurontypes()):
         traces.append(vmtab[neurnum][0].vector)
-        catraces.append(catab[neurnum][0].vector)
+        if d1d2.calYN:
+            catraces.append(catab[neurnum][0].vector)
         names.append('{} @ {}'.format(neurtype, inj))
         # In Python3.6, the following syntax works:
         #names.append(f'{neurtype} @ {inj}')
     if d1d2.spineYN:
         spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
 neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+if d1d2.calYN:
+    neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
 
 # block in non-interactive mode
 util.block_if_noninteractive()
