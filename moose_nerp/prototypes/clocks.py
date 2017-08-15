@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-#This is simplified clocks/hsolve setup for Moose 3.0.  
+#This is simplified clocks/hsolve setup for Moose 3.0.
 #No need to assign clocks except for output elements
 """\
 Simulation time step. Note that there are no default clocks.
@@ -13,7 +13,7 @@ from __future__ import print_function, division
 from . import logutil
 log = logutil.Logger()
 
-import moose 
+import moose
 from moose_nerp.prototypes.tables import DATA_NAME
 
 def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):

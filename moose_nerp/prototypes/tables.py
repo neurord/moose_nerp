@@ -45,34 +45,33 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
-    
+
     for typenum,neur_type in enumerate(neuron.keys()):
         neur_comps = find_compartments(neur_type)
         vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
-        
+
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
             moose.connect(writer, 'requestOut', comp, 'getVm')
 
         if model.calYN:
-            
             for ii,comp in enumerate(neur_comps):
                 for child in comp.children:
                     if child.className == "CaConc" or  child.className == "ZombieCaConc":
 
                         NAME_CALCIUM = child.name
-                       
+
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+NAME_CALCIUM) )
-               
+
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
                         NAME_CALCIUM = child.name
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
-               
+
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
-                    
+
         if pltcurr:
             currtab[neur_type]={}
             #CHANNEL CURRENTS (Optional)
@@ -132,7 +131,7 @@ def syn_plastabs(connections, plas=[]):
                 for syncomp in plas[neur_type][cell].keys():
                     plas_tabs.append(add_one_table(DATA_NAME, plas[neur_type][cell][syncomp], cell+syncomp))
     return syn_tabs, plas_tabs
-            
+
 def spinetabs(model,neuron):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
@@ -160,4 +159,3 @@ def spinetabs(model,neuron):
                         spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
                         moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
     return spcatab,spvmtab
-
