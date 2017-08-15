@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
 DATA_NAME='/data'
@@ -19,6 +19,8 @@ def find_compartments(neuron):
 
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
+
+GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
@@ -77,7 +79,8 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     if len(plas):
         for num,neur_type in enumerate(plas.keys()):
             plastab.append(add_one_table(DATA_NAME,plas[neur_type],neur_type))
-    return vmtab,catab,plastab,currtab
+    return GraphTables(vmtab, catab, plastab, currtab)
+
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):
     if comp_name.find('/')==0:
