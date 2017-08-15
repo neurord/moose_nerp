@@ -3,7 +3,7 @@
 import numpy as np
 import moose 
 
-class TableSet:
+class TableSet(object):
     ALL = []
 
     def __init__(self, tablename, filename, syn_per_tt):

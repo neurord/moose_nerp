@@ -4,7 +4,9 @@ from .param_net import (netname,
                         cond_vel,
                         mindelay,
                         confile,
-                        outfile)
+                        outfile,
+                        grid,
+                        chanvar)
 
 ###########plotting control 
 plot_netvm=1

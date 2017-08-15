@@ -35,7 +35,7 @@ def create_network(model, param_net,neur_protos={}):
         #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
         #
         #May not need to return both cells and pop from create_population - just pop is fine?
-        striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net)
+        striatum_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net, model.param_cond.NAME_SOMA)
         #
         #check_connect syntax after creating population
         check_connect.check_netparams(param_net,model.param_syn.NumSyn,striatum_pop['pop'])

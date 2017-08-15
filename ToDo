@@ -1,13 +1,4 @@
-1. Edit chan_proto to allow
-   a. use of setupTau with moose standard steady state - tau parameters
-      change  current sstau to sstaumin, and add in standard sstau
-   b. integrate the NaChan with standard chan_proto by testing for standard (or atypical) parameters for each gate separately
-      see code for Neur 634
-   c. Change both TypicalOneDalpha and AtypicalOneD to OneD (keep TwoD)
-      chane both param_chan and chan_proto _FUNCTIONS
-      
-2. Move chanvar from param_cond to str_net/param_net, since it is only used when creating networks
-
+     
 4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
                 syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
    Fix: Note that only adding plasticity to synapse[0] (plasticity.py)

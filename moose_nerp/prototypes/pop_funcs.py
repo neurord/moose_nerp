@@ -66,6 +66,18 @@ def create_population(container, netparams, name_soma):
                 spikegen.threshold = 0.0
                 spikegen.refractT=1e-3
                 m = moose.connect(comp, 'VmOut', spikegen, 'Vm')
+    #Create variability in neurons of network
+    for neurtype in netparams.chanvar.keys():
+        for chan,var in netparams.chanvar[neurtype].items():
+            #single multiplier for Gbar for all the channels compartments
+            if var>0:
+                log.info('adding variability to {} soma {}, variance: {}', neurtype,chan, var)
+                GbarArray=abs(np.random.normal(1.0, var, len(neurXclass[neurtype])))
+                for ii,neurname in enumerate(neurXclass[neurtype]):
+                    soma_chan_path=neurname+'/'+name_soma+'/'+chan
+                    if moose.exists(soma_chan_path):
+                        chancomp=moose.element(soma_chan_path)
+                        chancomp.Gbar=chancomp.Gbar*GbarArray[ii]
+    #
     return {'location': locationlist,
             'pop':neurXclass}
-

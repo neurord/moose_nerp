@@ -1,4 +1,5 @@
-# spspine — Medium Spiny Neuron MOOSE model
+# moose_nerp — declarative specification of neuron model in MOOSE
+Complete example given for a Striatal Spiny Projection Neuron
 
 [![Build Status](https://semaphoreci.com/api/v1/neurord/spspine/branches/master/badge.svg)](https://semaphoreci.com/neurord/spspine)
 
@@ -12,7 +13,10 @@ run the simulation from a terminal window (in spspine directory) using the comma
 
 from a python window, run using the command:
 
-  `import moose_nerp.d1d2.__main__`
+  `import moose_nerp.d1d2.__main__`, or `execfile('moose_nerp/d1d2/__main__.py')`
+
+to evaluate variables created in __main__ after the import, use the following syntax:
+   `moose_nerp.d1d2.__main__.variable_name`
 
 **Files in each package**
 
