@@ -65,12 +65,14 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
 
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
+                        moose.connect(writer, 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
                         NAME_CALCIUM = child.name
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
 
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
+                        moose.connect(writer, 'requestOut', cal, 'getC')
 
         if pltcurr:
             currtab[neur_type]={}
@@ -84,6 +86,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                     try:
                         chan=moose.element(path)
                         moose.connect(tab, 'requestOut', chan, curmsg)
+                        moose.connect(writer, 'requestOut', cal, curmsg)
                     except Exception:
                         log.debug('no channel {}', path)
     #
