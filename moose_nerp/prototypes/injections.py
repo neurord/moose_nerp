@@ -7,7 +7,6 @@ from moose_nerp.prototypes import connect, plasticity, util, spines
 
 
 ParadigmParams = NamedList('ParadigmParams','''
-PreStim
 f_pulse
 n_pulse
 A_inject
@@ -59,7 +58,7 @@ def MakeGenerators(container,Stimulation):
     burst_gate.width[0] = StimParams.n_AP*StimParams.AP_interval
     burst_gate.baseLevel = 0
     burst_gate.trigMode = 2
-    print(burst_gate)
+
     moose.connect(burst_gate,'output',pulse0,'input')
 
     train_gate = moose.PulseGen(container.path+'/train_gate')
@@ -186,6 +185,7 @@ def HookUpDend(model,dendrite,container):
 
         for synapse in synapses[spine]:
             synchan = moose.element(synapse)
+            print(synapse.path,time_tables[spine])
             connect.plain_synconn(synchan,stimtab[spine],0)
             synname = util.syn_name(synchan.path, spines.NAME_HEAD)
       
@@ -195,6 +195,7 @@ def HookUpDend(model,dendrite,container):
                 stim_synapses[synname]['plas'] = dep
                 stim_synapses[synname]['cum'] = weight
                 stim_synapses[synname]['syn'] = synchan
+                synchan.Gbar = synchan.Gbar/2
     
     return stim_synapses
 
