@@ -1,4 +1,4 @@
-from moose_nerp.prototypes.injections import ParadigmParams, StimParams
+from moose_nerp.prototypes.inject_func import ParadigmParams, StimParams
 
 
 example_pulse_seqeunce = {1:[0,1],2:[2,3],3:[0,1]}
