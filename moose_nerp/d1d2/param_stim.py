@@ -1,4 +1,4 @@
-from moose_nerp.prototypes.injections import ParadigmParams, StimParams
+from moose_nerp.prototypes.inject_func import ParadigmParams, StimParams
 
 
 example_pulse_seqeunce = {1:[0,1],2:[2,3],3:[0,1]}
@@ -6,14 +6,14 @@ example_pulse_seqeunce = {1:[0,1],2:[2,3],3:[0,1]}
 Fino_Pre = ParadigmParams( f_pulse=50., n_pulse=1, A_inject=0.38e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.030, AP_interval=0.01, n_AP=1, ISI=-0.010, name="Fino_Pre")
 Fino_Post = ParadigmParams( f_pulse=50., n_pulse=1, A_inject=0.38e-9, f_burst=1, n_burst=1, f_train=1, n_train=100, width_AP=0.030, AP_interval=0.01, n_AP=1, ISI=-0.040, name="Fino_Pre")
 
-AP_1 =  ParadigmParams(PreStim=0, f_pulse=50., n_pulse=1, A_inject=1e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=1, ISI=-0.040, name="1_AP")
+AP_1 =  ParadigmParams( f_pulse=50., n_pulse=1, A_inject=1e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=1, ISI=-0.040, name="1_AP")
 PSP_1 = ParadigmParams(f_pulse = 1., n_pulse=1,A_inject=1e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="1_PSP")
 
 PSP_20_Hz = ParadigmParams(f_pulse = 20., n_pulse = 20,A_inject=0, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="20_Hz")
 
 PSP_100_Hz = ParadigmParams(f_pulse = 100., n_pulse = 100,A_inject=0, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="100_Hz")
 
-Kerr_and_Plenz = ParadigmParams(PreStim=0,f_pulse = 100, n_pulse = 0,A_inject=1e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.1, n_AP=5, ISI=0, name="Kerr_and_Plenz")
+Kerr_and_Plenz = ParadigmParams(f_pulse = 100, n_pulse = 0,A_inject=1e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.1, n_AP=5, ISI=0, name="Kerr_and_Plenz")
 
 Pawlak_and_Kerr_Pre = ParadigmParams(f_pulse = 50, n_pulse = 1,A_inject=1e-9, f_burst=1, n_burst=1, f_train=0.1, n_train=60, width_AP=0.005, AP_interval=1./50., n_AP=3, ISI=0.01, name="Pawlak_and_Kerr_Pre")
 
