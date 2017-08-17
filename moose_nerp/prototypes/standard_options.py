@@ -31,10 +31,10 @@ def standard_options(parser=None,
                      default_plotdt=0.2e-3,
                      default_calcium=None,
                      default_spines=None,
-                     default_injection_current=[0.25e-9, 0.35e-9],
+                     default_injection_current=[],
                      default_injection_delay=0.1,
                      default_injection_width=0.4,
-                     default_stimtimes=[0.04,0.19,0.46],
+                     default_stimtimes=[],
                      default_plot_vm=True,
                      default_syncomp=4):
 

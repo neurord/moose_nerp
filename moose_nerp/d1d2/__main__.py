@@ -47,16 +47,29 @@ log = logutil.Logger()
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
-if d1d2.synYN:
-    plas,stimtab=plasticity_test.plasticity_test(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
-else:
-    plas = {}
 
+plas = {}
+
+if d1d2.synYN:
+    sim_time = []
+    for ntype in d1d2.neurontypes():
+        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(d1d2,ntype)
+        sim_time.append( st)
+        plas[ntype] = spines
+    param_sim.simtime = max(sim_time)
+    
+if d1d2.plasYN:
+      plas,stimtab=plasticity_test.plasticity_test(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    
 ####---------------Current Injection
 all_neurons={}
 for ntype in neuron.keys():
     all_neurons[ntype]=list([neuron[ntype].path])
-pg=inject_func.setupinj(d1d2, param_sim.injection_delay, param_sim.injection_width, all_neurons)
+
+if param_sim.injection_current:
+    pg=inject_func.setupinj(d1d2, param_sim.injection_delay, param_sim.injection_width, all_neurons)
+else:
+    param_sim.injection_current = [0]
 
 ###############--------------output elements
 if param_sim.plot_channels:
@@ -80,17 +93,20 @@ if param_sim.hsolve and d1d2.calYN:
     calcium.fix_calcium(d1d2.neurontypes(), d1d2)
 
 ###########Actually run the simulation
-def run_simulation(injection_current, simtime):
-    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-    pg.firstLevel = injection_current
+def run_simulation( simtime,injection_current=None):
+    if injection_current:
+        print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
+        pg.firstLevel = injection_current
+        
     moose.reinit()
     moose.start(simtime)
 
 traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
-    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    run_simulation(simtime=param_sim.simtime,injection_current=inj)
     neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
                         currtab,param_sim.plot_current_label, catab, plastab)
+
     for neurnum,neurtype in enumerate(d1d2.neurontypes()):
         traces.append(vmtab[neurnum][0].vector)
         if d1d2.calYN:
@@ -103,6 +119,7 @@ for inj in param_sim.injection_current:
 neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
 if d1d2.calYN:
     neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+
 
 # block in non-interactive mode
 util.block_if_noninteractive()

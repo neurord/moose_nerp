@@ -20,10 +20,10 @@ from .param_stim import Stimulation
 
 
 plasYN = False
-desenYN = False
+desenYN = True
 ghkYN = False
-spineYN = False
-synYN = False
+spineYN = True
+synYN = True
 calYN = True
 
 #note that if ghkYN=0, make sure that ghKluge = 1

@@ -90,5 +90,5 @@ _D2 = _util.NamedDict(
 Condset  = _util.NamedDict(
     'Condset',
     D1 = _D1,
-    D2 = _D2,
+    #D2 = _D2,
 )
