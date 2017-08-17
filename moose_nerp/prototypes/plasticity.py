@@ -20,21 +20,50 @@ def desensitization(synchan,SynParams):
     weightpath = synchan.path +'/weight'
     dep = moose.Func(deppath)
     weight = moose.Func(weightpath)
-
     help_dep = moose.Func(deppath+"/help")
 
+    activation = moose.Func(deppath+"/activation")
+    activation_help = moose.Func(deppath+"/activation/help")
+
+    y = moose.Func(deppath+"/y")
+    condition = moose.Func(deppath+"/condition")
+    
+    help_dep.tick = synchan.tick
+    dep.tick = synchan.tick
+    weight.tick = synchan.tick
+    activation.tick = synchan.tick
+    activation_help.tick = synchan.tick
+    y.tick = synchan.tick
+    condition.tick = synchan.tick
+    
+    
     dep_const = np.exp(-synchan.dt/SynParams.dep_tau)
     dep.expr = "x*"+str(dep_const)+"+y*"+str(SynParams.dep_per_spike)
-       
     help_dep.expr = "x"
-    weight.expr = "(1./(1+x))/"+str(synchan.dt)
-
+    weight.expr = "z*(1./(1+x))/"+str(synchan.dt)
+    activation.expr = "x+y"
+    activation_help.expr = "x"
+    y.expr = "x"
+    condition.expr = "x&&(x==y)"
+    
     moose.connect(dep,"valueOut",weight,"xIn")
-    moose.connect(sh,'activationOut',dep,'yIn')
+    moose.connect(condition,'valueOut',dep,'yIn')
+    moose.connect(condition,'valueOut',weight,'zIn')
+    moose.connect(condition,'valueOut',activation,'zIn')
+    moose.connect(sh,'activationOut',activation,'yIn')
+    moose.connect(sh,'activationOut',y,'xIn')
+    
+    moose.connect(activation,"valueOut",condition,"xIn")
+    moose.connect(y,"valueOut",condition,"yIn")
+    moose.connect(condition,"valueOut",y,"zIn")
+    moose.connect(activation, "valueOut",activation_help,"xIn")
+    moose.connect(activation_help,"valueOut",activation,"xIn")
     moose.connect(dep,'valueOut',help_dep,'xIn')
     moose.connect(help_dep,'valueOut',dep,'xIn')
+    
     moose.connect(weight,"valueOut",synchan,'activation')
-    return dep, weight
+    moose.showmsg(synchan)
+    return condition, activation
 
 def plasticity(synchan,plas_params):
 

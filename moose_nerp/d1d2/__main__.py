@@ -31,10 +31,15 @@ from moose_nerp.prototypes import (cell_proto,
 from moose_nerp import d1d2
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[0.1e-9],default_stimtimes=[])#, 0.2e-9, 0.3e-9,.4e-9,.5e-9])
+option_parser = standard_options.standard_options(default_calcium=True, default_spines=False)
 param_sim = option_parser.parse_args()
-#param_sim.simtime = 0.01
-d1d2.calYN=1
+
+# set the model settings if specified by command-line options and retain model defaults otherwise
+if param_sim.calcium is not None:
+    d1d2.calYN = param_sim.calcium
+if param_sim.spines is not None:
+    d1d2.spineYN = param_sim.spines
+
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
@@ -105,33 +110,20 @@ moose.start(param_sim.simtime)
 
 neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
                         currtab,param_sim.plot_current_label, catab, plastab)
-inj = "Fino"#param_sim.injection_current[0]
-for neurnum,neurtype in enumerate(d1d2.neurontypes()):
-    print(fname.format(len(d1d2.neurontypes()),neurtype,'Vm',param_sim.simtime,inj,calcium,d1d2.spineYN))
-    traces.append(vmtab[neurnum][0].vector)
-    catraces.append(catab[neurnum][0].vector)
-    names.append('{} @ {}'.format(neurtype, inj))
-    time = np.linspace(0,param_sim.simtime,len(vmtab[neurnum][0].vector))
-    Ca = np.zeros((len(time),2))
-    Vm = np.zeros((len(time),2))
-    Vm[:,0] = time
-    Ca[:,0] = time
-    Vm[:,1] = vmtab[neurnum][0].vector
-    Ca[:,1] = catab[neurnum][0].vector
-    spines = 'no_spines'
-    if d1d2.spineYN:
-            
-        spines = 'spineDensity_{}'.format(d1d2.SpineParams.spineDensity)
-                
-    np.savetxt(fname.format(neurtype,'Vm',param_sim.simtime,inj,calcium,spines),Vm,comments='',header='time '+vmtab[neurnum][0].neighbors['requestOut'][0].path)
-    np.savetxt(fname.format(neurtype,'Ca',param_sim.simtime,inj,calcium,spines),Ca,comments='',header='time '+catab[neurnum][0].neighbors['requestOut'][0].path)
 
+    for neurnum,neurtype in enumerate(d1d2.neurontypes()):
+        traces.append(vmtab[neurnum][0].vector)
+        if d1d2.calYN:
+            catraces.append(catab[neurnum][0].vector)
+        names.append('{} @ {}'.format(neurtype, inj))
         # In Python3.6, the following syntax works:
         #names.append(f'{neurtype} @ {inj}')
-    # if d1d2.spineYN:
-    #     spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
-#neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-#neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+    if d1d2.spineYN:
+        spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
+neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+if d1d2.calYN:
+    neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+
 
 # block in non-interactive mode
 util.block_if_noninteractive()

@@ -27,12 +27,14 @@ def parse_boolean(s):
     raise ValueError("Invalid literal for bool(): {!r}".format(s))
 
 def standard_options(parser=None,
+                     default_simulation_time=0.35,
+                     default_plotdt=0.2e-3,
+                     default_calcium=None,
+                     default_spines=None,
                      default_injection_current=[0.25e-9, 0.35e-9],
                      default_injection_delay=0.1,
                      default_injection_width=0.4,
-                     default_simulation_time=0.35,
                      default_stimtimes=[0.04,0.19,0.46],
-                     default_plotdt=0.2e-3,
                      default_plot_vm=True,
                      default_syncomp=4):
 
@@ -51,6 +53,13 @@ def standard_options(parser=None,
     parser.add_argument('--hsolve', type=parse_boolean, nargs='?',
                         help='Use the HSOLVE solver',
                         const=True, default=True)
+
+    parser.add_argument('--calcium', type=parse_boolean, nargs='?',
+                        help='Implement Ca dynamics',
+                        const=True, default=None)
+    parser.add_argument('--spines', type=parse_boolean, nargs='?',
+                        help='Implement spines',
+                        const=True, default=None)
 
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
                         metavar='CURRENT',
