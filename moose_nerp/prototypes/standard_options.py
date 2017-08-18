@@ -53,6 +53,9 @@ def standard_options(parser=None,
     parser.add_argument('--hsolve', type=parse_boolean, nargs='?',
                         help='Use the HSOLVE solver',
                         const=True, default=True)
+    parser.add_argument('--save', nargs='?', metavar='FILE',
+                        help='Write volatage and calcium (if enabled) to HDF5 file',
+                        const='d1d2.h5')
 
     parser.add_argument('--calcium', type=parse_boolean, nargs='?',
                         help='Implement Ca dynamics',

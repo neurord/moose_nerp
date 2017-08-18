@@ -65,10 +65,13 @@ if param_sim.plot_channels:
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       d1d2.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
 
-vmtab,catab,plastab,currtab = tables.graphtables(d1d2, neuron,
-                                                 param_sim.plot_current,
-                                                 param_sim.plot_current_message,
-                                                 plas)
+grtables = tables.graphtables(d1d2, neuron,
+                              param_sim.plot_current,
+                              param_sim.plot_current_message,
+                              plas)
+if param_sim.save:
+    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
@@ -90,11 +93,12 @@ traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
     neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
-                        currtab,param_sim.plot_current_label, catab, plastab)
+                        grtables.currtab, param_sim.plot_current_label,
+                        grtables.catab, grtables.plastab)
     for neurnum,neurtype in enumerate(d1d2.neurontypes()):
-        traces.append(vmtab[neurnum][0].vector)
+        traces.append(grtables.vmtab[neurnum][0].vector)
         if d1d2.calYN:
-            catraces.append(catab[neurnum][0].vector)
+            catraces.append(grtables.catab[neurnum][0].vector)
         names.append('{} @ {}'.format(neurtype, inj))
         # In Python3.6, the following syntax works:
         #names.append(f'{neurtype} @ {inj}')

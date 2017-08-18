@@ -74,7 +74,7 @@ if param_sim.plot_channels:
                                       gp.VMIN, gp.VMAX, gp.CAMIN, gp.CAMAX)
 
 
-vmtab,catab,plastab,currtab = tables.graphtables(gp, neuron, param_sim.plot_current,  param_sim.plot_current_message, plas)
+grtables = tables.graphtables(gp, neuron, param_sim.plot_current,  param_sim.plot_current_message, plas)
 
 if gp.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(gp,neuron)
@@ -113,7 +113,7 @@ def run_simulation(injection_current, simtime):
     moose.reinit()
     moose.start(simtime)
 
-    traces, names = [], []
+traces, names = [], []
 value = {}
 label = {}
 calcium_traces=[]
@@ -127,11 +127,11 @@ for inj in param_sim.injection_current:
             for channame in gp.Channels.keys():
                 key =  neurtype+'_'+channame
                 print(channame,key)
-                value[key] = currtab[neurtype][channame][0].vector
+                value[key] = grtables.currtab[neurtype][channame][0].vector
                 label[key] = '{} @ {}'.format(neurtype, channame)
-        traces.append(vmtab[neurnum][0].vector)
+        traces.append(grtables.vmtab[neurnum][0].vector)
         #traces.append(vmtab[neurnum][2].vector)
-        calcium_traces.append(catab[neurnum][0].vector)
+        calcium_traces.append(grtables.catab[neurnum][0].vector)
         #calcium_traces.append(catab[neurnum][2].vector)
         names.append('c0{} @ {}'.format(neurtype, inj))
         #names.append('c1{} @ {}'.format(neurtype, inj))

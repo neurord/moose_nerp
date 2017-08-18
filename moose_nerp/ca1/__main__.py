@@ -66,11 +66,10 @@ if param_sim.plot_channels:
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       ca1.VMIN, ca1.VMAX, ca1.CAMIN, ca1.CAMAX)
 
-
-vmtab,catab,plastab,currtab = tables.graphtables(ca1, neuron,
-                                                 param_sim.plot_current,
-                                                 param_sim.plot_current_message,
-                                                 plas)
+grtables = tables.graphtables(ca1, neuron,
+                              param_sim.plot_current,
+                              param_sim.plot_current_message,
+                              plas)
 if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
@@ -89,9 +88,10 @@ traces, names = [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
     neuron_graph.graphs(ca1, param_sim.plot_current, param_sim.simtime,
-                        currtab,param_sim.plot_current_label, catab, plastab)
+                        grtables.currtab, param_sim.plot_current_label,
+                        grtables.catab, grtables.plastab)
     for neurnum,neurtype in enumerate(ca1.neurontypes()):
-        traces.append(vmtab[neurnum][0].vector)
+        traces.append(grtables.vmtab[neurnum][0].vector)
         names.append('{} @ {}'.format(neurtype, inj))
     if ca1.spineYN:
         spine_graph.spineFig(ca1,spinecatab,spinevmtab,param_sim.simtime)

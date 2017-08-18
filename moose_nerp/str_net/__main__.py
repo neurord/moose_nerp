@@ -63,10 +63,10 @@ pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_widt
 moose.showmsg(pg)
 ##############--------------output elements
 if str_net.single:
-    vmtab,catab,plastab,currtab = tables.graphtables(d1d2, all_neur_types,
-                                                 param_sim.plot_current,
-                                                 param_sim.plot_current_message,
-                                                    [])
+    tables.graphtables(d1d2, all_neur_types,
+                       param_sim.plot_current,
+                       param_sim.plot_current_message,
+                       [])
     if d1d2.synYN:
         #overwrite plastab above, since it is empty
         syntab, plastab=tables.syn_plastabs(connections,plas)
