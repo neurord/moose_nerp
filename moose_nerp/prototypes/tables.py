@@ -27,12 +27,14 @@ def find_vm_tables(neuron):
 
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
 
-def setup_hdf5_output(model, neuron, compartments=DEFAULT_HDF5_COMPARTMENTS):
+def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_COMPARTMENTS):
     # Make sure /hdf5 exists
     if not moose.exists(HDF5WRITER_NAME):
         print('creating', HDF5WRITER_NAME)
         writer = moose.HDF5DataWriter(HDF5WRITER_NAME)
         writer.mode = 2 # Truncate existing file
+        if filename is not None:
+            writer.filename = filename
         moose.useClock(7, HDF5WRITER_NAME, 'process')
     else:
         print('using', HDF5WRITER_NAME)

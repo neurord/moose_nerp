@@ -69,6 +69,9 @@ grtables = tables.graphtables(d1d2, neuron,
                               param_sim.plot_current,
                               param_sim.plot_current_message,
                               plas)
+if param_sim.save:
+    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
