@@ -35,7 +35,7 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
         writer.mode = 2 # Truncate existing file
         if filename is not None:
             writer.filename = filename
-        moose.useClock(7, HDF5WRITER_NAME, 'process')
+        moose.useClock(8, HDF5WRITER_NAME, 'process')
     else:
         print('using', HDF5WRITER_NAME)
         writer = moose.element(HDF5WRITER_NAME)
