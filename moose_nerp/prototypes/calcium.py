@@ -12,33 +12,7 @@ shellMode
 increase_mode
 outershell_thickness
 thickness_increase
-min_thickness''')
-
-SingleBufferParams = NamedList('SingleBufferParams','''
-Name
-kf
-kb
-D''')
-
-PumpParams = NamedList('PumpParams','''
-Name
-Kd
-''')
-
-
-
-CellCalcium = NamedList('CellCalcium','''
-CaName
-Ceq
-DCa
-tau
-''')
-
-ShapeParams = NamedList('ShapeParams','''
-OutershellThickness
-ThicknessIncreaseFactor
-ThicknessIncreaseMode
-MinThickness
+min_thickness
 ''')
 
 
@@ -97,7 +71,7 @@ def difshell_geometry(comp, shell_params):
             
             res.append([new_rad*multiplier,new_thick])
             new_rad = new_rad - new_thick
-            new_thick = shell_params.outershell_thickness*shell_params.thickness_increase**i
+            new_thick = shell_params.outershell_thickness+shell_params.outershell_thickness*shell_params.thickness_increase**i
             i = i+1
             
         res.append([new_rad*multiplier,new_rad])
@@ -309,6 +283,7 @@ def addPumps(dShell,PumpKm,Pumps,surface):
         leak += p.Vmax*dShell.Ceq/shell_volume(dShell)/(dShell.Ceq+p.Kd)
         
     dShell.leak = leak
+
 
 def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
     #create the calcium pools in each compartment

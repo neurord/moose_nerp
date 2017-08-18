@@ -28,10 +28,6 @@ MgParams = NamedList('MgParams',
                          C
                       ''')
 
-DesensitizationParams =  NamedList('DesensitizationParams',
-                                   ''' dep_per_spike
-                                   dep_tau''')
-
 def SpineSynChans(model):
     return sorted(key for key,val in model.SYNAPSE_TYPES.items()
                   if val.spinic and model.spineYN)
@@ -72,8 +68,6 @@ def synchanlib(model):
                                params)
         print(synchan)
 
-
-        
 def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
      
     proto = moose.element('/library/' +chanpath)
@@ -105,16 +99,14 @@ def add_synchans(model, container):
             Gbar = model.SYNAPSE_TYPES[key].Gbar
             Gbarvar=model.SYNAPSE_TYPES[key].var
             synchans[keynum].append(addoneSynChan(key,comp,Gbar, model.calYN, Gbarvar))
-        
-            
         for key in SpineSynChans(model):
             keynum = allkeys.index(key)
             Gbar = model.SYNAPSE_TYPES[key].Gbar
             Gbarvar=model.SYNAPSE_TYPES[key].var
             for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
+
                 if NAME_HEAD in spcomp.path:
                     synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar))
-                   
         ########### delete from here to allsynchans= once pop_funcs debugged ################
 
         #calculate distance from soma
@@ -126,7 +118,6 @@ def add_synchans(model, container):
         #Check in ExtConn - how is SynPerComp used
     #end of iterating over compartments
     #now, transform the synchans into a dictionary
-    
     allsynchans={key:synchans[keynum]
                  for keynum, key in enumerate(sorted(model.SYNAPSE_TYPES))}
 
