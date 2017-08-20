@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import moose
 import numpy as np
+import glob
 
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
@@ -9,25 +10,109 @@ from moose_nerp.prototypes.spines import NAME_HEAD
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
 
-from . import logutil
+from . import logutil, calcium, util
 log = logutil.Logger()
 
 def vm_table_path(neuron, spine=None, comp=0):
     return '{}/Vm{}_{}{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
 
+@util.listize
 def find_compartments(neuron, *compartments):
     if not compartments:
         compartments = '',
-    gen = (moose.wildcardFind('{}/{}#[TYPE=Compartment]'.format(neuron, comp_name))
-           for comp_name in compartments)
-    return sum(gen, ())
+    for comp_name in compartments:
+        for comp in moose.wildcardFind('{}/{}#[TYPE=Compartment]'.format(neuron, comp_name)):
+            yield comp
+
+@util.listize
+def glob_compartments(neuron, *patterns):
+    """List compartments with paths matching one of the glob patterns
+
+    [0] are removed from the path, and should not be specified in the
+    pattern.
+
+    >>> glob_compartments('D1', '*dend1')
+    [<moose.Compartment: id=..., dataIndex=0, path=/D1[0]/primdend1[0]>]
+    """
+    for comp in find_compartments(neuron):
+        path = comp.name.replace('[0]', '')
+        if any(glob.fnmatch.fnmatch(path, pattern) for pattern in patterns):
+            yield comp
 
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
 
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
 
-def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_COMPARTMENTS):
+def setup_volume_average(path, compartments):
+    total_volume = 0
+    print('AVERAGE:', path, compartments)
+    average = moose.DiffAmp(path)
+
+    for comp in compartments:
+        for child in comp.children:
+            if child.className in {"CaConc", "ZombieCaConc"}:
+                cal = moose.element(comp.path+'/'+child.name)
+                da = moose.DiffAmp(cal.path + '/diffamp')
+                volume = calcium.shell_volume(cal)
+                da.gain = volume
+                total_volume += volume
+                moose.connect(cal, 'concOut', da, 'plusIn')
+                moose.connect(da, 'output', average, 'plusIn')
+            # FIXME: add support for DifShells
+
+    average.gain = 1/total_volume
+    return average
+
+@util.listize
+def children_groups(neuron, *patterns):
+    """Find groups of children with the same prefix before '_'
+
+    Returns a list of path prefixes.
+
+    >>> from pprint import pprint
+    >>> pprint(moose_nerp.prototypes.tables.children_groups('D1', 'soma', '*tertdend[12]_*'))
+    [(<moose.Compartment: id=534, dataIndex=0, path=/D1[0]/soma[0]>,),
+     (<moose.Compartment: id=558, dataIndex=0, path=/D1[0]/tertdend2_1[0]>,
+      <moose.Compartment: id=559, dataIndex=0, path=/D1[0]/tertdend2_2[0]>,
+      <moose.Compartment: id=560, dataIndex=0, path=/D1[0]/tertdend2_3[0]>,
+      <moose.Compartment: id=561, dataIndex=0, path=/D1[0]/tertdend2_4[0]>,
+      <moose.Compartment: id=562, dataIndex=0, path=/D1[0]/tertdend2_5[0]>,
+      <moose.Compartment: id=563, dataIndex=0, path=/D1[0]/tertdend2_6[0]>,
+      <moose.Compartment: id=564, dataIndex=0, path=/D1[0]/tertdend2_7[0]>,
+      <moose.Compartment: id=565, dataIndex=0, path=/D1[0]/tertdend2_8[0]>,
+      <moose.Compartment: id=566, dataIndex=0, path=/D1[0]/tertdend2_9[0]>,
+      <moose.Compartment: id=567, dataIndex=0, path=/D1[0]/tertdend2_10[0]>,
+      <moose.Compartment: id=568, dataIndex=0, path=/D1[0]/tertdend2_11[0]>),
+     (<moose.Compartment: id=547, dataIndex=0, path=/D1[0]/tertdend1_1[0]>,
+      <moose.Compartment: id=548, dataIndex=0, path=/D1[0]/tertdend1_2[0]>,
+      <moose.Compartment: id=549, dataIndex=0, path=/D1[0]/tertdend1_3[0]>,
+      <moose.Compartment: id=550, dataIndex=0, path=/D1[0]/tertdend1_4[0]>,
+      <moose.Compartment: id=551, dataIndex=0, path=/D1[0]/tertdend1_5[0]>,
+      <moose.Compartment: id=552, dataIndex=0, path=/D1[0]/tertdend1_6[0]>,
+      <moose.Compartment: id=553, dataIndex=0, path=/D1[0]/tertdend1_7[0]>,
+      <moose.Compartment: id=554, dataIndex=0, path=/D1[0]/tertdend1_8[0]>,
+      <moose.Compartment: id=555, dataIndex=0, path=/D1[0]/tertdend1_9[0]>,
+      <moose.Compartment: id=556, dataIndex=0, path=/D1[0]/tertdend1_10[0]>,
+      <moose.Compartment: id=557, dataIndex=0, path=/D1[0]/tertdend1_11[0]>)]
+    """
+    comps = glob_compartments(neuron, *patterns)
+    with_under = [c for c in comps if '_' in c.name]
+    without_under = [c for c in comps if '_' not in c.name]
+
+    for c in without_under:
+        yield c,
+
+    prefixes = set(c.path.replace('[0]', '').rsplit('_', 1)[0] for c in with_under)
+    for prefix in prefixes:
+        group = moose.wildcardFind(prefix + '_#[TYPE=Compartment]')
+        if group:
+            yield group
+
+def setup_hdf5_output(model, neurons, *patterns, filename=None):
+    if not patterns:
+        patterns = DEFAULT_HDF5_COMPARTMENTS
+
     # Make sure /hdf5 exists
     if not moose.exists(HDF5WRITER_NAME):
         print('creating', HDF5WRITER_NAME)
@@ -40,30 +125,28 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
         print('using', HDF5WRITER_NAME)
         writer = moose.element(HDF5WRITER_NAME)
 
-    for typenum,neur_type in enumerate(neuron.keys()):
-        neur_comps = find_compartments(neur_type, *compartments)
+    for typenum,neur_type in enumerate(neurons.keys()):
+        groups = children_groups(neur_type, *patterns)
 
-        for ii,comp in enumerate(neur_comps):
-            moose.connect(writer, 'requestOut', comp, 'getVm')
+        # Connect the first in each group for voltage,
+        # and set up volume averaging of the rest for calcium.
+        for group in groups:
+            moose.connect(writer, 'requestOut', group[0], 'getVm')
 
             if model.calYN:
-                for child in comp.children:
-                    if child.className in {"CaConc", "ZombieCaConc"}:
-                        cal = moose.element(comp.path+'/'+child.name)
-                        moose.connect(writer, 'requestOut', cal, 'getCa')
-                    elif  child.className == 'DifShell':
-                        cal = moose.element(comp.path+'/'+child.name)
-                        moose.connect(writer, 'requestOut', cal, 'getC')
+                avpath = group[0].path.replace('[0]', '').rsplit('_', 1)[0] + '_ca'
+                average = setup_volume_average(avpath, group)
+                moose.connect(writer, 'requestOut', average, 'getOutputValue')
     return writer
 
 GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
 
-def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
-    print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
+def graphtables(model, neurons,pltcurr,curmsg, plas=[]):
+    print("GRAPH TABLES, of ", neurons.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
     catab=[]
-    for typenum, neur_type in enumerate(neuron.keys()):
+    for typenum, neur_type in enumerate(neurons.keys()):
         catab.append([])
     currtab={}
 
@@ -71,7 +154,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
 
-    for typenum,neur_type in enumerate(neuron.keys()):
+    for typenum,neur_type in enumerate(neurons.keys()):
         neur_comps = find_compartments(neur_type)
         vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
 

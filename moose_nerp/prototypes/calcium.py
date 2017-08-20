@@ -37,7 +37,10 @@ def shell_surface(dShell,head=False,prevd=0):
     return surfaceArea
 
 def shell_volume(dShell):
-    if dShell.shapeMode: #SLAB
+    if dShell.className in {'CaConc', 'ZombieCaConc'}:
+        side = np.pi * dShell.diameter * dShell.thick
+        return side * dShell.length
+    elif dShell.shapeMode: #SLAB
         return np.pi*(dShell.diameter/2)**2*dShell.thickness
     else:
         if dShell.length: #ONION Cylinder
