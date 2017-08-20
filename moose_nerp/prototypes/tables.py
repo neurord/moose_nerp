@@ -137,6 +137,16 @@ def setup_hdf5_output(model, neurons, *patterns, filename=None):
                 avpath = group[0].path.replace('[0]', '').rsplit('_', 1)[0] + '_ca'
                 average = setup_volume_average(avpath, group)
                 moose.connect(writer, 'requestOut', average, 'getOutputValue')
+
+                for comp in group:
+                  for child in comp.children:
+                    if child.className in {"CaConc", "ZombieCaConc"}:
+                        cal = moose.element(comp.path+'/'+child.name)
+                        moose.connect(writer, 'requestOut', cal, 'getCa')
+                    elif  child.className == 'DifShell':
+                        cal = moose.element(comp.path+'/'+child.name)
+                        moose.connect(writer, 'requestOut', cal, 'getC')
+
     return writer
 
 GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
