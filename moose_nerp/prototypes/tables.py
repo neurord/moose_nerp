@@ -2,10 +2,11 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
 DATA_NAME='/data'
+HDF5WRITER_NAME='/hdf5'
 
 from . import logutil
 log = logutil.Logger()
@@ -13,11 +14,48 @@ log = logutil.Logger()
 def vm_table_path(neuron, spine=None, comp=0):
     return '{}/Vm{}_{}{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
 
-def find_compartments(neuron):
-    return moose.wildcardFind('{}/#[TYPE=Compartment]'.format(neuron))
+def find_compartments(neuron, *compartments):
+    if not compartments:
+        compartments = '',
+    gen = (moose.wildcardFind('{}/{}#[TYPE=Compartment]'.format(neuron, comp_name))
+           for comp_name in compartments)
+    return sum(gen, ())
 
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
+
+DEFAULT_HDF5_COMPARTMENTS = 'soma',
+
+def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_COMPARTMENTS):
+    # Make sure /hdf5 exists
+    if not moose.exists(HDF5WRITER_NAME):
+        print('creating', HDF5WRITER_NAME)
+        writer = moose.HDF5DataWriter(HDF5WRITER_NAME)
+        writer.mode = 2 # Truncate existing file
+        if filename is not None:
+            writer.filename = filename
+        moose.useClock(8, HDF5WRITER_NAME, 'process')
+    else:
+        print('using', HDF5WRITER_NAME)
+        writer = moose.element(HDF5WRITER_NAME)
+
+    for typenum,neur_type in enumerate(neuron.keys()):
+        neur_comps = find_compartments(neur_type, *compartments)
+
+        for ii,comp in enumerate(neur_comps):
+            moose.connect(writer, 'requestOut', comp, 'getVm')
+
+            if model.calYN:
+                for child in comp.children:
+                    if child.className in {"CaConc", "ZombieCaConc"}:
+                        cal = moose.element(comp.path+'/'+child.name)
+                        moose.connect(writer, 'requestOut', cal, 'getCa')
+                    elif  child.className == 'DifShell':
+                        cal = moose.element(comp.path+'/'+child.name)
+                        moose.connect(writer, 'requestOut', cal, 'getC')
+    return writer
+
+GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
@@ -27,36 +65,36 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
     for typenum, neur_type in enumerate(neuron.keys()):
         catab.append([])
     currtab={}
+
     # Make sure /data exists
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
-    
+
     for typenum,neur_type in enumerate(neuron.keys()):
         neur_comps = find_compartments(neur_type)
         vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
-        
+
         for ii,comp in enumerate(neur_comps):
             moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
+
         if model.calYN:
-            
             for ii,comp in enumerate(neur_comps):
                 for child in comp.children:
-                    if child.className == "CaConc" or  child.className == "ZombieCaConc":
+                    if child.className in {"CaConc", "ZombieCaConc"}:
+                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
 
-                        NAME_CALCIUM = child.name
-                       
-                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+NAME_CALCIUM) )
-               
-                        cal = moose.element(comp.path+'/'+NAME_CALCIUM)
+                        cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
+
                         NAME_CALCIUM = child.name
                         
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
                
                         cal = moose.element(comp.path+'/'+NAME_CALCIUM)
+
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
-                    
+
         if pltcurr:
             currtab[neur_type]={}
             #CHANNEL CURRENTS (Optional)
@@ -118,7 +156,7 @@ def syn_plastabs(connections, plas=[]):
                 for syncomp in plas[neur_type][cell].keys():
                     plas_tabs.append(add_one_table(DATA_NAME, plas[neur_type][cell][syncomp], cell+syncomp))
     return syn_tabs, plas_tabs
-            
+
 def spinetabs(model,neuron):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
@@ -136,14 +174,11 @@ def spinetabs(model,neuron):
             if model.calYN:
                 for child in spine.children:
                     if child.className == "CaConc" or  child.className == "ZombieCaConc" :
-                        NAME_CALCIUM = child.name
-                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
-                        spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
+                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
+                        spcal = moose.element(spine.path+'/'+child.name)
                         moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getCa')
                     elif child.className == 'DifShell':
-                        NAME_CALCIUM = child.name
-                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+NAME_CALCIUM))
-                        spcal = moose.element(spine.path+'/'+NAME_CALCIUM)
+                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
+                        spcal = moose.element(spine.path+'/'+child.name)
                         moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
     return spcatab,spvmtab
-

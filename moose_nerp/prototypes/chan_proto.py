@@ -30,6 +30,29 @@ SSTauChannelParams = NamedList('SSTauChannelParams', '''
                                 tauVhalf
                                 tauVslope''')
 
+StandardMooseTauMinfChannelParams = NamedList('StandardMooseTauMinfChannelParams', '''
+                                T_rate
+                                T_B
+                                T_C
+                                Tvhalf
+                                T_vslope
+                                M_rate
+                                M_B
+                                M_C
+                                Mvhalf
+                                M_vslope''')
+
+TauMinfChannelParams = NamedList('TauMinfChannelParams', '''
+                                T_min
+                                T_max
+                                Tvhalf
+                                T_vslope
+                                M_min
+                                M_max
+                                Mvhalf
+                                M_vslope''')
+
+
 AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                                 A_rate
                                 A_B
@@ -47,6 +70,21 @@ BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 
 ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
+
+def sigmoid(x,xmin,xmax,xvhalf,xslope):
+
+    return xmin+xmax/(1+np.exp((x-xvhalf)/xslope))
+
+def make_sigmoid_gate(model,params,Gate):
+    v = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
+    tau = sigmoid(v,params.T_min,params.T_max,params.Tvhalf,params.T_vslope)
+    minf = sigmoid(v,params.M_min,params.M_max,params.Mvhalf,params.M_vslope)
+    Gate.tableA = minf/tau
+    Gate.tableB = 1/tau
+    Gate.min = model.VMIN
+    Gate.max = model.VMAX
+    Gate.divs = model.VDIVS
+    
 
 def interpolate_values_in_table(model, tabA, V_0, l=40):
     '''This function interpolates values in the table
@@ -85,16 +123,30 @@ def chan_proto(model, chanpath, params):
     chan = moose.HHChannel(chanpath)
     chan.Xpower = params.channel.Xpow
     if params.channel.Xpow > 0:
-        xGate = moose.HHGate(chan.path + '/gateX')
-        xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
-        fix_singularities(model, params.X, xGate)
+        
+        xGate = moose.HHGate(chan.path + '/gateX')     
 
+        if isinstance(params.X,AlphaBetaChannelParams):
+            xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.X, xGate)
+        elif isinstance(params.X,StandardMooseTauMinfChannelParams):
+            xGate.setupTau(params.X + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.X, xGate)
+        elif isinstance(params.X,TauMinfChannelParams):
+            make_sigmoid_gate(model,params.X,xGate)
+        
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
-
-        yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
-        fix_singularities(model, params.Y, yGate)
+        if isinstance(params.Y,AlphaBetaChannelParams):
+            yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.Y, yGate)
+        elif isinstance(params.Y,StandardMooseTauMinfChannelParams):
+            yGate.setupTau(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
+            fix_singularities(model, params.Y, yGate)
+        elif isinstance(params.Y,TauMinfChannelParams):
+            make_sigmoid_gate(model,params.Y,yGate)
+        
 
 
     if params.channel.Zpow > 0:
@@ -198,6 +250,8 @@ def BKchan_proto(model, chanpath, params):
                          xGate.tableA[ii][jj], xGate.tableB[ii][jj])
     return chan
 #Channels (model.py) includes channel function name in the dictionary
+
+
 
 TypicalOneDalpha = NamedList('TypicalOneDalpha',
                              '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
