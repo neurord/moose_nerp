@@ -82,17 +82,13 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                 for child in comp.children:
                     if child.className in {"CaConc", "ZombieCaConc"}:
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
-
+                        
                         cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
-
-                        NAME_CALCIUM = child.name
+                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+child.name))
                         
-                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+NAME_CALCIUM ) )
-               
-                        cal = moose.element(comp.path+'/'+NAME_CALCIUM)
-
+                        cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
 
         if pltcurr:
