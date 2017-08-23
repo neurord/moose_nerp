@@ -20,7 +20,7 @@ from .param_stim import Stimulation
 
 
 plasYN = False
-desenYN = True
+desenYN = False
 ghkYN = False
 spineYN = True
 synYN = True
