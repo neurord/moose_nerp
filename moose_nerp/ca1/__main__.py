@@ -57,7 +57,7 @@ all_neurons={}
 for ntype in neuron.keys():
     all_neurons[ntype]=list([neuron[ntype].path])
 
-pg=inject_func.setupinj(ca1, param_sim.injection_delay, param_sim.injection_width, neuron)
+pg=inject_func.setupinj(ca1, param_sim.injection_delay, param_sim.injection_width, all_neurons)
 
 ###############--------------output elements
 if param_sim.plot_channels:
@@ -74,7 +74,7 @@ if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron)
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in ca1.neurontypes()]
-clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve)
+clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,ca1.param_cond.NAME_SOMA)
 
 
 ###########Actually run the simulation

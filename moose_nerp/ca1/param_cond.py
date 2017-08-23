@@ -29,7 +29,7 @@ def neurontypes(override=None):
         _neurontypes = override
 
 #can use different morphologies for different neuron types
-morph_file = ['CA1':'out_ri04_v3.p']
+morph_file = {'CA1':'out_ri04_v3.p'}
 NAME_SOMA='soma'
 #CONDUCTANCES
 
