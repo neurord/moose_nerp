@@ -44,13 +44,13 @@ def test_single_injection(calcium, synapses, spines, ghk, plasticity):
 
     data = moose.Neutral('/data')
 
-    grtables = tables.graphtables(d1d2, neurons, False, 'getGk')
+    vmtab, catab, plastab, currtab = tables.graphtables(d1d2, neurons, False, 'getGk')
 
     moose.reinit()
     moose.start(0.05)
 
-    vm1 = grtables.vmtab[0][0].vector
-    vm2 = grtables.vmtab[1][0].vector
+    vm1 = vmtab[0][0].vector
+    vm2 = vmtab[1][0].vector
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
@@ -98,13 +98,13 @@ def test_net_injection(calcium, synapses, spines, single, ghk, plasticity):
 
     data = moose.Neutral('/data')
 
-    grtables = tables.graphtables(d1d2, neurons, False, 'getGk')
+    vmtab, catab, plastab, currtab = tables.graphtables(d1d2, neurons, False, 'getGk')
 
     moose.reinit()
     moose.start(0.05)
 
-    vm1 = grtables.vmtab[0][0].vector
-    vm2 = grtables.vmtab[1][0].vector
+    vm1 = vmtab[0][0].vector
+    vm2 = vmtab[1][0].vector
 
     # Quick sanity check that the values are not outlandish.
     # We do not check at the beginning because of the initial fluctuation.
