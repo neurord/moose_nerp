@@ -39,11 +39,30 @@ option_parser = standard_options.standard_options(
 
 param_sim = option_parser.parse_args()
 
+plotcomps=[gp.param_cond.NAME_SOMA]
+
+######## adjust the model settings if specified by command-line options and retain model defaults otherwise
+#These assignment statements are required because they are not part of param_sim namespace.
+if param_sim.calcium is not None:
+    gp.calYN = param_sim.calcium
+if gp.calYN and param_sim.plot_calcium is None:
+    param_sim.plot_calcium = True
+if param_sim.spines is not None:
+    gp.spineYN = param_sim.spines
+if param_sim.stim_paradigm is not None:
+    gp.param_stim.Stimulation.Paradigm=gp.param_stim.paradigm_dict[param_sim.stim_paradigm]
+if param_sim.stim_loc is not None:
+    gp.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+if gp.param_stim.Stimulation.Paradigm.name is not 'inject':
+    #override defaults if synaptic stimulation is planned
+    gp.calYN=1
+    gp.spineYN=1
+    gp.synYN=1
+    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
+    plotcomps=plotcomps+gp.param_stim.location.stim_dendrites
+
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
-
-print(param_sim)
-print(gp.synYN)
 
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
@@ -53,19 +72,36 @@ MSNsyn,neuron = cell_proto.neuronclasses(gp)
 print('MSNsyn:', MSNsyn)
 print('neuron:', neuron)
 
-#If calcium and synapses created, could test plasticity at a single synapse in syncomp
-if gp.synYN:
-    plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+plas = {}
+
+####### Set up stimulation
+if gp.param_stim.Stimulation.Paradigm.name is not 'inject':
+    ### plasticity paradigms combining synaptic stimulation with optional current injection
+    sim_time = []
+    for ntype in gp.neurontypes():
+        #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
+        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(gp,ntype)
+        sim_time.append( st)
+        plas[ntype] = spines
+    param_sim.simtime = max(sim_time)
+    param_sim.injection_current = [0]
 else:
-    plas = {}
+    ### Current Injection alone, either use values from Paradigm or from command-line options
+    if not np.any(param_sim.injection_current):
+        param_sim.injection_current = [gp.param_stim.Stimulation.Paradigm.A_inject]
+        param_sim.injection_delay = gp.param_stim.Stimulation.stim_delay
+        param_sim.injection_width = gp.param_stim.Stimulation.Paradigm.width_AP
+    all_neurons={}
+    for ntype in neuron.keys():
+        all_neurons[ntype]=list([neuron[ntype].path])
+    pg=inject_func.setupinj(gp, param_sim.injection_delay, param_sim.injection_width,all_neurons)
 
-####---------------Current Injection
-all_neurons={}
-for ntype in neuron.keys():
-    all_neurons[ntype]=list([neuron[ntype].path])
-pg=inject_func.setupinj(gp, param_sim.injection_delay, param_sim.injection_width, all_neurons)
-
-
+#If calcium and synapses created, could test plasticity at a single synapse in syncomp
+#Need to debug this since eliminated param_sim.stimtimes
+#See what else needs to be changed in plasticity_test. 
+if gp.plasYN:
+      plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+    
 ###############--------------output elements
 if param_sim.plot_channels:
     for chan in gp.Channels.keys():
@@ -74,13 +110,22 @@ if param_sim.plot_channels:
                                       gp.VMIN, gp.VMAX, gp.CAMIN, gp.CAMAX)
 
 
-grtables = tables.graphtables(gp, neuron, param_sim.plot_current,  param_sim.plot_current_message, plas)
+vmtab, catab, plastab, currtab = tables.graphtables(gp, neuron, 
+                              param_sim.plot_current,
+                              param_sim.plot_current_message,
+                              plas,plotcomps)
+
+if param_sim.save:
+    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
 
 if gp.spineYN:
-    spinecatab,spinevmtab=tables.spinetabs(gp,neuron)
+    spinecatab,spinevmtab=tables.spinetabs(gp,neuron,plotcomps)
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in gp.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,gp.param_cond.NAME_SOMA)
+
+if param_sim.hsolve and gp.calYN:
+    calcium.fix_calcium(gp.neurontypes(), gp)
 
 ##print soma conductances
 moose.reinit()
@@ -94,9 +139,6 @@ for neur in gp.neurontypes():
   for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel2D]'):
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
 
-if param_sim.hsolve and gp.calYN:
-    calcium.fix_calcium(gp.neurontypes(), gp)
-
 spikegen=moose.SpikeGen('/data/spikegen')
 #spikegen.threshold=0.0
 #spikegen.refractT=1.0e-3
@@ -107,9 +149,10 @@ spiketab=moose.Table('/data/spike')
 moose.connect(spikegen,'spikeOut',spiketab,'spike')
 
 ###########Actually run the simulation
-def run_simulation(injection_current, simtime):
-    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-    pg.firstLevel = injection_current
+def run_simulation( simtime,injection_current=None):
+    if gq.param_stim.Stimulation.Paradigm.name == 'inject':
+        print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
+        pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
 
@@ -119,24 +162,26 @@ label = {}
 calcium_traces=[]
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
-    #neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
-    #                    currtab,param_sim.plot_current_label, catab, plastab)
+    if param_sim.plot_vm:
+        neuron_graph.graphs(gp, param_sim.plot_current, param_sim.simtime,
+                        currtab,param_sim.plot_current_label, catab, plastab)
     for neurnum,neurtype in enumerate(gp.neurontypes()):
         #
         if param_sim.plot_current:
             for channame in gp.Channels.keys():
                 key =  neurtype+'_'+channame
                 print(channame,key)
-                value[key] = grtables.currtab[neurtype][channame][0].vector
+                value[key] = currtab[neurtype][channame][0].vector
                 label[key] = '{} @ {}'.format(neurtype, channame)
-        traces.append(grtables.vmtab[neurnum][0].vector)
+        traces.append(vmtab[neurnum][0].vector)
         #traces.append(vmtab[neurnum][2].vector)
-        calcium_traces.append(grtables.catab[neurnum][0].vector)
-        #calcium_traces.append(catab[neurnum][2].vector)
+        if gp.calYN and param_sim.plot_calcium:
+            calcium_traces.append(catab[neurnum][0].vector)
+            #calcium_traces.append(catab[neurnum][2].vector)
         names.append('c0{} @ {}'.format(neurtype, inj))
         #names.append('c1{} @ {}'.format(neurtype, inj))
 
-if gp.spineYN:
+    if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
 #
 #
@@ -154,10 +199,11 @@ if gp.spineYN:
 #neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
 #neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
 #neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
-if param_sim.plot_calcium:
-    neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
+
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+    if ca1.calYN and param_sim.plot_calcium:
+        neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
 # block in non-interactive mode
 util.block_if_noninteractive()
