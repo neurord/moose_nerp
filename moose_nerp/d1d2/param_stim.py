@@ -49,7 +49,7 @@ paradigm_dict={'inject':inject,
                'AP_1': AP_1,
                'PSP_1': PSP_1,
                'PSP_20_Hz': PSP_20_Hz ,
-               'PSP_20_Hz': PSP_20_Hz }
+               'PSP_100_Hz': PSP_100_Hz }
 
 location=StimLocParams(which_spines='all',spine_density = 0.2, pulse_sequence=None,  stim_dendrites=['tertdend1_1'])
 
