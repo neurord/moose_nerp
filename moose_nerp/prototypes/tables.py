@@ -7,6 +7,7 @@ from collections import defaultdict, namedtuple
 from moose_nerp.prototypes.spines import NAME_HEAD
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
+DEFAULT_HDF5_COMPARTMENTS = 'soma',
 
 from . import logutil
 log = logutil.Logger()
@@ -14,17 +15,8 @@ log = logutil.Logger()
 def vm_table_path(neuron, spine=None, comp=0):
     return '{}/Vm{}_{}{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
 
-def find_compartments(neuron, *compartments):
-    if not compartments:
-        compartments = '',
-    gen = (moose.wildcardFind('{}/{}#[TYPE=Compartment]'.format(neuron, comp_name))
-           for comp_name in compartments)
-    return sum(gen, ())
-
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
-
-DEFAULT_HDF5_COMPARTMENTS = 'soma',
 
 def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_COMPARTMENTS):
     # Make sure /hdf5 exists
@@ -38,11 +30,10 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
     else:
         print('using', HDF5WRITER_NAME)
         writer = moose.element(HDF5WRITER_NAME)
-
+    
     for typenum,neur_type in enumerate(neuron.keys()):
-        neur_comps = find_compartments(neur_type, *compartments)
-
-        for ii,comp in enumerate(neur_comps):
+        for ii,compname in enumerate(compartments):  #neur_comps):
+            comp=moose.element(neur_type+'/'+compname)
             moose.connect(writer, 'requestOut', comp, 'getVm')
 
             if model.calYN:
@@ -55,9 +46,7 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
                         moose.connect(writer, 'requestOut', cal, 'getC')
     return writer
 
-GraphTables = namedtuple('GraphTables', 'vmtab catab plastab currtab')
-
-def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
+def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
@@ -71,7 +60,10 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
         moose.Neutral(DATA_NAME)
 
     for typenum,neur_type in enumerate(neuron.keys()):
-        neur_comps = find_compartments(neur_type)
+        if len(compartments)==str and comparments in {'all', '*'}:
+                neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
+        else:
+            neur_comps=[moose.element(neur_type+'/'+comp) for comp in compartments]
         vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
 
         for ii,comp in enumerate(neur_comps):
@@ -82,12 +74,10 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[]):
                 for child in comp.children:
                     if child.className in {"CaConc", "ZombieCaConc"}:
                         catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
-                        
                         cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
-                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_'% (neur_type,ii)+child.name))
-                        
+                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
                         cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
 
@@ -153,15 +143,19 @@ def syn_plastabs(connections, plas=[]):
                     plas_tabs.append(add_one_table(DATA_NAME, plas[neur_type][cell][syncomp], cell+syncomp))
     return syn_tabs, plas_tabs
 
-def spinetabs(model,neuron):
+def spinetabs(model,neuron,comps='all'):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
     #creates tables of calcium and vm for spines
     spcatab = defaultdict(list)
     spvmtab = defaultdict(list)
     for typenum,neurtype in enumerate(neuron.keys()):
-        spineHeads=moose.wildcardFind(neurtype+'/##/#head#[ISA=Compartment]')
-        for spinenum,spine in enumerate(spineHeads):
+        if type(comps)==str and comps in {'*', 'all'}:
+            spineHeads=[moose.wildcardFind(neurtype+'/##/#head#[ISA=Compartment]')]
+        else:
+            spineHeads=[moose.wildcardFind(neurtype+'/'+c+'/#head#[ISA=Compartment]') for c in comps]
+        for spinelist in spineHeads:
+          for spinenum,spine in enumerate(spinelist):
             compname = spine.parent.name
             sp_num=spine.name.split(NAME_HEAD)[0]
             spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
