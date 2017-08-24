@@ -8,9 +8,9 @@ def inclusive_range_from_string(arg):
         return np.array([float(parts[0])])
     start, stop = float(parts[0]), float(parts[1])
     if len(parts) == 2:
-        return utils.inclusive_range(start, stop, (stop - start) / 5)
+        return util.inclusive_range(start, stop)
     elif len(parts) == 3:
-        return utils.inclusive_range(start, stop, float(parts[1]))
+        return util.inclusive_range(start, stop, float(parts[1]))
     raise ValueError('too many colons')
 
 def comma_seperated_list(float):
@@ -31,12 +31,12 @@ def standard_options(parser=None,
                      default_plotdt=0.2e-3,
                      default_calcium=None,
                      default_spines=None,
-                     default_injection_current=[],
+                     default_injection_current=None,
                      default_injection_delay=0.1,
                      default_injection_width=0.4,
-                     default_stimtimes=[],
                      default_plot_vm=True,
-                     default_syncomp=4):
+                     default_stim=None,
+                     default_stim_loc=None):
 
     if parser is None:
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -54,7 +54,7 @@ def standard_options(parser=None,
                         help='Use the HSOLVE solver',
                         const=True, default=True)
     parser.add_argument('--save', nargs='?', metavar='FILE',
-                        help='Write volatage and calcium (if enabled) to HDF5 file',
+                        help='Write voltage and calcium (if enabled) to (HDF5) file',
                         const='d1d2.h5')
 
     parser.add_argument('--calcium', type=parse_boolean, nargs='?',
@@ -66,7 +66,7 @@ def standard_options(parser=None,
 
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
                         metavar='CURRENT',
-                        help='One or more injection currents (V)',
+                        help='One or range of currents (either start:stop or start:stop:increment)',
                         default=default_injection_current)
     parser.add_argument('--injection-delay', type=float,
                         metavar='TIME',
@@ -76,14 +76,14 @@ def standard_options(parser=None,
                         metavar='TIME',
                         help='Inject current for this much time',
                         default=default_injection_width)
-
-    parser.add_argument('--stimtimes', type=comma_seperated_list(float),
-                        metavar='TIMEPOINTS',
-                        help='',
-                        default=default_stimtimes)
-    parser.add_argument('--syncomp', type=int,
-                        help='Synapse compartment number',
-                        default=default_syncomp)
+    #Test that specifying 'TBS' will work, maybe not str but Paradigm
+    parser.add_argument('--stim_paradigm', type=str, 
+                        help='Stimuation Paradigm from param_stim.py, or inject',
+                        default=default_stim)
+    # type= for stimLoc - need to separate out spines from Paradigm (update Asia's programs that read stimulation
+    parser.add_argument('--stim_loc', type=int,
+                        help='compartment for synapses',
+                        default=default_stim_loc)
 
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',
