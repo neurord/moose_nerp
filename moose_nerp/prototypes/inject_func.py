@@ -9,35 +9,41 @@ from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes import connect, plasticity, util, spines
 
 
-ParadigmParams = NamedList('ParadigmParams','''                                                                          
-f_pulse                                                                                                                  
-n_pulse                                                                                                                  
-A_inject                                                                                                                 
-f_burst                                                                                                                  
-n_burst                                                                                                                  
-f_train                                                                                                                  
-n_train                                                                                                                  
-width_AP                                                                                                                 
-AP_interval                                                                                                              
-n_AP                                                                                                                     
-ISI                                                                                                                      
+ParadigmParams = NamedList('ParadigmParams','''               
+f_pulse 
+n_pulse      
+A_inject   
+f_burst   
+n_burst   
+f_train    
+n_train   
+width_AP    
+AP_interval  
+n_AP         
+ISI  
 name''')
 
 
-'''                                                                                                                       
-which_spines -- which spines get stimulated.                                                                             
-If 'all' -- spines are randomly chosen with a probability of spine_density                                               
-if a sequencea list -- stimulated spines are randomly chosen from the list                                               
-stim_delay -- delay of the stimulation onset                                                                             
-pulse_sequence -- which spine gets which pulses                                                                            
+'''                 
+which_spines -- which spines get stimulated.    
+If 'all' -- spines are randomly chosen with a probability of spine_density
+if a sequencea list -- stimulated spines are randomly chosen from the list
+stim_delay -- delay of the stimulation onset 
+pulse_sequence -- which spine gets which pulses 
 '''
-StimParams = NamedList('PresynapticStimulation','''                                                                      
-Paradigm                                                                                                                 
-which_spines                                                                                                             
-spine_density                                                                                                            
-pulse_sequence                                                                                                           
-stim_dendrites                                                                                                            
+
+StimLocParams = NamedList('PresynapticLocation','''          
+which_spines                                                  
+spine_density                                                   
+pulse_sequence                                                 
+stim_dendrites                                                  
+''')
+
+StimParams = NamedList('PresynapticStimulation','''                
+Paradigm                             
+StimLoc
 stim_delay''')
+
 
 def MakeGenerators(container,Stimulation):
 
@@ -108,19 +114,21 @@ def MakeTimeTables(Stimulation,spine_no):
 
     delay = Stimulation.stim_delay
 
+    location=Stimulation.StimLoc
+
     time_tables = {}
-    if Stimulation.which_spines in ['all','ALL','All']:
-        how_many  = round(Stimulation.spine_density*spine_no)
-    elif Stimulation.which_spines:
-        how_many  = round(Stimulation.spine_density*len(Stimulation.which_spines))
+    if location.which_spines in ['all','ALL','All']:
+        how_many  = round(location.spine_density*spine_no)
+    elif location.which_spines:
+        how_many  = round(location.spine_density*len(location.which_spines))
 
     for i in range(StimParams.n_train):
         for j in range(StimParams.n_burst):
             for k in range(StimParams.n_pulse):
-                if Stimulation.pulse_sequence:
-                    my_spines = Stimulation.pulse_sequence[k]
+                if location.pulse_sequence:
+                    my_spines = location.pulse_sequence[k]
 
-                elif Stimulation.which_spines in ['all','ALL','All']:
+                elif location.which_spines in ['all','ALL','All']:
                     my_spines = []
                     how_many_spines = 0
                     while True:
@@ -132,13 +140,13 @@ def MakeTimeTables(Stimulation,spine_no):
                                 break
 
 
-                elif  Stimulation.which_spines:
+                elif  location.which_spines:
 
                     my_spines = []
                     how_many_spines = 0
                     while True:
-                        r = random.randint(0,len(Stimulation.which_spines)-1)
-                        spine = Stimulation.which_spines[r]
+                        r = random.randint(0,len(location.which_spines)-1)
+                        spine = location.which_spines[r]
                         if spine not in my_spines:
                             my_spines.append(spine)
                             how_many_spines += 1
@@ -202,6 +210,7 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
     container_name = '/input'
     container = moose.Neutral(container_name)
     SP = model.Stimulation.Paradigm
+    print ('SP', SP)
     exp_duration = (SP.n_train-1)/SP.f_train+(SP.n_burst-1)/SP.f_burst+(SP.n_pulse-1)/SP.f_pulse+SP.n_AP*SP.AP_interval+2*\
 model.Stimulation.stim_delay
 
@@ -211,7 +220,7 @@ model.Stimulation.stim_delay
         moose.connect(pg[0], 'output', injectcomp, 'injectMsg')
 
     stim_spines = {}
-    for dend in model.Stimulation.stim_dendrites:
+    for dend in model.Stimulation.StimLoc.stim_dendrites:
         name_dend = '/'+ntype+'/'+dend
         dendrite = moose.element(name_dend)
         new_spines = HookUpDend(model,dendrite,container)
@@ -224,7 +233,7 @@ model.Stimulation.stim_delay
 
     return exp_duration,stim_spines, None
 
-
+#Possibly replace this with MakeGenerators
 def setupinj(model, delay,width,neuron_pop):
     """Setup injections
 
