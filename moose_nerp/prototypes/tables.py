@@ -46,13 +46,21 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
                         moose.connect(writer, 'requestOut', cal, 'getC')
     return writer
 
+def write_textfile(tabset,tabname,fname,inj, simtime):
+    time=np.linspace(0, simtime, len(tabset[0][0].vector))
+    header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tab])
+    outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tab])))
+    f=open(fname+str(inj)+tabname+'.txt','w')
+    f.write(header+'\n')
+    np.savetxt(f,outputdata,fmt='%.6f')
+    f.close
+    return
+
 def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
     vmtab=[]
-    catab=[]
-    for typenum, neur_type in enumerate(neuron.keys()):
-        catab.append([])
+    catab=[[] for neur in range(len(neuron.keys()))]
     currtab={}
 
     # Make sure /data exists

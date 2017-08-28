@@ -33,9 +33,9 @@ from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
 option_parser = standard_options.standard_options()
-#option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[0.25e-9,0.35e-9],default_stim='inject')
+#option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[0.25e-9,0.35e-9],default_stim='inject',default_stim_loc='tertdend1_1',default_simulation_time=0.01)
 param_sim = option_parser.parse_args()
-
+param_sim.save='y'
 plotcomps=[d1d2.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
@@ -49,13 +49,14 @@ if param_sim.spines is not None:
 if param_sim.stim_paradigm is not None:
     d1d2.param_stim.Stimulation.Paradigm=d1d2.param_stim.paradigm_dict[param_sim.stim_paradigm]
 if param_sim.stim_loc is not None:
-    d1d2.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+    d1d2.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
 if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject':
     #override defaults if synaptic stimulation is planned
     d1d2.calYN=1
     d1d2.spineYN=1
     d1d2.synYN=1
-    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
+#update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
+if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
     plotcomps=plotcomps+d1d2.param_stim.location.stim_dendrites
 
 logging.basicConfig(level=logging.INFO)
@@ -108,7 +109,12 @@ vmtab, catab, plastab, currtab = tables.graphtables(d1d2, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]
+    #HDF5 creation is failing.  when it succeeds, uncomment.  if save='y' or something, use automatic filename
+    #if len(param_sim.save)==1:
+    #tables.setup_hdf5_output(d1d2, neuron, fname)
+    #else:
+    #tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
 
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron,plotcomps)
@@ -147,6 +153,16 @@ for inj in param_sim.injection_current:
     #plot spines
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(d1d2,spinecatab,spinevmtab, param_sim.simtime)
+    #save output - expand this to optionally save current data
+    if param_sim.save:
+        inj_nA=inj*1e9
+        tables.write_textfile(vmtab,'Vm', fname,inj_nA,param_sim.simtime)
+        if d1d2.calYN:
+            tables.write_textfile(catab,'Ca', fname,inj_nA,param_sim.simtime)
+        if d1d2.spineYN and len(spinevmtab):
+            tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
+            if d1d2.spineYN and len(spinecatab):
+                tables.write_textfile(spinecatab,'SpCa', fname,inj_nA,param_sim.simtime)
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if d1d2.calYN and param_sim.plot_calcium:
