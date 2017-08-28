@@ -54,7 +54,7 @@ def standard_options(parser=None,
                         help='Use the HSOLVE solver',
                         const=True, default=True)
     parser.add_argument('--save', nargs='?', metavar='FILE',
-                        help='Write voltage and calcium (if enabled) to (HDF5) file',
+                        help='Write voltage and calcium (if enabled) to (HDF5) file. use single character for auto naming',
                         const='d1d2.h5')
 
     parser.add_argument('--calcium', type=parse_boolean, nargs='?',
@@ -80,8 +80,8 @@ def standard_options(parser=None,
     parser.add_argument('--stim_paradigm', type=str, 
                         help='Stimuation Paradigm from param_stim.py, or inject',
                         default=default_stim)
-    # type= for stimLoc - need to separate out spines from Paradigm (update Asia's programs that read stimulation
-    parser.add_argument('--stim_loc', type=int,
+    # type= for stimLoc - allow multiple spines
+    parser.add_argument('--stim_loc', type=str,
                         help='compartment for synapses',
                         default=default_stim_loc)
 
