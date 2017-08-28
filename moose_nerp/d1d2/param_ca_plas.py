@@ -2,6 +2,14 @@ from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, PumpParams, CellCalcium, ShapeParams
 
+#to change the type of calcium model, change CaShellModeDensity
+#if using CAPOOL, may want to adjust CalciumParams.tau (decay time constant) or BufferCapacityDensity
+#if using SHELL or POOL, optionally change:
+#which_dye to specify one of a set of buffer parameters
+#BufferTotals to change buffer quantitites (or add additional lines)
+#PumpDensity or PumpVmax to change those parameters
+#parameters in tree_shape, etc to change size of subcompartments
+
 #definitions
 CAPOOL = -1 #single time constant of decay
 #difshell types
@@ -25,7 +33,7 @@ LINEAR = 0
 #intrinsic calcium params
 #diffusion constant from Allbritton et al.1992.  Tau is used only if using single time constant of decay instead of pumps and buffers
 CaBasal = 50e-6
-CalciumParams = CellCalcium(CaName='Shells',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
+CalciumParams = CellCalcium(CaName='Shell',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
 
 #shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
 #increase_mode linear = 0, geometric = 1
@@ -65,8 +73,6 @@ which_dye = "no_dye"
 #Other possible dye sets are for replicating calcium imaging experiments, and assume the diffusible buffers are dialyzed
 #Quantities of calcium indicators taken directly from experimental papers
 
-CaBasal = 50e-6
-
 #possible dye sets used in experiments
 BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1}, #endogenous immobile low affinity buffer (e.g. see Matthews, Scoch, & Dietrich, J. Neuro, 2013 (hippocampus))
                "Fura_2":{'Fura2':100e-3,'FixedBuffer':1}, #Kerr
@@ -78,6 +84,8 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
     }
 
 #Pump Vmax, NCX distribution from Lorincz et al. 2007 PNAS
+#*************Change this to 1st specify PumpVmaxNCX, and PumpVmaxPMCA, and then collect PumpDensities below.
+#*******Or have single spec as in param_cond
 PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
 PumpVmaxSoma = {'MMPump':85e-8}
 PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
