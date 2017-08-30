@@ -162,7 +162,7 @@ for inj in param_sim.injection_current:
         if d1d2.spineYN and len(spinevmtab):
             tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
             if d1d2.spineYN and len(spinecatab):
-                tables.write_textfile(spinecatab,'SpCa', fname,inj_nA,param_sim.simtime)
+                tables.write_textfile(list(spinecatab.values()),'SpCa', fname,inj_nA,param_sim.simtime)
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if d1d2.calYN and param_sim.plot_calcium:
