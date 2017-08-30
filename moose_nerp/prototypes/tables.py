@@ -50,10 +50,9 @@ def write_textfile(tabset,tabname,fname,inj, simtime):
     time=np.linspace(0, simtime, len(tabset[0][0].vector))
     header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tab])
     outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tab])))
-    f=open(fname+str(inj)+tabname+'.txt','w')
-    f.write(header+'\n')
-    np.savetxt(f,outputdata,fmt='%.6f')
-    f.close
+    new_fname=fname+str(inj)+tabname+'.txt'
+    #f.write(header+'\n')
+    np.savetxt(new_fname,outputdata,fmt='%.6f',header=header)
     return
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
@@ -163,20 +162,22 @@ def spinetabs(model,neuron,comps='all'):
         else:
             spineHeads=[moose.wildcardFind(neurtype+'/'+c+'/#head#[ISA=Compartment]') for c in comps]
         for spinelist in spineHeads:
-          for spinenum,spine in enumerate(spinelist):
-            compname = spine.parent.name
-            sp_num=spine.name.split(NAME_HEAD)[0]
-            spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
-            log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
-            moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
-            if model.calYN:
-                for child in spine.children:
-                    if child.className == "CaConc" or  child.className == "ZombieCaConc" :
-                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
-                        spcal = moose.element(spine.path+'/'+child.name)
-                        moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getCa')
-                    elif child.className == 'DifShell':
-                        spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
-                        spcal = moose.element(spine.path+'/'+child.name)
-                        moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
+            for spinenum,spine in enumerate(spinelist):
+                compname = spine.parent.name
+                sp_num=spine.name.split(NAME_HEAD)[0]
+                spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
+                log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
+                moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
+                if model.calYN:
+                    for child in spine.children:
+                        if child.className == "CaConc" or  child.className == "ZombieCaConc" :
+                            spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
+                            spcal = moose.element(spine.path+'/'+child.name)
+                            moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getCa')
+                        elif child.className == 'DifShell':
+                            spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
+                            spcal = moose.element(spine.path+'/'+child.name)
+                            moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
+
+
     return spcatab,spvmtab
