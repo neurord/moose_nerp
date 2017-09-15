@@ -42,6 +42,7 @@ option_parser = standard_options.standard_options(
 #File "moose_nerp/prototypes/inject_func.py", line 227, in ConnectPreSynapticPostSynapticStimulation
 #stim_spines.update(new_spines)
 #TypeError: 'NoneType' object is not iterable
+#same error with or without spines
 
 param_sim = option_parser.parse_args()
 
@@ -51,18 +52,18 @@ plotcomps=[gp.param_cond.NAME_SOMA]
 #These assignment statements are required because they are not part of param_sim namespace.
 if param_sim.calcium is not None:
     gp.calYN = param_sim.calcium
-if gp.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
 if param_sim.spines is not None:
     gp.spineYN = param_sim.spines
 if param_sim.stim_paradigm is not None:
     gp.param_stim.Stimulation.Paradigm=gp.param_stim.paradigm_dict[param_sim.stim_paradigm]
 if param_sim.stim_loc is not None:
     gp.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+
+#These assignments make assumptions about which parameters should be changed together   
+if gp.calYN and param_sim.plot_calcium is None:
+    param_sim.plot_calcium = True
 if gp.param_stim.Stimulation.Paradigm.name is not 'inject':
     #override defaults if synaptic stimulation is planned
-    gp.calYN=1
-    gp.spineYN=1
     gp.synYN=1
     #this will need enhancement in future, e.g. in option_parser, to plot additional locations
     plotcomps=plotcomps+gp.param_stim.location.stim_dendrites
@@ -73,7 +74,7 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-gp.neurontypes(['arky'])
+#gp.neurontypes(['arky'])
 MSNsyn,neuron = cell_proto.neuronclasses(gp)
 print('MSNsyn:', MSNsyn)
 print('neuron:', neuron)
@@ -210,7 +211,7 @@ for inj in param_sim.injection_current:
 
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    if ca1.calYN and param_sim.plot_calcium:
+    if gp.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
 # block in non-interactive mode
