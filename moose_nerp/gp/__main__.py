@@ -36,6 +36,12 @@ option_parser = standard_options.standard_options(
     default_simulation_time=0.6,
     default_injection_width=0.4,
     default_plotdt=0.0001)
+#,default_stim='PSP_1')
+# Issue with stimulation needs fixing:
+#Line 83: st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(gp,ntype)
+#File "moose_nerp/prototypes/inject_func.py", line 227, in ConnectPreSynapticPostSynapticStimulation
+#stim_spines.update(new_spines)
+#TypeError: 'NoneType' object is not iterable
 
 param_sim = option_parser.parse_args()
 
@@ -120,6 +126,8 @@ if param_sim.save:
 
 if gp.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(gp,neuron,plotcomps)
+else:
+    spinevmtab=[]
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in gp.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,gp.param_cond.NAME_SOMA)
@@ -150,7 +158,7 @@ moose.connect(spikegen,'spikeOut',spiketab,'spike')
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
-    if gq.param_stim.Stimulation.Paradigm.name == 'inject':
+    if gp.param_stim.Stimulation.Paradigm.name == 'inject':
         print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
         pg.firstLevel = injection_current
     moose.reinit()
