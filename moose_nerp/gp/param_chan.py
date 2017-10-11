@@ -26,8 +26,10 @@ CAMIN = 0.01e-3   #10 nM
 CAMAX = 60e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 5999 #10 nM steps
 
-
-
+#contains all gating parameters and reversal potentials
+# Gate equations have the form:
+# AlphaBetaChannelParams (specify forward and backward transition rates):
+# alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 
 qfactNaF = 1.0
 
