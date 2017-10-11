@@ -16,13 +16,21 @@ from moose_nerp.prototypes.chan_proto import (
 
 #contains all gating parameters and reversal potentials
 # Gate equations have the form:
-#
-# y(x) = (rate + B * x) / (C + exp((x + vhalf) / vslope))
-#
+# AlphaBetaChannelParams (specify forward and backward transition rates):
+# alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
-# y(x) = tau_min + tau_vdep / (1 + exp((x + vhalf) / vslope))
+# StandardMooseTauMinfChannelParams (specify steady state and time constants):
+# tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# TauMinfChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# OR
+# SSTauChannelParams (specify steady state and inverted U shaped time constant):
+# tau(v) = tau_min + 1000* tau_vdep / (1 + exp((v + vhalf) / vslope))* tau_vdep / (1 + exp((v + vhalf) / -vslope))
+# ss(v) = A/(C+ exp((v + vhalf) / vslope))
 #
-# where x is membrane voltage and y is the rate constant
+# where v is membrane voltage 
+#
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 #Parameters for Ca channels may need to be shifted - see Dorman model
 krev=-90e-3
