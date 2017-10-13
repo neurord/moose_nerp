@@ -4,8 +4,8 @@ from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
     SSTauChannelParams,
     AlphaBetaChannelParams,
-    StandardMooseTauMinfChannelParams,
-    TauMinfChannelParams,
+    StandardMooseTauInfChannelParams,
+    TauInfMinChannelParams,
     ZChannelParams,
     BKChannelParams,
     ChannelSettings,
@@ -19,10 +19,10 @@ from moose_nerp.prototypes.chan_proto import (
 # AlphaBetaChannelParams (specify forward and backward transition rates):
 # alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
-# StandardMooseTauMinfChannelParams (specify steady state and time constants):
+# StandardMooseTauInfChannelParams (specify steady state and time constants):
 # tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
-# TauMinfChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
 # tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
 # OR
 # SSTauChannelParams (specify steady state and inverted U shaped time constant):
@@ -58,7 +58,7 @@ Na_m_params = SSTauChannelParams(Arate = 1.0,
                                  Avhalf = 25e-3,
                                  Avslope = -10e-3,
                                  taumin = 0.1e-3,
-                                 tauVdep = 1.45e-3,
+                                 tauVdep = 2.1025e-3,
                                  tauPow = 2,
                                  tauVhalf = 62e-3,
                                  tauVslope = 8e-3)
@@ -107,7 +107,7 @@ Krp_X_params = AlphaBetaChannelParams(A_rate = 16*qfactKrp,
                                       B_vslope = 40e-3)
 
 # tuned to fit Nisenbaum 1996 fig 9D (hinf, 87% inactivating) and 9B (htau)
-Krp_Y_params = TauMinfChannelParams(T_min = 0.28799999999999998*qfactKrp,
+Krp_Y_params = TauInfMinChannelParams(T_min = 0.28799999999999998*qfactKrp,
                                     T_max = 4.1600000000000001*qfactKrp,
                                     Tvhalf = -0.042000000000000003,
                                     T_vslope = 0.013000000000000001,
@@ -209,7 +209,7 @@ CaL12_X_params =AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                          B_vslope = 5e-3)
  
 
-CaL12_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
+CaL12_Y_params = TauInfMinChannelParams(T_min = 44.3e-3/qfactCaL,
                                         T_max = 0,
                                         Tvhalf = 4.0003e-3,
                                         T_vslope = -7.5e-3,
@@ -232,7 +232,7 @@ CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
                                         B_C = 1.0,
                                         Bvhalf = 52.e-3,
                                         B_vslope = 8.e-3)
-CaL13_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
+CaL13_Y_params = TauInfMinChannelParams(T_min = 44.3e-3/qfactCaL,
                                        T_max = 0,
                                         Tvhalf = 37.0e-3,
                                         T_vslope = 5.0e-3,
@@ -283,7 +283,7 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304*qfactCaN,
                                       Bvhalf = 14.20003e-3,
                                       B_vslope = 10e-3)
 
-CaN_Y_params = TauMinfChannelParams(T_min = 70e-3/qfactCaN,
+CaN_Y_params = TauInfMinChannelParams(T_min = 70e-3/qfactCaN,
                                       T_max = 0,
                                       Tvhalf = 0.0,
                                       T_vslope = -14.0e-3,

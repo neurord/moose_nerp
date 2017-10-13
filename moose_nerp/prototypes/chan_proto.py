@@ -30,7 +30,7 @@ SSTauChannelParams = NamedList('SSTauChannelParams', '''
                                 tauVhalf
                                 tauVslope''')
 
-StandardMooseTauMinfChannelParams = NamedList('StandardMooseTauMinfChannelParams', '''
+StandardMooseTauInfChannelParams = NamedList('StandardMooseTauInfChannelParams', '''
                                 T_rate
                                 T_B
                                 T_C
@@ -42,7 +42,7 @@ StandardMooseTauMinfChannelParams = NamedList('StandardMooseTauMinfChannelParams
                                 Mvhalf
                                 M_vslope''')
 
-TauMinfChannelParams = NamedList('TauMinfChannelParams', '''
+TauInfMinChannelParams = NamedList('TauInfMinChannelParams', '''
                                 T_min
                                 T_max
                                 Tvhalf
@@ -129,10 +129,10 @@ def chan_proto(model, chanpath, params):
         if isinstance(params.X,AlphaBetaChannelParams):
             xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,StandardMooseTauMinfChannelParams):
+        elif isinstance(params.X,StandardMooseTauInfChannelParams):
             xGate.setupTau(params.X + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,TauMinfChannelParams):
+        elif isinstance(params.X,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.X,xGate)
         
     chan.Ypower = params.channel.Ypow
@@ -141,10 +141,10 @@ def chan_proto(model, chanpath, params):
         if isinstance(params.Y,AlphaBetaChannelParams):
             yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,StandardMooseTauMinfChannelParams):
+        elif isinstance(params.Y,StandardMooseTauInfChannelParams):
             yGate.setupTau(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,TauMinfChannelParams):
+        elif isinstance(params.Y,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.Y,yGate)
         
 
@@ -189,8 +189,8 @@ def NaFchan_proto(model, chanpath, params):
     mgate.max=model.VMAX
     inf_x = params.X.Arate/(params.X.A_C + np.exp(( v_array+params.X.Avhalf)/params.X.Avslope))
     tau1 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/params.X.tauVslope))
-    tau2 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/-params.X.tauVslope))
-    tau_x = (params.X.taumin+1000*tau1*tau2)/model.qfactNaF
+    tau2 = 1/(1+np.exp((v_array+params.X.tauVhalf)/-params.X.tauVslope))
+    tau_x = (params.X.taumin+tau1*tau2)/model.qfactNaF
     log.debug("NaF mgate:{} tau1:{} tau2:{} tau:{}", mgate, tau1, tau2, tau_x)
 
     mgate.tableA = inf_x / tau_x

@@ -40,7 +40,7 @@ to evaluate variables created in __main__ after the import, use the following sy
     + TauMinfChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
       - tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
     + SSTauChannelParams (specify steady state and inverted U shaped time constant):
-      - tau(v) = tau_min + 1000* tau_vdep / (1 + exp((v + vhalf) / vslope))* tau_vdep / (1 + exp((v + vhalf) / -vslope))
+      - tau(v) = tau_min + tau_vdep / (1 + exp((v + vhalf) / vslope))* 1/ (1 + exp((v + vhalf) / -vslope))
       - ss(v) = A/(C+ exp((v + vhalf) / vslope))
    - At the bottom of this file, where the Channel dictionary is specified, and use TypicalOneDalpha for channels specified using the 1st 3 gate equation forms and AtypicalOneD for last gate equation form.
    - To specify calcium dependent potassium channels (SK) or calcium dependent inactivaion, use ZChannelParams for gating variables:
