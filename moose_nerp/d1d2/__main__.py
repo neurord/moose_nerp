@@ -33,31 +33,35 @@ from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
 option_parser = standard_options.standard_options()
-#option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[0.25e-9,0.35e-9],default_stim='inject',default_stim_loc='tertdend1_1',default_simulation_time=0.01)
+option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[0.25e-9],default_stim='inject',default_stim_loc='soma')
+#,default_simulation_time=0.01)
 param_sim = option_parser.parse_args()
-param_sim.save='y'
+param_sim.save=1
 plotcomps=[d1d2.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
 #These assignment statements are required because they are not part of param_sim namespace.
 if param_sim.calcium is not None:
     d1d2.calYN = param_sim.calcium
-if d1d2.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
 if param_sim.spines is not None:
     d1d2.spineYN = param_sim.spines
 if param_sim.stim_paradigm is not None:
     d1d2.param_stim.Stimulation.Paradigm=d1d2.param_stim.paradigm_dict[param_sim.stim_paradigm]
 if param_sim.stim_loc is not None:
     d1d2.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
+
+#These assignments make assumptions about which parameters should be changed together   
+if d1d2.calYN and param_sim.plot_calcium is None:
+    param_sim.plot_calcium = True
 if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject':
     #override defaults if synaptic stimulation is planned
+    d1d2.synYN=1
+    #Perhaps these should be removed
     d1d2.calYN=1
     d1d2.spineYN=1
-    d1d2.synYN=1
 #update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
 if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
-    plotcomps=plotcomps+d1d2.param_stim.location.stim_dendrites
+    plotcomps=np.unique(plotcomps+d1d2.param_stim.location.stim_dendrites)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -139,7 +143,7 @@ traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(simtime=param_sim.simtime,injection_current=inj)
     if param_sim.plot_vm:
-        neuron_graph.graphs(d1d2, param_sim.plot_current, param_sim.simtime,
+        neuron_graph.graphs(d1d2, vmtab, param_sim.plot_current, param_sim.simtime,
                         currtab, param_sim.plot_current_label,
                         catab, plastab)
     #set up tables that accumulate soma traces for multiple simulations
