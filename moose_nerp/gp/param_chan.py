@@ -9,8 +9,7 @@ from moose_nerp.prototypes.chan_proto import (
     ZChannelParams,
     BKChannelParams,
     ChannelSettings,
-    TypicalOneDalpha,
-    AtypicalOneD,
+    TypicalOneD,
     TwoD)
 
 
@@ -290,17 +289,17 @@ BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
 BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
 Channels = NamedDict(
     'Channels',
-    KDr =   TypicalOneDalpha(KDrparam, KDr_X_params, KDr_Y_params),
-    Kv3 =   TypicalOneDalpha(Kv3param, Kv3_X_params, Kv3_Y_params),
-    KvF =   TypicalOneDalpha(KvFparam, KvF_X_params, KvF_Y_params),
-    KvS =   TypicalOneDalpha(KvSparam, KvS_X_params, KvS_Y_params),
-    HCN1 =  TypicalOneDalpha(HCN1param,HCN1_X_params, []),
-    HCN2 =  TypicalOneDalpha(HCN2param,HCN2_X_params, []),
-    KCNQ =  TypicalOneDalpha(KCNQparam,KCNQ_X_params, []),
-    NaF =   TypicalOneDalpha(NaFparam, Na_m_params, Na_h_params,Na_s_param),
-    Ca =   TypicalOneDalpha(Caparam,Ca_X_params, [],[], calciumPermeable=True),
-    SKCa=  TypicalOneDalpha(SKparam, [], [], SK_Z_params , calciumDependent=True),
-    NaS= TypicalOneDalpha(NaSparam,NaS_m_params,NaS_h_params,NaS_s_params),
+    KDr =   TypicalOneD(KDrparam, KDr_X_params, KDr_Y_params),
+    Kv3 =   TypicalOneD(Kv3param, Kv3_X_params, Kv3_Y_params),
+    KvF =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
+    KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
+    HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
+    HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
+    KCNQ =  TypicalOneD(KCNQparam,KCNQ_X_params, []),
+    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_param),
+    Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
+    SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
+    NaS= TypicalOneD(NaSparam,NaS_m_params,NaS_h_params,NaS_s_params),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
 # have to add NaP and calcium channels

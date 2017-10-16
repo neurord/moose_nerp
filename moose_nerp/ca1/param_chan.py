@@ -6,8 +6,7 @@ from moose_nerp.prototypes.chan_proto import (
     ZChannelParams,
     BKChannelParams,
     ChannelSettings,
-    TypicalOneDalpha,
-    AtypicalOneD,
+    TypicalOneD,
     TwoD)
 
 #contains all gating parameters and reversal potentials
@@ -161,10 +160,10 @@ naFparams=ChannelSettings(Xpow=3,Ypow=1,Zpow=0,Erev=55.0e-3,name='NaF')
 
 Channels = NamedDict(
     'Channels',
-    Kdr =   TypicalOneDalpha(kDrparams, kDr_X_params, kDr_Y_params),
-    Kadist = TypicalOneDalpha(KAdistparams, KAdist_m_params, KAdist_h_params),
-    Kaprox = TypicalOneDalpha(KAproxparams, KAprox_m_params, KAdist_h_params),
-    Na = TypicalOneDalpha(naFparams, Na_m_params, Na_h_params),
+    Kdr =   TypicalOneD(kDrparams, kDr_X_params, kDr_Y_params),
+    Kadist = TypicalOneD(KAdistparams, KAdist_m_params, KAdist_h_params),
+    Kaprox = TypicalOneD(KAproxparams, KAprox_m_params, KAdist_h_params),
+    Na = TypicalOneD(naFparams, Na_m_params, Na_h_params),
 
 
 

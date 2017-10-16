@@ -32,7 +32,7 @@ to evaluate variables created in __main__ after the import, use the following sy
 
 1. clone one of the packages, e.g. d1d2 
 2. edit param_chan to specify ion channels and their gating.
-  - Gate equations have the form:
+  - Gate equations for TypicalOneD channels have the form:
     + AlphaBetaChannelParams (specify forward and backward transition rates):
       - alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
     + StandardMooseTauInfChannelParams (specify steady state and time constants):
@@ -42,8 +42,8 @@ to evaluate variables created in __main__ after the import, use the following sy
     + SSTauQuadratichannelParams (specify steady state and inverted U shaped time constant):
       - tau(v) = tau_min + tau_vdep / (1 + exp((v - tau_vhalf) / vslope))* 1/ (1 + exp((v - vhalf) / -vslope))
       - ss(v) = A/(C+ exp((v - vhalf) / vslope))
-   - At the bottom of this file, where the Channel dictionary is specified, and use TypicalOneDalpha for channels specified using the 1st 3 gate equation forms and AtypicalOneD for last gate equation form.
-   - To specify calcium dependent potassium channels (SK) or calcium dependent inactivaion, use ZChannelParams for gating variables:
+ using the 1st 3 gate equation forms.
+   - To specify calcium dependent potassium channels (SK) or calcium dependent inactivaion, use ZChannelParams for gating variables (and  TypicalOneD in the Channel dictionary):
       - inf(Ca) = (Ca/Kd)^power/(1+(Ca/Kd)^power
       - tau(Ca) = tau+ (taumax-tau)/(1+ (Ca/Cahalf)^Kdtau)
    - To specify the voltage and calcium dependent potassium channel (BK), use BKChannelParams for gating variables and TwoD in the Channel dictionary

@@ -147,6 +147,8 @@ def chan_proto(model, chanpath, params):
             fix_singularities(model, params.X, xGate)
         elif isinstance(params.X,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.X,xGate)
+        elif isinstance(params.X,SSTauQuadraticChannelParams):
+            make_quadratic_gate(model,params.X,xGate)
         
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
@@ -159,6 +161,8 @@ def chan_proto(model, chanpath, params):
             fix_singularities(model, params.Y, yGate)
         elif isinstance(params.Y,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.Y,yGate)
+        elif isinstance(params.Y,SSTauQuadraticChannelParams):
+            make_quadratic_gate(model,params.Y,yGate)
 
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
@@ -188,34 +192,6 @@ def chan_proto(model, chanpath, params):
             chan.useConcentration = False
 
     chan.Ek = params.channel.Erev
-    return chan
-
-def NaFchan_proto(model, chanpath, params):
-    v_array = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
-    chan = moose.HHChannel(chanpath)
-    chan.Xpower = params.channel.Xpow #creates the m gate
-    mgate = moose.HHGate(chan.path + '/gateX')
-    #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
-    mgate.min=model.VMIN
-    mgate.max=model.VMAX
-    inf_x =  sigmoid(v_array,params.X.SS_min,params.X.SS_vdep,params.X.SS_vhalf,params.X.SS_vslope)
-    tau_x=quadratic(v_array,params.X.taumin, params.X.tauVdep,params.X.tauVhalf,params.X.tauVslope)
-    log.debug("NaF mgate:{} tau:{}", mgate, tau_x)
-
-    mgate.tableA = inf_x / tau_x
-    mgate.tableB =  1 / tau_x
-    #moose.showfield(mgate)
-
-    chan.Ypower = params.channel.Ypow #creates the h gate
-    hgate = moose.HHGate(chan.path + '/gateY')
-    hgate.min = model.VMIN
-    hgate.max = model.VMAX
-    tau_y = sigmoid(v_array,params.Y.T_min,params.Y.T_vdep,params.Y.T_vhalf,params.Y.T_vslope)
-    inf_y = sigmoid(v_array,params.Y.SS_min,params.Y.SS_vdep,params.Y.SS_vhalf,params.Y.SS_vslope)
-    log.debug("NaF hgate:{} inf:{} tau:{}", hgate, inf_y, tau_y)
-    hgate.tableA = inf_y / tau_y
-    hgate.tableB = 1 / tau_y
-    chan.Ek=params.channel.Erev
     return chan
 
 def BKchan_proto(model, chanpath, params):
@@ -261,17 +237,13 @@ def BKchan_proto(model, chanpath, params):
 #Channels (model.py) includes channel function name in the dictionary
 
 
-
-TypicalOneDalpha = NamedList('TypicalOneDalpha',
+TypicalOneD = NamedList('TypicalOneD',
                              '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
-AtypicalOneD     = NamedList('AtypicalOneD',
-                             '''channel X Y      calciumPermeable=False calciumDependent=False''')
 TwoD             = NamedList('TwoD',
                              '''channel X        calciumPermeable=False calciumDependent=False''')
 
 _FUNCTIONS = {
-    TypicalOneDalpha: chan_proto,
-    AtypicalOneD: NaFchan_proto,
+    TypicalOneD: chan_proto,
     TwoD: BKchan_proto,
 }
 
