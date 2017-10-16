@@ -17,7 +17,9 @@ SpineParams = _util.NamedDict(
     spineEREST = -80e-3,
     spineStart = 26.1e-6,
     spineEnd = 300e-6,
-    spineParent = 'secdend11',
+    compensationSpineDensity = 0,
+    #add spines to dendrites connected to /downstream of this branch. 
+    spineParent = '31_4',
     spineChanList = [], #['CaL13']
    
 
