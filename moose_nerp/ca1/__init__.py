@@ -10,7 +10,7 @@ from .param_spine import SpineParams
 from .param_syn import (SYNAPSE_TYPES,
                         NumSyn)
 from . import param_ca_plas as CaPlasticityParams
-
+from .param_stim import Stimulation
 #calcium: include or exclude calcium concentration dynamics, single tau
 #synYN:No point adding synapses unless they receive inputs
 #plasYN:include or exclude plasticity based on calcium

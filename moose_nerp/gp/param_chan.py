@@ -4,8 +4,8 @@ from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
     SSTauQuadraticChannelParams,
     AlphaBetaChannelParams,
-    StandardMooseTauSSChannelParams,
-    TauSSMinChannelParams,
+    StandardMooseTauInfChannelParams,
+    TauInfMinChannelParams,
     ZChannelParams,
     BKChannelParams,
     ChannelSettings,
