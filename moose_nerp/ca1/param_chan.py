@@ -2,7 +2,6 @@
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
-    SSTauChannelParams,
     AlphaBetaChannelParams,
     ZChannelParams,
     BKChannelParams,
@@ -38,12 +37,12 @@ kDr_X_params= AlphaBetaChannelParams (
     A_rate=6.5,
     A_B=0,
     A_C=0,
-    Avhalf=0,
+    A_vhalf=0,
     A_vslope=-12.5e-3,
     B_rate=24,
     B_B=0,
     B_C=0,
-    Bvhalf=0,
+    B_vhalf=0,
     B_vslope=33.5e-3)
 
 kDr_Y_params=[]
@@ -54,24 +53,24 @@ KAdist_m_params= AlphaBetaChannelParams (
     A_rate=0.7,
     A_B=0,
     A_C=0,
-    Avhalf=0,
+    A_vhalf=0,
     A_vslope=-50e-3,
     B_rate=0.15,
     B_B=0,
     B_C=0,
-    Bvhalf=-30.1001e-3,
+    B_vhalf=-30.1001e-3,
     B_vslope=9e-3)
 
 KAdist_h_params= AlphaBetaChannelParams (
     A_rate=17,
     A_B=0,
     A_C=0,
-    Avhalf=-95.1001e-3,
+    A_vhalf=-95.1001e-3,
     A_vslope=14e-3,
     B_rate=10,
     B_B=0,
     B_C=0,
-    Bvhalf=0,
+    B_vhalf=0,
     B_vslope=25e-3)
 
 KAdistparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAdist')
@@ -80,24 +79,24 @@ KAprox_m_params= AlphaBetaChannelParams (
     A_rate=0.375,
     A_B=0,
     A_C=0,
-    Avhalf=0,
+    A_vhalf=0,
     A_vslope=40e-3,
     B_rate=0.025,
     B_B=0,
     B_C=0,
-    Bvhalf=-18.1001e-3,
+    B_vhalf=-18.1001e-3,
     B_vslope=18e-3)
 
 KAprox_h_params= AlphaBetaChannelParams (
     A_rate=17,
     A_B=0,
     A_C=0,
-    Avhalf=-95.1001e-3,
+    A_vhalf=-95.1001e-3,
     A_vslope=14e-3,
     B_rate=10,
     B_B=0,
     B_C=0,
-    Bvhalf=0,
+    B_vhalf=0,
     B_vslope=25e-3)
 
 KAproxparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAprox')
@@ -105,24 +104,24 @@ KAproxparams=ChannelSettings(Xpow=2,Ypow=1,Zpow=0,Erev=-0.09,name='KAprox')
 #     A_rate=1,
 #     A_B=0,
 #     A_C=0,
-#     Avhalf=-63e-3,
+#     A_vhalf=-63e-3,
 #     A_vslope=3*0.0376583676871,
 #     B_rate=1,
 #     B_B=0,
 #     B_C=0,
-#     Bvhalf=-63e-3,
+#     B_vhalf=-63e-3,
 #     B_vslope=-3*0.0376583676871)
 
 # KD_y_params= AlphaBetaChannelParams (
 #     A_rate=17,
 #     A_B=0,
 #     A_C=0,
-#     Avhalf=-95.1001e-3,
+#     A_vhalf=-95.1001e-3,
 #     A_vslope=14e-3,
 #     B_rate=10,
 #     B_B=0,
 #     B_C=0,
-#     Bvhalf=0, 
+#     B_vhalf=0, 
 #     B_vslope=25e-3)
 
 
@@ -134,12 +133,12 @@ Na_m_params= AlphaBetaChannelParams (
     A_rate=-12.0052e-3*2.14e6,
     A_B=-0.4*2.14e6,
     A_C=-1,
-    Avhalf=30.013e-3,
+    A_vhalf=30.013e-3,
     A_vslope=-7.2e-3,
     B_rate=3.722e-3*2.14e6,
     B_B=0.124*2.14e6,
     B_C=-1,
-    Bvhalf=30.013e-3,
+    B_vhalf=30.013e-3,
     B_vslope=7.2e-3)
 
 
@@ -148,12 +147,12 @@ Na_h_params= AlphaBetaChannelParams (
     A_rate=(45.013e-3+15.0e-3)*0.03*2.14e6,
     A_B=0.03*2.14e6,
     A_C=-1,
-    Avhalf=45.013e-3+15e-3,
+    A_vhalf=45.013e-3+15e-3,
     A_vslope=3.5e-3,
     B_rate=-(45.013e-3+15e-3)*0.01*2.14e6,
     B_B=-0.01*2.14e6,
     B_C=-1,
-    Bvhalf=45.013e-3+15e-3,
+    B_vhalf=45.013e-3+15e-3,
     B_vslope=-3.5e-3)
 
 

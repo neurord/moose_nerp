@@ -35,13 +35,13 @@ to evaluate variables created in __main__ after the import, use the following sy
   - Gate equations have the form:
     + AlphaBetaChannelParams (specify forward and backward transition rates):
       - alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
-    + StandardMooseTauMinfChannelParams (specify steady state and time constants):
+    + StandardMooseTauInfChannelParams (specify steady state and time constants):
       - tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
-    + TauMinfChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
-      - tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
-    + SSTauChannelParams (specify steady state and inverted U shaped time constant):
-      - tau(v) = tau_min + tau_vdep / (1 + exp((v + vhalf) / vslope))* 1/ (1 + exp((v + vhalf) / -vslope))
-      - ss(v) = A/(C+ exp((v + vhalf) / vslope))
+    + TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+      - tau(v) or inf(v) = min + max / (1 + exp((v - vhalf) / vslope))
+    + SSTauQuadratichannelParams (specify steady state and inverted U shaped time constant):
+      - tau(v) = tau_min + tau_vdep / (1 + exp((v - tau_vhalf) / vslope))* 1/ (1 + exp((v - vhalf) / -vslope))
+      - ss(v) = A/(C+ exp((v - vhalf) / vslope))
    - At the bottom of this file, where the Channel dictionary is specified, and use TypicalOneDalpha for channels specified using the 1st 3 gate equation forms and AtypicalOneD for last gate equation form.
    - To specify calcium dependent potassium channels (SK) or calcium dependent inactivaion, use ZChannelParams for gating variables:
       - inf(Ca) = (Ca/Kd)^power/(1+(Ca/Kd)^power
