@@ -122,6 +122,8 @@ if param_sim.save:
 
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron,plotcomps)
+else:
+    spinevmtab=[]
 
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in d1d2.neurontypes()]

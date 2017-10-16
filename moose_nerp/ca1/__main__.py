@@ -32,9 +32,10 @@ from moose_nerp import ca1
 
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+option_parser = standard_options.standard_options(default_injection_current=[200e-12])
 param_sim = option_parser.parse_args()
 param_sim.save=0
+
 plotcomps=[ca1.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
@@ -111,10 +112,13 @@ vmtab, catab, plastab, currtab = tables.graphtables(ca1, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=ca1.param_stim.Stimulation.Paradigm.name+'_'+ca1.param_stim.location.stim_dendrites[0]
+#    tables.setup_hdf5_output(ca1, neuron, param_sim.save)
 
 if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron,plotcomps)
+else:
+    spinevmtab=[]
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in ca1.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,ca1.param_cond.NAME_SOMA)

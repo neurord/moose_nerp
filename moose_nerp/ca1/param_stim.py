@@ -28,7 +28,7 @@ paradigm_dict={'inject':inject,
 #stim_dendrite list must correspond to dendrites in morphology.p
 location=StimLocParams(which_spines='all',spine_density = 0.2, pulse_sequence=None,  stim_dendrites=['31_4'])
 
-Stimulation = StimParams(Paradigm = PSP_1,stim_delay = 0.02,StimLoc=location)
+Stimulation = StimParams(Paradigm = inject,stim_delay = 0.02,StimLoc=location)
 
 #pulse sequence should be of the form:
 #{1:[0,1],2:[2,3],3:[0,1]} -- for each pulse specify a list of spines to stimulate
