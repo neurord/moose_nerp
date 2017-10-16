@@ -243,7 +243,7 @@ SK_Z_params= ZChannelParams(Kd=0.00035,
                             power=4.6,
                             tau=0.002,
                             taumax=0.0037928,
-                            kdtau=4.3,
+                            tau_power=4.3,
                             cahalf=0.002703
                              )
 #persistnet Na_channel

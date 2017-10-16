@@ -63,7 +63,7 @@ AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                                 B_vhalf
                                 B_vslope''')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 kdtau=0 cahalf=0')
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 tau_power=0 cahalf=0')
 BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 
@@ -176,7 +176,7 @@ def chan_proto(model, chanpath, params):
             caterm = (ca_array/params.Z.Kd) ** params.Z.power
             inf_z = caterm / (1 + caterm)
             if params.Z.taumax>0:
-                tauterm=(ca_array/params.Z.cahalf)**params.Z.kdtau
+                tauterm=(ca_array/params.Z.cahalf)**params.Z.tau_power
                 taumax_z=(params.Z.taumax-params.Z.tau)/(1+tauterm)
                 taumin_z= params.Z.tau * np.ones(len(ca_array))
                 tau_z = taumin_z+taumax_z
