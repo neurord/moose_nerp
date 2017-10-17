@@ -20,6 +20,7 @@ SpineParams = _util.NamedDict(
     
     compensationSpineDensity = 0,
     spineChanList = [['CaL13'],['CaL12','CaR','CaT']],
+    #spines added to branches that are childrne of this branch:
     spineParent = 'secdend11',
     #spineCond = [0.65 *cond for  param_cond.ghKluge],
 
