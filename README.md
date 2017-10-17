@@ -3,7 +3,7 @@ Complete example given for a Striatal Spiny Projection Neuron
 
 [![Build Status](https://semaphoreci.com/api/v1/neurord/spspine/branches/master/badge.svg)](https://semaphoreci.com/neurord/spspine)
 
-Set of prototype files and parameter files to simplify creation of neuron and network models in a declarative format.
+Set of prototype files and parameter files to simplify creation of neuron and network models in a declarative format for the MOOSE simulator (https://moose.ncbs.res.in/).
 Each neuron or set of neurons has its own package in moose_nerp, d1d2 for two types of spiny projection neurons, gp for two types of globus pallidus neurons, and ca1 for hippocampal CA1 neurons.
 Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creating ion channels, synaptic channels, neuron morphology, plasticity, spines and calcium dynamics, as well as the main program, which both creates and simulates the neurons.
 
