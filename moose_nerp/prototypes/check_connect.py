@@ -109,7 +109,7 @@ def check_netparams(netparams,NumSyn,population=[]):
         if num_postcells[ntype]:
             for syntype in netparams.connect_dict[ntype].keys():
                 log.info("POST: Neuron {} {} num_syn={}", ntype, syntype, num_postsyn[ntype][syntype])
-                if syntype in presyn_cells['D2'].keys():
+                if syntype in presyn_cells[ntype].keys():
                     avail=presyn_cells[ntype][syntype]
                 else:
                     avail=0
