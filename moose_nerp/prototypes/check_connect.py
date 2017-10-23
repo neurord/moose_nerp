@@ -79,8 +79,8 @@ def count_total_tt(netparams,num_postsyn,num_postcells):
                       ttname=netparams.connect_dict[ntype][syntype][key].pre
                       dups=netparams.connect_dict[ntype][syntype][key].pre.syn_per_tt
                       postsyn_fraction=netparams.connect_dict[ntype][syntype][key].postsyn_fraction
-                      needed_trains+=num_postsyn[ntype][syntype]*postsyn_fraction/dups
-                      tt_per_ttfile[ttname.tablename][ntype]={'num':num_postsyn[ntype][syntype]*postsyn_fraction/dups, 'syn_per_tt': dups}
+                      needed_trains+=np.int(np.ceil(num_postsyn[ntype][syntype]*postsyn_fraction/dups))
+                      tt_per_ttfile[ttname.tablename][ntype]={'num': np.int(np.ceil(num_postsyn[ntype][syntype]*postsyn_fraction/dups)), 'syn_per_tt': dups}
                       log.debug('tt {} syn_per_tt {} postsyn_fraction {} needed_trains {}',key, dups,postsyn_fraction,needed_trains)
                 tt_needed_per_syntype[ntype][syntype]=needed_trains
     for each in ttables.TableSet.ALL:
@@ -109,7 +109,7 @@ def check_netparams(netparams,NumSyn,population=[]):
         if num_postcells[ntype]:
             for syntype in netparams.connect_dict[ntype].keys():
                 log.info("POST: Neuron {} {} num_syn={}", ntype, syntype, num_postsyn[ntype][syntype])
-                if syntype in presyn_cells['D2'].keys():
+                if syntype in presyn_cells[ntype].keys():
                     avail=presyn_cells[ntype][syntype]
                 else:
                     avail=0
