@@ -283,7 +283,8 @@ def inject_pop(population, num_inject):
     #select subset of neurons for injection
     choice_neurs={}
     for neurtype in population.keys():
-        max_inject=min(num_inject,population[neurtype])
+        max_inject=min(num_inject,len(population[neurtype]))
+        print(neurtype,population[neurtype],max_inject)
         choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
     return choice_neurs
 
