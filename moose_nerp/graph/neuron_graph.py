@@ -27,7 +27,8 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plast
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:#tables.find_tables(neurtype,'Vm'):
-            compnum = oid.name.split('_')[-1].split('[')[0]
+            compnum = oid.msgOut[0].e2.name
+            print('in graphs', compnum)
             if compartments is None or int(compnum) in compartments:
                 t = np.linspace(0, simtime, len(oid.vector))
                 axes.plot(t, oid.vector, label=compnum)
