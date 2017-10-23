@@ -284,7 +284,7 @@ def inject_pop(population, num_inject):
     choice_neurs={}
     for neurtype in population.keys():
         max_inject=min(num_inject,len(population[neurtype]))
-        print(neurtype,population[neurtype],max_inject)
-        choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
+        if max_inject>0:
+            choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
     return choice_neurs
 
