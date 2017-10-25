@@ -18,74 +18,87 @@ from moose_nerp.prototypes import constants, logutil
 from moose_nerp.prototypes.util import NamedList
 log = logutil.Logger()
 
-SSTauChannelParams = NamedList('SSTauChannelParams', '''
-                                Arate
-                                A_B
-                                A_C
-                                Avhalf
-                                Avslope
+SSTauQuadraticChannelParams = NamedList('SSTauQuadraticChannelParams', '''
+                                SS_min
+                                SS_vdep
+                                SS_vhalf
+                                SS_vslope
                                 taumin
                                 tauVdep
-                                tauPow
                                 tauVhalf
                                 tauVslope''')
 
-StandardMooseTauMinfChannelParams = NamedList('StandardMooseTauMinfChannelParams', '''
+StandardMooseTauInfChannelParams = NamedList('StandardMooseTauInfChannelParams', '''
                                 T_rate
                                 T_B
                                 T_C
-                                Tvhalf
+                                T_vhalf
                                 T_vslope
-                                M_rate
-                                M_B
-                                M_C
-                                Mvhalf
-                                M_vslope''')
+                                SS_rate
+                                SS_B
+                                SS_C
+                                SS_vhalf
+                                SS_vslope''')
 
-TauMinfChannelParams = NamedList('TauMinfChannelParams', '''
+TauInfMinChannelParams = NamedList('TauInfMinChannelParams', '''
                                 T_min
-                                T_max
-                                Tvhalf
+                                T_vdep
+                                T_vhalf
                                 T_vslope
-                                M_min
-                                M_max
-                                Mvhalf
-                                M_vslope''')
+                                SS_min
+                                SS_vdep
+                                SS_vhalf
+                                SS_vslope''')
 
 
 AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
                                 A_rate
                                 A_B
                                 A_C
-                                Avhalf
+                                A_vhalf
                                 A_vslope
                                 B_rate
                                 B_B
                                 B_C
-                                Bvhalf
+                                B_vhalf
                                 B_vslope''')
 
-ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 kdtau=0 cahalf=0')
+ZChannelParams = NamedList('ZChannelParams', 'Kd power tau taumax=0 tau_power=0 cahalf=0')
 BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 
 ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
 def sigmoid(x,xmin,xmax,xvhalf,xslope):
-
     return xmin+xmax/(1+np.exp((x-xvhalf)/xslope))
+#notice the x-xvhalf in sigmoid, but x+xvhalf both in quadratic and used by MOOSE
+def quadratic(x,xmin,xmax,xvhalf,xslope):
+    tau1 = xmax/(1+np.exp((x-xvhalf)/xslope))
+    tau2 = 1/(1+np.exp((x-xvhalf)/-xslope))
+    tau_x = xmin+tau1*tau2
+    return tau_x
 
 def make_sigmoid_gate(model,params,Gate):
     v = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
-    tau = sigmoid(v,params.T_min,params.T_max,params.Tvhalf,params.T_vslope)
-    minf = sigmoid(v,params.M_min,params.M_max,params.Mvhalf,params.M_vslope)
-    Gate.tableA = minf/tau
-    Gate.tableB = 1/tau
+    tau = sigmoid(v,params.T_min,params.T_vdep,params.T_vhalf,params.T_vslope)
+    minf = sigmoid(v,params.SS_min,params.SS_vdep,params.SS_vhalf,params.SS_vslope)
     Gate.min = model.VMIN
     Gate.max = model.VMAX
     Gate.divs = model.VDIVS
+    Gate.tableA = minf/tau
+    Gate.tableB = 1/tau
     
-
+def make_quadratic_gate(model,params,Gate):
+    print('making quadratic gate', Gate.path)
+    v = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
+    minf = sigmoid(v,params.SS_min,params.SS_vdep,params.SS_vhalf,params.SS_vslope)
+    tau = quadratic(v,params.taumin,params.tauVdep,params.tauVhalf,params.tauVslope)
+    Gate.min = model.VMIN
+    Gate.max = model.VMAX
+    Gate.divs = model.VDIVS
+    Gate.tableA = minf/tau
+    Gate.tableB = 1/tau
+    
 def interpolate_values_in_table(model, tabA, V_0, l=40):
     '''This function interpolates values in the table
     around tabA[V_0]. '''
@@ -102,7 +115,7 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
  
 def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
-        V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.Avhalf
+        V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.A_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableA and tableB, because tableB contains sum of alpha and beta
@@ -110,7 +123,7 @@ def fix_singularities(model, Params, Gate):
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)
 
     if Params.B_C < 0:
-        V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.Bvhalf
+        V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.B_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableB
@@ -129,11 +142,13 @@ def chan_proto(model, chanpath, params):
         if isinstance(params.X,AlphaBetaChannelParams):
             xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,StandardMooseTauMinfChannelParams):
+        elif isinstance(params.X,StandardMooseTauInfChannelParams):
             xGate.setupTau(params.X + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,TauMinfChannelParams):
+        elif isinstance(params.X,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.X,xGate)
+        elif isinstance(params.X,SSTauQuadraticChannelParams):
+            make_quadratic_gate(model,params.X,xGate)
         
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
@@ -141,13 +156,13 @@ def chan_proto(model, chanpath, params):
         if isinstance(params.Y,AlphaBetaChannelParams):
             yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,StandardMooseTauMinfChannelParams):
+        elif isinstance(params.Y,StandardMooseTauInfChannelParams):
             yGate.setupTau(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
             fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,TauMinfChannelParams):
+        elif isinstance(params.Y,TauInfMinChannelParams):
             make_sigmoid_gate(model,params.Y,yGate)
-        
-
+        elif isinstance(params.Y,SSTauQuadraticChannelParams):
+            make_quadratic_gate(model,params.Y,yGate)
 
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
@@ -161,7 +176,7 @@ def chan_proto(model, chanpath, params):
             caterm = (ca_array/params.Z.Kd) ** params.Z.power
             inf_z = caterm / (1 + caterm)
             if params.Z.taumax>0:
-                tauterm=(ca_array/params.Z.cahalf)**params.Z.kdtau
+                tauterm=(ca_array/params.Z.cahalf)**params.Z.tau_power
                 taumax_z=(params.Z.taumax-params.Z.tau)/(1+tauterm)
                 taumin_z= params.Z.tau * np.ones(len(ca_array))
                 tau_z = taumin_z+taumax_z
@@ -177,36 +192,6 @@ def chan_proto(model, chanpath, params):
             chan.useConcentration = False
 
     chan.Ek = params.channel.Erev
-    return chan
-
-def NaFchan_proto(model, chanpath, params):
-    v_array = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
-    chan = moose.HHChannel(chanpath)
-    chan.Xpower = params.channel.Xpow #creates the m gate
-    mgate = moose.HHGate(chan.path + '/gateX')
-    #probably can replace the next 3 lines with mgate.setupTau (except for problem with tau_x begin quadratic)
-    mgate.min=model.VMIN
-    mgate.max=model.VMAX
-    inf_x = params.X.Arate/(params.X.A_C + np.exp(( v_array+params.X.Avhalf)/params.X.Avslope))
-    tau1 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/params.X.tauVslope))
-    tau2 = params.X.tauVdep/(1+np.exp((v_array+params.X.tauVhalf)/-params.X.tauVslope))
-    tau_x = (params.X.taumin+1000*tau1*tau2)/model.qfactNaF
-    log.debug("NaF mgate:{} tau1:{} tau2:{} tau:{}", mgate, tau1, tau2, tau_x)
-
-    mgate.tableA = inf_x / tau_x
-    mgate.tableB =  1 / tau_x
-#    moose.showfield(mgate)
-
-    chan.Ypower = params.channel.Ypow #creates the h gate
-    hgate = moose.HHGate(chan.path + '/gateY')
-    hgate.min = model.VMIN
-    hgate.max = model.VMAX
-    tau_y = (params.Y.taumin + (params.Y.tauVdep/(1+np.exp((v_array+params.Y.tauVhalf)/params.Y.tauVslope)))) / model.qfactNaF
-    inf_y = params.Y.Arate / (params.Y.A_C + np.exp(( v_array+params.Y.Avhalf)/params.Y.Avslope))
-    log.debug("NaF hgate:{} inf:{} tau:{}", hgate, inf_y, tau_y)
-    hgate.tableA = inf_y / tau_y
-    hgate.tableB = 1 / tau_y
-    chan.Ek=params.channel.Erev
     return chan
 
 def BKchan_proto(model, chanpath, params):
@@ -252,17 +237,13 @@ def BKchan_proto(model, chanpath, params):
 #Channels (model.py) includes channel function name in the dictionary
 
 
-
-TypicalOneDalpha = NamedList('TypicalOneDalpha',
+TypicalOneD = NamedList('TypicalOneD',
                              '''channel X Y Z=[] calciumPermeable=False calciumDependent=False''')
-AtypicalOneD     = NamedList('AtypicalOneD',
-                             '''channel X Y      calciumPermeable=False calciumDependent=False''')
 TwoD             = NamedList('TwoD',
                              '''channel X        calciumPermeable=False calciumDependent=False''')
 
 _FUNCTIONS = {
-    TypicalOneDalpha: chan_proto,
-    AtypicalOneD: NaFchan_proto,
+    TypicalOneD: chan_proto,
     TwoD: BKchan_proto,
 }
 

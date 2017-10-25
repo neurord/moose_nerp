@@ -54,19 +54,13 @@ neuron1pre_neuron1post=connect(synapse='gaba', pre='proto', post='proto', space_
 neuron1pre_neuron2post=connect(synapse='gaba', pre='proto', post='arky', space_const=MSNconnSpaceConst)
 neuron2pre_neuron1post=connect(synapse='gaba', pre='arky', post='proto', space_const=MSNconnSpaceConst)
 neuron2pre_neuron2post=connect(synapse='gaba', pre='arky', post='arky', space_const=MSNconnSpaceConst)
-##FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst)
-##FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst)
-##FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIconnSpaceConst)
 ctx_neuron1post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='proto', postsyn_fraction=0.5)
 thal_neuron1post=ext_connect(synapse='ampa',pre=tt_Thal_SPN,post='proto', postsyn_fraction=0.5)
 ctx_neuron2post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='arky', postsyn_fraction=0.5)
 thal_neuron2post=ext_connect(synapse='ampa',pre=tt_Thal_SPN,post='arky', postsyn_fraction=0.5)
-#glu_FSI=connect(synapse='ampa',pre='timetable',post='FSI',)
-
 #one dictionary for each post-synaptic neuron class
 proto={}
 arky={}
-##FSI={}
 connect_dict={}
 ##Collect the above connections into dictionaries organized by post-syn neuron, and synapse type
 proto['gaba']={'proto': neuron1pre_neuron1post, 'arky': neuron2pre_neuron1post}#, 'FSI': FSIpre_D1post}
@@ -75,9 +69,6 @@ connect_dict['proto']=proto
 arky['gaba']={'arky': neuron1pre_neuron2post, 'arky': neuron2pre_neuron2post}#, 'FSI': FSIpre_D2post}
 arky['ampa']={'extern1': ctx_neuron2post, 'extern2': thal_neuron2post}
 connect_dict['arky']=arky
-#FSI['gaba']={'FSI': FSIpre_FSIpost}
-#FSI['ampa']={'extern': glu_FSI}
-#connect_dict['FSI']=FSI
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel=0.8

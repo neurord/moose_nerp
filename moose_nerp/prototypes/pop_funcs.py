@@ -17,7 +17,7 @@ def count_neurons(netparams):
     for i in range(len(netparams.grid)):
         if netparams.grid[i]['inc']>0:
             length[i]=netparams.grid[i]['xyzmax']-netparams.grid[i]['xyzmin']
-            size[i]=np.int(length[i]/netparams.grid[i]['inc'])
+            size[i]=np.int(np.ceil(length[i]/netparams.grid[i]['inc']))
         numneurons*=size[i]
         volume*=length[i]
     return size, numneurons, volume

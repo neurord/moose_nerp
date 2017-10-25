@@ -60,22 +60,21 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
         pass
     return spiketab, vmtab, plastabs, catab
 
-def writeOutput(model, outfilename,spiketab,vmtab,MSNpop):
-    outvmfile='Vm'+outfilename
-    outspikefile='Spike'+outfilename
-    log.info('SPIKE FILE {} VM FILE {}', outspikefile, outvmfile)
-    outspiketab=list()
-    outVmtab=list()
+def writeOutput(model, outfilename,spiketab,vmtab,network_pop):
+    outspiketab={}
+    outVmtab={}
     for typenum,neurtype in enumerate(model.neurontypes()):
-        outspiketab.append([])
-        outVmtab.append([])
-        for tabnum,neurname in enumerate(MSNpop['pop'][typenum]):
-            underscore=find(neurname,'_')
-            neurnum=int(neurname[underscore+1:])
-            print(neurname.split('_')[1])
-            log.info('{} is {} num={} {.path} {}',
+        tmpspiketab={}
+        tmpVmtab={}
+        print(outspiketab.keys())
+        for tabnum,neurname in enumerate(network_pop['pop'][neurtype]):
+            neurnum=int(neurname.split('_')[-1])
+            log.info('{} is type {} num={} paths: {.path} {.path}',
                      neurname, neurtype, neurnum,spiketab[typenum][tabnum], vmtab[typenum][tabnum])
-            outspiketab[typenum].append(insert(spiketab[typenum][tabnum].vector,0, neurnum))
-            outVmtab[typenum].append(insert(vmtab[typenum][tabnum].vector,0, neurnum))
-    savez(outspikefile,D1=outspiketab[0],D2=outspiketab[1])
-    savez(outvmfile,D1=outVmtab[0],D2=outVmtab[1])
+            tmpspiketab[neurname.split('_')[-1]]=spiketab[typenum][tabnum].vector
+            tmpVmtab[neurname.split('_')[-1]]=vmtab[typenum][tabnum].vector
+        outspiketab[neurtype]=tmpspiketab
+        outVmtab[neurtype]=tmpVmtab
+    np.savez(outfilename,spk=outspiketab,vm=outVmtab)
+    #to read in data: f=np.load('gp_out5e-11.npz') spk_dat=f['spk'].item() or vm_dat=f['vm'].item()
+

@@ -36,7 +36,6 @@ option_parser = standard_options.standard_options(default_injection_current=[50e
 param_sim = option_parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
-# -*- coding:utf-8 -*-
 log = logutil.Logger()
 
 #################################-----------create the model
@@ -46,12 +45,9 @@ gp.plasYN = False
 gp_net.single=False
 
 ##create neuron prototypes with synapses and calcium
-MSNsyn,neuron = cell_proto.neuronclasses(gp)
+neur_syn,neuron = cell_proto.neuronclasses(gp)
 
 all_neur_types=neuron
-#FSIsyn,neuron = cell_proto.neuronclasses(FSI)
-#all_neur_types.update(neuron)
-
 #create network and plasticity
 population,connections,plas=create_network.create_network(gp, gp_net, all_neur_types)
 

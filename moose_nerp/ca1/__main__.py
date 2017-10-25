@@ -32,8 +32,9 @@ from moose_nerp import ca1
 
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+option_parser = standard_options.standard_options(default_injection_current=[200e-12])
 param_sim = option_parser.parse_args()
+param_sim.save=0
 
 plotcomps=[ca1.param_cond.NAME_SOMA]
 
@@ -41,21 +42,25 @@ plotcomps=[ca1.param_cond.NAME_SOMA]
 #These assignment statements are required because they are not part of param_sim namespace.
 if param_sim.calcium is not None:
     ca1.calYN = param_sim.calcium
-if ca1.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
 if param_sim.spines is not None:
     ca1.spineYN = param_sim.spines
 if param_sim.stim_paradigm is not None:
     ca1.param_stim.Stimulation.Paradigm=ca1.param_stim.paradigm_dict[param_sim.stim_paradigm]
 if param_sim.stim_loc is not None:
     ca1.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+
+#These assignments make assumptions about which parameters should be changed together   
+if ca1.calYN and param_sim.plot_calcium is None:
+    param_sim.plot_calcium = True
 if ca1.param_stim.Stimulation.Paradigm.name is not 'inject':
     #override defaults if synaptic stimulation is planned
     ca1.calYN=1
+    #Perhaps these should be removed
     ca1.spineYN=1
     ca1.synYN=1
-    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
-    plotcomps=plotcomps+ca1.param_stim.location.stim_dendrites
+#update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
+if ca1.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
+    plotcomps=np.unique(plotcomps+ca1.param_stim.location.stim_dendrites)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -107,10 +112,13 @@ vmtab, catab, plastab, currtab = tables.graphtables(ca1, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=ca1.param_stim.Stimulation.Paradigm.name+'_'+ca1.param_stim.location.stim_dendrites[0]
+#    tables.setup_hdf5_output(ca1, neuron, param_sim.save)
 
 if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron,plotcomps)
+else:
+    spinevmtab=[]
 ########## clocks are critical. assign_clocks also sets up the hsolver
 simpaths=['/'+neurotype for neurotype in ca1.neurontypes()]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,ca1.param_cond.NAME_SOMA)
@@ -130,7 +138,7 @@ traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(simtime=param_sim.simtime,injection_current=inj)
     if param_sim.plot_vm:
-        neuron_graph.graphs(ca1, param_sim.plot_current, param_sim.simtime,
+        neuron_graph.graphs(ca1, vmtab,param_sim.plot_current, param_sim.simtime,
                         currtab, param_sim.plot_current_label, catab, plastab)
     #set up tables that accumulate soma traces for multiple simulations
     for neurnum,neurtype in enumerate(ca1.neurontypes()):
@@ -143,6 +151,16 @@ for inj in param_sim.injection_current:
     #plot spines
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(ca1,spinecatab,spinevmtab, param_sim.simtime)
+    #save output - expand this to optionally save current data
+    if param_sim.save:
+        inj_nA=inj*1e9
+        tables.write_textfile(vmtab,'Vm', fname,inj_nA,param_sim.simtime)
+        if ca1.calYN:
+            tables.write_textfile(catab,'Ca', fname,inj_nA,param_sim.simtime)
+        if ca1.spineYN and len(spinevmtab):
+            tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
+            if ca1.spineYN and len(spinecatab):
+                tables.write_textfile(list(spinecatab.values()),'SpCa', fname,inj_nA,param_sim.simtime)
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if ca1.calYN and param_sim.plot_calcium:

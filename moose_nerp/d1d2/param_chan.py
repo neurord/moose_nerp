@@ -2,27 +2,34 @@
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
-    SSTauChannelParams,
+    SSTauQuadraticChannelParams,
     AlphaBetaChannelParams,
-    StandardMooseTauMinfChannelParams,
-    TauMinfChannelParams,
+    StandardMooseTauInfChannelParams,
+    TauInfMinChannelParams,
     ZChannelParams,
     BKChannelParams,
     ChannelSettings,
-    TypicalOneDalpha,
-    AtypicalOneD,
+    TypicalOneD,
     TwoD,
     )
 
 #contains all gating parameters and reversal potentials
 # Gate equations have the form:
-#
-# y(x) = (rate + B * x) / (C + exp((x + vhalf) / vslope))
-#
+# AlphaBetaChannelParams (specify forward and backward transition rates):
+# alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
-# y(x) = tau_min + tau_vdep / (1 + exp((x + vhalf) / vslope))
+# StandardMooseTauInfChannelParams (specify steady state and time constants):
+# tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# OR
+# SSTauQuadraticChannelParams (specify steady state and inverted U shaped time constant):
+# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
+# ss(v) = SS_min+SS_vdep/(1+ exp((v + SS_vhalf) / SS_vslope))
 #
-# where x is membrane voltage and y is the rate constant
+# where v is membrane voltage 
+#
 #KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
 #Parameters for Ca channels may need to be shifted - see Dorman model
 krev=-90e-3
@@ -44,26 +51,23 @@ CADIVS = 4001 #10 nM steps
 
 qfactNaF = 2.5
 
-Na_m_params = SSTauChannelParams(Arate = 1.0,
-                                 A_B = 0.0,
-                                 A_C = 1.0,
-                                 Avhalf = 25e-3,
-                                 Avslope = -10e-3,
-                                 taumin = 0.1e-3,
-                                 tauVdep = 1.45e-3,
-                                 tauPow = 2,
-                                 tauVhalf = 62e-3,
+Na_m_params = SSTauQuadraticChannelParams(SS_min = 0.0,
+                                 SS_vdep = 1.0,
+                                 SS_vhalf = -25e-3,
+                                 SS_vslope = -10e-3,
+                                 taumin = 0.1e-3/qfactNaF,
+                                 tauVdep = 2.1025e-3/qfactNaF,
+                                 tauVhalf = -62e-3,
                                  tauVslope = 8e-3)
-Na_h_params = SSTauChannelParams(Arate = 1.0,
-                                 A_B = 0.0,
-                                 A_C = 1.0,
-                                 Avhalf = 60e-3,
-                                 Avslope = 6e-3,
-                                 taumin = 2*0.2754e-3,
-                                 tauVdep = 2*1.2e-3,
-                                 tauPow = 1,
-                                 tauVhalf = 42e-3,
-                                 tauVslope = 3e-3)
+
+Na_h_params = TauInfMinChannelParams(T_min = 2*0.2754e-3/qfactNaF,
+                                     T_vdep = 2*1.2e-3/qfactNaF,
+                                     T_vhalf = -42e-3,
+                                     T_vslope = 3e-3,
+                                     SS_min = 0.0,
+                                     SS_vdep = 1.0,
+                                     SS_vhalf = -60e-3,
+                                     SS_vslope = 6e-3)
 
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
@@ -73,12 +77,12 @@ KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
                                       A_B = 0,
                                       A_C = 0.0,
-                                      Avhalf = 0,
+                                      A_vhalf = 0,
                                       A_vslope = -12.5e-3,
                                       B_rate = 6.78,
                                       B_B = 0.0,
                                       B_C = 0.0,
-                                      Bvhalf = 0.0,
+                                      B_vhalf = 0.0,
                                       B_vslope = 33.5e-3)
 KDr_Y_params = []
 
@@ -90,23 +94,23 @@ qfactKrp=3  #Used by RE
 Krp_X_params = AlphaBetaChannelParams(A_rate = 16*qfactKrp,
                                       A_B = 0,
                                       A_C = 0.0,
-                                      Avhalf = 0,
+                                      A_vhalf = 0,
                                       A_vslope = -20e-3,
                                       B_rate = 2.4*qfactKrp,
                                       B_B = 0.0,
                                       B_C = 0.0,
-                                      Bvhalf = 0.0,
+                                      B_vhalf = 0.0,
                                       B_vslope = 40e-3)
 
 # tuned to fit Nisenbaum 1996 fig 9D (hinf, 87% inactivating) and 9B (htau)
-Krp_Y_params = TauMinfChannelParams(T_min = 0.28799999999999998*qfactKrp,
-                                    T_max = 4.1600000000000001*qfactKrp,
-                                    Tvhalf = -0.042000000000000003,
+Krp_Y_params = TauInfMinChannelParams(T_min = 0.28799999999999998*qfactKrp,
+                                    T_vdep = 4.1600000000000001*qfactKrp,
+                                    T_vhalf = -0.042000000000000003,
                                     T_vslope = 0.013000000000000001,
-                                    M_min = 0.13,
-                                    M_max = 0.87,
-                                    Mvhalf = -0.056000000000000001,
-                                    M_vslope = 0.014999999999999999)
+                                    SS_min = 0.13,
+                                    SS_vdep = 0.87,
+                                    SS_vhalf = -0.056000000000000001,
+                                    SS_vslope = 0.014999999999999999)
 
 Kirparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='Kir')
 qfactKir = 1
@@ -114,12 +118,12 @@ qfactKir = 1
 Kir_X_params = AlphaBetaChannelParams(A_rate = 0.008*qfactKir,
                                       A_B = 0,
                                       A_C = 0.0,
-                                      Avhalf = 0,
+                                      A_vhalf = 0,
                                       A_vslope = 11.0e-3,
                                       B_rate = 1000*qfactKir,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = -40e-3,
+                                      B_vhalf = -40e-3,
                                       B_vslope = -40e-3)
 
 KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
@@ -131,12 +135,12 @@ qfactKaF = 2
 KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
-                                      Avhalf = 18e-3,
+                                      A_vhalf = 18e-3,
                                       A_vslope = -13.0e-3,
                                       B_rate = 0.45e3*qfactKaF,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = -2.0e-3,
+                                      B_vhalf = -2.0e-3,
                                       B_vslope = 11.0e-3)
 
 #inactivation consts for alphas and betas obtained by matching Tkatch et al., 2000 Fig 3b,
@@ -145,12 +149,12 @@ KaF_X_params = AlphaBetaChannelParams(A_rate = 1.8e3*qfactKaF,
 KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.105e3*qfactKaF,
                                       A_B = 0,
                                       A_C = 1.0,
-                                      Avhalf = 121e-3,
+                                      A_vhalf = 121e-3,
                                       A_vslope = 22.0e-3,
                                       B_rate = 0.065e3*qfactKaF,
                                       B_B = 0.0,
                                       B_C = 1.0,
-                                      Bvhalf = 55.0e-3,
+                                      B_vhalf = 55.0e-3,
                                       B_vslope = -11.0e-3)
 
 KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
@@ -158,23 +162,23 @@ qfactKaS = 2
 KaS_X_params = AlphaBetaChannelParams(A_rate = 95*qfactKaS,
                                       A_B = 185*qfactKaS,
                                       A_C = -1,
-                                      Avhalf = -0.050999999999999997,
+                                      A_vhalf = -0.050999999999999997,
                                       A_vslope = -0.02928571428571429,
                                       B_rate = 9*qfactKaS,
                                       B_B = -8*qfactKaS,
                                       B_C = -1,
-                                      Bvhalf =0.090999999999999998,
+                                      B_vhalf =0.090999999999999998,
                                       B_vslope = 0.069693877551020411)
 
 KaS_Y_params = AlphaBetaChannelParams(A_rate = 10.*qfactKaS,
                                       A_B = 40*qfactKaS,
                                       A_C = 1.0,
-                                      Avhalf = .2889,
+                                      A_vhalf = .2889,
                                       A_vslope = 56e-3,
                                       B_rate = 2.0*qfactKaS,
                                       B_B = -22*qfactKaS,
                                       B_C = 1.0,
-                                      Bvhalf = -64.9999e-3,
+                                      B_vhalf = -64.9999e-3,
                                       B_vslope = -30e-3)
 
 #SS values from Churchill and MacVicar, assuming Xpow = 1
@@ -192,23 +196,23 @@ qfactCaL = 2
 CaL12_X_params =AlphaBetaChannelParams(A_rate = -880*qfactCaL,
                                          A_B = -220e3*qfactCaL,
                                          A_C = -1.0,
-                                         Avhalf = 4.0003e-3,
+                                         A_vhalf = 4.0003e-3,
                                          A_vslope = -8e-3,
                                          B_rate = -284*qfactCaL,
                                          B_B = 71e3*qfactCaL,
                                          B_C = -1.0,
-                                         Bvhalf = -4.0003e-3,
+                                         B_vhalf = -4.0003e-3,
                                          B_vslope = 5e-3)
  
 
-CaL12_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
-                                        T_max = 0,
-                                        Tvhalf = 4.0003e-3,
+CaL12_Y_params = TauInfMinChannelParams(T_min = 44.3e-3/qfactCaL,
+                                        T_vdep = 0,
+                                        T_vhalf = 4.0003e-3,
                                         T_vslope = -7.5e-3,
-                                        M_min = 0.83,
-                                        M_max = 0.17,
-                                        Mvhalf = -55.000e-3,
-                                        M_vslope = 8e-3)
+                                        SS_min = 0.83,
+                                        SS_vdep = 0.17,
+                                        SS_vhalf = -55.000e-3,
+                                        SS_vslope = 8e-3)
 
 # Using Xpow=1 produced too high a basal calcium,
 # so used Xpow=2 and retuned params - much better basal calcium
@@ -217,45 +221,45 @@ CaL13param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL
 CaL13_X_params = AlphaBetaChannelParams(A_rate = 1500*qfactCaL,
                                         A_B = 0*qfactCaL,
                                         A_C = 1,
-                                        Avhalf =- 5.e-3,
+                                        A_vhalf =- 5.e-3,
                                         A_vslope = -18e-3,
                                         B_rate = 2000*qfactCaL,
                                         B_B = 0*qfactCaL,
                                         B_C = 1.0,
-                                        Bvhalf = 52.e-3,
+                                        B_vhalf = 52.e-3,
                                         B_vslope = 8.e-3)
-CaL13_Y_params = TauMinfChannelParams(T_min = 44.3e-3/qfactCaL,
-                                       T_max = 0,
-                                        Tvhalf = 37.0e-3,
+CaL13_Y_params = TauInfMinChannelParams(T_min = 44.3e-3/qfactCaL,
+                                       T_vdep = 0,
+                                        T_vhalf = 37.0e-3,
                                         T_vslope = 5.0e-3,
-                                        M_min =  0,
-                                        M_max = 1,
-                                        Mvhalf = -37e-3,
-                                        M_vslope = 5.e-3)
+                                        SS_min =  0,
+                                        SS_vdep = 1,
+                                        SS_vhalf = -37e-3,
+                                        SS_vslope = 5.e-3)
 #Params from McRory J Biol Chem, alpha1I subunit
 CaTparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=carev, name='CaT')
 qfactCaT = 2
 CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
                                       A_B = 0.0,
                                       A_C = 0.0,
-                                      Avhalf = 0.0,
+                                      A_vhalf = 0.0,
                                       A_vslope = -19e-3,
                                       B_rate = 1340*qfactCaT,
                                       B_B = 16500*qfactCaT,
                                       B_C = -1.0,
-                                      Bvhalf = 81.0003e-3,
+                                      B_vhalf = 81.0003e-3,
                                       B_vslope = 7.12e-3)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
 CaT_Y_params = AlphaBetaChannelParams(A_rate = 3840*qfactCaT,
                                       A_B = 34000*qfactCaT,
                                       A_C = -1.0,
-                                      Avhalf = 113.0003e-3,
+                                      A_vhalf = 113.0003e-3,
                                       A_vslope = 5.12e-3,
                                       B_rate = 320*qfactCaT,
                                       B_B = 0,
                                       B_C = 0.0,
-                                      Bvhalf = 0.0,
+                                      B_vhalf = 0.0,
                                       B_vslope = -17e-3)
 
 # CaN SS parameters tuned so m2 fits Bargas and Surmeier 1994 boltzmann curve
@@ -267,22 +271,22 @@ qfactCaN = 2
 CaN_X_params = AlphaBetaChannelParams(A_rate = 304*qfactCaN,
                                       A_B = 0,
                                       A_C = 0.0,
-                                      Avhalf = 0.0,
+                                      A_vhalf = 0.0,
                                       A_vslope = -14.0e-3,
                                       B_rate = 750*qfactCaN,
                                       B_B = 52800*qfactCaN,
                                       B_C = -1.0,
-                                      Bvhalf = 14.20003e-3,
+                                      B_vhalf = 14.20003e-3,
                                       B_vslope = 10e-3)
 
-CaN_Y_params = TauMinfChannelParams(T_min = 70e-3/qfactCaN,
-                                      T_max = 0,
-                                      Tvhalf = 0.0,
+CaN_Y_params = TauInfMinChannelParams(T_min = 70e-3/qfactCaN,
+                                      T_vdep = 0,
+                                      T_vhalf = 0.0,
                                       T_vslope = -14.0e-3,
-                                      M_min = 0.79,
-                                      M_max = 0.21,
-                                      Mvhalf = -74.8e-3,
-                                      M_vslope = 6.5e-3)
+                                      SS_min = 0.79,
+                                      SS_vdep = 0.21,
+                                      SS_vhalf = -74.8e-3,
+                                      SS_vslope = 6.5e-3)
 # CaR SS (Act and Inact) parameters from Foerhing et al., 2000
 # Was Xpow=3 taken into account during fit?
 # CaR tau from a few measurements from pyramidal neurons by Foerhing
@@ -293,23 +297,23 @@ qfactCaR = 2
 CaR_X_params = AlphaBetaChannelParams(A_rate = 240*qfactCaR,
                                       A_B =    0,
                                       A_C =  0.0,
-                                      Avhalf =  0.0,
+                                      A_vhalf =  0.0,
                                       A_vslope = -28.0e-3,
                                       B_rate = 1.26e6*qfactCaR,
                                       B_B = 8e6*qfactCaR,
                                       B_C = -1.0,
-                                      Bvhalf = 158e-3,
+                                      B_vhalf = 158e-3,
                                       B_vslope = 13.6e-3)
 
 CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100,
                                       A_B = 10000,
                                       A_C = -1.0,
-                                      Avhalf = 0.11,
+                                      A_vhalf = 0.11,
                                       A_vslope = 17e-3,
                                       B_rate =20,
                                       B_B = 0,
                                       B_C = 0.0,
-                                      Bvhalf = 0.0,
+                                      B_vhalf = 0.0,
                                       B_vslope = -30.0e-3)
 
 #Reference: Maylie Bond Herson Lee Adelman 2004, Fig 2 steady state
@@ -340,16 +344,16 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
 
 Channels = NamedDict(
     'Channels',
-    Krp =   TypicalOneDalpha(Krpparam, Krp_X_params,Krp_Y_params),
-    KaF =   TypicalOneDalpha(KaFparam, KaF_X_params, KaF_Y_params),
-    KaS =   TypicalOneDalpha(KaSparam, KaS_X_params, KaS_Y_params),
-    Kir =   TypicalOneDalpha(Kirparam,  Kir_X_params, []),
-    CaL12 = TypicalOneDalpha(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaL13 = TypicalOneDalpha(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaN =   TypicalOneDalpha(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaR =   TypicalOneDalpha(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
-    CaT =   TypicalOneDalpha(CaTparam,CaT_X_params, CaT_Y_params, [], calciumPermeable=True),
-    SKCa =  TypicalOneDalpha(SKparam, [], [], SK_Z_params, calciumDependent=True),
-    NaF =   AtypicalOneD(NaFparam, Na_m_params, Na_h_params),
+    Krp =   TypicalOneD(Krpparam, Krp_X_params,Krp_Y_params),
+    KaF =   TypicalOneD(KaFparam, KaF_X_params, KaF_Y_params),
+    KaS =   TypicalOneD(KaSparam, KaS_X_params, KaS_Y_params),
+    Kir =   TypicalOneD(Kirparam,  Kir_X_params, []),
+    CaL12 = TypicalOneD(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaL13 = TypicalOneD(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaN =   TypicalOneD(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaR =   TypicalOneD(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaT =   TypicalOneD(CaTparam,CaT_X_params, CaT_Y_params, [], calciumPermeable=True),
+    SKCa =  TypicalOneD(SKparam, [], [], SK_Z_params, calciumDependent=True),
+    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params),
     BKCa =  TwoD(BKparam, BK_X_params, calciumDependent=True),
 )

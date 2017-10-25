@@ -12,7 +12,8 @@ def graphs(neurons, simtime, vmtab,catab=[],plastab=[]):
     fig.canvas.set_window_title('Population Vm')
     for typenum,neur in enumerate(neurons.keys()):
         for vmoid in vmtab[typenum]:
-            axes[typenum].plot(t, vmoid.vector, label=vmoid.name.split('_')[2])
+            neur_name=vmoid.msgOut[0].e2.path.split('/')[-2][0:-3]
+            axes[typenum].plot(t, vmoid.vector, label=neur_name)
         axes[typenum].set_ylabel(neur+' Vm, volts')
         axes[typenum].legend(fontsize=8,loc='upper left')
     axes[typenum].set_xlabel('Time, sec')
