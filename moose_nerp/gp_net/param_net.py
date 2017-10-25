@@ -66,7 +66,7 @@ connect_dict={}
 proto['gaba']={'proto': neuron1pre_neuron1post, 'arky': neuron2pre_neuron1post}#, 'FSI': FSIpre_D1post}
 proto['ampa']={'extern1': ctx_neuron1post, 'extern2': thal_neuron1post}
 connect_dict['proto']=proto
-arky['gaba']={'arky': neuron1pre_neuron2post, 'arky': neuron2pre_neuron2post}#, 'FSI': FSIpre_D2post}
+arky['gaba']={'proto': neuron1pre_neuron2post, 'arky': neuron2pre_neuron2post}#, 'FSI': FSIpre_D2post}
 arky['ampa']={'extern1': ctx_neuron2post, 'extern2': thal_neuron2post}
 connect_dict['arky']=arky
 
