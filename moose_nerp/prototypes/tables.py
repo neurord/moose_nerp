@@ -67,7 +67,7 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
         moose.Neutral(DATA_NAME)
 
     for typenum,neur_type in enumerate(neuron.keys()):
-        if len(compartments)==str and comparments in {'all', '*'}:
+        if type(compartments)==str and compartments in {'all', '*'}:
                 neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
         else:
             neur_comps=[moose.element(neur_type+'/'+comp) for comp in compartments]
@@ -105,11 +105,11 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     #
     # synaptic weight and plasticity (Optional) for one synapse per neuron
     plastab=[]
-    
-    for num,neur_type in enumerate(plas.keys()):
-        if len(plas[neur_type]):
-            for comp_name in plas[neur_type]:
-                plastab.append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
+    if len(plas):
+        for num,neur_type in enumerate(plas.keys()):
+            if len(plas[neur_type]):
+                for comp_name in plas[neur_type]:
+                    plastab.append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
     return vmtab,catab,plastab,currtab
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):
