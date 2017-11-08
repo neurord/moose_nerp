@@ -71,7 +71,7 @@ ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
 def sigmoid(x,xmin,xmax,xvhalf,xslope):
     return xmin+xmax/(1+np.exp((x-xvhalf)/xslope))
-#notice the x-xvhalf in sigmoid, but x+xvhalf both in quadratic and used by MOOSE
+#notice the x-xvhalf in sigmoid, but x+xvhalf used by MOOSE
 def quadratic(x,xmin,xmax,xvhalf,xslope):
     tau1 = xmax/(1+np.exp((x-xvhalf)/xslope))
     tau2 = 1/(1+np.exp((x-xvhalf)/-xslope))
@@ -187,9 +187,17 @@ def chan_proto(model, chanpath, params):
             zGate.tableB = 1 / tau_z
             chan.useConcentration = True
         else:
-            zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
-            fix_singularities(model, params.Z, zGate)
             chan.useConcentration = False
+            if isinstance(params.Z,AlphaBetaChannelParams):
+                zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
+                fix_singularities(model, params.Z, zGate)
+            elif isinstance(params.Z,StandardMooseTauInfChannelParams):
+                zGate.setupTau(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
+                fix_singularities(model, params.Z, zGate)
+            elif isinstance(params.Z,TauInfMinChannelParams):
+                make_sigmoid_gate(model,params.Z,zGate)
+            elif isinstance(params.Z,SSTauQuadraticChannelParams):
+                make_quadratic_gate(model,params.Z,zGate)
 
     chan.Ek = params.channel.Erev
     return chan
