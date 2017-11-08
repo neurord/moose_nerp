@@ -10,7 +10,7 @@ def inclusive_range_from_string(arg):
     if len(parts) == 2:
         return util.inclusive_range(start, stop)
     elif len(parts) == 3:
-        return util.inclusive_range(start, stop, float(parts[1]))
+        return util.inclusive_range(start, stop, float(parts[2]))
     raise ValueError('too many colons')
 
 def comma_seperated_list(float):

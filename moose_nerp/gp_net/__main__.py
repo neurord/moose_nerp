@@ -48,7 +48,6 @@ gp_net.single=False
 neur_syn,neuron = cell_proto.neuronclasses(gp)
 
 all_neur_types=neuron
-
 #create network and plasticity
 population,connections,plas=create_network.create_network(gp, gp_net, all_neur_types)
 
