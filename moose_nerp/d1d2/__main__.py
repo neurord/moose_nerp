@@ -116,7 +116,7 @@ if param_sim.save:
     fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]
     #HDF5 creation is failing.  when it succeeds, uncomment.  if save='y' or something, use automatic filename
     #if len(param_sim.save)==1:
-    #tables.setup_hdf5_output(d1d2, neuron, fname)
+    #tables.setup_hdf5_output(d1d2, neuron, filename=fname)
     #else:
     #tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
 

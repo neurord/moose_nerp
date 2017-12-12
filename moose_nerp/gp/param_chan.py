@@ -45,12 +45,12 @@ Na_m_params = AlphaBetaChannelParams(A_rate = 35e3,
                                       B_vhalf = 36e-3,
                                       B_vslope = 5e-3)
 
-Na_h_params = AlphaBetaChannelParams(A_rate = 4.5e3,
+Na_h_params = AlphaBetaChannelParams(A_rate = 4.0e3,
                                       A_B = 0,
                                       A_C = 1,
-                                      A_vhalf = 70e-3,
+                                      A_vhalf = 72e-3,
                                       A_vslope = 9e-3,
-                                      B_rate = 3e3,
+                                      B_rate = 4e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 32e-3,
@@ -88,15 +88,13 @@ KDr_X_params = AlphaBetaChannelParams(A_rate = 5.4e3,
 KDr_Y_params = AlphaBetaChannelParams(A_rate = 0.292,
                                       A_B = 0,
                                       A_C = 1,
-                                      A_vhalf = 20e-3,
-                                      A_vslope = 10e-3,
+                                      A_vhalf = 0e-3,
+                                      A_vslope = 15e-3,
                                       B_rate = 0.292,
                                       B_B = 0.0,
                                       B_C = 1,
-                                      B_vhalf = 20e-3,
-                                      B_vslope = -10e-3)
-
-
+                                      B_vhalf = 0e-3,
+                                      B_vslope = -15e-3)
 
 Kv3param = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='Kv3')
 
@@ -115,16 +113,14 @@ Kv3_X_params = AlphaBetaChannelParams(A_rate = 7e3,
                                       B_vslope = 12e-3)
 
 
-Kv3_Y_params = AlphaBetaChannelParams(A_rate = 30.5,
-                                      A_B = 0,
-                                      A_C = 1,
-                                      A_vhalf = 22e-3,
-                                      A_vslope = 13e-3,
-                                      B_rate = 145,
-                                      B_B = 0.0,
-                                      B_C = 1,
-                                      B_vhalf = -10e-3,
-                                      B_vslope = -15e-3)
+Kv3_Y_params =  TauInfMinChannelParams(SS_min = 0.6,
+                                 SS_vdep = 0.4,
+                                 SS_vhalf = -20e-3,
+                                 SS_vslope = 10e-3,
+                                 T_min = 0.007,
+                                 T_vdep = 0.026,
+                                 T_vhalf = 0e-3,
+                                 T_vslope = 10e-3)
 
 KvFparam = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='KvF')
 
@@ -246,7 +242,7 @@ SK_Z_params= ZChannelParams(Kd=0.00035,
                             tau_power=4.3,
                             cahalf=0.002703
                              )
-#persistnet Na_channel
+#persistent Na_channel
 
 NaS_m_params = AlphaBetaChannelParams(A_rate=7600e3,
                                      A_B=0,
@@ -259,15 +255,26 @@ NaS_m_params = AlphaBetaChannelParams(A_rate=7600e3,
                                      B_vhalf=135e-3,
                                      B_vslope=13.5e-3)
 
+NaS_mnew_params = AlphaBetaChannelParams(A_rate=250e3,
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=-55.4e-3,
+                                     A_vslope=-27e-3,
+                                     B_rate=250e3,
+                                     B_B=0.0,
+                                     B_C=1,
+                                     B_vhalf=135e-3,
+                                     B_vslope=26.2e-3)
+
 NaS_h_params = AlphaBetaChannelParams(A_rate=32,
                                      A_B=0,
                                      A_C=1,
                                      A_vhalf=58e-3,
                                      A_vslope=4.5e-3,
-                                     B_rate=32,
+                                     B_rate=30,
                                      B_B=0.0,
                                      B_C=1,
-                                    B_vhalf=50e-3,
+                                    B_vhalf=57e-3,
                                      B_vslope=-4e-3)
 
 NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
@@ -280,6 +287,16 @@ NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
                                      B_C=1,
                                      B_vhalf=64.4e-3,
                                     B_vslope=-2.63e-3)
+
+NaS_snew_params = SSTauQuadraticChannelParams(SS_min = 0,
+                                           SS_vdep = 1,
+                                           SS_vhalf = -0.010,
+                                           SS_vslope = 0.0049,
+                                           taumin = 0.5,
+                                           tauVdep = 8,
+                                           tauVhalf = -0.066,
+                                           tauVslope = -0.016)
+
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
 
 #BK channel
@@ -299,7 +316,7 @@ Channels = NamedDict(
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_param),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
-    NaS= TypicalOneD(NaSparam,NaS_m_params,NaS_h_params,NaS_s_params),
+    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_snew_params),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
 # have to add NaP and calcium channels
