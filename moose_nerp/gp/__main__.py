@@ -32,7 +32,7 @@ from moose_nerp import gp
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[25e-12], #0.5e-9, 1.0e-9, 1.4e-9, 1.8e-9, 2.2e-9
+    default_injection_current=[-100e-12, -50e-12, 25e-12,75e-12],
     default_simulation_time=0.6,
     default_injection_width=0.4,
     default_plotdt=0.0001)
@@ -110,6 +110,7 @@ if gp.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
     
 ###############--------------output elements
+param_sim.plot_channels=1
 if param_sim.plot_channels:
     for chan in gp.Channels.keys():
         libchan=moose.element('/library/'+chan)
@@ -149,9 +150,9 @@ for neur in gp.neurontypes():
     print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
 
 spikegen=moose.SpikeGen('/data/spikegen')
-#spikegen.threshold=0.0
-#spikegen.refractT=1.0e-3
-#msg=moose.connect(soma1,'VmOut',spikegen,'Vm')
+spikegen.threshold=0.0
+spikegen.refractT=1.0e-3
+msg=moose.connect(moose.element(neur+'/'+gp.param_cond.NAME_SOMA),'VmOut',spikegen,'Vm')
 
 ####
 spiketab=moose.Table('/data/spike')
