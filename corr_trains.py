@@ -2,12 +2,21 @@
 #Creates Poisson distributed trains.  Either uncorrelated, 
 # or with one of two different types of correlation
 # Inputs: 1: output filename
-#         2: Frequency
-#         3: type of correlation
-#         4: for types 1 and 2, amount of corrlation
-#         5: maxTime
-# Need to add number of trains: num_trains or num_syn, either from check_netparams or as input
-# maxTime - either from standard options or as input
+#         2: number of trains
+#            check_netparams will calculate how many trains you need for your network
+#         3: Spike Frequency
+#         4: maxTime
+#         5: type of correlation
+#              0: no correlations
+#              1: all trains are randomly shifted versions of the first train
+#                  shift param is maximum amount shift - additional parameter
+#              2: some trains are linear combinations of others
+#                  specify correlation value, and program calculates
+#                       how many independent trains and
+#                       how many dependent trains.
+#                    correlation is actually R^2 - so if sqrt(corr_val)=0.5, then half of trains are independent
+#         6: for corr type 1 - shift parameter, for type 2, amount of corrlation
+# Future changes:
 # incorporate stuff from InputwithCorrelation2.py: within neuron correlation
 # Ampa2.py: motor and sensory upstates
 from __future__ import print_function, division
@@ -17,7 +26,6 @@ import os
 os.environ['NUMPTHREADS'] = '1'
 from pylab import *
 import numpy as np
-
 
 ###############################################################################
 #parameters for creating fake spike trains. Replace with argparser
@@ -38,24 +46,20 @@ num_trains=np.int(args[1])
 #Mean frequency of the trains, previously was set to 10
 Freq=np.float(args[2])
 
+maxTime = float(args[3])
+
 #this parameter controls whether to introduce correlations between trains:
-corr=int(args[3])
-# 0: no correlations
-# 1: all trains are randomly shifted versions of the first train
-# shift param is maximum amount shift - additional parameter
-# 2: some trains are linear combinations of others
-#number of dependent inputs is function of correlation - additional parameter
-#Note that this is actually R^2 - so if sqrt(corr_val)=0.5, then half of trains are independent
+corr=int(args[4])
 if (corr==1): 
-    shift=float(args[4])
+    shift=float(args[5])
     print (shift, type(shift))
 if (corr==2):
-    corr_val=float(args[4])
+    corr_val=float(args[5])
     print (corr_val, type(corr_val))
 
 ################End of parameter parsing #############
-
-#check_connect will calculate number of synapses and trains needed (from fraction duplicate)
+#More notes for future improvements:
+#check_connect will calculate number of synapses and trains needed 
 #BUT, need to create the neuron prototype first
 #from spspine import check_connect, param_net, d1d2
 
@@ -64,7 +68,7 @@ if (corr==2):
 # option_parser = standard_options.standard_options()
 # param_sim = option_parser.parse_args()
 # maxTime=param_sim.simtime
-maxTime = float(args[5])
+
 isi=1/Freq
 samples=np.int(2*Freq*maxTime)
 
@@ -91,6 +95,7 @@ if (corr==0):
 #correlated trains
 ########
 #method 1 - each train is randomly shifted version
+########## DOESN"T WORK - DEBUG ####################
 if (corr==1):
     spikeTime[0]=make_trains(1,isi,samples,maxTime)
     for i in range(num_trains-1):
