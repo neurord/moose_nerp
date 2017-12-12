@@ -1,0 +1,859 @@
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/NaF: TypicalOneD(channel=ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=0.05, name='NaF'), X=AlphaBetaChannelParams(A_rate=35000.0, A_B=0, A_C=1, A_vhalf=0.036, A_vslope=-0.005, B_rate=35000.0, B_B=0.0, B_C=1, B_vhalf=0.036, B_vslope=0.005), Y=AlphaBetaChannelParams(A_rate=4500, A_B=0, A_C=1, A_vhalf=0.07, A_vslope=0.009, B_rate=3000, B_B=0.0, B_C=1, B_vhalf=0.032, B_vslope=-0.005), Z=[], calciumPermeable=False, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/HCN1: TypicalOneD(channel=ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=-0.03, name='HCN1'), X=AlphaBetaChannelParams(A_rate=50, A_B=0, A_C=1, A_vhalf=0.14, A_vslope=0.14, B_rate=30, B_B=0, B_C=1, B_vhalf=0.03, B_vslope=-0.016), Y=[], Z=[], calciumPermeable=False, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library[0]/BKCa[0]
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     V=-0.12
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=1e-05 A,B=6.59409549036e-05,255.077031006
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0100116672224 A,B=0.0660088200774,2.89938889008
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0200133344448 A,B=0.131933583089,1.55653581741
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0300150016672 A,B=0.197840237454,1.14934644447
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0400166688896 A,B=0.263728790634,0.978024575109
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.050018336112 A,B=0.329599250083,0.901356097488
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     V=-0.07
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=1e-05 A,B=0.00164296834091,279.407768157
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0100116672224 A,B=1.63927330534,91.1542140693
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0200133344448 A,B=3.26576729377,56.5603893447
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0300150016672 A,B=4.88123814416,42.823379082
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0400166688896 A,B=6.48579753773,35.9424237882
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.050018336112 A,B=8.0795556521,32.1524374227
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     V=-0.02
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=1e-05 A,B=0.0409325720253,280.027986851
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0100116672224 A,B=37.7597817337,305.37180699
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0200133344448 A,B=69.9821183478,326.266728837
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0300150016672 A,B=97.8278019839,343.704984678
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0400166688896 A,B=122.13182489,358.413861656
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.050018336112 A,B=143.529475915,370.937124463
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     V=0.03
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=1e-05 A,B=1.01779333863,281.017511711
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0100116672224 A,B=326.517267122,606.235594325
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0200133344448 A,B=388.617561015,668.055062059
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0300150016672 A,B=414.940952065,694.098190263
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.0400166688896 A,B=429.490569188,708.368106156
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO         Ca=0.050018336112 A,B=438.721886896,717.320282566
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/Ca: TypicalOneD(channel=ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=0.13, name='Ca'), X=AlphaBetaChannelParams(A_rate=147272.7273, A_B=-2727272.73, A_C=-1, A_vhalf=-0.054, A_vslope=-0.011, B_rate=450, B_B=0, B_C=1, B_vhalf=0.025, B_vslope=0.013), Y=[], Z=[], calciumPermeable=True, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/NaS: TypicalOneD(channel=ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=0.05, name='NaP'), X=AlphaBetaChannelParams(A_rate=250000.0, A_B=0, A_C=1, A_vhalf=-0.0554, A_vslope=-0.027, B_rate=250000.0, B_B=0.0, B_C=1, B_vhalf=0.135, B_vslope=0.0262), Y=SSTauQuadraticChannelParams(SS_min=0.154, SS_vdep=0.846, SS_vhalf=-0.057, SS_vslope=-0.004, taumin=0.03, tauVdep=0.015, tauVhalf=-0.03, tauVslope=0.022), Z=[], calciumPermeable=False, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/Kv3: TypicalOneD(channel=ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=-0.09, name='Kv3'), X=AlphaBetaChannelParams(A_rate=2500, A_B=0, A_C=1, A_vhalf=-0.033, A_vslope=-0.015, B_rate=3400, B_B=0.0, B_C=1, B_vhalf=0.078, B_vslope=0.015), Y=SSTauQuadraticChannelParams(SS_min=0.6, SS_vdep=0.4, SS_vhalf=-0.02, SS_vslope=0.01, taumin=0.007, tauVdep=0.033, tauVhalf=0.0, tauVslope=0.01), Z=[], calciumPermeable=False, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/SKCa: TypicalOneD(channel=ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=-0.09, name='SKCa'), X=[], Y=[], Z=ZChannelParams(Kd=0.00035, power=4.6, tau=0.002, taumax=0.0037928, tau_power=4.3, cahalf=0.002703), calciumPermeable=False, calciumDependent=True)
+12-12 13:21 moose_nerp.prototypes.chan_proto INFO     /library/KDr: TypicalOneD(channel=ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=-0.09, name='KDr'), X=AlphaBetaChannelParams(A_rate=5400.0, A_B=0, A_C=1, A_vhalf=-0.049, A_vslope=-0.015, B_rate=2300.0, B_B=0.0, B_C=1, B_vhalf=0.12, B_vslope=0.022), Y=AlphaBetaChannelParams(A_rate=0.292, A_B=0, A_C=1, A_vhalf=0.0, A_vslope=0.015, B_rate=0.292, B_B=0.0, B_C=1, B_vhalf=0.0, B_vslope=-0.015), Z=[], calciumPermeable=False, calciumDependent=False)
+12-12 13:21 moose_nerp.prototypes.syn_proto INFO     synparams: /library/ampa SynChannelParams(Erev=0, tau1=0.001, tau2=0.003, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=True, NMDA=False, nmdaCaFrac=None)
+12-12 13:21 moose_nerp.prototypes.syn_proto INFO     synparams: /library/nmda SynChannelParams(Erev=0, tau1=0.01, tau2=0.03, Gbar=2.52e-10, var=0.05, MgBlock=MgParams(A=0.16666666666666666, B=0.0125, C=1.4), spinic=True, NMDA=True, nmdaCaFrac=0.05)
+12-12 13:21 moose_nerp.prototypes.syn_proto INFO     synparams: /library/gaba SynChannelParams(Erev=-0.08, tau1=0.001, tau2=0.012, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=False, NMDA=False, nmdaCaFrac=None)
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/soma[0] dist 0.0
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 40000
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/NaF[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=41, path=/Msgs[0]/singleMsg[41]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/HCN1[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=43, path=/Msgs[0]/singleMsg[43]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/BKCa[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=45, path=/Msgs[0]/singleMsg[45]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/Ca[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=47, path=/Msgs[0]/singleMsg[47]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/NaS[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=49, path=/Msgs[0]/singleMsg[49]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 800
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/Kv3[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=51, path=/Msgs[0]/singleMsg[51]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 2
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/SKCa[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=53, path=/Msgs[0]/singleMsg[53]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 40
+12-12 13:21 moose_nerp.prototypes.add_channel INFO     Check RA for spherical compartment
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/soma[0]/KDr[0] /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=55, path=/Msgs[0]/singleMsg[55]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/axon[0] dist 4e-05
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 40000
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/axon[0]/NaF[0] /ep[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=57, path=/Msgs[0]/singleMsg[57]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/axon[0]/NaS[0] /ep[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=59, path=/Msgs[0]/singleMsg[59]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 1400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/axon[0]/Kv3[0] /ep[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=61, path=/Msgs[0]/singleMsg[61]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 77.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/axon[0]/KDr[0] /ep[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=63, path=/Msgs[0]/singleMsg[63]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1[0] dist 1.61e-05
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/NaF[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=65, path=/Msgs[0]/singleMsg[65]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/HCN1[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=67, path=/Msgs[0]/singleMsg[67]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/BKCa[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=69, path=/Msgs[0]/singleMsg[69]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/Ca[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=71, path=/Msgs[0]/singleMsg[71]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/NaS[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=73, path=/Msgs[0]/singleMsg[73]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/Kv3[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=75, path=/Msgs[0]/singleMsg[75]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/SKCa[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=77, path=/Msgs[0]/singleMsg[77]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1[0]/KDr[0] /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=79, path=/Msgs[0]/singleMsg[79]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1[0] dist 0.0001038
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/NaF[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=81, path=/Msgs[0]/singleMsg[81]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/HCN1[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=83, path=/Msgs[0]/singleMsg[83]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/BKCa[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=85, path=/Msgs[0]/singleMsg[85]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/Ca[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=87, path=/Msgs[0]/singleMsg[87]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/NaS[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=89, path=/Msgs[0]/singleMsg[89]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/Kv3[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=91, path=/Msgs[0]/singleMsg[91]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/SKCa[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=93, path=/Msgs[0]/singleMsg[93]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1[0]/KDr[0] /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=95, path=/Msgs[0]/singleMsg[95]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b1[0] dist 0.0001258
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/NaF[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=97, path=/Msgs[0]/singleMsg[97]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/HCN1[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=99, path=/Msgs[0]/singleMsg[99]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/BKCa[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=101, path=/Msgs[0]/singleMsg[101]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/Ca[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=103, path=/Msgs[0]/singleMsg[103]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/NaS[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=105, path=/Msgs[0]/singleMsg[105]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/Kv3[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=107, path=/Msgs[0]/singleMsg[107]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/SKCa[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=109, path=/Msgs[0]/singleMsg[109]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b1[0]/KDr[0] /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=111, path=/Msgs[0]/singleMsg[111]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2[0] dist 0.0002429
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/NaF[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=113, path=/Msgs[0]/singleMsg[113]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/HCN1[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=115, path=/Msgs[0]/singleMsg[115]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/BKCa[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=117, path=/Msgs[0]/singleMsg[117]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/Ca[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=119, path=/Msgs[0]/singleMsg[119]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/NaS[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=121, path=/Msgs[0]/singleMsg[121]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/Kv3[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=123, path=/Msgs[0]/singleMsg[123]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/SKCa[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=125, path=/Msgs[0]/singleMsg[125]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2[0]/KDr[0] /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=127, path=/Msgs[0]/singleMsg[127]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b1[0] dist 0.0003021
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/NaF[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=129, path=/Msgs[0]/singleMsg[129]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/HCN1[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=131, path=/Msgs[0]/singleMsg[131]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/BKCa[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=133, path=/Msgs[0]/singleMsg[133]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/Ca[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=135, path=/Msgs[0]/singleMsg[135]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/NaS[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=137, path=/Msgs[0]/singleMsg[137]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/Kv3[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=139, path=/Msgs[0]/singleMsg[139]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/SKCa[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=141, path=/Msgs[0]/singleMsg[141]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/KDr[0] /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=143, path=/Msgs[0]/singleMsg[143]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b1b1[0] dist 0.000316
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/NaF[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=145, path=/Msgs[0]/singleMsg[145]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/HCN1[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=147, path=/Msgs[0]/singleMsg[147]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/BKCa[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=149, path=/Msgs[0]/singleMsg[149]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/Ca[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=151, path=/Msgs[0]/singleMsg[151]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/NaS[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=153, path=/Msgs[0]/singleMsg[153]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/Kv3[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=155, path=/Msgs[0]/singleMsg[155]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/SKCa[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=157, path=/Msgs[0]/singleMsg[157]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/KDr[0] /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=159, path=/Msgs[0]/singleMsg[159]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b1b1b1[0] dist 0.000322
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/NaF[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=161, path=/Msgs[0]/singleMsg[161]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/HCN1[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=163, path=/Msgs[0]/singleMsg[163]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/BKCa[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=165, path=/Msgs[0]/singleMsg[165]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/Ca[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=167, path=/Msgs[0]/singleMsg[167]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/NaS[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=169, path=/Msgs[0]/singleMsg[169]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/Kv3[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=171, path=/Msgs[0]/singleMsg[171]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/SKCa[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=173, path=/Msgs[0]/singleMsg[173]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/KDr[0] /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=175, path=/Msgs[0]/singleMsg[175]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b1b1b2[0] dist 0.0003257
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/NaF[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=177, path=/Msgs[0]/singleMsg[177]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/HCN1[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=179, path=/Msgs[0]/singleMsg[179]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/BKCa[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=181, path=/Msgs[0]/singleMsg[181]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/Ca[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=183, path=/Msgs[0]/singleMsg[183]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/NaS[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=185, path=/Msgs[0]/singleMsg[185]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/Kv3[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=187, path=/Msgs[0]/singleMsg[187]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/SKCa[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=189, path=/Msgs[0]/singleMsg[189]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/KDr[0] /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=191, path=/Msgs[0]/singleMsg[191]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b1b2[0] dist 0.0003298
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/NaF[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=193, path=/Msgs[0]/singleMsg[193]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/HCN1[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=195, path=/Msgs[0]/singleMsg[195]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/BKCa[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=197, path=/Msgs[0]/singleMsg[197]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/Ca[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=199, path=/Msgs[0]/singleMsg[199]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/NaS[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=201, path=/Msgs[0]/singleMsg[201]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/Kv3[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=203, path=/Msgs[0]/singleMsg[203]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/SKCa[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=205, path=/Msgs[0]/singleMsg[205]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/KDr[0] /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=207, path=/Msgs[0]/singleMsg[207]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b1b2b2[0] dist 0.0002928
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/NaF[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=209, path=/Msgs[0]/singleMsg[209]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/HCN1[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=211, path=/Msgs[0]/singleMsg[211]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/BKCa[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=213, path=/Msgs[0]/singleMsg[213]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/Ca[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=215, path=/Msgs[0]/singleMsg[215]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/NaS[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=217, path=/Msgs[0]/singleMsg[217]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/Kv3[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=219, path=/Msgs[0]/singleMsg[219]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/SKCa[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=221, path=/Msgs[0]/singleMsg[221]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/KDr[0] /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=223, path=/Msgs[0]/singleMsg[223]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p0b1b2[0] dist 0.0002105
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/NaF[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=225, path=/Msgs[0]/singleMsg[225]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/HCN1[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=227, path=/Msgs[0]/singleMsg[227]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/BKCa[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=229, path=/Msgs[0]/singleMsg[229]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/Ca[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=231, path=/Msgs[0]/singleMsg[231]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/NaS[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=233, path=/Msgs[0]/singleMsg[233]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/Kv3[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=235, path=/Msgs[0]/singleMsg[235]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/SKCa[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=237, path=/Msgs[0]/singleMsg[237]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p0b1b2[0]/KDr[0] /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=239, path=/Msgs[0]/singleMsg[239]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1[0] dist 0.000166
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/NaF[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=241, path=/Msgs[0]/singleMsg[241]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/HCN1[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=243, path=/Msgs[0]/singleMsg[243]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/BKCa[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=245, path=/Msgs[0]/singleMsg[245]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/Ca[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=247, path=/Msgs[0]/singleMsg[247]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/NaS[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=249, path=/Msgs[0]/singleMsg[249]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/Kv3[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=251, path=/Msgs[0]/singleMsg[251]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/SKCa[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=253, path=/Msgs[0]/singleMsg[253]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1[0]/KDr[0] /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=255, path=/Msgs[0]/singleMsg[255]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b1[0] dist 0.0001914
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/NaF[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=257, path=/Msgs[0]/singleMsg[257]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/HCN1[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=259, path=/Msgs[0]/singleMsg[259]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/BKCa[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=261, path=/Msgs[0]/singleMsg[261]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/Ca[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=263, path=/Msgs[0]/singleMsg[263]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/NaS[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=265, path=/Msgs[0]/singleMsg[265]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/Kv3[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=267, path=/Msgs[0]/singleMsg[267]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/SKCa[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=269, path=/Msgs[0]/singleMsg[269]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1[0]/KDr[0] /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=271, path=/Msgs[0]/singleMsg[271]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b1b1[0] dist 0.0001952
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/NaF[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=273, path=/Msgs[0]/singleMsg[273]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/HCN1[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=275, path=/Msgs[0]/singleMsg[275]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/BKCa[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=277, path=/Msgs[0]/singleMsg[277]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/Ca[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=279, path=/Msgs[0]/singleMsg[279]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/NaS[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=281, path=/Msgs[0]/singleMsg[281]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/Kv3[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=283, path=/Msgs[0]/singleMsg[283]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/SKCa[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=285, path=/Msgs[0]/singleMsg[285]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b1[0]/KDr[0] /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=287, path=/Msgs[0]/singleMsg[287]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b1b2[0] dist 0.000277
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/NaF[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=289, path=/Msgs[0]/singleMsg[289]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/HCN1[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=291, path=/Msgs[0]/singleMsg[291]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/BKCa[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=293, path=/Msgs[0]/singleMsg[293]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/Ca[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=295, path=/Msgs[0]/singleMsg[295]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/NaS[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=297, path=/Msgs[0]/singleMsg[297]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/Kv3[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=299, path=/Msgs[0]/singleMsg[299]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/SKCa[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=301, path=/Msgs[0]/singleMsg[301]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2[0]/KDr[0] /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=303, path=/Msgs[0]/singleMsg[303]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b1b2b1[0] dist 0.0002908
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/NaF[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=305, path=/Msgs[0]/singleMsg[305]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/HCN1[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=307, path=/Msgs[0]/singleMsg[307]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/BKCa[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=309, path=/Msgs[0]/singleMsg[309]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/Ca[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=311, path=/Msgs[0]/singleMsg[311]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/NaS[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=313, path=/Msgs[0]/singleMsg[313]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/Kv3[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=315, path=/Msgs[0]/singleMsg[315]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/SKCa[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=317, path=/Msgs[0]/singleMsg[317]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b1[0]/KDr[0] /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=319, path=/Msgs[0]/singleMsg[319]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b1b2b2[0] dist 0.0002938
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/NaF[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=321, path=/Msgs[0]/singleMsg[321]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/HCN1[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=323, path=/Msgs[0]/singleMsg[323]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/BKCa[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=325, path=/Msgs[0]/singleMsg[325]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/Ca[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=327, path=/Msgs[0]/singleMsg[327]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/NaS[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=329, path=/Msgs[0]/singleMsg[329]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/Kv3[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=331, path=/Msgs[0]/singleMsg[331]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/SKCa[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=333, path=/Msgs[0]/singleMsg[333]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b1b2b2[0]/KDr[0] /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=335, path=/Msgs[0]/singleMsg[335]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b2[0] dist 0.0002319
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/NaF[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=337, path=/Msgs[0]/singleMsg[337]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/HCN1[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=339, path=/Msgs[0]/singleMsg[339]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/BKCa[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=341, path=/Msgs[0]/singleMsg[341]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/Ca[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=343, path=/Msgs[0]/singleMsg[343]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/NaS[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=345, path=/Msgs[0]/singleMsg[345]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/Kv3[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=347, path=/Msgs[0]/singleMsg[347]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/SKCa[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=349, path=/Msgs[0]/singleMsg[349]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2[0]/KDr[0] /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=351, path=/Msgs[0]/singleMsg[351]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b2b1[0] dist 0.0002627
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/NaF[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=353, path=/Msgs[0]/singleMsg[353]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/HCN1[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=355, path=/Msgs[0]/singleMsg[355]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/BKCa[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=357, path=/Msgs[0]/singleMsg[357]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/Ca[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=359, path=/Msgs[0]/singleMsg[359]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/NaS[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=361, path=/Msgs[0]/singleMsg[361]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/Kv3[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=363, path=/Msgs[0]/singleMsg[363]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/SKCa[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=365, path=/Msgs[0]/singleMsg[365]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1[0]/KDr[0] /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=367, path=/Msgs[0]/singleMsg[367]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b2b1b1[0] dist 0.0002715
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/NaF[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=369, path=/Msgs[0]/singleMsg[369]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/HCN1[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=371, path=/Msgs[0]/singleMsg[371]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/BKCa[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=373, path=/Msgs[0]/singleMsg[373]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/Ca[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=375, path=/Msgs[0]/singleMsg[375]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/NaS[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=377, path=/Msgs[0]/singleMsg[377]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/Kv3[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=379, path=/Msgs[0]/singleMsg[379]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/SKCa[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=381, path=/Msgs[0]/singleMsg[381]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b1[0]/KDr[0] /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=383, path=/Msgs[0]/singleMsg[383]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b2b1b2[0] dist 0.0002775
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/NaF[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=385, path=/Msgs[0]/singleMsg[385]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/HCN1[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=387, path=/Msgs[0]/singleMsg[387]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/BKCa[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=389, path=/Msgs[0]/singleMsg[389]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/Ca[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=391, path=/Msgs[0]/singleMsg[391]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/NaS[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=393, path=/Msgs[0]/singleMsg[393]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/Kv3[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=395, path=/Msgs[0]/singleMsg[395]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/SKCa[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=397, path=/Msgs[0]/singleMsg[397]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b1b2[0]/KDr[0] /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=399, path=/Msgs[0]/singleMsg[399]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p1b2b2[0] dist 0.000289
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/NaF[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=401, path=/Msgs[0]/singleMsg[401]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/HCN1[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=403, path=/Msgs[0]/singleMsg[403]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/BKCa[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=405, path=/Msgs[0]/singleMsg[405]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/Ca[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=407, path=/Msgs[0]/singleMsg[407]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/NaS[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=409, path=/Msgs[0]/singleMsg[409]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/Kv3[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=411, path=/Msgs[0]/singleMsg[411]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/SKCa[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=413, path=/Msgs[0]/singleMsg[413]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p1b2b2[0]/KDr[0] /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=415, path=/Msgs[0]/singleMsg[415]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2[0] dist 6.11e-05
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/NaF[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=417, path=/Msgs[0]/singleMsg[417]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/HCN1[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=419, path=/Msgs[0]/singleMsg[419]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/BKCa[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=421, path=/Msgs[0]/singleMsg[421]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/Ca[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=423, path=/Msgs[0]/singleMsg[423]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/NaS[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=425, path=/Msgs[0]/singleMsg[425]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/Kv3[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=427, path=/Msgs[0]/singleMsg[427]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/SKCa[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=429, path=/Msgs[0]/singleMsg[429]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2[0]/KDr[0] /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=431, path=/Msgs[0]/singleMsg[431]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1[0] dist 8.42e-05
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/NaF[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=433, path=/Msgs[0]/singleMsg[433]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/HCN1[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=435, path=/Msgs[0]/singleMsg[435]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/BKCa[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=437, path=/Msgs[0]/singleMsg[437]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/Ca[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=439, path=/Msgs[0]/singleMsg[439]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/NaS[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=441, path=/Msgs[0]/singleMsg[441]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/Kv3[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=443, path=/Msgs[0]/singleMsg[443]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/SKCa[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=445, path=/Msgs[0]/singleMsg[445]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1[0]/KDr[0] /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=447, path=/Msgs[0]/singleMsg[447]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b1[0] dist 0.0002876
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/NaF[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=449, path=/Msgs[0]/singleMsg[449]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/HCN1[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=451, path=/Msgs[0]/singleMsg[451]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/BKCa[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=453, path=/Msgs[0]/singleMsg[453]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/Ca[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=455, path=/Msgs[0]/singleMsg[455]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/NaS[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=457, path=/Msgs[0]/singleMsg[457]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/Kv3[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=459, path=/Msgs[0]/singleMsg[459]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/SKCa[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=461, path=/Msgs[0]/singleMsg[461]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b1[0]/KDr[0] /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=463, path=/Msgs[0]/singleMsg[463]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2[0] dist 0.0001538
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/NaF[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=465, path=/Msgs[0]/singleMsg[465]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/HCN1[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=467, path=/Msgs[0]/singleMsg[467]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/BKCa[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=469, path=/Msgs[0]/singleMsg[469]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/Ca[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=471, path=/Msgs[0]/singleMsg[471]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/NaS[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=473, path=/Msgs[0]/singleMsg[473]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/Kv3[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=475, path=/Msgs[0]/singleMsg[475]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/SKCa[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=477, path=/Msgs[0]/singleMsg[477]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2[0]/KDr[0] /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=479, path=/Msgs[0]/singleMsg[479]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b1[0] dist 0.000554
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/NaF[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=481, path=/Msgs[0]/singleMsg[481]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/HCN1[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=483, path=/Msgs[0]/singleMsg[483]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/BKCa[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=485, path=/Msgs[0]/singleMsg[485]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/Ca[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=487, path=/Msgs[0]/singleMsg[487]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/NaS[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=489, path=/Msgs[0]/singleMsg[489]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/Kv3[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=491, path=/Msgs[0]/singleMsg[491]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/SKCa[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=493, path=/Msgs[0]/singleMsg[493]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/KDr[0] /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=495, path=/Msgs[0]/singleMsg[495]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2[0] dist 0.0001615
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/NaF[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=497, path=/Msgs[0]/singleMsg[497]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/HCN1[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=499, path=/Msgs[0]/singleMsg[499]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/BKCa[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=501, path=/Msgs[0]/singleMsg[501]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/Ca[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=503, path=/Msgs[0]/singleMsg[503]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/NaS[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=505, path=/Msgs[0]/singleMsg[505]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/Kv3[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=507, path=/Msgs[0]/singleMsg[507]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/SKCa[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=509, path=/Msgs[0]/singleMsg[509]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/KDr[0] /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=511, path=/Msgs[0]/singleMsg[511]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b1[0] dist 0.000308
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/NaF[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=513, path=/Msgs[0]/singleMsg[513]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/HCN1[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=515, path=/Msgs[0]/singleMsg[515]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/BKCa[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=517, path=/Msgs[0]/singleMsg[517]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/Ca[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=519, path=/Msgs[0]/singleMsg[519]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/NaS[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=521, path=/Msgs[0]/singleMsg[521]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/Kv3[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=523, path=/Msgs[0]/singleMsg[523]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/SKCa[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=525, path=/Msgs[0]/singleMsg[525]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/KDr[0] /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=527, path=/Msgs[0]/singleMsg[527]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b2[0] dist 0.0002424
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/NaF[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=529, path=/Msgs[0]/singleMsg[529]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/HCN1[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=531, path=/Msgs[0]/singleMsg[531]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/BKCa[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=533, path=/Msgs[0]/singleMsg[533]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/Ca[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=535, path=/Msgs[0]/singleMsg[535]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/NaS[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=537, path=/Msgs[0]/singleMsg[537]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/Kv3[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=539, path=/Msgs[0]/singleMsg[539]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/SKCa[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=541, path=/Msgs[0]/singleMsg[541]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/KDr[0] /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=543, path=/Msgs[0]/singleMsg[543]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b2b1[0] dist 0.0002813
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/NaF[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=545, path=/Msgs[0]/singleMsg[545]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/HCN1[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=547, path=/Msgs[0]/singleMsg[547]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/BKCa[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=549, path=/Msgs[0]/singleMsg[549]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/Ca[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=551, path=/Msgs[0]/singleMsg[551]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/NaS[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=553, path=/Msgs[0]/singleMsg[553]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/Kv3[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=555, path=/Msgs[0]/singleMsg[555]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/SKCa[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=557, path=/Msgs[0]/singleMsg[557]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/KDr[0] /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=559, path=/Msgs[0]/singleMsg[559]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b2b2[0] dist 0.0002898
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/NaF[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=561, path=/Msgs[0]/singleMsg[561]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/HCN1[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=563, path=/Msgs[0]/singleMsg[563]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/BKCa[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=565, path=/Msgs[0]/singleMsg[565]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/Ca[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=567, path=/Msgs[0]/singleMsg[567]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/NaS[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=569, path=/Msgs[0]/singleMsg[569]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/Kv3[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=571, path=/Msgs[0]/singleMsg[571]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/SKCa[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=573, path=/Msgs[0]/singleMsg[573]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/KDr[0] /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=575, path=/Msgs[0]/singleMsg[575]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b2b2b1[0] dist 0.0003165
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/NaF[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=577, path=/Msgs[0]/singleMsg[577]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/HCN1[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=579, path=/Msgs[0]/singleMsg[579]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/BKCa[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=581, path=/Msgs[0]/singleMsg[581]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/Ca[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=583, path=/Msgs[0]/singleMsg[583]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/NaS[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=585, path=/Msgs[0]/singleMsg[585]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/Kv3[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=587, path=/Msgs[0]/singleMsg[587]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/SKCa[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=589, path=/Msgs[0]/singleMsg[589]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/KDr[0] /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=591, path=/Msgs[0]/singleMsg[591]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b1b2b2b2b2b2[0] dist 0.000307
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/NaF[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=593, path=/Msgs[0]/singleMsg[593]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/HCN1[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=595, path=/Msgs[0]/singleMsg[595]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/BKCa[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=597, path=/Msgs[0]/singleMsg[597]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/Ca[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=599, path=/Msgs[0]/singleMsg[599]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/NaS[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=601, path=/Msgs[0]/singleMsg[601]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/Kv3[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=603, path=/Msgs[0]/singleMsg[603]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/SKCa[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=605, path=/Msgs[0]/singleMsg[605]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/KDr[0] /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=607, path=/Msgs[0]/singleMsg[607]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b2[0] dist 0.0003509
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/NaF[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=609, path=/Msgs[0]/singleMsg[609]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/HCN1[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=611, path=/Msgs[0]/singleMsg[611]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/BKCa[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=613, path=/Msgs[0]/singleMsg[613]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/Ca[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=615, path=/Msgs[0]/singleMsg[615]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/NaS[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=617, path=/Msgs[0]/singleMsg[617]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/Kv3[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=619, path=/Msgs[0]/singleMsg[619]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/SKCa[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=621, path=/Msgs[0]/singleMsg[621]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2[0]/KDr[0] /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=623, path=/Msgs[0]/singleMsg[623]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b2b1[0] dist 0.0004028
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/NaF[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=625, path=/Msgs[0]/singleMsg[625]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/HCN1[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=627, path=/Msgs[0]/singleMsg[627]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/BKCa[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=629, path=/Msgs[0]/singleMsg[629]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/Ca[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=631, path=/Msgs[0]/singleMsg[631]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/NaS[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=633, path=/Msgs[0]/singleMsg[633]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/Kv3[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=635, path=/Msgs[0]/singleMsg[635]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/SKCa[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=637, path=/Msgs[0]/singleMsg[637]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1[0]/KDr[0] /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=639, path=/Msgs[0]/singleMsg[639]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b2b1b1[0] dist 0.0004128
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/NaF[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=641, path=/Msgs[0]/singleMsg[641]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/HCN1[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=643, path=/Msgs[0]/singleMsg[643]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/BKCa[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=645, path=/Msgs[0]/singleMsg[645]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/Ca[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=647, path=/Msgs[0]/singleMsg[647]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/NaS[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=649, path=/Msgs[0]/singleMsg[649]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/Kv3[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=651, path=/Msgs[0]/singleMsg[651]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/SKCa[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=653, path=/Msgs[0]/singleMsg[653]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/KDr[0] /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=655, path=/Msgs[0]/singleMsg[655]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b2b1b2[0] dist 0.0004348
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/NaF[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=657, path=/Msgs[0]/singleMsg[657]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/HCN1[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=659, path=/Msgs[0]/singleMsg[659]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/BKCa[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=661, path=/Msgs[0]/singleMsg[661]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/Ca[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=663, path=/Msgs[0]/singleMsg[663]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/NaS[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=665, path=/Msgs[0]/singleMsg[665]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/Kv3[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=667, path=/Msgs[0]/singleMsg[667]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/SKCa[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=669, path=/Msgs[0]/singleMsg[669]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/KDr[0] /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=671, path=/Msgs[0]/singleMsg[671]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    comp /ep[0]/p2b2b2b2[0] dist 0.0004637
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaF 400
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/NaF[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=673, path=/Msgs[0]/singleMsg[673]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If HCN1 0.2
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/HCN1[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=675, path=/Msgs[0]/singleMsg[675]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If BKCa 0.1
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/BKCa[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=677, path=/Msgs[0]/singleMsg[677]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Ca 0.06
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/Ca[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=679, path=/Msgs[0]/singleMsg[679]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If NaS 0.5
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/NaS[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=681, path=/Msgs[0]/singleMsg[681]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Kv3 140
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/Kv3[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=683, path=/Msgs[0]/singleMsg[683]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If SKCa 0.15
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/SKCa[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=685, path=/Msgs[0]/singleMsg[685]>
+12-12 13:21 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If KDr 7.75
+12-12 13:21 moose_nerp.prototypes.add_channel DEBUG    channel message /ep[0]/p2b2b2b2[0]/KDr[0] /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=687, path=/Msgs[0]/singleMsg[687]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/soma[0]/BKCa /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=688, path=/Msgs[0]/singleMsg[688]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/soma[0]/Ca to Ca /ep[0]/soma[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/soma[0]/SKCa /ep[0]/soma[0] <moose.SingleMsg: id=5, dataIndex=690, path=/Msgs[0]/singleMsg[690]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1[0]/BKCa /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=691, path=/Msgs[0]/singleMsg[691]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1[0]/Ca to Ca /ep[0]/p0b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1[0]/SKCa /ep[0]/p0b1[0] <moose.SingleMsg: id=5, dataIndex=693, path=/Msgs[0]/singleMsg[693]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1[0]/BKCa /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=694, path=/Msgs[0]/singleMsg[694]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1[0]/Ca to Ca /ep[0]/p0b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1[0]/SKCa /ep[0]/p0b1b1[0] <moose.SingleMsg: id=5, dataIndex=696, path=/Msgs[0]/singleMsg[696]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b1[0]/BKCa /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=697, path=/Msgs[0]/singleMsg[697]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b1[0]/Ca to Ca /ep[0]/p0b1b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b1[0]/SKCa /ep[0]/p0b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=699, path=/Msgs[0]/singleMsg[699]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2[0]/BKCa /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=700, path=/Msgs[0]/singleMsg[700]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2[0]/Ca to Ca /ep[0]/p0b1b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2[0]/SKCa /ep[0]/p0b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=702, path=/Msgs[0]/singleMsg[702]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/BKCa /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=703, path=/Msgs[0]/singleMsg[703]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b1[0]/Ca to Ca /ep[0]/p0b1b1b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1[0]/SKCa /ep[0]/p0b1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=705, path=/Msgs[0]/singleMsg[705]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/BKCa /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=706, path=/Msgs[0]/singleMsg[706]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b1b1[0]/Ca to Ca /ep[0]/p0b1b1b2b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1[0]/SKCa /ep[0]/p0b1b1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=708, path=/Msgs[0]/singleMsg[708]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/BKCa /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=709, path=/Msgs[0]/singleMsg[709]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b1b1b1[0]/Ca to Ca /ep[0]/p0b1b1b2b1b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1b1[0]/SKCa /ep[0]/p0b1b1b2b1b1b1[0] <moose.SingleMsg: id=5, dataIndex=711, path=/Msgs[0]/singleMsg[711]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/BKCa /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=712, path=/Msgs[0]/singleMsg[712]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b1b1b2[0]/Ca to Ca /ep[0]/p0b1b1b2b1b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b1b2[0]/SKCa /ep[0]/p0b1b1b2b1b1b2[0] <moose.SingleMsg: id=5, dataIndex=714, path=/Msgs[0]/singleMsg[714]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/BKCa /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=715, path=/Msgs[0]/singleMsg[715]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b1b2[0]/Ca to Ca /ep[0]/p0b1b1b2b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b1b2[0]/SKCa /ep[0]/p0b1b1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=717, path=/Msgs[0]/singleMsg[717]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/BKCa /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=718, path=/Msgs[0]/singleMsg[718]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b1b2b2[0]/Ca to Ca /ep[0]/p0b1b1b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b1b2b2[0]/SKCa /ep[0]/p0b1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=720, path=/Msgs[0]/singleMsg[720]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b2[0]/BKCa /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=721, path=/Msgs[0]/singleMsg[721]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p0b1b2[0]/Ca to Ca /ep[0]/p0b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p0b1b2[0]/SKCa /ep[0]/p0b1b2[0] <moose.SingleMsg: id=5, dataIndex=723, path=/Msgs[0]/singleMsg[723]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1[0]/BKCa /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=724, path=/Msgs[0]/singleMsg[724]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1[0]/Ca to Ca /ep[0]/p1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1[0]/SKCa /ep[0]/p1[0] <moose.SingleMsg: id=5, dataIndex=726, path=/Msgs[0]/singleMsg[726]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1[0]/BKCa /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=727, path=/Msgs[0]/singleMsg[727]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b1[0]/Ca to Ca /ep[0]/p1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1[0]/SKCa /ep[0]/p1b1[0] <moose.SingleMsg: id=5, dataIndex=729, path=/Msgs[0]/singleMsg[729]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b1[0]/BKCa /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=730, path=/Msgs[0]/singleMsg[730]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b1b1[0]/Ca to Ca /ep[0]/p1b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b1[0]/SKCa /ep[0]/p1b1b1[0] <moose.SingleMsg: id=5, dataIndex=732, path=/Msgs[0]/singleMsg[732]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2[0]/BKCa /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=733, path=/Msgs[0]/singleMsg[733]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b1b2[0]/Ca to Ca /ep[0]/p1b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2[0]/SKCa /ep[0]/p1b1b2[0] <moose.SingleMsg: id=5, dataIndex=735, path=/Msgs[0]/singleMsg[735]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2b1[0]/BKCa /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=736, path=/Msgs[0]/singleMsg[736]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b1b2b1[0]/Ca to Ca /ep[0]/p1b1b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2b1[0]/SKCa /ep[0]/p1b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=738, path=/Msgs[0]/singleMsg[738]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2b2[0]/BKCa /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=739, path=/Msgs[0]/singleMsg[739]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b1b2b2[0]/Ca to Ca /ep[0]/p1b1b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b1b2b2[0]/SKCa /ep[0]/p1b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=741, path=/Msgs[0]/singleMsg[741]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2[0]/BKCa /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=742, path=/Msgs[0]/singleMsg[742]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b2[0]/Ca to Ca /ep[0]/p1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2[0]/SKCa /ep[0]/p1b2[0] <moose.SingleMsg: id=5, dataIndex=744, path=/Msgs[0]/singleMsg[744]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1[0]/BKCa /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=745, path=/Msgs[0]/singleMsg[745]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b2b1[0]/Ca to Ca /ep[0]/p1b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1[0]/SKCa /ep[0]/p1b2b1[0] <moose.SingleMsg: id=5, dataIndex=747, path=/Msgs[0]/singleMsg[747]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1b1[0]/BKCa /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=748, path=/Msgs[0]/singleMsg[748]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b2b1b1[0]/Ca to Ca /ep[0]/p1b2b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1b1[0]/SKCa /ep[0]/p1b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=750, path=/Msgs[0]/singleMsg[750]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1b2[0]/BKCa /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=751, path=/Msgs[0]/singleMsg[751]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b2b1b2[0]/Ca to Ca /ep[0]/p1b2b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b1b2[0]/SKCa /ep[0]/p1b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=753, path=/Msgs[0]/singleMsg[753]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b2[0]/BKCa /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=754, path=/Msgs[0]/singleMsg[754]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p1b2b2[0]/Ca to Ca /ep[0]/p1b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p1b2b2[0]/SKCa /ep[0]/p1b2b2[0] <moose.SingleMsg: id=5, dataIndex=756, path=/Msgs[0]/singleMsg[756]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2[0]/BKCa /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=757, path=/Msgs[0]/singleMsg[757]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2[0]/Ca to Ca /ep[0]/p2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2[0]/SKCa /ep[0]/p2b2[0] <moose.SingleMsg: id=5, dataIndex=759, path=/Msgs[0]/singleMsg[759]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1[0]/BKCa /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=760, path=/Msgs[0]/singleMsg[760]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1[0]/Ca to Ca /ep[0]/p2b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1[0]/SKCa /ep[0]/p2b2b1[0] <moose.SingleMsg: id=5, dataIndex=762, path=/Msgs[0]/singleMsg[762]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b1[0]/BKCa /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=763, path=/Msgs[0]/singleMsg[763]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b1[0]/Ca to Ca /ep[0]/p2b2b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b1[0]/SKCa /ep[0]/p2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=765, path=/Msgs[0]/singleMsg[765]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2[0]/BKCa /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=766, path=/Msgs[0]/singleMsg[766]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2[0]/Ca to Ca /ep[0]/p2b2b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2[0]/SKCa /ep[0]/p2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=768, path=/Msgs[0]/singleMsg[768]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/BKCa /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=769, path=/Msgs[0]/singleMsg[769]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b1[0]/Ca to Ca /ep[0]/p2b2b1b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b1[0]/SKCa /ep[0]/p2b2b1b2b1[0] <moose.SingleMsg: id=5, dataIndex=771, path=/Msgs[0]/singleMsg[771]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/BKCa /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=772, path=/Msgs[0]/singleMsg[772]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2[0]/Ca to Ca /ep[0]/p2b2b1b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2[0]/SKCa /ep[0]/p2b2b1b2b2[0] <moose.SingleMsg: id=5, dataIndex=774, path=/Msgs[0]/singleMsg[774]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/BKCa /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=775, path=/Msgs[0]/singleMsg[775]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b1[0]/Ca to Ca /ep[0]/p2b2b1b2b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b1[0]/SKCa /ep[0]/p2b2b1b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=777, path=/Msgs[0]/singleMsg[777]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/BKCa /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=778, path=/Msgs[0]/singleMsg[778]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b2[0]/Ca to Ca /ep[0]/p2b2b1b2b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2[0]/SKCa /ep[0]/p2b2b1b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=780, path=/Msgs[0]/singleMsg[780]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/BKCa /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=781, path=/Msgs[0]/singleMsg[781]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b2b1[0]/Ca to Ca /ep[0]/p2b2b1b2b2b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b1[0]/SKCa /ep[0]/p2b2b1b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=783, path=/Msgs[0]/singleMsg[783]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/BKCa /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=784, path=/Msgs[0]/singleMsg[784]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b2b2[0]/Ca to Ca /ep[0]/p2b2b1b2b2b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2[0]/SKCa /ep[0]/p2b2b1b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=786, path=/Msgs[0]/singleMsg[786]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/BKCa /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=787, path=/Msgs[0]/singleMsg[787]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b2b2b1[0]/Ca to Ca /ep[0]/p2b2b1b2b2b2b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b1[0]/SKCa /ep[0]/p2b2b1b2b2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=789, path=/Msgs[0]/singleMsg[789]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/BKCa /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=790, path=/Msgs[0]/singleMsg[790]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b1b2b2b2b2b2[0]/Ca to Ca /ep[0]/p2b2b1b2b2b2b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b1b2b2b2b2b2[0]/SKCa /ep[0]/p2b2b1b2b2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=792, path=/Msgs[0]/singleMsg[792]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2[0]/BKCa /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=793, path=/Msgs[0]/singleMsg[793]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b2[0]/Ca to Ca /ep[0]/p2b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2[0]/SKCa /ep[0]/p2b2b2[0] <moose.SingleMsg: id=5, dataIndex=795, path=/Msgs[0]/singleMsg[795]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1[0]/BKCa /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=796, path=/Msgs[0]/singleMsg[796]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b2b1[0]/Ca to Ca /ep[0]/p2b2b2b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1[0]/SKCa /ep[0]/p2b2b2b1[0] <moose.SingleMsg: id=5, dataIndex=798, path=/Msgs[0]/singleMsg[798]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/BKCa /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=799, path=/Msgs[0]/singleMsg[799]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b2b1b1[0]/Ca to Ca /ep[0]/p2b2b2b1b1[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1b1[0]/SKCa /ep[0]/p2b2b2b1b1[0] <moose.SingleMsg: id=5, dataIndex=801, path=/Msgs[0]/singleMsg[801]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/BKCa /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=802, path=/Msgs[0]/singleMsg[802]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b2b1b2[0]/Ca to Ca /ep[0]/p2b2b2b1b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b1b2[0]/SKCa /ep[0]/p2b2b2b1b2[0] <moose.SingleMsg: id=5, dataIndex=804, path=/Msgs[0]/singleMsg[804]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b2[0]/BKCa /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=805, path=/Msgs[0]/singleMsg[805]>
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel /ep[0]/p2b2b2b2[0]/Ca to Ca /ep[0]/p2b2b2b2[0]/Shells[0]
+12-12 13:21 moose_nerp.prototypes.calcium DEBUG    channel message /ep[0]/p2b2b2b2[0]/SKCa /ep[0]/p2b2b2b2[0] <moose.SingleMsg: id=5, dataIndex=807, path=/Msgs[0]/singleMsg[807]>
+12-12 13:21 moose_nerp.prototypes.clocks INFO     SimDt=1e-05, PlotDt=0.0001
+12-12 13:21 moose_nerp.prototypes.clocks INFO     Using HSOLVE for /ep[0]/hsolve[0] clock 6
+12-12 13:21 moose_nerp.prototypes.calcium INFO     Fixing calcium buffer capacity for ZombieCompartment elements
