@@ -35,12 +35,13 @@ CADIVS = 5999 #10 nM steps
 #Fast sodium - same as GP, but no slow gating
 qfactNaF = 1.0
 
-Na_m_params = AlphaBetaChannelParams(A_rate = 35e3,
+#These values were too fast - change rate from 35e3 to 12e3
+Na_m_params = AlphaBetaChannelParams(A_rate = 8e3,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = 36e-3,
                                       A_vslope = -5e-3,
-                                      B_rate = 35e3,
+                                      B_rate = 8e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 36e-3,
@@ -57,6 +58,15 @@ Na_h_params = AlphaBetaChannelParams(A_rate = 4500,
                                       B_vhalf = 32e-3,
                                       B_vslope = -5e-3)
 
+Na_s_params= SSTauQuadraticChannelParams(SS_min=0.999,  #0.15
+                                        SS_vdep=0.001,  #0.85
+                                        SS_vhalf=-0.015, #-0.45
+                                        SS_vslope=0.0054,
+                                        taumin = 0.01,
+                                        tauVdep = 1.2,
+                                        tauVhalf = -0.032,
+                                        tauVslope = 0.012)
+                                        
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 
@@ -124,13 +134,13 @@ Kv3param = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='Kv3')
 
 
 #qfactKrp=1
-
-Kv3_X_params = AlphaBetaChannelParams(A_rate = 2500,
+#Slightly faster to match DJ tau at hyperpol potentials
+Kv3_X_params = AlphaBetaChannelParams(A_rate = 4000,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = -33e-3,
                                       A_vslope =-15e-3,
-                                      B_rate = 3400,
+                                      B_rate = 5440,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 78e-3,
@@ -200,17 +210,32 @@ KvS_Y_params = AlphaBetaChannelParams(A_rate =19 ,
 #less steep voltage dependence than than GP channel
 HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN1')
 
-HCN1_X_params = AlphaBetaChannelParams(A_rate = 30,
+#previous values were too fast
+HCN1_X_params = AlphaBetaChannelParams(A_rate = 120,
                                         A_B = 0,
                                         A_C = 1,
-                                        A_vhalf = 0.14,
+                                        A_vhalf = 0.15,
                                         A_vslope = 0.01,
-                                        B_rate = 12,
+                                        B_rate = 52,
                                         B_B = 0,
                                         B_C = 1,
                                         B_vhalf = 0.03,
                                         B_vslope = -0.012)
 HCN1_Y_params=[]
+
+HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN2')
+
+HCN2_X_params = AlphaBetaChannelParams(A_rate = 12,
+                                        A_B = 0,
+                                        A_C = 1,
+                                        A_vhalf = 0.15,
+                                        A_vslope = 0.01,
+                                        B_rate = 8,
+                                        B_B = 0,
+                                        B_C = 1,
+                                        B_vhalf = 0.03,
+                                        B_vslope = -0.012)
+HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
 Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
@@ -244,10 +269,11 @@ Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneD(KDrparam, KDr_X_params, KDr_Y_params),
     Kv3 =   TypicalOneD(Kv3param, Kv3_X_params, Kv3_Y_params),
-    KvF =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
+    KvS =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
     #KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
     HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
-    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params),
+    HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
+    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params, Na_s_params),
     NaS= TypicalOneD(NaSparam,NaS_m_params,NaS_h_params),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),

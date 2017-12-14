@@ -103,7 +103,7 @@ if ep.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(ep, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
     
 ###############--------------output elements
-param_sim.plot_channels=1
+#param_sim.plot_channels=1
 if param_sim.plot_channels:
     for chan in ep.Channels.keys():
         libchan=moose.element('/library/'+chan)

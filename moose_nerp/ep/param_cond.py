@@ -28,7 +28,7 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-morph_file = {'ep':'EP_41comp.p'}
+morph_file = {'ep':'EP_41compA.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -42,15 +42,16 @@ axon = (0.,1., 'axon')
 
 _ep = _util.NamedDict(
     'ep',
-    KDr={prox: 4, dist: 6, axon: 20}, #KDr is Kv2
-    Kv3={prox: 600, dist: 70, axon: 1400},  
-    KvF={prox: 100, dist: 100, axon: 100},  
-    NaF={prox: 40000, dist: 400, axon: 40000}, 
-    NaS={prox: 0.3, dist: 0.3, axon: 0.3},
-    Ca={prox: 0.1, dist: 0.06, axon: 0},  
-    HCN1={prox: 0.4, dist: 0.4, axon: 0}, 
-    SKCa={prox: 2, dist: 0.15, axon: 0},  
-    BKCa={prox: 0.1, dist: 0.1, axon: 0}, 
+    KDr={prox: 0.61, dist: 1.92, axon: 95.7}, #KDr is Kv2
+    Kv3={prox: 318, dist: 81.5, axon: 0.68},  
+    KvS={prox: 4.75, dist: 4.6, axon: 195},  
+    NaF={prox: 4483, dist: 33.2, axon: 4597}, 
+    NaS={prox: 1.04, dist: 0.3, axon: 0.3},
+    Ca={prox: 0.0077, dist: 0.06, axon: 0},  
+    HCN1={prox: 0.16, dist: 0.16, axon: 0}, 
+    HCN2={prox: 0.30, dist: 0.30, axon: 0}, 
+    SKCa={prox: 1.94, dist: 0.15, axon: 0},  
+    BKCa={prox: 4.48, dist: 0.1, axon: 0}, 
 )
 
 
