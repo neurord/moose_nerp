@@ -32,7 +32,7 @@ from moose_nerp import gp
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[-100e-12, -50e-12, 25e-12,75e-12],
+    default_injection_current=[25e-12],#[-100e-12, -50e-12, 25e-12,75e-12],
     default_simulation_time=0.6,
     default_injection_width=0.4,
     default_plotdt=0.0001)
@@ -112,7 +112,7 @@ if gp.plasYN:
 ###############--------------output elements
 param_sim.plot_channels=1
 if param_sim.plot_channels:
-    for chan in gp.Channels.keys():
+    for chan in ['NaF', 'NaS']:#gp.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       gp.VMIN, gp.VMAX, gp.CAMIN, gp.CAMAX)

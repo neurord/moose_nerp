@@ -32,13 +32,14 @@ from moose_nerp import ep
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[-200e-12, -100e-12, 50e-12, 150e-12],
+    default_injection_current=[-200e-12, -100e-12, 150e-12,50e-12],
     default_simulation_time=0.6,
     default_injection_width=0.3,
     default_injection_delay=0.1,
     default_plotdt=0.0001)
 
 param_sim = option_parser.parse_args()
+param_sim.hsolve=1
 
 plotcomps=[ep.param_cond.NAME_SOMA]
 
@@ -103,9 +104,9 @@ if ep.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(ep, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
     
 ###############--------------output elements
-#param_sim.plot_channels=1
+param_sim.plot_channels=1
 if param_sim.plot_channels:
-    for chan in ep.Channels.keys():
+    for chan in ['NaF']: #ep.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       ep.VMIN, ep.VMAX, ep.CAMIN, ep.CAMAX)
@@ -147,9 +148,15 @@ spikegen.threshold=0.0
 spikegen.refractT=1.0e-3
 msg=moose.connect(moose.element(neur+'/'+ep.param_cond.NAME_SOMA),'VmOut',spikegen,'Vm')
 
+########### plot zgate
+ztab=moose.Table('data/zgate')
+nachan=moose.element('/ep/soma/NaF')
+moose.connect(ztab,'requestOut', nachan,'getZ')
+
 ####
 spiketab=moose.Table('/data/spike')
 moose.connect(spikegen,'spikeOut',spiketab,'spike')
+
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
@@ -183,6 +190,13 @@ for inj in param_sim.injection_current:
 
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(ep,spinecatab,spinevmtab, param_sim.simtime)
+
+###############plot zgate
+plt.figure()
+ts = np.linspace(0, param_sim.simtime, len(ztab.vector))
+plt.plot(ts,ztab.vector,label='NaF, Z value')
+plt.legend()
+plt.show()
 
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)

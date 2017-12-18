@@ -28,7 +28,7 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-morph_file = {'ep':'EP_41compA.p'}
+morph_file = {'ep':'EP_41compB.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -42,20 +42,21 @@ axon = (0.,1., 'axon')
 
 _ep = _util.NamedDict(
     'ep',
-    KDr={prox: 0.61, dist: 1.92, axon: 95.7}, #KDr is Kv2
-    Kv3={prox: 318, dist: 81.5, axon: 0.68},  
-    KvS={prox: 4.75, dist: 4.6, axon: 195},  
-    NaF={prox: 4483, dist: 33.2, axon: 4597}, 
-    NaS={prox: 1.04, dist: 0.3, axon: 0.3},
-    Ca={prox: 0.0077, dist: 0.06, axon: 0},  
-    HCN1={prox: 0.16, dist: 0.16, axon: 0}, 
-    HCN2={prox: 0.30, dist: 0.30, axon: 0}, 
-    SKCa={prox: 1.94, dist: 0.15, axon: 0},  
-    BKCa={prox: 4.48, dist: 0.1, axon: 0}, 
+    KDr={prox: 3.44, dist: 9.21, axon: 218.8}, #KDr is Kv2
+    Kv3={prox: 1982.9, dist: 1622.5, axon: 1012.31},  
+    KvS={prox: 1.62, dist: 16.98, axon: 0.025},  
+    NaF={prox: 225, dist: 141.8, axon: 69.8}, 
+    NaS={prox: 3.50, dist: 4.06, axon: 0.0},
+    Ca={prox: 0.036, dist: 0.073, axon: 0},  
+    HCN1={prox: 0.10, dist: 0.69, axon: 0}, 
+    HCN2={prox: 0.85, dist: 1.10, axon: 0}, 
+    SKCa={prox: 10.980, dist: 2.86, axon: 0},  
+    BKCa={prox: 0.92, dist: 0.698, axon: 0}, 
 )
-
 
 Condset  = _util.NamedDict(
     'Condset',
     ep = _ep,
 )
+
+#Kv3 produces the early, fast transient AHP, if cond is high enough

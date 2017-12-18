@@ -58,26 +58,38 @@ Na_h_params = AlphaBetaChannelParams(A_rate = 4500,
                                       B_vhalf = 32e-3,
                                       B_vslope = -5e-3)
 
-Na_s_params= SSTauQuadraticChannelParams(SS_min=0.999,  #0.15
-                                        SS_vdep=0.001,  #0.85
-                                        SS_vhalf=-0.015, #-0.45
-                                        SS_vslope=0.0054,
-                                        taumin = 0.01,
-                                        tauVdep = 1.2,
-                                        tauVhalf = -0.032,
-                                        tauVslope = 0.012)
+#Zgate not working
+Na_s_params= AlphaBetaChannelParams(A_rate = 100,
+                                      A_B = 0,
+                                      A_C = 1,
+                                      A_vhalf = 84e-3,
+                                      A_vslope = 10.0e-3,
+                                      B_rate = 0.0080,
+                                      B_B = 0.0,
+                                      B_C = 1,
+                                      B_vhalf = -26e-3,
+                                      B_vslope = -14e-3)
+
+Na_s_params= SSTauQuadraticChannelParams(SS_min=0.99,  
+                                         SS_vdep=0.01,  
+                                         SS_vhalf=-0.045,
+                                         SS_vslope=0.0054,
+                                         taumin = 0.01,
+                                         tauVdep = 2.2,
+                                         tauVhalf = -0.032,
+                                         tauVslope = 0.012)
                                         
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 
 #persistent Na_channel- same as GP, but no slow gating
-
-NaS_m_params = AlphaBetaChannelParams(A_rate=250e3,
+#Two changes made recently: slow down activation (still < 1 ms), less steep vdep of inactivation
+NaS_m_params = AlphaBetaChannelParams(A_rate=25e3,
                                      A_B=0,
                                      A_C=1,
                                      A_vhalf=-55.4e-3,
                                      A_vslope=-27e-3,
-                                     B_rate=250e3,
+                                     B_rate=25e3,
                                      B_B=0.0,
                                      B_C=1,
                                      B_vhalf=135e-3,
@@ -93,15 +105,15 @@ NaS_h_params = SSTauQuadraticChannelParams(SS_min = 0.154,
                                            tauVslope = 0.022)
 
 NaS_h_params = AlphaBetaChannelParams(A_rate=32,
-                                     A_B=0,
-                                     A_C=1,
-                                     A_vhalf=58e-3,
-                                     A_vslope=4.5e-3,
-                                     B_rate=30,
-                                     B_B=0.0,
-                                     B_C=1,
-                                    B_vhalf=57e-3,
-                                     B_vslope=-4e-3)
+                                      A_B=0,
+                                      A_C=1,
+                                      A_vhalf=58e-3,
+                                      A_vslope=10e-3,
+                                      B_rate=30,
+                                      B_B=0.0,
+                                      B_C=1,
+                                      B_vhalf=57e-3,
+                                      B_vslope=-10e-3)
 
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
@@ -269,8 +281,8 @@ Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneD(KDrparam, KDr_X_params, KDr_Y_params),
     Kv3 =   TypicalOneD(Kv3param, Kv3_X_params, Kv3_Y_params),
-    KvS =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
-    #KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
+    #KvF =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
+    KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
     HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params, Na_s_params),

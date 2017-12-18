@@ -1,4 +1,4 @@
-
+############### zgate with useConcentration False does not work ##################
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
@@ -56,7 +56,7 @@ Na_h_params = AlphaBetaChannelParams(A_rate = 4.0e3,
                                       B_vhalf = 32e-3,
                                       B_vslope = -5e-3)
 
-Na_s_param= AlphaBetaChannelParams(A_rate = 100,
+Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = 84e-3,
@@ -67,7 +67,15 @@ Na_s_param= AlphaBetaChannelParams(A_rate = 100,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
 
-
+Na_s_params= SSTauQuadraticChannelParams(SS_min=0.15,
+                                         SS_vdep=0.85,
+                                         SS_vhalf=-0.045,
+                                         SS_vslope=0.0054,
+                                         taumin = 0.01,
+                                         tauVdep = 2.2,
+                                         tauVhalf = -0.032,
+                                         tauVslope = 0.012)
+                                        
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaF')
 
 
@@ -297,7 +305,7 @@ NaS_snew_params = SSTauQuadraticChannelParams(SS_min = 0,
                                            tauVhalf = -0.066,
                                            tauVslope = -0.016)
 
-NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
+NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
 #BK channel
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
@@ -313,10 +321,10 @@ Channels = NamedDict(
     HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
     KCNQ =  TypicalOneD(KCNQparam,KCNQ_X_params, []),
-    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_param),
+    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_params),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
-    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_snew_params),
+    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_s_params),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
 # have to add NaP and calcium channels
