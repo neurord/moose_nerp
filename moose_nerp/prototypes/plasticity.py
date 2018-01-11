@@ -101,7 +101,7 @@ def plasticity(synchan,plas_params):
     highfac = plas_params.highFactor
     lowfac = plas_params.lowFactor
 
-    expression = highfac+"(y>x)*(y-x)+(y>z)*(x>y)*(y-z)*(x-y)"+lowfac
+    expression = highfac*"(y>x)*(y-x)+(y>z)*(x>y)*(y-z)*(x-y)"*lowfac
 
     plas.expr = expression
     
@@ -114,7 +114,7 @@ def plasticity(synchan,plas_params):
     #need input from the plasticity thresholding function to y 
     moose.connect(plas,'valueOut',plasCum,'xIn')
     moose.connect(plasCum,'valueOut',plasCum, 'yIn')
-    plasCum.expr = "(x+1.0)*y*z"
+    plasCum.expr = "x+y*z"
     plasCum.z = sh.synapse[0].weight
     plasCum.y = 1.0
     moose.connect(plasCum,'valueOut',sh.synapse[0],'setWeight')
