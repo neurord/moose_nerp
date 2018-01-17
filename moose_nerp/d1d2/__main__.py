@@ -33,11 +33,12 @@ from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
 option_parser = standard_options.standard_options()
-option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[0.25e-9],default_stim='inject',default_stim_loc='soma')
+option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[-0.5e-9],default_stim='inject',default_stim_loc='soma')
 #,default_simulation_time=0.01)
 param_sim = option_parser.parse_args()
 param_sim.save=1
 plotcomps=[d1d2.param_cond.NAME_SOMA]
+param_sim.hsolve=0
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
 #These assignment statements are required because they are not part of param_sim namespace.
@@ -102,8 +103,9 @@ if d1d2.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
     
 ###############--------------output elements
+param_sim.plot_channels=1
 if param_sim.plot_channels:
-    for chan in d1d2.Channels.keys():
+    for chan in ['Kir']: #d1d2.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       d1d2.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
@@ -133,6 +135,10 @@ print("simdt", param_sim.simdt, "hsolve", param_sim.hsolve)
 if param_sim.hsolve and d1d2.calYN:
     calcium.fix_calcium(d1d2.neurontypes(), d1d2)
 
+########### plot xgate
+xtab=moose.Table('data/xgate')
+kirchan=moose.element('/D1/soma/Kir')
+moose.connect(xtab,'requestOut', kirchan,'getX')
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
     if d1d2.param_stim.Stimulation.Paradigm.name == 'inject':
@@ -173,6 +179,11 @@ if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if d1d2.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
+plt.figure()
+ts = np.linspace(0, param_sim.simtime, len(xtab.vector))
+plt.plot(ts,xtab.vector,label='Kir, X value')
+plt.legend()
+plt.show()
 
 # block in non-interactive mode
 util.block_if_noninteractive()
