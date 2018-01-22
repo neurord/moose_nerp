@@ -34,12 +34,13 @@ CADIVS = 5999 #10 nM steps
 
 qfactNaF = 1.0
 
-Na_m_params = AlphaBetaChannelParams(A_rate = 35e3,
+#These values were too fast - change rate from 35e3 to 16e3
+Na_m_params = AlphaBetaChannelParams(A_rate = 16e3,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = 36e-3,
                                       A_vslope = -5e-3,
-                                      B_rate = 35e3,
+                                      B_rate = 16e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 36e-3,
@@ -76,8 +77,65 @@ Na_s_params= SSTauQuadraticChannelParams(SS_min=0.15,
                                          tauVhalf = -0.032,
                                          tauVslope = 0.012)
                                         
-NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaF')
+NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
+
+#persistent Na_channel.  Slow down from Dieter Jaeger
+
+NaS_m_params = AlphaBetaChannelParams(A_rate=76e3,
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=-55.4e-3,
+                                     A_vslope=-13.6e-3,
+                                    B_rate=70e3,
+                                     B_B=0.0,
+                                     B_C=1,
+                                     B_vhalf=135e-3,
+                                     B_vslope=13.5e-3)
+
+NaS_mnew_params = AlphaBetaChannelParams(A_rate=25e3,
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=-55.4e-3,
+                                     A_vslope=-27e-3,
+                                     B_rate=25e3,
+                                     B_B=0.0,
+                                     B_C=1,
+                                     B_vhalf=135e-3,
+                                     B_vslope=26.2e-3)
+
+NaS_h_params = AlphaBetaChannelParams(A_rate=32,
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=58e-3,
+                                     A_vslope=4.5e-3,
+                                     B_rate=30,
+                                     B_B=0.0,
+                                     B_C=1,
+                                    B_vhalf=57e-3,
+                                     B_vslope=-4e-3)
+
+NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
+                                     A_B=-8.64,
+                                     A_C=1,
+                                     A_vhalf=0.017,
+                                     A_vslope=4.63e-3,
+                                     B_rate=1.341,
+                                     B_B=20.82,
+                                     B_C=1,
+                                     B_vhalf=64.4e-3,
+                                    B_vslope=-2.63e-3)
+
+NaS_snew_params = SSTauQuadraticChannelParams(SS_min = 0,
+                                           SS_vdep = 1,
+                                           SS_vhalf = -0.010,
+                                           SS_vslope = 0.0049,
+                                           taumin = 0.5,
+                                           tauVdep = 8,
+                                           tauVhalf = -0.066,
+                                           tauVslope = -0.016)
+
+NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
 #KDrparam -Kv2
 KDrparam = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='KDr')
@@ -109,17 +167,16 @@ Kv3param = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='Kv3')
 
 #qfactKrp=1
 
-Kv3_X_params = AlphaBetaChannelParams(A_rate = 7e3,
+Kv3_X_params = AlphaBetaChannelParams(A_rate = 4000,
                                       A_B = 0,
                                       A_C = 1,
-                                      A_vhalf = -32e-3,
-                                      A_vslope =-12e-3,
-                                      B_rate = 11e3,
+                                      A_vhalf = -33e-3,
+                                      A_vslope =-15e-3,
+                                      B_rate = 5440,
                                       B_B = 0.0,
                                       B_C = 1,
-                                      B_vhalf = 82e-3,
-                                      B_vslope = 12e-3)
-
+                                      B_vhalf = 78e-3,
+                                      B_vslope = 15e-3)
 
 Kv3_Y_params =  TauInfMinChannelParams(SS_min = 0.6,
                                  SS_vdep = 0.4,
@@ -201,30 +258,30 @@ KCNQ_Y_params = []
 
 HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN1')
 
-HCN1_X_params = AlphaBetaChannelParams(A_rate = 10e3,
+HCN1_X_params = AlphaBetaChannelParams(A_rate = 120,
                                         A_B = 0,
                                         A_C = 1,
-                                        A_vhalf = 140e-3,
-                                        A_vslope = 6e-3,
-                                        B_rate = 18000e3,
+                                        A_vhalf = 0.15,
+                                        A_vslope = 0.01,
+                                        B_rate = 52,
                                         B_B = 0,
                                         B_C = 1,
-                                        B_vhalf = -56.5e-3,
-                                        B_vslope = -7.4e-3)
+                                        B_vhalf = 0.03,
+                                        B_vslope = -0.012)
 HCN1_Y_params=[]
 
 HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN2')
 
-HCN2_X_params = AlphaBetaChannelParams(A_rate = 450,
+HCN2_X_params = AlphaBetaChannelParams(A_rate = 12,
                                         A_B = 0,
                                         A_C = 1,
-                                        A_vhalf = 150e-3,
-                                        A_vslope = 7.8e-3,
-                                        B_rate = 13000e3,
+                                        A_vhalf = 0.135,
+                                        A_vslope = 0.01,
+                                        B_rate = 8,
                                         B_B = 0,
                                         B_C = 1,
-                                        B_vhalf = -58e-3,
-                                        B_vslope = -8e-3)
+                                        B_vhalf = 0.015,
+                                        B_vslope = -0.012)
 HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
@@ -250,63 +307,6 @@ SK_Z_params= ZChannelParams(Kd=0.00035,
                             tau_power=4.3,
                             cahalf=0.002703
                              )
-#persistent Na_channel
-
-NaS_m_params = AlphaBetaChannelParams(A_rate=7600e3,
-                                     A_B=0,
-                                     A_C=1,
-                                     A_vhalf=-55.4e-3,
-                                     A_vslope=-13.6e-3,
-                                    B_rate=7000e3,
-                                     B_B=0.0,
-                                     B_C=1,
-                                     B_vhalf=135e-3,
-                                     B_vslope=13.5e-3)
-
-NaS_mnew_params = AlphaBetaChannelParams(A_rate=250e3,
-                                     A_B=0,
-                                     A_C=1,
-                                     A_vhalf=-55.4e-3,
-                                     A_vslope=-27e-3,
-                                     B_rate=250e3,
-                                     B_B=0.0,
-                                     B_C=1,
-                                     B_vhalf=135e-3,
-                                     B_vslope=26.2e-3)
-
-NaS_h_params = AlphaBetaChannelParams(A_rate=32,
-                                     A_B=0,
-                                     A_C=1,
-                                     A_vhalf=58e-3,
-                                     A_vslope=4.5e-3,
-                                     B_rate=30,
-                                     B_B=0.0,
-                                     B_C=1,
-                                    B_vhalf=57e-3,
-                                     B_vslope=-4e-3)
-
-NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
-                                     A_B=-8.64,
-                                     A_C=1,
-                                     A_vhalf=0.017,
-                                     A_vslope=4.63e-3,
-                                     B_rate=1.341,
-                                     B_B=20.82,
-                                     B_C=1,
-                                     B_vhalf=64.4e-3,
-                                    B_vslope=-2.63e-3)
-
-NaS_snew_params = SSTauQuadraticChannelParams(SS_min = 0,
-                                           SS_vdep = 1,
-                                           SS_vhalf = -0.010,
-                                           SS_vslope = 0.0049,
-                                           taumin = 0.5,
-                                           tauVdep = 8,
-                                           tauVhalf = -0.066,
-                                           tauVslope = -0.016)
-
-NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
-
 #BK channel
 BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 
@@ -322,9 +322,9 @@ Channels = NamedDict(
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
     KCNQ =  TypicalOneD(KCNQparam,KCNQ_X_params, []),
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_params),
+    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_s_params),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
-    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_s_params),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
 # have to add NaP and calcium channels
