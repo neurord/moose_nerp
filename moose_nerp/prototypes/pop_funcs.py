@@ -58,7 +58,7 @@ def create_population(container, netparams, name_soma):
                 comp.x=i*xloc
                 comp.y=j*yloc
                 comp.z=k*zloc
-                log.debug("x,y,z={},{},{} {} {}", comp.x, comp.y, comp.z, new_neuron.path)
+                log.debug("x,y,z={},{},{} {}", comp.x, comp.y, comp.z, new_neuron.path)
                 locationlist.append([new_neuron.name,comp.x,comp.y,comp.z])
                 #spike generator - can this be done to the neuron prototype?
                 spikegen = moose.SpikeGen(comp.path + '/spikegen')
