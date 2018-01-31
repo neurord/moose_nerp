@@ -42,7 +42,6 @@ log = logutil.Logger()
 #overrides:
 gp.synYN = True
 gp.plasYN = False
-gp_net.single=False
 
 ##create neuron prototypes with synapses and calcium
 neur_syn,neuron = cell_proto.neuronclasses(gp)
@@ -60,10 +59,10 @@ pg=inject_func.setupinj(gp, param_sim.injection_delay,param_sim.injection_width,
 moose.showmsg(pg)
 ##############--------------output elements
 if gp_net.single:
-    tables.graphtables(gp, all_neur_types,
-                       param_sim.plot_current,
-                       param_sim.plot_current_message,
-                       [])
+    vmtab, catab, plastab, currtab = tables.graphtables(gp, all_neur_types,
+                                                        param_sim.plot_current,
+                                                        param_sim.plot_current_message,
+                                                        [])
     if gp.synYN:
         #overwrite plastab above, since it is empty
         syntab, plastab=tables.syn_plastabs(connections,plas)
@@ -92,7 +91,7 @@ def run_simulation(injection_current, simtime):
 traces, names = [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
-    if gp_net.single:
+    if gp_net.single and len(vmtab):
         for neurnum,neurtype in enumerate(gp.neurontypes()):
             traces.append(vmtab[neurnum][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
