@@ -69,10 +69,11 @@ def writeOutput(model, outfilename,spiketab,vmtab,network_pop):
         print(outspiketab.keys())
         for tabnum,neurname in enumerate(network_pop['pop'][neurtype]):
             neurnum=int(neurname.split('_')[-1])
-            log.info('{} is type {} num={} paths: {.path} {.path}',
-                     neurname, neurtype, neurnum,spiketab[typenum][tabnum], vmtab[typenum][tabnum])
+            log.info('{} is type {} num={} paths: {.path}',
+                     neurname, neurtype, neurnum,spiketab[typenum][tabnum])
             tmpspiketab[neurname.split('_')[-1]]=spiketab[typenum][tabnum].vector
-            tmpVmtab[neurname.split('_')[-1]]=vmtab[typenum][tabnum].vector
+            if len(vmtab):
+                tmpVmtab[neurname.split('_')[-1]]=vmtab[typenum][tabnum].vector
         outspiketab[neurtype]=tmpspiketab
         outVmtab[neurtype]=tmpVmtab
     np.savez(outfilename,spk=outspiketab,vm=outVmtab)
