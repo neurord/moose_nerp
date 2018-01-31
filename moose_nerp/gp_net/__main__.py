@@ -32,7 +32,7 @@ from moose_nerp.prototypes import (cell_proto,
 from moose_nerp import (gp,gp_net)
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+option_parser = standard_options.standard_options(default_injection_current=[50e-12])#, 100e-12]
 param_sim = option_parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -103,7 +103,7 @@ for inj in param_sim.injection_current:
     else: 
         if gp_net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
-            net_output.writeOutput(gp, gp_net.outfile+str(inj),spiketab,vmtab,population)
+        net_output.writeOutput(gp, gp_net.outfile+str(inj),spiketab,vmtab,population)
 
 if gp_net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
