@@ -32,7 +32,7 @@ from moose_nerp.prototypes import (cell_proto,
 from moose_nerp import (d1d2,str_net)
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[50e-12, 100e-12])
+option_parser = standard_options.standard_options(default_injection_current=[100e-12])
 param_sim = option_parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +42,6 @@ log = logutil.Logger()
 #overrides:
 d1d2.synYN = True
 d1d2.plasYN = False
-str_net.single=False
 
 ##create neuron prototypes with synapses and calcium
 MSNsyn,neuron = cell_proto.neuronclasses(d1d2)
@@ -63,10 +62,10 @@ pg=inject_func.setupinj(d1d2, param_sim.injection_delay,param_sim.injection_widt
 moose.showmsg(pg)
 ##############--------------output elements
 if str_net.single:
-    tables.graphtables(d1d2, all_neur_types,
-                       param_sim.plot_current,
-                       param_sim.plot_current_message,
-                       [])
+    vmtab, catab, plastab, currtab =tables.graphtables(d1d2, all_neur_types,
+                                                       param_sim.plot_current,
+                                                       param_sim.plot_current_message,
+                                                       [])
     if d1d2.synYN:
         #overwrite plastab above, since it is empty
         syntab, plastab=tables.syn_plastabs(connections,plas)
@@ -106,7 +105,7 @@ for inj in param_sim.injection_current:
     else: 
         if str_net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
-            net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
+        net_output.writeOutput(d1d2, str_net.outfile+str(inj),spiketab,vmtab,population)
 
 if str_net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)

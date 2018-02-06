@@ -44,11 +44,13 @@ connect=NamedList('connect','synapse pre post space_const=None probability=None'
 ext_connect=NamedList('ext_connect','synapse pre post postsyn_fraction')
 # add post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
+#list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
 tt_Ctx_SPN = TableSet('CtxSPN', 'Ctx_4x4',syn_per_tt=2)
 tt_Thal_SPN = TableSet('ThalSPN', 'Thal_4x4',syn_per_tt=2)
 
 MSNconnSpaceConst=125e-6
 FSIconnSpaceConst=200e-6
+#connectins between network neurons (intrinsic connections)
 D1pre_D1post=connect(synapse='gaba', pre='D1', post='D1', space_const=MSNconnSpaceConst)
 D1pre_D2post=connect(synapse='gaba', pre='D1', post='D2', space_const=MSNconnSpaceConst)
 D2pre_D1post=connect(synapse='gaba', pre='D2', post='D1', space_const=MSNconnSpaceConst)
@@ -56,6 +58,7 @@ D2pre_D2post=connect(synapse='gaba', pre='D2', post='D2', space_const=MSNconnSpa
 FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst)
 FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst)
 FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIconnSpaceConst)
+#time table input (extrinsic connections)
 ctx_D1post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D1', postsyn_fraction=0.5)
 thal_D1post=ext_connect(synapse='ampa',pre=tt_Thal_SPN,post='D1', postsyn_fraction=0.5)
 ctx_D2post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D2', postsyn_fraction=0.5)
