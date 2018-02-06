@@ -22,6 +22,7 @@ def create_network(model, param_net,neur_protos={}):
     #
     if param_net.single:
         network_pop={'pop':{},'location':{}}
+        #network is equal to the list of neuron prototypes:
         for ntype in neur_protos.keys():
             network_pop['pop'][ntype]=list([neur_protos[ntype].path])
         #subset of check_param_net

@@ -21,7 +21,7 @@ class TableSet(object):
         spike_file = np.load(self.filename+'.npz', encoding='latin1')
         spike_times = spike_file['spikeTime']
         self.numtt = len(spike_times)
-        print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: {} ', self.numtt)
+        print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: ', self.numtt)
         self.stimtab=[]
         for ii,stimtimes in enumerate(spike_times):
             self.stimtab.append([moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)),self.syn_per_tt])

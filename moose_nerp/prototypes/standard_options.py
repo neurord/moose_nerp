@@ -40,7 +40,7 @@ def standard_options(parser=None,
 
     if parser is None:
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
+    #simulation parameters
     parser.add_argument('--simtime', '-t', type=float,
                         help='Simulation time',
                         default=default_simulation_time)
@@ -56,14 +56,16 @@ def standard_options(parser=None,
     parser.add_argument('--save', nargs='?', metavar='FILE',
                         help='Write voltage and calcium (if enabled) to (HDF5) file. use single character for auto naming',
                         const='d1d2.h5')
-
+    
+    #arguments/parameters to control what model details to include
     parser.add_argument('--calcium', type=parse_boolean, nargs='?',
                         help='Implement Ca dynamics',
                         const=True, default=None)
     parser.add_argument('--spines', type=parse_boolean, nargs='?',
                         help='Implement spines',
                         const=True, default=None)
-
+    
+    #arguments / parameters to control stimulation during simulation
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
                         metavar='CURRENT',
                         help='One or range of currents (either start:stop or start:stop:increment)',
@@ -85,6 +87,7 @@ def standard_options(parser=None,
                         help='compartment for synapses',
                         default=default_stim_loc)
 
+    #arguments that control what to plot
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',
                         const=True, default=default_plot_vm)
