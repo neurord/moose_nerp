@@ -35,4 +35,6 @@ def Logger(name=None):
             name = mod.__name__
         else:
             name = '__main__'
+    FORMAT = '%(process)d - %(filename)s - %(lineno)d - %(funcName)s - %(levelname)s - %(message)s' #SRIRAM 02152018
+    logging.basicConfig(format=FORMAT)
     return StyleAdapter(logging.getLogger(name))
