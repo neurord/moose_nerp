@@ -21,22 +21,21 @@ def plot_gate_params(chan,plotpow, VMIN=-0.1, VMAX=0.05, CAMIN=0, CAMAX=1):
             ma = gate.tableA
             mb = gate.tableB
             varray = np.linspace(gate.min, gate.max, len(ma))
-            axes[0].plot(varray, 1e3 / mb, label='mtau ' + chan.name)
-            if plotpow:
-                label = '(minf)**{}'.format(chan.Xpower)
-                inf = (ma / mb) ** chan.Xpower
-            else:
-                label = 'minf'
-                inf = ma / mb
+            axes[0].plot(varray, 1e3 / mb, label='Xtau ' + chan.name)
+            labelpow = '(Xinf)**{}'.format(chan.Xpower)
+            infpow = (ma / mb) ** chan.Xpower
+            label = 'Xinf'
+            inf = ma / mb
             axes[1].plot(varray, inf, label=label)
+            axes[1].plot(varray, infpow, label=labelpow)
             axes[1].axis([gate.min, gate.max, 0, 1])
         if chan.Ypower > 0:
             gate=moose.element(chan.path + '/gateY')
             ha = gate.tableA
             hb = gate.tableB
             varray = np.linspace(gate.min, gate.max, len(ha))
-            axes[0].plot(varray, 1e3 / hb, label='htau ' + chan.name)
-            axes[1].plot(varray, ha / hb, label='hinf ' + chan.name)
+            axes[0].plot(varray, 1e3 / hb, label='Ytau ' + chan.name)
+            axes[1].plot(varray, ha / hb, label='Yinf ' + chan.name)
             axes[1].axis([gate.min, gate.max, 0, 1])
         #
         if chan.Zpower!=0:
