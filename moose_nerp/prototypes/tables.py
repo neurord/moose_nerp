@@ -166,8 +166,8 @@ def spinetabs(model,neuron,comps='all'):
                 compname = spine.parent.name
                 sp_num=spine.name.split(NAME_HEAD)[0]
                 spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
-                log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
-                moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
+                print('spinetabs: ', spinenum,spine.path, spvmtab[typenum][-1].path)
+                moose.connect(spvmtab[typenum][-1], 'requestOut', spine, 'getVm')
                 if model.calYN:
                     for child in spine.children:
                         if child.className == "CaConc" or  child.className == "ZombieCaConc" :
@@ -178,6 +178,5 @@ def spinetabs(model,neuron,comps='all'):
                             spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
                             spcal = moose.element(spine.path+'/'+child.name)
                             moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
-
 
     return spcatab,spvmtab
