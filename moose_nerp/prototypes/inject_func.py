@@ -161,9 +161,9 @@ def HookUpDend(model,dendrite,container):
 
     #for dend in model.Stimulation.StimParams.which_dendrites:                                                            
     my_spines = list(set(moose.element(dendrite).neighbors['handleAxial']).intersection(set(moose.element(dendrite).children)))
-    spine_no = len(my_spines)
-
-    if not spine_no:
+    num_spines = len(my_spines)
+    
+    if not num_spines:
         return
 
     synapses = {}
@@ -178,7 +178,7 @@ def HookUpDend(model,dendrite,container):
                 if moose_child.className == 'SynChan' or moose_child.className == 'NMDAChan':
                     synapses[spine_no].append(moose_child)
 
-    time_tables = MakeTimeTables(model.Stimulation,spine_no)
+    time_tables = MakeTimeTables(model.Stimulation,num_spines)
     stimtab = {}
 
     stim_synapses = {}

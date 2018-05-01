@@ -166,7 +166,7 @@ def spinetabs(model,neuron,comps='all'):
                 compname = spine.parent.name
                 sp_num=spine.name.split(NAME_HEAD)[0]
                 spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
-                print('spinetabs: ', spinenum,spine.path, spvmtab[typenum][-1].path)
+                log.debug('{} {} {}',spinenum, spine.path, spvmtab[typenum][-1].path)
                 moose.connect(spvmtab[typenum][-1], 'requestOut', spine, 'getVm')
                 if model.calYN:
                     for child in spine.children:
