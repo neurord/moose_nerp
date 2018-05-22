@@ -10,10 +10,14 @@ from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, Pum
 #PumpDensity or PumpVmax to change those parameters
 #parameters in tree_shape, etc to change size of subcompartments
 
-#definitions
-CAPOOL = -1 #single time constant of decay
+#definitions, 1. shellMode
+#CAPOOL implements caconc object with single time constant of Ca decay
+#   thickness is outershell_thickness, and BuferCapacityDensity is used
+CAPOOL = -1 
 #difshell types
+#SHELL subdivides dendrite in cylinderical sheels, with diffusion between outer/submembrane shell and central core
 SHELL = 0
+#SLAB subdivides spines (or dendrite) into slices, with diffusion in the axial dimension
 SLAB = 1
 CUSTOM = 3
 
@@ -24,20 +28,21 @@ everything = (0.,1.)
 spines = (0.,1.,'sp')
 heads = (0.,1.,'head')
 necks = (0.,1.,'neck')
+
 #difshell increase mode
+#  allows submembrane shells or slaps to be smaller than deeper shells/slabs
 GEOMETRIC = 1
 LINEAR = 0
 
+#SPECIFY TYPE OF CALCIUM DYNAMICS HERE
+CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
 
 ############################################
 #intrinsic calcium params
-#diffusion constant from Allbritton et al.1992.  Tau is used only if using single time constant of decay instead of pumps and buffers
+#diffusion constant from Allbritton et al.1992.
+#    Tau is used only if using single time constant of decay instead of pumps and buffers
 CaBasal = 50e-6
 CalciumParams = CellCalcium(CaName='Shell',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
-
-#shellMode: CaPool = -1, Shell = 0, SLICE/SLAB = 1, userdef = 3. If shellMode=-1 caconc thickness is outershell_thickness, and BuferCapacityDensity is used
-#increase_mode linear = 0, geometric = 1
-
 
 #################################
 #kinetic parameters of various calcium Buffers / indicators
@@ -97,12 +102,6 @@ BufferDensity = {everything:BufferTotals[which_dye]}
 PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxSpine}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:20.,dend:20.}
-
-#Ca dynamics specification
-#CAPOOL implements single time constant of Ca decay, 
-#SHELL subdivides dendrite in cylinderical sheels, with diffusion between outer/submembrane shell and central core
-#SLAB subdivides spines (or dendrite) into slices, with diffusion in the axial dimension
-CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 
 #Specificy the size of the smaller calcium compartments
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
