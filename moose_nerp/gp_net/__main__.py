@@ -42,6 +42,13 @@ log = logutil.Logger()
 #overrides:
 gp.synYN = True
 gp.plasYN = False
+###alcohol injection--> Bk channel constant multiplier
+alcohol = 1
+for neurtype in gp.param_cond.Condset:
+        for key in gp.param_cond.Condset[neurtype]['BKCa']:
+		gp.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*gp.param_cond.Condset[neurtype]['BKCa'][key]
+if alcohol > 1:
+        gp.net.outfile = 'alcohol'+str(alcohol)
 
 ##create neuron prototypes with synapses and calcium
 neur_syn,neuron = cell_proto.neuronclasses(gp)
@@ -103,7 +110,7 @@ for inj in param_sim.injection_current:
         if gp_net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         net_output.writeOutput(gp, gp_net.outfile+str(inj),spiketab,vmtab,population)
-
+       
 if gp_net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
