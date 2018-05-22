@@ -39,6 +39,8 @@ prox = (0,1e-6)
 #med =  (0,50e-6)
 dist = (1e-6, 1000e-6)
 axon = (0.,1., 'axon')
+#If using swc files for morphology, specify structure using: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
+
 # check Gbar vlues for NaS,Hva,SK and Ca
 # _proto for prototypical GP neuron
 _proto = _util.NamedDict(

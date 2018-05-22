@@ -28,47 +28,33 @@ def neurontypes(override=None):
             raise ValueError('unknown neuron types requested')
         _neurontypes = override
 
-morph_file = {'D1':'MScell-Entire.p', 'D2': 'MScell-Entire.p'}
 NAME_SOMA='soma'
-#CONDUCTANCES
-#RE has lower soma (50000) and higher prox (6000) and dist (2000) GNa
-# GnaCondD1=[60.5e3, 1894, 927]
-# GnaCondD2=[69.0e3, 2503, 1073]
-# GnaCondset={'D1':GnaCondD1,'D2':GnaCondD2}
-# GbkCondD1=[10, 10, 10]
-# GbkCondD2=[10, 10, 10]
-# GbkCondset={'D1':GbkCondD1,'D2':GbkCondD2}
-#CaL values are taken from GHK model, with arbitrary 1e-6 incr conduct
-#
-#RE has much lower KaF prox: 300; sl lower KaS prox: 200
-#RE has Kir=11, Krp=14 (double), gSK=1.0
-#RE uses dist dep Ca currents, esp CaT=0 in soma
-#CaL13=0.3e-6 soma,0.005e-6 dend
-#CaL12=0.6e-6 soma, 0.1e-6 dend
-#CaR=0.8e-6 soma, 1.0e-6 dend; CaN=1.2e-6 soma only
 
 # helper variables to index the Conductance and synapses with distance
 prox = (0, 26.1e-6)
 med =  (26.1e-6, 50e-6)
 dist = (50e-6, 1000e-6)
+#If using swc files for morphology, can add with morphology specific helper variables
+#e.g. med=(26.1e-6, 50e-6,'_2')
+#_1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
+#Parameters used by optimization from here down
+morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'}
 
+#CONDUCTANCES
 _D1 = _util.NamedDict(
     'D1',
-    #Krp = {prox:77.963, med:77.25, dist:7.25},
-    Krp = {prox:150.963, med:70.25, dist:77.25},
-    #KaF = {prox:3214, med: 571, dist: 314},
-    #KaF = {prox:1157, med:500, dist:200},
-    KaF = {prox:600, med:500, dist:100},
-    KaS = {prox:404.7, med: 35.2, dist: 0},
-    Kir = {prox:9.4644, med: 9.4644, dist: 9.4644},
-    CaL13 = {prox:12*ghKluge, med: 5.6*ghKluge, dist: 5.6*ghKluge},
-    CaL12 = {prox:8*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
-    CaR = {prox:20*ghKluge, med: 45*ghKluge, dist: 44*ghKluge},
-    CaN = {prox:4.0*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
-    NaF = {prox:130e3, med: 1894, dist: 927},
-    SKCa = {prox:0.5, med: 0.5, dist: 0.5},
-    BKCa = {prox:10.32, med: 10, dist: 10},
+    Krp = {prox:0.0266, med:0.0740, dist:0.02746},
+    KaF = {prox:1430.85, med:406.796, dist:91.140},
+    KaS = {prox:13.95, med: 1419.54, dist: 62.524},
+    Kir = {prox:12.7875, med: 12.7875, dist: 12.7875},
+    CaL13 = {prox:16.8551*ghKluge, med: 4.01164*ghKluge, dist: 2.0984*ghKluge},
+    CaL12 = {prox:99.868*ghKluge, med: 7.40227*ghKluge, dist: 5.9285*ghKluge},
+    CaR = {prox:10.63412*ghKluge, med: 5.010147*ghKluge, dist: 46.54782*ghKluge},
+    CaN = {prox:7.2082*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
+    CaT = {prox:0.0*ghKluge, med: 8.1514*ghKluge, dist: 4.09788*ghKluge},
+    NaF = {prox:229400, med:4080.6 , dist: 705.49},
+    SKCa = {prox:1.4664, med: 1.4664, dist:1.4664 },
+    BKCa = {prox:12.96, med: 12.96, dist:12.96},
 )
 _D2 = _util.NamedDict(
     'D2',

@@ -41,6 +41,7 @@ def distance_mapping(mapping, where):
         dist,name = get_dist_name(where)
         
     elif isinstance(where,moose.vec):
+        #Needs to be tested.  May need to loop over comps in moose.vec
         comp = moose.element(where)
         if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
             dist,name = get_dist_name(comp)
@@ -78,6 +79,7 @@ def distance_mapping(mapping, where):
             continue
         if left <= dist < right:
             if description:
+                #name.endswith allows using swc files with _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
                 if name.startswith(description) or name.endswith(description):
                     res['description'] = v
             else:
@@ -92,6 +94,7 @@ def distance_mapping(mapping, where):
         v = res['no_description']
     if isinstance(v, _numbers.Number):
         return v
+    #These next two are likely not used yet.  May be place holder for adding distance dependent conductance
     elif isinstance(v, list):
         return v
     elif isinstance(v, dict):
