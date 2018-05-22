@@ -30,12 +30,6 @@ def create_neuron(model, ntype, ghkYN):
     #######channels
     Cond = model.Condset[ntype]
     for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
-        xloc=moose.Compartment(comp).x
-        yloc=moose.Compartment(comp).y
-        #Possibly this should be replaced by pathlength
-        dist=np.sqrt(xloc*xloc+yloc*yloc)
-        log.debug('comp {.path} dist {}', comp, dist)
-        #
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function
         if ghkYN:
