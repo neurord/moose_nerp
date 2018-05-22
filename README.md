@@ -39,14 +39,17 @@ to evaluate variables created in __main__ after the import, use the following sy
       - tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
     + TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
       - tau(v) or inf(v) = min + max / (1 + exp((v - vhalf) / vslope))
-    + SSTauQuadratichannelParams (specify steady state and inverted U shaped time constant):
-      - tau(v) = tau_min + tau_vdep / (1 + exp((v - tau_vhalf) / vslope))* 1/ (1 + exp((v - vhalf) / -vslope))
-      - ss(v) = A/(C+ exp((v - vhalf) / vslope))
+      if T_power==2, implements quadratic tau:
+      - tau(v) = T_min + T_vdep / (1 + exp((v - T_vhalf) / T_vslope))* 1/ (1 + exp((v - T_vhalf) / -T_vslope))
    - To specify calcium dependent potassium channels (SK) or calcium dependent inactivaion, use ZChannelParams for gating variables (and  TypicalOneD in the Channel dictionary):
       - inf(Ca) = (Ca/Kd)^power/(1+(Ca/Kd)^power
       - tau(Ca) = tau+ (taumax-tau)/(1+ (Ca/Cahalf)^tau_power)
    - To specify the voltage and calcium dependent potassium channel (BK), use BKChannelParams for gating variables and TwoD in the Channel dictionary
 3. edit param_cond to list morphology file and conductance of channels.  Note that you need only specify a subset of channels listed in param_chan.
+   -Distance dependent and structure specific conductances can be specified.
+   + helper variables to specify distance, e.g. prox=(0,50e06), then conductance specified as: krp={prox:5}
+   +can add structure type to helper variable, e.g. axon=(0,1000e-6,'axon')
+   +If using swc files, use these structure names: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon, e.g. axon=(0,100e-6,'_4')
 4. edit param_spine for your neuron type.  Note that if you don't want spines, no need to edit this, just make spineYN=0 in `__init__.py`.  If you do have spines, make sure that spineParent is a compartment name from your pfile.
 5. edit param_ca_plas for your neuron type.  Note that if you don't want calcium, no need to edit this, just make calYN=0 in `__init__.py`.  If you want calcium but not plasticity, make calYN=1 and plasYN=0
 6. edit param_syn for your neuron type.  Note that if you don't want synapses, no need to edit this, just make synYN=0 in `__init__.py`
