@@ -43,12 +43,12 @@ log = logutil.Logger()
 gp.synYN = True
 gp.plasYN = False
 ###alcohol injection--> Bk channel constant multiplier
-alcohol = 1
+alcohol = 2
 for neurtype in gp.param_cond.Condset:
         for key in gp.param_cond.Condset[neurtype]['BKCa']:
 		gp.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*gp.param_cond.Condset[neurtype]['BKCa'][key]
 if alcohol > 1:
-        gp.net.outfile = 'alcohol'+str(alcohol)
+        gp_net.outfile = 'alcohol'+str(alcohol)
 
 ##create neuron prototypes with synapses and calcium
 neur_syn,neuron = cell_proto.neuronclasses(gp)
