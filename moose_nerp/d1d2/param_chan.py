@@ -2,7 +2,6 @@
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
-    SSTauQuadraticChannelParams,
     AlphaBetaChannelParams,
     StandardMooseTauInfChannelParams,
     TauInfMinChannelParams,
@@ -22,11 +21,10 @@ from moose_nerp.prototypes.chan_proto import (
 # tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
 # TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
-# tau(v) or inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
-# OR
-# SSTauQuadraticChannelParams (specify steady state and inverted U shaped time constant):
-# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
-# ss(v) = SS_min+SS_vdep/(1+ exp((v + SS_vhalf) / SS_vslope))
+# inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))
+# or if tau_power=2: tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
+
 #
 # where v is membrane voltage 
 #
@@ -51,14 +49,15 @@ CADIVS = 4001 #10 nM steps
 
 qfactNaF = 2.5
 
-Na_m_params = SSTauQuadraticChannelParams(SS_min = 0.0,
-                                 SS_vdep = 1.0,
-                                 SS_vhalf = -25e-3,
-                                 SS_vslope = -10e-3,
-                                 taumin = 0.1e-3/qfactNaF,
-                                 tauVdep = 2.1025e-3/qfactNaF,
-                                 tauVhalf = -62e-3,
-                                 tauVslope = 8e-3)
+Na_m_params = TauInfMinChannelParams(SS_min = 0.0,
+                                     SS_vdep = 1.0,
+                                     SS_vhalf = -25e-3,
+                                     SS_vslope = -10e-3,
+                                     T_min = 0.1e-3/qfactNaF,
+                                     T_vdep = 2.1025e-3/qfactNaF,
+                                     T_vhalf = -62e-3,
+                                     T_vslope = 8e-3,
+                                     T_power=2)
 
 Na_h_params = TauInfMinChannelParams(T_min = 2*0.2754e-3/qfactNaF,
                                      T_vdep = 2*1.2e-3/qfactNaF,

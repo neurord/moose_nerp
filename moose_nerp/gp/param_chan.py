@@ -2,7 +2,6 @@
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
-    SSTauQuadraticChannelParams,
     AlphaBetaChannelParams,
     StandardMooseTauInfChannelParams,
     TauInfMinChannelParams,
@@ -68,14 +67,15 @@ Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
 
-Na_s_params= SSTauQuadraticChannelParams(SS_min=0.15,
-                                         SS_vdep=0.85,
-                                         SS_vhalf=-0.045,
-                                         SS_vslope=0.0054,
-                                         taumin = 0.01,
-                                         tauVdep = 2.2,
-                                         tauVhalf = -0.032,
-                                         tauVslope = 0.012)
+Na_s_params= TauInfMinChannelParams(SS_min=0.15,
+                                    SS_vdep=0.85,
+                                    SS_vhalf=-0.045,
+                                    SS_vslope=0.0054,
+                                    T_min = 0.01,
+                                    T_vdep = 2.2,
+                                    T_vhalf = -0.032,
+                                    T_vslope = 0.012,
+                                    T_power=2)
                                         
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
@@ -126,14 +126,15 @@ NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
                                      B_vhalf=64.4e-3,
                                     B_vslope=-2.63e-3)
 
-NaS_snew_params = SSTauQuadraticChannelParams(SS_min = 0,
-                                           SS_vdep = 1,
-                                           SS_vhalf = -0.010,
-                                           SS_vslope = 0.0049,
-                                           taumin = 0.5,
-                                           tauVdep = 8,
-                                           tauVhalf = -0.066,
-                                           tauVslope = -0.016)
+NaS_snew_params = TauInfMinChannelParams(SS_min = 0,
+                                         SS_vdep = 1,
+                                         SS_vhalf = -0.010,
+                                         SS_vslope = 0.0049,
+                                         T_min = 0.5,
+                                         T_vdep = 8,
+                                         T_vhalf = -0.066,
+                                         T_vslope = -0.016,
+                                         T_power=2)
 
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 

@@ -18,16 +18,6 @@ from moose_nerp.prototypes import constants, logutil
 from moose_nerp.prototypes.util import NamedList
 log = logutil.Logger()
 
-SSTauQuadraticChannelParams = NamedList('SSTauQuadraticChannelParams', '''
-                                SS_min
-                                SS_vdep
-                                SS_vhalf
-                                SS_vslope
-                                taumin
-                                tauVdep
-                                tauVhalf
-                                tauVslope''')
-
 StandardMooseTauInfChannelParams = NamedList('StandardMooseTauInfChannelParams', '''
                                 T_rate
                                 T_B
@@ -48,7 +38,8 @@ TauInfMinChannelParams = NamedList('TauInfMinChannelParams', '''
                                 SS_min
                                 SS_vdep
                                 SS_vhalf
-                                SS_vslope''')
+                                SS_vslope
+                                T_power=1''')
 
 
 AlphaBetaChannelParams = NamedList('AlphaBetaChannelParams', '''
@@ -80,19 +71,12 @@ def quadratic(x,xmin,xmax,xvhalf,xslope):
 
 def make_sigmoid_gate(model,params,Gate):
     v = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
-    tau = sigmoid(v,params.T_min,params.T_vdep,params.T_vhalf,params.T_vslope)
+    if params.T_power==2:
+        print('making quadratic gate', Gate.path)
+        tau = quadratic(v,params.T_min,params.T_vdep,params.T_vhalf,params.T_vslope)
+    else:
+        tau = sigmoid(v,params.T_min,params.T_vdep,params.T_vhalf,params.T_vslope)
     minf = sigmoid(v,params.SS_min,params.SS_vdep,params.SS_vhalf,params.SS_vslope)
-    Gate.min = model.VMIN
-    Gate.max = model.VMAX
-    Gate.divs = model.VDIVS
-    Gate.tableA = minf/tau
-    Gate.tableB = 1/tau
-    
-def make_quadratic_gate(model,params,Gate):
-    print('making quadratic gate', Gate.path)
-    v = np.linspace(model.VMIN, model.VMAX, model.VDIVS)
-    minf = sigmoid(v,params.SS_min,params.SS_vdep,params.SS_vhalf,params.SS_vslope)
-    tau = quadratic(v,params.taumin,params.tauVdep,params.tauVhalf,params.tauVslope)
     Gate.min = model.VMIN
     Gate.max = model.VMAX
     Gate.divs = model.VDIVS
@@ -129,44 +113,34 @@ def fix_singularities(model, Params, Gate):
             #change values in tableB
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)
 
+def make_gate(params,model,gate):
+    if isinstance(params,AlphaBetaChannelParams):
+        gate.setupAlpha(params + [model.VDIVS, model.VMIN, model.VMAX])
+        fix_singularities(model, params, gate)
+    elif isinstance(params,StandardMooseTauInfChannelParams):
+        gate.setupTau(params + [model.VDIVS, model.VMIN, model.VMAX])
+        fix_singularities(model, params, gate)
+    elif isinstance(params,TauInfMinChannelParams):
+        make_sigmoid_gate(model,params,gate)
+
 #may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
 #Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(model, chanpath, params):
     log.info("{}: {}", chanpath, params)
     chan = moose.HHChannel(chanpath)
+
     chan.Xpower = params.channel.Xpow
     if params.channel.Xpow > 0:
-        
         xGate = moose.HHGate(chan.path + '/gateX')     
-
-        if isinstance(params.X,AlphaBetaChannelParams):
-            xGate.setupAlpha(params.X + [model.VDIVS, model.VMIN, model.VMAX])
-            fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,StandardMooseTauInfChannelParams):
-            xGate.setupTau(params.X + [model.VDIVS, model.VMIN, model.VMAX])
-            fix_singularities(model, params.X, xGate)
-        elif isinstance(params.X,TauInfMinChannelParams):
-            make_sigmoid_gate(model,params.X,xGate)
-        elif isinstance(params.X,SSTauQuadraticChannelParams):
-            make_quadratic_gate(model,params.X,xGate)
+        make_gate(params.X,model,xGate)
         
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
-        if isinstance(params.Y,AlphaBetaChannelParams):
-            yGate.setupAlpha(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
-            fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,StandardMooseTauInfChannelParams):
-            yGate.setupTau(params.Y + [model.VDIVS, model.VMIN, model.VMAX])
-            fix_singularities(model, params.Y, yGate)
-        elif isinstance(params.Y,TauInfMinChannelParams):
-            make_sigmoid_gate(model,params.Y,yGate)
-        elif isinstance(params.Y,SSTauQuadraticChannelParams):
-            make_quadratic_gate(model,params.Y,yGate)
+        make_gate(params.Y,model,yGate)
 
     if params.channel.Zpow > 0:
         chan.Zpower = params.channel.Zpow
-
         zGate = moose.HHGate(chan.path + '/gateZ')
         if params.Z.__class__==ZChannelParams:
             #
@@ -188,16 +162,7 @@ def chan_proto(model, chanpath, params):
             chan.useConcentration = True
         else:
             chan.useConcentration = False
-            if isinstance(params.Z,AlphaBetaChannelParams):
-                zGate.setupAlpha(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
-                fix_singularities(model, params.Z, zGate)
-            elif isinstance(params.Z,StandardMooseTauInfChannelParams):
-                zGate.setupTau(params.Z + [model.VDIVS, model.VMIN, model.VMAX])
-                fix_singularities(model, params.Z, zGate)
-            elif isinstance(params.Z,TauInfMinChannelParams):
-                make_sigmoid_gate(model,params.Z,zGate)
-            elif isinstance(params.Z,SSTauQuadraticChannelParams):
-                make_quadratic_gate(model,params.Z,zGate)
+            make_gate(params.Z,model,zGate)
 
     chan.Ek = params.channel.Erev
     return chan
