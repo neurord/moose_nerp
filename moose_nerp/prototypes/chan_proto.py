@@ -2,11 +2,8 @@
 Create general Channel Proto, pass in name, x and y power, and params
 
 Also, create the library of channels
-Might need a few other chan_proto types, such as
-     inf-tau channels
-     Ca dep channels
-chan_proto quires alpha and beta params for both activation and inactivation
-If no inactivation, just send in empty Yparam array.
+chan_proto requires alpha and beta params for both activation and inactivation
+If channel does not have inactivation, just send in empty Yparam array.
 """
 
 from __future__ import print_function, division
@@ -123,8 +120,6 @@ def make_gate(params,model,gate):
     elif isinstance(params,TauInfMinChannelParams):
         make_sigmoid_gate(model,params,gate)
 
-#may need a CaV channel if X gate uses alpha,beta and Ygate uses inf tau
-#Or, have Y form an option - if in tau, do something like NaF
 def chan_proto(model, chanpath, params):
     log.info("{}: {}", chanpath, params)
     chan = moose.HHChannel(chanpath)
