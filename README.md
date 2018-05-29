@@ -20,7 +20,7 @@ to evaluate variables created in __main__ after the import, use the following sy
 
 **Files in each package**
 
-Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,z,dia values are microns, RM is ohm-cm2, RA is ohm-cm and CM is Farads/cm2
+Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,z,dia values are microns
 
 1. `param_chan.py`: parameters governing channel gating
 2. `param_cond.py`: channel conductances, which can be distance dependent, morphology file, external Ca concentration and Temperature
