@@ -39,28 +39,7 @@ param_sim.save=0
 plotcomps=[ca1.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-#These assignment statements are required because they are not part of param_sim namespace.
-if param_sim.calcium is not None:
-    ca1.calYN = param_sim.calcium
-if param_sim.spines is not None:
-    ca1.spineYN = param_sim.spines
-if param_sim.stim_paradigm is not None:
-    ca1.param_stim.Stimulation.Paradigm=ca1.param_stim.paradigm_dict[param_sim.stim_paradigm]
-if param_sim.stim_loc is not None:
-    ca1.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
-
-#These assignments make assumptions about which parameters should be changed together   
-if ca1.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
-if ca1.param_stim.Stimulation.Paradigm.name is not 'inject':
-    #override defaults if synaptic stimulation is planned
-    ca1.calYN=1
-    #Perhaps these should be removed
-    ca1.spineYN=1
-    ca1.synYN=1
-#update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
-if ca1.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
-    plotcomps=np.unique(plotcomps+ca1.param_stim.location.stim_dendrites)
+ca1,plotcomps=standard_options.overrides(param_sim,ca1,plotcomps)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -68,7 +47,7 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron = cell_proto.neuronclasses(ca1)
+syn,neuron = cell_proto.neuronclasses(ca1)
 
 plas = {}
 
@@ -98,7 +77,7 @@ else:
 #Need to debug this since eliminated param_sim.stimtimes
 #See what else needs to be changed in plasticity_test. 
 if ca1.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(ca1, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+      plas,stimtab=plasticity_test.plasticity_test(ca1, param_sim.syncomp, syn, param_sim.stimtimes)
 
 ###############--------------output elements
 if param_sim.plot_channels:
@@ -112,8 +91,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(ca1, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    fname=ca1.param_stim.Stimulation.Paradigm.name+'_'+ca1.param_stim.location.stim_dendrites[0]
-#    tables.setup_hdf5_output(ca1, neuron, param_sim.save)
+    fname=ca1.param_stim.Stimulation.Paradigm.name+'_'+ca1.param_stim.location.stim_dendrites[0]+'.npz'
+    tables.setup_hdf5_output(ca1, neuron, filename=fname)
 
 if ca1.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ca1,neuron,plotcomps)
@@ -151,16 +130,7 @@ for inj in param_sim.injection_current:
     #plot spines
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(ca1,spinecatab,spinevmtab, param_sim.simtime)
-    #save output - expand this to optionally save current data
-    if param_sim.save:
-        inj_nA=inj*1e9
-        tables.write_textfile(vmtab,'Vm', fname,inj_nA,param_sim.simtime)
-        if ca1.calYN:
-            tables.write_textfile(catab,'Ca', fname,inj_nA,param_sim.simtime)
-        if ca1.spineYN and len(spinevmtab):
-            tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
-            if ca1.spineYN and len(spinecatab):
-                tables.write_textfile(list(spinecatab.values()),'SpCa', fname,inj_nA,param_sim.simtime)
+
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if ca1.calYN and param_sim.plot_calcium:

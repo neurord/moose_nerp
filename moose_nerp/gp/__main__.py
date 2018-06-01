@@ -32,9 +32,10 @@ from moose_nerp import gp
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[25e-12],#[-100e-12, -50e-12, 25e-12,75e-12],
-    default_simulation_time=0.6,
-    default_injection_width=0.4,
+    default_injection_current=[-100e-12],
+    default_simulation_time=0.1,
+    default_injection_width=1.0,
+    default_injection_delay=0.047,
     default_plotdt=0.0001)
 #,default_stim='PSP_1')
 # Issue with stimulation needs fixing:
@@ -45,28 +46,12 @@ option_parser = standard_options.standard_options(
 #same error with or without spines
 
 param_sim = option_parser.parse_args()
+param_sim.save=1
 
 plotcomps=[gp.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-#These assignment statements are required because they are not part of param_sim namespace.
-if param_sim.calcium is not None:
-    gp.calYN = param_sim.calcium
-if param_sim.spines is not None:
-    gp.spineYN = param_sim.spines
-if param_sim.stim_paradigm is not None:
-    gp.param_stim.Stimulation.Paradigm=gp.param_stim.paradigm_dict[param_sim.stim_paradigm]
-if param_sim.stim_loc is not None:
-    gp.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
-
-#These assignments make assumptions about which parameters should be changed together   
-if gp.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
-if gp.param_stim.Stimulation.Paradigm.name is not 'inject':
-    #override defaults if synaptic stimulation is planned
-    gp.synYN=1
-    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
-    plotcomps=plotcomps+gp.param_stim.location.stim_dendrites
+gp,plotcomps=standard_options.overrides(param_sim,gp,plotcomps)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -74,9 +59,8 @@ log = logutil.Logger()
 #################################-----------create the model
 ##create 2 neuron prototypes, optionally with synapses, calcium, and spines
 
-#gp.neurontypes(['arky'])
-MSNsyn,neuron = cell_proto.neuronclasses(gp)
-print('MSNsyn:', MSNsyn)
+syn,neuron = cell_proto.neuronclasses(gp)
+print('syn:', syn)
 print('neuron:', neuron)
 
 plas = {}
@@ -107,16 +91,15 @@ else:
 #Need to debug this since eliminated param_sim.stimtimes
 #See what else needs to be changed in plasticity_test. 
 if gp.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+      plas,stimtab=plasticity_test.plasticity_test(gp, param_sim.syncomp, syn, param_sim.stimtimes)
     
 ###############--------------output elements
-param_sim.plot_channels=1
+param_sim.plot_channels=0
 if param_sim.plot_channels:
-    for chan in ['NaF', 'NaS']:#gp.Channels.keys():
+    for chan in gp.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       gp.VMIN, gp.VMAX, gp.CAMIN, gp.CAMAX)
-
 
 vmtab, catab, plastab, currtab = tables.graphtables(gp, neuron, 
                               param_sim.plot_current,
@@ -124,7 +107,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(gp, neuron,
                               plas,plotcomps)
 
 if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=gp.param_stim.Stimulation.Paradigm.name+'_'+gp.param_stim.location.stim_dendrites[0]+'.npz'
+    tables.setup_hdf5_output(gp, neuron, filename=fname)
 
 if gp.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(gp,neuron,plotcomps)
@@ -137,24 +121,12 @@ clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsol
 if param_sim.hsolve and gp.calYN:
     calcium.fix_calcium(gp.neurontypes(), gp)
 
-##print soma conductances
-moose.reinit()
-if param_sim.hsolve:
-    chantype='ZombieHHChannel'
-else:
-    chantype='HHChannel'
-for neur in gp.neurontypes():
-  for chan in moose.wildcardFind('{}/soma/#[TYPE={}]'.format(neur, chantype)):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-  for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel2D]'):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-
+#### create spikegen to count spikes
 spikegen=moose.SpikeGen('/data/spikegen')
 spikegen.threshold=0.0
 spikegen.refractT=1.0e-3
 msg=moose.connect(moose.element(neur+'/'+gp.param_cond.NAME_SOMA),'VmOut',spikegen,'Vm')
 
-####
 spiketab=moose.Table('/data/spike')
 moose.connect(spikegen,'spikeOut',spiketab,'spike')
 
@@ -193,7 +165,7 @@ for inj in param_sim.injection_current:
 
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(gp,spinecatab,spinevmtab, param_sim.simtime)
-#
+
 #
 #subset1=['proto_HCN1','proto_HCN2' ]
 #subset2=['proto_NaS']

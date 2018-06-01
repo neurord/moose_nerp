@@ -33,36 +33,14 @@ from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
 option_parser = standard_options.standard_options()
-option_parser = standard_options.standard_options(default_calcium=True, default_spines=False,default_injection_current=[-0.5e-9],default_stim='inject',default_stim_loc='soma')
+option_parser = standard_options.standard_options(default_calcium=True, default_synapse=True,default_spines=False,default_injection_current=[0.2e-9],default_stim='inject',default_stim_loc='soma')
 #,default_simulation_time=0.01)
 param_sim = option_parser.parse_args()
-param_sim.save=1
 plotcomps=[d1d2.param_cond.NAME_SOMA]
-param_sim.hsolve=0
+param_sim.save=1
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-#These assignment statements are required because they are not part of param_sim namespace.
-if param_sim.calcium is not None:
-    d1d2.calYN = param_sim.calcium
-if param_sim.spines is not None:
-    d1d2.spineYN = param_sim.spines
-if param_sim.stim_paradigm is not None:
-    d1d2.param_stim.Stimulation.Paradigm=d1d2.param_stim.paradigm_dict[param_sim.stim_paradigm]
-if param_sim.stim_loc is not None:
-    d1d2.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
-
-#These assignments make assumptions about which parameters should be changed together   
-if d1d2.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
-if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject':
-    #override defaults if synaptic stimulation is planned
-    d1d2.synYN=1
-    #Perhaps these should be removed
-    d1d2.calYN=1
-    d1d2.spineYN=1
-#update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
-if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
-    plotcomps=np.unique(plotcomps+d1d2.param_stim.location.stim_dendrites)
+d1d2,plotcomps,param_sim=standard_options.overrides(param_sim,d1d2,plotcomps)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -74,7 +52,7 @@ MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 
 plas = {}
 
-####### Set up stimulation
+####### Set up stimulation - move this to function (d1d2,param_sim return pg,param_sim; debug plas[ntype=)
 if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject':
     ### plasticity paradigms combining synaptic stimulation with optional current injection
     sim_time = []
@@ -103,9 +81,9 @@ if d1d2.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(d1d2, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
     
 ###############--------------output elements
-param_sim.plot_channels=1
+param_sim.plot_channels=0
 if param_sim.plot_channels:
-    for chan in ['Kir']: #d1d2.Channels.keys():
+    for chan in d1d2.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       d1d2.VMIN, d1d2.VMAX, d1d2.CAMIN, d1d2.CAMAX)
@@ -115,12 +93,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(d1d2, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]
-    #HDF5 creation is failing.  when it succeeds, uncomment.  if save='y' or something, use automatic filename
-    #if len(param_sim.save)==1:
-    #tables.setup_hdf5_output(d1d2, neuron, filename=fname)
-    #else:
-    #tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]+'.npz'
+    tables.setup_hdf5_output(d1d2, neuron, filename=fname)
 
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron,plotcomps)
@@ -179,11 +153,11 @@ if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if d1d2.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
-plt.figure()
+'''plt.figure()
 ts = np.linspace(0, param_sim.simtime, len(xtab.vector))
 plt.plot(ts,xtab.vector,label='Kir, X value')
 plt.legend()
 plt.show()
-
+'''
 # block in non-interactive mode
 util.block_if_noninteractive()

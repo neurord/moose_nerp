@@ -32,8 +32,8 @@ from moose_nerp import ep
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[-200e-12, -100e-12, 150e-12,50e-12],
-    default_simulation_time=0.6,
+    default_injection_current=[-200e-12],
+    default_simulation_time=0.2,
     default_injection_width=0.3,
     default_injection_delay=0.1,
     default_plotdt=0.0001)
@@ -44,33 +44,15 @@ param_sim.hsolve=1
 plotcomps=[ep.param_cond.NAME_SOMA]
 
 ######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-#These assignment statements are required because they are not part of param_sim namespace.
-if param_sim.calcium is not None:
-    ep.calYN = param_sim.calcium
-if param_sim.spines is not None:
-    ep.spineYN = param_sim.spines
-if param_sim.stim_paradigm is not None:
-    ep.param_stim.Stimulation.Paradigm=ep.param_stim.paradigm_dict[param_sim.stim_paradigm]
-if param_sim.stim_loc is not None:
-    ep.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+ep,plotcomps=standard_options.overrides(param_sim,ep,plotcomps)
 
-#These assignments make assumptions about which parameters should be changed together   
-if ep.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
-if ep.param_stim.Stimulation.Paradigm.name is not 'inject':
-    #override defaults if synaptic stimulation is planned
-    ep.synYN=1
-    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
-    plotcomps=plotcomps+ep.param_stim.location.stim_dendrites
-
-logging.basicConfig(level=logging.INFO)
-log = logutil.Logger()
+logging.basicConfig(level=logging.INFO) log = logutil.Logger()
 
 #################################-----------create the model
 ##create neuron prototype, optionally with synapses, calcium, and spines
 
-MSNsyn,neuron = cell_proto.neuronclasses(ep)
-print('MSNsyn:', MSNsyn)
+syn,neuron = cell_proto.neuronclasses(ep)
+print('syn:', syn)
 print('neuron:', neuron)
 
 plas = {}
@@ -101,7 +83,7 @@ else:
 #Need to debug this since eliminated param_sim.stimtimes
 #See what else needs to be changed in plasticity_test. 
 if ep.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(ep, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+      plas,stimtab=plasticity_test.plasticity_test(ep, param_sim.syncomp, syn, param_sim.stimtimes)
     
 ###############--------------output elements
 param_sim.plot_channels=1
@@ -118,7 +100,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(ep, neuron,
                               plas,plotcomps)
 
 if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
+    fname=ep.param_stim.Stimulation.Paradigm.name+'_'+ep.param_stim.location.stim_dendrites[0]+'.npz'
+    tables.setup_hdf5_output(ep, neuron, filename=fname)
 
 if ep.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ep,neuron,plotcomps)
@@ -131,32 +114,14 @@ clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsol
 if param_sim.hsolve and ep.calYN:
     calcium.fix_calcium(ep.neurontypes(), ep)
 
-##print soma conductances
-moose.reinit()
-if param_sim.hsolve:
-    chantype='ZombieHHChannel'
-else:
-    chantype='HHChannel'
-for neur in ep.neurontypes():
-  for chan in moose.wildcardFind('{}/soma/#[TYPE={}]'.format(neur, chantype)):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-  for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel2D]'):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-
+#### create spikegen to count spikes
 spikegen=moose.SpikeGen('/data/spikegen')
 spikegen.threshold=0.0
 spikegen.refractT=1.0e-3
 msg=moose.connect(moose.element(neur+'/'+ep.param_cond.NAME_SOMA),'VmOut',spikegen,'Vm')
 
-########### plot zgate
-ztab=moose.Table('data/zgate')
-nachan=moose.element('/ep/soma/NaF')
-moose.connect(ztab,'requestOut', nachan,'getZ')
-
-####
 spiketab=moose.Table('/data/spike')
 moose.connect(spikegen,'spikeOut',spiketab,'spike')
-
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
@@ -190,13 +155,6 @@ for inj in param_sim.injection_current:
 
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(ep,spinecatab,spinevmtab, param_sim.simtime)
-
-###############plot zgate
-plt.figure()
-ts = np.linspace(0, param_sim.simtime, len(ztab.vector))
-plt.plot(ts,ztab.vector,label='NaF, Z value')
-plt.legend()
-plt.show()
 
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
