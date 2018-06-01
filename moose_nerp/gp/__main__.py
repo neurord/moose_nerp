@@ -66,26 +66,7 @@ print('neuron:', neuron)
 plas = {}
 
 ####### Set up stimulation
-if gp.param_stim.Stimulation.Paradigm.name is not 'inject':
-    ### plasticity paradigms combining synaptic stimulation with optional current injection
-    sim_time = []
-    for ntype in gp.neurontypes():
-        #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
-        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(gp,ntype)
-        sim_time.append( st)
-        plas[ntype] = spines
-    param_sim.simtime = max(sim_time)
-    param_sim.injection_current = [0]
-else:
-    ### Current Injection alone, either use values from Paradigm or from command-line options
-    if not np.any(param_sim.injection_current):
-        param_sim.injection_current = [gp.param_stim.Stimulation.Paradigm.A_inject]
-        param_sim.injection_delay = gp.param_stim.Stimulation.stim_delay
-        param_sim.injection_width = gp.param_stim.Stimulation.Paradigm.width_AP
-    all_neurons={}
-    for ntype in neuron.keys():
-        all_neurons[ntype]=list([neuron[ntype].path])
-    pg=inject_func.setupinj(gp, param_sim.injection_delay, param_sim.injection_width,all_neurons)
+pg,param_sim=inject_func.setup_stim(d1d2,param_sim,neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 #Need to debug this since eliminated param_sim.stimtimes
@@ -107,8 +88,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(gp, neuron,
                               plas,plotcomps)
 
 if param_sim.save:
-    fname=gp.param_stim.Stimulation.Paradigm.name+'_'+gp.param_stim.location.stim_dendrites[0]+'.npz'
-    tables.setup_hdf5_output(gp, neuron, filename=fname)
+    fname=gp.param_stim.Stimulation.Paradigm.name+'_'+gp.param_stim.location.stim_dendrites[0]
+    tables.setup_hdf5_output(gp, neuron, filename=fname+'.npz')
 
 if gp.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(gp,neuron,plotcomps)

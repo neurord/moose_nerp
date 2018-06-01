@@ -52,27 +52,8 @@ MSNsyn,neuron= cell_proto.neuronclasses(d1d2)
 
 plas = {}
 
-####### Set up stimulation - move this to function (d1d2,param_sim return pg,param_sim; debug plas[ntype=)
-if d1d2.param_stim.Stimulation.Paradigm.name is not 'inject':
-    ### plasticity paradigms combining synaptic stimulation with optional current injection
-    sim_time = []
-    for ntype in d1d2.neurontypes():
-        #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
-        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(d1d2,ntype)
-        sim_time.append( st)
-        plas[ntype] = spines
-    param_sim.simtime = max(sim_time)
-    param_sim.injection_current = [0]
-else:
-    ### Current Injection alone, either use values from Paradigm or from command-line options
-    if not np.any(param_sim.injection_current):
-        param_sim.injection_current = [d1d2.param_stim.Stimulation.Paradigm.A_inject]
-        param_sim.injection_delay = d1d2.param_stim.Stimulation.stim_delay
-        param_sim.injection_width = d1d2.param_stim.Stimulation.Paradigm.width_AP
-    all_neurons={}
-    for ntype in neuron.keys():
-        all_neurons[ntype]=list([neuron[ntype].path])
-    pg=inject_func.setupinj(d1d2, param_sim.injection_delay, param_sim.injection_width,all_neurons)
+####### Set up stimulation 
+pg,param_sim=inject_func.setup_stim(d1d2,param_sim,neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 #Need to debug this since eliminated param_sim.stimtimes
@@ -93,8 +74,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(d1d2, neuron,
                               param_sim.plot_current_message,
                               plas,plotcomps)
 if param_sim.save:
-    fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]+'.npz'
-    tables.setup_hdf5_output(d1d2, neuron, filename=fname)
+    fname=d1d2.param_stim.Stimulation.Paradigm.name+'_'+d1d2.param_stim.location.stim_dendrites[0]
+    tables.setup_hdf5_output(d1d2, neuron, filename=fname+'.npz')
 
 if d1d2.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(d1d2,neuron,plotcomps)

@@ -52,32 +52,11 @@ logging.basicConfig(level=logging.INFO) log = logutil.Logger()
 ##create neuron prototype, optionally with synapses, calcium, and spines
 
 syn,neuron = cell_proto.neuronclasses(ep)
-print('syn:', syn)
-print('neuron:', neuron)
 
 plas = {}
 
 ####### Set up stimulation
-if ep.param_stim.Stimulation.Paradigm.name is not 'inject':
-    ### plasticity paradigms combining synaptic stimulation with optional current injection
-    sim_time = []
-    for ntype in ep.neurontypes():
-        #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
-        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(ep,ntype)
-        sim_time.append( st)
-        plas[ntype] = spines
-    param_sim.simtime = max(sim_time)
-    param_sim.injection_current = [0]
-else:
-    ### Current Injection alone, either use values from Paradigm or from command-line options
-    if not np.any(param_sim.injection_current):
-        param_sim.injection_current = [ep.param_stim.Stimulation.Paradigm.A_inject]
-        param_sim.injection_delay = ep.param_stim.Stimulation.stim_delay
-        param_sim.injection_width = ep.param_stim.Stimulation.Paradigm.width_AP
-    all_neurons={}
-    for ntype in neuron.keys():
-        all_neurons[ntype]=list([neuron[ntype].path])
-    pg=inject_func.setupinj(ep, param_sim.injection_delay, param_sim.injection_width,all_neurons)
+pg,param_sim=inject_func.setup_stim(d1d2,param_sim,neuron)
 
 #If calcium and synapses created, could test plasticity at a single synapse in syncomp
 #Need to debug this since eliminated param_sim.stimtimes
@@ -86,9 +65,9 @@ if ep.plasYN:
       plas,stimtab=plasticity_test.plasticity_test(ep, param_sim.syncomp, syn, param_sim.stimtimes)
     
 ###############--------------output elements
-param_sim.plot_channels=1
+param_sim.plot_channels=0
 if param_sim.plot_channels:
-    for chan in ['NaF']: #ep.Channels.keys():
+    for chan in ep.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       ep.VMIN, ep.VMAX, ep.CAMIN, ep.CAMAX)
@@ -100,8 +79,8 @@ vmtab, catab, plastab, currtab = tables.graphtables(ep, neuron,
                               plas,plotcomps)
 
 if param_sim.save:
-    fname=ep.param_stim.Stimulation.Paradigm.name+'_'+ep.param_stim.location.stim_dendrites[0]+'.npz'
-    tables.setup_hdf5_output(ep, neuron, filename=fname)
+    fname=ep.param_stim.Stimulation.Paradigm.name+'_'+ep.param_stim.location.stim_dendrites[0]
+    tables.setup_hdf5_output(ep, neuron, filename=fname+'.npz')
 
 if ep.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(ep,neuron,plotcomps)
