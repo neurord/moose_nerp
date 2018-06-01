@@ -1,19 +1,15 @@
-//***************************		MS Model, Version 5.0	**********************  
-//*************************** 	 MScell.p 			**********************  
-//			Tom Sheehan tsheeha2@gmu.edu	thsheeha@vt.edu	703-538-836   
-//*****************************************************************************     
-     
+//UNITS: micros for x,y,d dia, SI otherwise
 *relative     
 *cartesian     
 *asymmetric     
 *lambda_warn     
      
-*set_global RA 1.921
+*set_global RA 1.921  //ohm-meters
 //change Cm to account for no spines - make 3x higher?
-*set_global CM 0.03
-*set_global RM 4.8448
-*set_global EREST_ACT -86e-3
-*set_global ELEAK -0.07920
+*set_global CM 0.03 //Farads/meters squared
+*set_global RM 4.8448 //ohm-meters squared
+*set_global EREST_ACT -86e-3 //Volts
+*set_global ELEAK -0.07920 //Volts
      
 *start_cell     
 *cylindrical     
