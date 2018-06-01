@@ -14,7 +14,7 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # default for GHK is 2e-3
+ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 _neurontypes = None
@@ -31,6 +31,7 @@ def neurontypes(override=None):
 NAME_SOMA='soma'
 
 # helper variables to index the Conductance and synapses with distance
+# UNITS: meters
 prox = (0, 26.1e-6)
 med =  (26.1e-6, 50e-6)
 dist = (50e-6, 1000e-6)
@@ -40,7 +41,7 @@ dist = (50e-6, 1000e-6)
 #Parameters used by optimization from here down
 morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'}
 
-#CONDUCTANCES
+#CONDUCTANCES - UNITS of Siemens/meter squared
 _D1 = _util.NamedDict(
     'D1',
     Krp = {prox:0.0266, med:0.0740, dist:0.02746},
