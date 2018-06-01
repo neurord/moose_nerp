@@ -14,7 +14,7 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # default for GHK is 2e-3
+ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 _neurontypes = None
@@ -34,8 +34,10 @@ NAME_SOMA='soma'
 #CONDUCTANCES
 
 # helper variables to index the Conductance and synapses with distance
+# UNITS: meters
 inclu = (0, 1000e-6)
 
+#CONDUCTANCE VALUES - UNITS of Siemens/meter squared
 _CA1 = _util.NamedDict(
     'CA1',
     Kdr =  {inclu: 70.0},

@@ -3,11 +3,11 @@ from moose_nerp.prototypes.syn_proto import SynChannelParams, MgParams
 
 from . import param_cond
 
-#Parameters for inhibitory synpases:
-#Erev, tau1, tau2  (SI units)
+#Parameters for synpases (SI units):
+#Erev (Volts), tau1 & tau2 (sec) 
+#Gbar units: Siemens/meter squared
+#C is concentration of Mg in mM, A is 1/eta and B is 1/gamma,
 
-#C is concentration of Mg, A is 1/eta and B is 1/gamma,
-#Rebekah's:
 #These params are too insensitive to voltage
 #mgparams={'A':(1/18.0), 'B':(1/99.0), 'C': 1.4}
 #Classic (allows significant calcium at resting potential):
