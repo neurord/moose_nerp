@@ -24,12 +24,14 @@ from moose_nerp.prototypes.chan_proto import (
 # inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
 # tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))
 # or if tau_power=2: tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
+#
+# where v is membrane potential in volts, vhalf and vslope have units of volts
+# C, min and max are dimensionless; and C should be either +1, 0 or -1
+# Rate has units of per sec, and B has units of per sec per volt
+# taumin and tauVdep have units of per sec
+#
 
-#
-# where v is membrane voltage 
-#
-#KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
-#Parameters for Ca channels may need to be shifted - see Dorman model
+#units for membrane potential: volts
 krev=-90e-3
 narev=50e-3
 carev=140e-3 #assumes CaExt=2 mM and CaIn=50e-3
@@ -38,6 +40,8 @@ ZpowCDI=2
 VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
+
+#units for calcium concentration: mM
 CAMIN = 0.01e-3   #10 nM
 CAMAX = 40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 4001 #10 nM steps

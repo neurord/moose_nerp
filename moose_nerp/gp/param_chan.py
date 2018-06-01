@@ -1,4 +1,4 @@
-############### zgate with useConcentration False does not work ##################
+# -*- coding: utf-8 -*-
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
@@ -11,7 +11,7 @@ from moose_nerp.prototypes.chan_proto import (
     TypicalOneD,
     TwoD)
 
-
+#units for membrane potential: volts
 krev=-90e-3
 narev=50e-3
 carev=130e-3
@@ -22,6 +22,7 @@ VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
 
+#units for calcium concentration: mM
 CAMIN = 0.01e-3   #10 nM
 CAMAX = 60e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 5999 #10 nM steps
@@ -30,6 +31,19 @@ CADIVS = 5999 #10 nM steps
 # Gate equations have the form:
 # AlphaBetaChannelParams (specify forward and backward transition rates):
 # alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# StandardMooseTauInfChannelParams (specify steady state and time constants):
+# tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))
+# or if tau_power=2: tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
+#
+# where v is membrane potential in volts, vhalf and vslope have units of volts
+# C, min and max are dimensionless; and C should be either +1, 0 or -1
+# Rate has units of per sec, and B has units of per sec per volt
+# taumin and tauVdep have units of per sec
 
 qfactNaF = 1.0
 
