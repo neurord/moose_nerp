@@ -114,13 +114,15 @@ def difshell_geometry(comp, shell_params):
 
     return res
 
-
-        
-def addCaDifShell(comp,shellMode,shellDiameter,shellThickness,name,capar):
+def strip_brackets(comp):
     shellName = ''
     for s in comp.path.split('[0]'):
         shellName += s
-    name = shellName+'/'+capar.CaName+'_'+name
+    return shellName
+   
+        
+def addCaDifShell(comp,shellMode,shellDiameter,shellThickness,name,capar):
+    name = strip_brackets(comp)+'/'+capar.CaName+'_'+name
 
     dif = moose.DifShell(name)
     dif.Ceq =  capar.Ceq
@@ -140,7 +142,7 @@ def addCaDifShell(comp,shellMode,shellDiameter,shellThickness,name,capar):
 
 def addDifBuffer(comp,dShell,bufparams,bTotal):
     
-    name = dShell.name + '_' + bufparams.Name
+    name = strip_brackets(dShell)+ '_' + bufparams.Name
 
     dbuf = moose.DifBuffer(name)
     dbuf.bTot = bTotal
