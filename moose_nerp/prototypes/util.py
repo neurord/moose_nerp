@@ -31,7 +31,8 @@ def get_dist_name(comp):
     name = comp.name
     xloc = comp.x
     yloc = comp.y
-    dist = _np.sqrt(xloc*xloc+yloc*yloc)
+    zloc = comp.z
+    dist = _np.sqrt(xloc*xloc+yloc*yloc+zloc*zloc)
     return dist,name
 
 def distance_mapping(mapping, where):
