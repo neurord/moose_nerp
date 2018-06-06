@@ -5,6 +5,7 @@ import numpy as np
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
+
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
@@ -180,3 +181,15 @@ def spinetabs(model,neuron,comps='all'):
                             moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
 
     return spcatab,spvmtab
+
+def spiketables(neuron,param_cond):
+    spiketab=[]
+    for neur in neuron.keys():
+        soma=moose.element(neur+'/'+param_cond.NAME_SOMA)
+        spikegen=moose.SpikeGen(soma.path+'/spikegen')
+        spikegen.threshold=0.0
+        spikegen.refractT=1.0e-3
+        msg=moose.connect(soma,'VmOut',spikegen,'Vm')
+        spiketab.append(moose.Table('/data/spike_'+neur))
+        moose.connect(spikegen,'spikeOut',spiketab[-1],'spike')
+    return spiketab

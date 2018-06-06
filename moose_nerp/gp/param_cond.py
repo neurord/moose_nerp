@@ -17,17 +17,7 @@ else:
 ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
-_neurontypes = None
-def neurontypes(override=None):
-    "Query or set names of neurontypes of each neuron created"
-    global _neurontypes
-    if override is None:
-        return _neurontypes if _neurontypes is not None else sorted(Condset.keys())
-    else:
-        if any(key not in Condset.keys() for key in override):
-            raise ValueError('unknown neuron types requested')
-        _neurontypes = override
-
+neurontypes = None
 morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p'}
 NAME_SOMA='soma'
 
@@ -43,7 +33,6 @@ axon = (0.,1., 'axon')
 #If using swc files for morphology, specify structure using: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
 
 #CONDUCTANCE VALUES - UNITS of Siemens/meter squared
-_ep = _util.NamedDict(
 # _proto for prototypical GP neuron
 _proto = _util.NamedDict(
     'proto',

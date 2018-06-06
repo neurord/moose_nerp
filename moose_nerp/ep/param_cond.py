@@ -6,28 +6,18 @@ import numpy as np
 
 from moose_nerp.prototypes import util as _util
 
-#if ghkYesNo=0 then ghk not implemented
+#if ghkYN=False then ghk not implemented
 #Note that you can use GHK without a calcium pool, it uses a default of 5e-5 Cin
 if False: # param_sim.Config['ghkYN']:
     ghKluge=0.35e-6
 else:
     ghKluge=1
-
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
+
 ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
-_neurontypes = None
-def neurontypes(override=None):
-    "Query or set names of neurontypes of each neuron created"
-    global _neurontypes
-    if override is None:
-        return _neurontypes if _neurontypes is not None else sorted(Condset.keys())
-    else:
-        if any(key not in Condset.keys() for key in override):
-            raise ValueError('unknown neuron types requested')
-        _neurontypes = override
-
+neurontypes = None
 morph_file = {'ep':'EP_41compB.p'}
 NAME_SOMA='soma'
 

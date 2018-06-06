@@ -55,7 +55,7 @@ def neuronclasses(model):
     synArray={}
     headArray={}
     caPools = {}
-    for ntype in model.neurontypes():
+    for ntype in _util.neurontypes(model.param_cond):
         protoname='/library/'+ntype
         #use morph_file[ntype] for cell-type specific morphology
         #create_neuron creates morphology and ion channels only

@@ -6,7 +6,7 @@ import numpy as np
 import moose
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.tables import DATA_NAME, add_one_table
-from moose_nerp.prototypes import logutil
+from moose_nerp.prototypes import logutil, util
 log = logutil.Logger()
 
 def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
@@ -63,7 +63,7 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
 def writeOutput(model, outfilename,spiketab,vmtab,network_pop):
     outspiketab={}
     outVmtab={}
-    for typenum,neurtype in enumerate(model.neurontypes()):
+    for typenum,neurtype in enumerate(util.neurontypes(model.param_cond)):
         tmpspiketab={}
         tmpVmtab={}
         print(outspiketab.keys())

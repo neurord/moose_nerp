@@ -32,7 +32,7 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 
 **To create a new neuron type**
 
-1. clone one of the packages, e.g. d1d2 
+1. clone one of the packages, e.g. d1d2 or gp
 2. edit param_chan to specify ion channels and their gating.
   - Gate equations for TypicalOneD channels have the form:
     + AlphaBetaChannelParams (specify forward and backward transition rates):
@@ -57,7 +57,7 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 6. edit param_syn for your neuron type.  Note that if you don't want synapses, no need to edit this, just make synYN=0 in `__init__.py`
 7. Note that if calYN=0 or synYN=0, no plasticity will be created, even if plasYN=1
 8. make sure the .p file for your neuron is in the package
-9. edit `__main__.py`: global search and replace d1d2 with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
+9. edit `__main__.py`:  replace d1d2 in this line "from moose import d1d2 as model" with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
 
 **Networks**
 1. clone othe package, str_net, and edit param_net.py.  Note there are three neuron types specified in this network: D1, D2 and FSI.  Delete all lines with FSI in you only want two neuron types, and delete all the lines with FSI or D2 if you want only one neuron type in your network.

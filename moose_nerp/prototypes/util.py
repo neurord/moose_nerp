@@ -17,7 +17,16 @@ def syn_name(synpath,headname):
     else:
         postbranch=moose.element(synpath).parent.name
     return postbranch
-    
+
+def neurontypes(param_cond,override=None):
+    "Query or set names of neurontypes of each neurons to be created"
+    if override is None:
+        return param_cond.neurontypes if param_cond.neurontypes is not None else sorted(param_cond.Condset.keys())
+    else:
+        if any(key not in param_cond.Condset.keys() for key in override):
+            raise ValueError('unknown neuron types requested')
+        return override
+
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
         stop = start

@@ -292,7 +292,7 @@ def setup_stim(model,param_sim,neuron):
     if model.param_stim.Stimulation.Paradigm.name is not 'inject':
         ### plasticity paradigms combining synaptic stimulation with optional current injection
         sim_time = []
-        for ntype in model.neurontypes():
+        for ntype in neuron.keys():
             #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
             st, spines, pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
             sim_time.append( st)
