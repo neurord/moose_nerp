@@ -4,7 +4,7 @@ from moose_nerp.prototypes.chan_proto import ChannelSettings
 from moose_nerp.prototypes.chan_proto import TypicalOneD
 
 
-EREST_ACT = -70e-3 # units(Volts) # Neuron resting potential
+EREST_ACT = -70e-3 # units(Volts) # Neuron resting potential.
 
 # Measures are in SI units.
 krev=-12e-3  + EREST_ACT # units(Volts) # E_k Nernst reversal potential for Potassium.
