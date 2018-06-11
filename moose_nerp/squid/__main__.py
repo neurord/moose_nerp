@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
-######## SPneuronSim.py ############
-## Code to create two globus pallidus neurons
+######## Squid.py ############
+## Code to create squid neurons with 2 compartments (SOMA and Dendrite).
 ##      using dictionaries for channels and synapses
 ##      calcium based learning rule/plasticity function, optional
 ##      spines, optionally with ion channels and synpases
