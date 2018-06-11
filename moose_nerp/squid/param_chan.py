@@ -3,16 +3,12 @@ from moose_nerp.prototypes.chan_proto import AlphaBetaChannelParams
 from moose_nerp.prototypes.chan_proto import ChannelSettings
 from moose_nerp.prototypes.chan_proto import TypicalOneD
 
-#import engineering_notation as eng
 
-#EREST_ACT = float(eng.EngUnit('-70mV')) #Neuron resting potential
-EREST_ACT = -70e-3
+EREST_ACT = -70e-3 # units(Volts) # Neuron resting potential
 
 # Measures are in SI units.
-#krev=float(eng.EngUnit('-12mV'))  + EREST_ACT # units(Volts) # E_k Nernst reversal potential for Potassium.
-krev=-12e-3  + EREST_ACT
-#narev=float(eng.EngUnit('115mV')) + EREST_ACT # units(Volts) # E_Na Nernst reversal potential for Sodium.
-narev=115e-3 + EREST_ACT
+krev=-12e-3  + EREST_ACT # units(Volts) # E_k Nernst reversal potential for Potassium.
+narev=115e-3 + EREST_ACT # units(Volts) # E_Na Nernst reversal potential for Sodium.
 
 # Below are not used in simulaton of squid
 CAMIN = 0.01e-3   #10 nM
@@ -21,11 +17,9 @@ CADIVS = 5999 #10 nM steps
 qfactNaF = 1.0
 # End of not used variables
 
-#VMIN = float(eng.EngUnit('-100mV')) # Minimun allowed membrane potential.
-VMIN = -100e-3
-#VMAX = float(eng.EngUnit('50mV')) # Maximum allowed membrane potential.
-VMAX = 50e-3
-VDIVS = 3000 #0.5 mV steps
+VMIN = -100e-3 # units(Volts) # Minimun allowed membrane potential.
+VMAX = 50e-3 # units(Volts) # Maximum allowed membrane potential.
+VDIVS = 3000 # No units # Range of VMIN to VMAX is equally split in VDIVS sections. # 0.5 mV steps
 
 # contains all gating parameters and reversal potentials
 # Gate equations have the form:
@@ -77,19 +71,3 @@ Channels = NamedDict(
     Na = TypicalOneD(NaSparam, Na_m_params, Na_h_params),
     K =  TypicalOneD(KSparam, K_n_params, None)
 )
-
-# 29th MAY 2018 meeting points.
-# current optimazation does conductances
-# Future and my part channel parameter optimization.
-# read a 2 manuscripts a week. !!!!! VERY IMPORTANT.
-
-#READ paper
-# Hourglass method. (broaden - focus - broad summary)
-# First Read just introduction first.
-# Second
-# Third summary.
-# Rule of thumb is 3 refereces to discussion.
-
-# Presentations focus on the big picture.( main message)
-# How do the figures support the main results
-# Has the author left any details regarding paper.
