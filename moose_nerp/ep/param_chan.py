@@ -2,7 +2,6 @@
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
-    SSTauQuadraticChannelParams,
     AlphaBetaChannelParams,
     StandardMooseTauInfChannelParams,
     TauInfMinChannelParams,
@@ -12,7 +11,7 @@ from moose_nerp.prototypes.chan_proto import (
     TypicalOneD,
     TwoD)
 
-
+#units for membrane potential: volts
 krev=-90e-3
 narev=50e-3
 carev=130e-3
@@ -23,6 +22,7 @@ VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
 
+#units for calcium concentration: mM
 CAMIN = 0.01e-3   #10 nM
 CAMAX = 60e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 5999 #10 nM steps
@@ -31,6 +31,19 @@ CADIVS = 5999 #10 nM steps
 # Gate equations have the form:
 # AlphaBetaChannelParams (specify forward and backward transition rates):
 # alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# StandardMooseTauInfChannelParams (specify steady state and time constants):
+# tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))
+# or if tau_power=2: tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
+#
+# where v is membrane potential in volts, vhalf and vslope have units of volts
+# C, min and max are dimensionless; and C should be either +1, 0 or -1
+# Rate has units of per sec, and B has units of per sec per volt
+# taumin and tauVdep have units of per sec
 
 #Fast sodium - same as GP, but no slow gating
 qfactNaF = 1.0
@@ -70,14 +83,15 @@ Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
 
-Na_s_params= SSTauQuadraticChannelParams(SS_min=0.99,  
-                                         SS_vdep=0.01,  
-                                         SS_vhalf=-0.045,
-                                         SS_vslope=0.0054,
-                                         taumin = 0.01,
-                                         tauVdep = 2.2,
-                                         tauVhalf = -0.032,
-                                         tauVslope = 0.012)
+Na_s_params= TauInfMinChannelParams(SS_min=0.99,  
+                                    SS_vdep=0.01,  
+                                    SS_vhalf=-0.045,
+                                    SS_vslope=0.0054,
+                                    T_min = 0.01,
+                                    T_vdep = 2.2,
+                                    T_vhalf = -0.032,
+                                    T_vslope = 0.012,
+                                    T_power=2)
                                         
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
@@ -95,14 +109,15 @@ NaS_m_params = AlphaBetaChannelParams(A_rate=25e3,
                                      B_vhalf=135e-3,
                                      B_vslope=26.2e-3)
 
-NaS_h_params = SSTauQuadraticChannelParams(SS_min = 0.154,
-                                           SS_vdep = 0.846,
-                                           SS_vhalf = -0.057,
-                                           SS_vslope = 0.004,
-                                           taumin = 0.03,
-                                           tauVdep = 0.015,
-                                           tauVhalf = -0.03,
-                                           tauVslope = 0.022)
+NaS_h_params = TauInfMinChannelParams(SS_min = 0.154,
+                                      SS_vdep = 0.846,
+                                      SS_vhalf = -0.057,
+                                      SS_vslope = 0.004,
+                                      T_min = 0.03,
+                                      T_vdep = 0.015,
+                                      T_vhalf = -0.03,
+                                      T_vslope = 0.022,
+                                      T_power=2)
 
 NaS_h_params = AlphaBetaChannelParams(A_rate=32,
                                       A_B=0,

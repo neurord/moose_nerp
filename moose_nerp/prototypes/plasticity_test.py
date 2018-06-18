@@ -5,8 +5,9 @@ from __future__ import print_function, division
 import moose
 
 from moose_nerp.prototypes import (connect,
-                     plasticity,
-                     logutil)
+                                   plasticity,
+                                   logutil,
+                                   util)
 log = logutil.Logger()
 
 def plasticity_test(model, syncomp, syn_pop, stimtimes):
@@ -14,7 +15,7 @@ def plasticity_test(model, syncomp, syn_pop, stimtimes):
     stimtab={}
     if model.calYN  and model.plasYN:
         neu = moose.Neutral('/input')
-        for neurtype in model.neurontypes():
+        for neurtype in util.neurontypes(model.param_cond):
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
             stimtab[neurtype].vector = stimtimes
 

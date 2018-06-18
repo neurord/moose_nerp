@@ -17,7 +17,16 @@ def syn_name(synpath,headname):
     else:
         postbranch=moose.element(synpath).parent.name
     return postbranch
-    
+
+def neurontypes(param_cond,override=None):
+    "Query or set names of neurontypes of each neurons to be created"
+    if override is None:
+        return param_cond.neurontypes if param_cond.neurontypes is not None else sorted(param_cond.Condset.keys())
+    else:
+        if any(key not in param_cond.Condset.keys() for key in override):
+            raise ValueError('unknown neuron types requested')
+        return override
+
 def inclusive_range(start, stop=None, step=None):
     if stop is None:
         stop = start
@@ -31,7 +40,8 @@ def get_dist_name(comp):
     name = comp.name
     xloc = comp.x
     yloc = comp.y
-    dist = _np.sqrt(xloc*xloc+yloc*yloc)
+    zloc = comp.z
+    dist = _np.sqrt(xloc*xloc+yloc*yloc+zloc*zloc)
     return dist,name
 
 def distance_mapping(mapping, where):
@@ -41,6 +51,7 @@ def distance_mapping(mapping, where):
         dist,name = get_dist_name(where)
         
     elif isinstance(where,moose.vec):
+        #Needs to be tested.  May need to loop over comps in moose.vec
         comp = moose.element(where)
         if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
             dist,name = get_dist_name(comp)
@@ -78,6 +89,7 @@ def distance_mapping(mapping, where):
             continue
         if left <= dist < right:
             if description:
+                #name.endswith allows using swc files with _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
                 if name.startswith(description) or name.endswith(description):
                     res['description'] = v
             else:
@@ -92,6 +104,7 @@ def distance_mapping(mapping, where):
         v = res['no_description']
     if isinstance(v, _numbers.Number):
         return v
+    #These next two are likely not used yet.  May be place holder for adding distance dependent conductance
     elif isinstance(v, list):
         return v
     elif isinstance(v, dict):

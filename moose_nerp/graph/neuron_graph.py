@@ -6,7 +6,7 @@ import numpy as np
 
 from moose_nerp.prototypes.iso_scaling import iso_scaling
 from moose_nerp.prototypes import tables
-
+from moose_nerp.prototypes.util import neurontypes
 try:
     _GRAPHS
 except NameError:
@@ -23,7 +23,7 @@ def _get_graph(name, figsize=None):
     return f
 
 def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[], compartments=None):
-    for typenum,neurtype in enumerate(model.neurontypes()):
+    for typenum,neurtype in enumerate(neurontypes(model.param_cond)):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
         for oid in vmtab[typenum]:#tables.find_tables(neurtype,'Vm'):

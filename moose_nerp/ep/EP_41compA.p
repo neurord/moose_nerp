@@ -4,12 +4,12 @@
 *cartesian
 *origin 0     0       0
 
-*set_global EREST_ACT   -0.060   //Volts
+*set_global EREST_ACT   -0.054
 
-*set_compt_param RM	1.3 //ohm-meters squared
-*set_compt_param RA	1.74   //ohm-meters
-*set_compt_param CM	0.014 //Farads/meters squared
-*set_compt_param ELEAK	-0.056  //Volts
+*set_compt_param RM	5.0
+*set_compt_param RA	0.05
+*set_compt_param CM	0.008
+*set_compt_param ELEAK	-0.059
 
 
 soma            none            0       0       0      13.4

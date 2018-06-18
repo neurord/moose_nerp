@@ -5,6 +5,7 @@ import numpy as np
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
+
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
@@ -166,8 +167,8 @@ def spinetabs(model,neuron,comps='all'):
                 compname = spine.parent.name
                 sp_num=spine.name.split(NAME_HEAD)[0]
                 spvmtab[typenum].append(moose.Table(vm_table_path(neurtype, spine=sp_num, comp=compname)))
-                log.debug('{} {} {}', spinenum,spine, spvmtab[typenum][spinenum])
-                moose.connect(spvmtab[typenum][spinenum], 'requestOut', spine, 'getVm')
+                log.debug('{} {} {}',spinenum, spine.path, spvmtab[typenum][-1].path)
+                moose.connect(spvmtab[typenum][-1], 'requestOut', spine, 'getVm')
                 if model.calYN:
                     for child in spine.children:
                         if child.className == "CaConc" or  child.className == "ZombieCaConc" :
@@ -179,5 +180,16 @@ def spinetabs(model,neuron,comps='all'):
                             spcal = moose.element(spine.path+'/'+child.name)
                             moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
 
-
     return spcatab,spvmtab
+
+def spiketables(neuron,param_cond):
+    spiketab=[]
+    for neur in neuron.keys():
+        soma=moose.element(neur+'/'+param_cond.NAME_SOMA)
+        spikegen=moose.SpikeGen(soma.path+'/spikegen')
+        spikegen.threshold=0.0
+        spikegen.refractT=1.0e-3
+        msg=moose.connect(soma,'VmOut',spikegen,'Vm')
+        spiketab.append(moose.Table('/data/spike_'+neur))
+        moose.connect(spikegen,'spikeOut',spiketab[-1],'spike')
+    return spiketab

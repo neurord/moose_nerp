@@ -31,6 +31,7 @@ def standard_options(parser=None,
                      default_plotdt=0.2e-3,
                      default_calcium=None,
                      default_spines=None,
+                     default_synapse=None,
                      default_injection_current=None,
                      default_injection_delay=0.1,
                      default_injection_width=0.4,
@@ -60,10 +61,13 @@ def standard_options(parser=None,
     #arguments/parameters to control what model details to include
     parser.add_argument('--calcium', type=parse_boolean, nargs='?',
                         help='Implement Ca dynamics',
-                        const=True, default=None)
+                        const=True, default=default_calcium)
     parser.add_argument('--spines', type=parse_boolean, nargs='?',
                         help='Implement spines',
-                        const=True, default=None)
+                        const=True, default=default_spines)
+    parser.add_argument('--synapse', type=parse_boolean, nargs='?',
+                        help='Implement synapses',
+                        const=True, default=default_calcium)
     
     #arguments / parameters to control stimulation during simulation
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
@@ -120,6 +124,31 @@ def standard_options(parser=None,
     parser.add_argument('--plot-netvm', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
     return parser
+
+def overrides(param_sim,model,plotcomps):
+    #These assignment statements are required because they are not part of param_sim namespace.
+    if param_sim.calcium is not None:
+        model.calYN = param_sim.calcium
+    if param_sim.synapse is not None:
+        model.synYN = param_sim.synapse
+    if param_sim.spines is not None:
+        model.spineYN = param_sim.spines
+    if param_sim.stim_paradigm is not None:
+        model.param_stim.Stimulation.Paradigm=model.param_stim.paradigm_dict[param_sim.stim_paradigm]
+    if param_sim.stim_loc is not None:
+        model.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
+
+    #These assignments make assumptions about which parameters should be changed together   
+    if model.calYN and param_sim.plot_calcium is None:
+        param_sim.plot_calcium = True
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject':
+        #override defaults if synaptic stimulation is planned
+        model.synYN=1
+
+    #update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
+        plotcomps=np.unique(plotcomps+model.param_stim.location.stim_dendrites)
+    return model,plotcomps,param_sim
 
 class AppendFlat(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):

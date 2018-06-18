@@ -1,3 +1,4 @@
+//UNITS: micros for x,y,d dia, SI otherwise
 *absolute
 *asymmetric
 *cartesian

@@ -11,15 +11,24 @@ from moose_nerp.prototypes.chan_proto import (
 
 #contains all gating parameters and reversal potentials
 # Gate equations have the form:
-#
-# y(x) = (rate + B * x) / (C + exp((x + vhalf) / vslope))
-#
+# AlphaBetaChannelParams (specify forward and backward transition rates):
+# alpha(v) or beta(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
 # OR
-# y(x) = tau_min + tau_vdep / (1 + exp((x + vhalf) / vslope))
+# StandardMooseTauInfChannelParams (specify steady state and time constants):
+# tau(v) or inf(v) = (rate + B * v) / (C + exp((v + vhalf) / vslope))
+# OR
+# TauInfMinChannelParams (specify steady state and time constants with non-zero minimum - useful for tau):
+# inf(v) = min + max / (1 + exp((v + vhalf) / vslope))
+# tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))
+# or if tau_power=2: tau(v) = taumin + tauVdep / (1 + exp((v + tauVhalf) / tauVslope))* 1 / (1 + exp((v + tauVhalf) / -tauVslope))
 #
-# where x is membrane voltage and y is the rate constant
-#KDr params used by Sriram, RE paper1, Krp params used by RE paper 2
-#Parameters for Ca channels may need to be shifted - see Dorman model
+# where v is membrane potential in volts, vhalf and vslope have units of volts
+# C, min and max are dimensionless; and C should be either +1, 0 or -1
+# Rate has units of per sec, and B has units of per sec per volt
+# taumin and tauVdep have units of per sec
+#
+
+#units for membrane potential: volts
 krev=-87e-3
 narev=50e-3
 carev=48e-3 #assumes CaExt=2 mM and CaIn=50e-3
@@ -28,6 +37,8 @@ ZpowCDI=2
 VMIN = -120e-3
 VMAX = 50e-3
 VDIVS = 3401 #0.5 mV steps
+
+#units for calcium concentration: mM
 CAMIN = 0.01e-3   #10 nM
 CAMAX = 40e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 4001 #10 nM steps

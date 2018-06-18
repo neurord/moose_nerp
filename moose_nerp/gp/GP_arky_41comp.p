@@ -1,15 +1,16 @@
+//UNITS: micros for x,y,d dia, SI otherwise
 *absolute
 *asymmetric
 *cartesian
 *origin 0     0       0
 
 
-*set_global EREST_ACT   -0.060
+*set_global EREST_ACT   -0.060  //Volts
 
-*set_compt_param RM	5
-*set_compt_param RA	5
-*set_compt_param CM	0.007
-*set_compt_param ELEAK	-0.056
+*set_compt_param RM	5 //ohm-meters squared
+*set_compt_param RA	5   //ohm-meters
+*set_compt_param CM	0.007 //Farads/meters squared
+*set_compt_param ELEAK	-0.056  //Volts
 
 
 soma            none            0       0       0      13.4

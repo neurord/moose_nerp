@@ -2,6 +2,9 @@ from . import param_cond
 
 from moose_nerp.prototypes import util as _util
 
+#UNITS: len, dia, spineStart,spineEnd: meters
+#       density: spines per meter
+#       RA: ohm-meters, RM: ohm-m2, CM: Farads/m2
 SpineParams = _util.NamedDict(
     'SpineParams',
     spineDensity = 0.1e6,      #should make this distance dependent

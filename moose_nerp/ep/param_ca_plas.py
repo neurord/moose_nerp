@@ -8,7 +8,7 @@ SHELL = 0
 SLAB = 1
 CUSTOM = 3
 
-#region/distance definitions
+#region/distance definitions, units are meters
 soma = (0,141e-6)
 dend = (14.100000000000000001e-6,1000e-6)
 everything = (0.,1.)
@@ -18,19 +18,20 @@ spines = (0.,1.,'sp')
 GEOMETRIC = 1
 LINEAR = 0
 
+#UNITS: kf: per sec per mMolar, kb: pe sec, D: diffusion constant, 
 BufferParams = NamedList('BufferParams','''
 Name
 kf
 kb
 D''')
 
+#UNITS: mMolar
 PumpParams = NamedList('PumpParams','''
 Name
 Kd
 ''')
 
-
-
+#UNITS: Ceq mMolar, DCa: diffusion constant, tau: sec
 CellCalcium = NamedList('CellCalcium','''
 CaName
 Ceq
@@ -38,6 +39,7 @@ DCa
 tau
 ''')
 
+#UNITS: meters
 ShapeParams = NamedList('ShapeParams','''
 OutershellThickness
 ThicknessIncreaseFactor

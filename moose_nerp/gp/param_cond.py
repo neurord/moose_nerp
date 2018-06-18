@@ -14,32 +14,25 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # default for GHK is 2e-3
+ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
-_neurontypes = None
-def neurontypes(override=None):
-    "Query or set names of neurontypes of each neuron created"
-    global _neurontypes
-    if override is None:
-        return _neurontypes if _neurontypes is not None else sorted(Condset.keys())
-    else:
-        if any(key not in Condset.keys() for key in override):
-            raise ValueError('unknown neuron types requested')
-        _neurontypes = override
-
+neurontypes = None
 morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
 #Kdr is Kv2
 # helper variables to index the Conductance and synapses with distance
+# UNITS: meters
 #soma spherical so x,y=0,0, 1e-6 means prox=soma
 prox = (0,1e-6)
 #med =  (0,50e-6)
 dist = (1e-6, 1000e-6)
 axon = (0.,1., 'axon')
-# check Gbar vlues for NaS,Hva,SK and Ca
+#If using swc files for morphology, specify structure using: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
+
+#CONDUCTANCE VALUES - UNITS of Siemens/meter squared
 # _proto for prototypical GP neuron
 _proto = _util.NamedDict(
     'proto',
