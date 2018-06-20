@@ -1,5 +1,47 @@
-06-20 15:36 moose_nerp.prototypes.chan_proto INFO     /library/Na: TypicalOneD(channel=ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=0.045, name='Na'), X=AlphaBetaChannelParams(A_rate=-4500.000000000001, A_B=-100000.0, A_C=-1.0, A_vhalf=0.045000000000000005, A_vslope=-0.01, B_rate=4000.0, B_B=0.0, B_C=0.0, B_vhalf=0.07, B_vslope=0.018), Y=AlphaBetaChannelParams(A_rate=70, A_B=0.0, A_C=0.0, A_vhalf=0.07, A_vslope=0.02, B_rate=1000.0, B_B=0.0, B_C=1.0, B_vhalf=0.04000000000000001, B_vslope=-0.01), Z=[], calciumPermeable=False, calciumDependent=False)
-06-20 15:36 moose_nerp.prototypes.chan_proto INFO     /library/K: TypicalOneD(channel=ChannelSettings(Xpow=4, Ypow=0, Zpow=0, Erev=-0.082, name='K'), X=AlphaBetaChannelParams(A_rate=-600.0, A_B=-10000.0, A_C=-1.0, A_vhalf=0.060000000000000005, A_vslope=-0.01, B_rate=125.0, B_B=0.0, B_C=0.0, B_vhalf=0.07, B_vslope=0.08), Y=None, Z=[], calciumPermeable=False, calciumDependent=False)
-06-20 15:36 moose_nerp.prototypes.syn_proto INFO     synparams: /library/ampa SynChannelParams(Erev=0, tau1=0.001, tau2=0.003, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=True, NMDA=False, nmdaCaFrac=None)
-06-20 15:36 moose_nerp.prototypes.syn_proto INFO     synparams: /library/gaba SynChannelParams(Erev=-0.08, tau1=0.001, tau2=0.012, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=False, NMDA=False, nmdaCaFrac=None)
-06-20 15:36 moose_nerp.prototypes.syn_proto INFO     synparams: /library/nmda SynChannelParams(Erev=0, tau1=0.01, tau2=0.03, Gbar=2.52e-10, var=0.05, MgBlock=MgParams(A=0.16666666666666666, B=0.0125, C=1.4), spinic=True, NMDA=True, nmdaCaFrac=0.05)
+06-20 16:31 __main__     DEBUG    @@@@@@@
+06-20 16:31 __main__     DEBUG    <module 'moose_nerp.squid.param_cond' from '/home/Sriramsagar/neural_prj/moose_nerp/moose_nerp/squid/param_cond.py'> ?????
+06-20 16:31 moose_nerp.prototypes.chan_proto INFO     /library/Na: TypicalOneD(channel=ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=0.045, name='Na'), X=AlphaBetaChannelParams(A_rate=-4500.000000000001, A_B=-100000.0, A_C=-1.0, A_vhalf=0.045000000000000005, A_vslope=-0.01, B_rate=4000.0, B_B=0.0, B_C=0.0, B_vhalf=0.07, B_vslope=0.018), Y=AlphaBetaChannelParams(A_rate=70, A_B=0.0, A_C=0.0, A_vhalf=0.07, A_vslope=0.02, B_rate=1000.0, B_B=0.0, B_C=1.0, B_vhalf=0.04000000000000001, B_vslope=-0.01), Z=[], calciumPermeable=False, calciumDependent=False)
+06-20 16:31 moose_nerp.prototypes.chan_proto INFO     /library/K: TypicalOneD(channel=ChannelSettings(Xpow=4, Ypow=0, Zpow=0, Erev=-0.082, name='K'), X=AlphaBetaChannelParams(A_rate=-600.0, A_B=-10000.0, A_C=-1.0, A_vhalf=0.060000000000000005, A_vslope=-0.01, B_rate=125.0, B_B=0.0, B_C=0.0, B_vhalf=0.07, B_vslope=0.08), Y=None, Z=[], calciumPermeable=False, calciumDependent=False)
+06-20 16:31 moose_nerp.prototypes.syn_proto INFO     synparams: /library/ampa SynChannelParams(Erev=0, tau1=0.001, tau2=0.003, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=True, NMDA=False, nmdaCaFrac=None)
+06-20 16:31 moose_nerp.prototypes.syn_proto INFO     synparams: /library/gaba SynChannelParams(Erev=-0.08, tau1=0.001, tau2=0.012, Gbar=2.5e-10, var=0.05, MgBlock=None, spinic=False, NMDA=False, nmdaCaFrac=None)
+06-20 16:31 moose_nerp.prototypes.syn_proto INFO     synparams: /library/nmda SynChannelParams(Erev=0, tau1=0.01, tau2=0.03, Gbar=2.52e-10, var=0.05, MgBlock=MgParams(A=0.16666666666666666, B=0.0125, C=1.4), spinic=True, NMDA=True, nmdaCaFrac=0.05)
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon[0]/Na[0] /squid[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=10, path=/Msgs[0]/singleMsg[10]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon[0]/K[0] /squid[0]/axon[0] <moose.SingleMsg: id=5, dataIndex=12, path=/Msgs[0]/singleMsg[12]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon1[0]/Na[0] /squid[0]/axon1[0] <moose.SingleMsg: id=5, dataIndex=14, path=/Msgs[0]/singleMsg[14]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon1[0]/K[0] /squid[0]/axon1[0] <moose.SingleMsg: id=5, dataIndex=16, path=/Msgs[0]/singleMsg[16]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon2[0]/Na[0] /squid[0]/axon2[0] <moose.SingleMsg: id=5, dataIndex=18, path=/Msgs[0]/singleMsg[18]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon2[0]/K[0] /squid[0]/axon2[0] <moose.SingleMsg: id=5, dataIndex=20, path=/Msgs[0]/singleMsg[20]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon3[0]/Na[0] /squid[0]/axon3[0] <moose.SingleMsg: id=5, dataIndex=22, path=/Msgs[0]/singleMsg[22]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon3[0]/K[0] /squid[0]/axon3[0] <moose.SingleMsg: id=5, dataIndex=24, path=/Msgs[0]/singleMsg[24]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon4[0]/Na[0] /squid[0]/axon4[0] <moose.SingleMsg: id=5, dataIndex=26, path=/Msgs[0]/singleMsg[26]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon4[0]/K[0] /squid[0]/axon4[0] <moose.SingleMsg: id=5, dataIndex=28, path=/Msgs[0]/singleMsg[28]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon5[0]/Na[0] /squid[0]/axon5[0] <moose.SingleMsg: id=5, dataIndex=30, path=/Msgs[0]/singleMsg[30]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon5[0]/K[0] /squid[0]/axon5[0] <moose.SingleMsg: id=5, dataIndex=32, path=/Msgs[0]/singleMsg[32]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon6[0]/Na[0] /squid[0]/axon6[0] <moose.SingleMsg: id=5, dataIndex=34, path=/Msgs[0]/singleMsg[34]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon6[0]/K[0] /squid[0]/axon6[0] <moose.SingleMsg: id=5, dataIndex=36, path=/Msgs[0]/singleMsg[36]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon7[0]/Na[0] /squid[0]/axon7[0] <moose.SingleMsg: id=5, dataIndex=38, path=/Msgs[0]/singleMsg[38]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon7[0]/K[0] /squid[0]/axon7[0] <moose.SingleMsg: id=5, dataIndex=40, path=/Msgs[0]/singleMsg[40]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon8[0]/Na[0] /squid[0]/axon8[0] <moose.SingleMsg: id=5, dataIndex=42, path=/Msgs[0]/singleMsg[42]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon8[0]/K[0] /squid[0]/axon8[0] <moose.SingleMsg: id=5, dataIndex=44, path=/Msgs[0]/singleMsg[44]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If Na 1200
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon9[0]/Na[0] /squid[0]/axon9[0] <moose.SingleMsg: id=5, dataIndex=46, path=/Msgs[0]/singleMsg[46]>
+06-20 16:31 moose_nerp.prototypes.cell_proto DEBUG    Testing Cond If K 360
+06-20 16:31 moose_nerp.prototypes.add_channel DEBUG    channel message /squid[0]/axon9[0]/K[0] /squid[0]/axon9[0] <moose.SingleMsg: id=5, dataIndex=48, path=/Msgs[0]/singleMsg[48]>
