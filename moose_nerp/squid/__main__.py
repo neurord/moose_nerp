@@ -211,6 +211,14 @@ if param_sim.plot_vm:
     if ep.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
+if param_sim.save_vm:
+        elemname = '/data/Vm{}_0'.format(param_sim.neuron_type)
+        persist_data = {"simtime": param_sim.simtime,
+                        "injection_current":param_sim.injection_current,
+                        "voltage_data_points": moose.element(elemname).vector,
+                        "data_points_count": len(moose.element(elemname).vector)}
+        np.save(param_sim.save_vm, persist_data)
+
 # block in non-interactive mode
 util.block_if_noninteractive()
 
