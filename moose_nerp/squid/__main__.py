@@ -30,6 +30,10 @@ from moose_nerp.prototypes import (cell_proto,
                      constants)
 from moose_nerp import squid as ep
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
+from ajustador.helpers.loggingsystem import getlogger
+logger = getlogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 #import engineering_notation as eng
 
 option_parser = standard_options.standard_options(
@@ -212,11 +216,13 @@ if param_sim.plot_vm:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
 if param_sim.save_vm:
+        logger.debug("About to save file!!!")
         elemname = '/data/Vm{}_0'.format(param_sim.neuron_type)
         persist_data = {"simtime": param_sim.simtime,
                         "injection_current":param_sim.injection_current,
                         "voltage_data_points": moose.element(elemname).vector,
                         "data_points_count": len(moose.element(elemname).vector)}
+        logger.debug(persist_data)
         np.save(param_sim.save_vm, persist_data)
 
 # block in non-interactive mode
