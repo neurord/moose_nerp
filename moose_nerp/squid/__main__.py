@@ -56,6 +56,7 @@ option_parser = standard_options.standard_options(
 
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
+param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace.npy'
 
 plotcomps=[model.param_cond.NAME_SOMA]
 
@@ -144,39 +145,11 @@ if model.spineYN:
 else:
     spinevmtab=[]
 ########## clocks are critical. assign_clocks also sets up the hsolver
-# TODO code is breaking when run as python3 -m moose_nerp.squid
-simpaths=['/'+neurotype for neurotype in model.neurontypes()]
+simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
 clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 
 if param_sim.hsolve and model.calYN:
-    calcium.fix_calcium(model.neurontypes(), model)
-
-##print soma conductances
-moose.reinit()
-if param_sim.hsolve:
-    chantype='ZombieHHChannel'
-else:
-    chantype='HHChannel'
-for neur in model.neurontypes():
-  for chan in moose.wildcardFind('{}/soma/#[TYPE={}]'.format(neur, chantype)):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-  for chan in moose.wildcardFind('/'+neur+'/soma/#[TYPE=HHChannel2D]'):
-    print (neur, chan.name,chan.Ik*1e9, chan.Gk*1e9)
-
-spikegen=moose.SpikeGen('/data/spikegen')
-spikegen.threshold=0.0
-spikegen.refractT=1.0e-3
-msg=moose.connect(moose.element(neur+'/'+model.param_cond.NAME_SOMA),'VmOut',spikegen,'Vm')
-
-########### plot zgate
-# ztab=moose.Table('data/zgate')
-# nachan=moose.element('/ep/soma/NaF')
-# moose.connect(ztab,'requestOut', nachan,'getZ')
-
-####
-spiketab=moose.Table('/data/spike')
-moose.connect(spikegen,'spikeOut',spiketab,'spike')
-
+    calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
@@ -195,7 +168,7 @@ for inj in param_sim.injection_current:
     if param_sim.plot_vm:
         neuron_graph.graphs(model, vmtab, param_sim.plot_current, param_sim.simtime,
                         currtab,param_sim.plot_current_label, catab, plastab)
-    for neurnum,neurtype in enumerate(model.neurontypes()):
+    for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
         #
         if param_sim.plot_current:
             for channame in model.Channels.keys():
@@ -224,8 +197,10 @@ if param_sim.plot_vm:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
 if param_sim.save_vm:
-        logger.debug("About to save file!!!")
-        elemname = '/data/Vm{}_0'.format(param_sim.neuron_type)
+        logger.debug("Saveing Trace to file {}!!!".format(param_sim.save_vm))
+        logger.debug('{}'.format(util.neurontypes(model.param_cond)))
+        neuron_type = util.neurontypes(model.param_cond)[0]
+        elemname = '/data/Vm{}_0'.format(neuron_type)
         persist_data = {"simtime": param_sim.simtime,
                         "injection_current":param_sim.injection_current,
                         "voltage_data_points": moose.element(elemname).vector,
@@ -236,4 +211,3 @@ if param_sim.save_vm:
 # block in non-interactive mode
 util.block_if_noninteractive()
 
-print("number of spikes", len(spiketab.vector))
