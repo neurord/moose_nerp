@@ -33,9 +33,6 @@ synYN = False #Flag to set for simulation of synapses.
 #Rm = 10Kohm-cm** 2 add it to .p with SI units)
 #Rm = 1.0ohm-m**2 (SI units)
 
-#**** Run the baisc-simulation usign defalut command.
-#add option_parser with Vshift and tau_multiplier. in adjustador.
-
 #Part 2 write simulated table into a csv using code.
 
 # (Next 2 weeks)

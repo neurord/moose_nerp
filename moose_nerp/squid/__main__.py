@@ -42,7 +42,7 @@ logger.debug("@@@@@@@")
 
 option_parser = standard_options.standard_options(
     default_injection_current=[1e-9], #units (Amperes)
-    default_simulation_time=0.1, #units (Seconds)
+    default_simulation_time=100e-3, #units (Seconds)
     default_injection_width=40e-3, #units (Seconds)
     default_injection_delay=20e-3, #units (Seconds)
     default_plotdt=25e-6 #units (Seconds)
