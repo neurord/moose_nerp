@@ -89,6 +89,7 @@ if model.param_stim.Stimulation.Paradigm.name is not 'inject':
 ##create neuron prototype, optionally with synapses, calcium, and spines
 
 logger.debug("{} ?????".format(model.param_cond))
+logger.debug("Check for simtime: {}".format(param_sim))
 MSNsyn,neuron = cell_proto.neuronclasses(model)
 print('MSNsyn:', MSNsyn)
 print('neuron:', neuron)
