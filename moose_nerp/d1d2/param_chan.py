@@ -160,29 +160,35 @@ KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.105e3*qfactKaF,
                                       B_vhalf = 55.0e-3,
                                       B_vslope = -11.0e-3)
 
+#KaS based on Shen 2004 data and Wolf 2005 model code. Note that the Wolf model
+#code on ModelDB notes that, via personal correspondance with Shen 2004 author,
+#parameters in Shen 2004 were misreported, and are subsequently corrected in
+#the Wolf 2005 code. Alpha/Beta channel params were fit to be similar to the 
+#Wolf steady state and tau equations--see fitKaS.py for fitting script.
+#Note: Fit looks ok with these parameters but could stand to be improved.
 KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
-qfactKaS = 2
-KaS_X_params = AlphaBetaChannelParams(A_rate = 95*qfactKaS,
-                                      A_B = 185*qfactKaS,
-                                      A_C = -1,
-                                      A_vhalf = -0.050999999999999997,
-                                      A_vslope = -0.02928571428571429,
-                                      B_rate = 9*qfactKaS,
-                                      B_B = -8*qfactKaS,
-                                      B_C = -1,
-                                      B_vhalf =0.090999999999999998,
-                                      B_vslope = 0.069693877551020411)
+qfactKaS = 3 # Shen 2004/Wolf 2005
+KaS_X_params = AlphaBetaChannelParams(A_rate = 22057.0306*qfactKaS,
+                                      A_B = 0.*qfactKaS,
+                                      A_C = 1,
+                                      A_vhalf = -0.08789675579999999,
+                                      A_vslope = -0.0162951634,
+                                      B_rate = 348021313.0*qfactKaS,
+                                      B_B = 0.*qfactKaS,
+                                      B_C = 1,
+                                      B_vhalf =0.39822177799999997,
+                                      B_vslope = 0.0218235302)
 
-KaS_Y_params = AlphaBetaChannelParams(A_rate = 10.*qfactKaS,
-                                      A_B = 40*qfactKaS,
+KaS_Y_params = AlphaBetaChannelParams(A_rate = 25644952.0*qfactKaS,
+                                      A_B = 0.*qfactKaS,
                                       A_C = 1.0,
-                                      A_vhalf = .2889,
-                                      A_vslope = 56e-3,
-                                      B_rate = 2.0*qfactKaS,
-                                      B_B = -22*qfactKaS,
+                                      A_vhalf = 1.222,
+                                      A_vslope = 0.0645391447,
+                                      B_rate = 1.28951669*qfactKaS,
+                                      B_B = 0.*qfactKaS,
                                       B_C = 1.0,
-                                      B_vhalf = -64.9999e-3,
-                                      B_vslope = -30e-3)
+                                      B_vhalf = 0.000635602802,
+                                      B_vslope = -0.0262013787)
 
 #SS values from Churchill and MacVicar, assuming Xpow = 1
 ##time constants extrapolated from scarce measurements - Song & Surmeier
