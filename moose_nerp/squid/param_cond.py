@@ -34,12 +34,12 @@ NAME_SOMA='axon' # Parent compartment to simulate squid axon where NAME_SOMA is 
 # helper variables to index the Conductance and synapses with distance
 #axon cylindrical so x,y=0,0, 1e-6 means parent compartment only for spherical.
 prox = (0,1e-3) # Length Range of the proximal dendrite from center of soma.
-dist = None
+dist = (1e-3, 100e-3)
 # Channel conductances declaration for the squid axon.
 _squid = _util.NamedDict(
     'squid',
-    K={prox: 360}, # Potassium channel g_bar to the squid axon surface.
-    Na={prox: 1200}, # Sodium channel g_bar to the squid axon surface.
+    K={prox: 360, dist: 560}, # Potassium channel g_bar to the squid axon surface.
+    Na={prox: 1200, dist: 1000}, # Sodium channel g_bar to the squid axon surface.
 )
 
 # Channel conductances
