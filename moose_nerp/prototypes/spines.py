@@ -68,23 +68,38 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
     return head, neck
 
 
-def compensate_for_spines(comp,total_spine_surface,surface_area):
-    old_Cm = comp.Cm
-    old_Rm = comp.Rm
-    scaling_factor = (surface_area+total_spine_surface)/surface_area
+def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_area):
+    SpineParams = model.SpineParams
+    dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
+    if name_soma not in comp.path and (SpineParams.spineEnd > dist > SpineParams.spineStart):
+        #determine the number of spines
+        numSpines = int(np.round(SpineParams.spineDensity*comp.length))
 
-    comp.Cm = old_Cm/scaling_factor
-    comp.Rm = old_Rm*scaling_factor
+        #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
+        if not numSpines:
+             rand = random.random()
+             if rand > SpineParams.spineDensity*comp.length:
+                 numSpines = 1
+        #calculate total surface area of the added spines
+        single_spine_surface = spine_surface(SpineParams)
+        total_spine_surface = numSpines*single_spine_surface
+        surface_area = comp.diameter*comp.length*np.pi
 
-
-def decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface):
-    old_Cm = comp.Cm
-    old_Rm = comp.Rm
-    new_scaling_factor = (surface_area+total_spine_surface)/surface_area
-    old_scaling_factor = (surface_area+compensation_spine_surface)/surface_area
+        old_Cm = comp.Cm
+        old_Rm = comp.Rm
+        scaling_factor = (surface_area+total_spine_surface)/surface_area
     
-    comp.Cm = old_Cm/old_scaling_factor*new_scaling_factor
-    comp.Rm = old_Rm*old_scaling_factor*new_scaling_factor
+        comp.Cm = old_Cm * scaling_factor
+        comp.Rm = old_Rm / scaling_factor
+
+
+def reverse_compensate_for_explicit_spines(comp,explicit_spine_surface,surface_area):
+    old_Cm = comp.Cm
+    old_Rm = comp.Rm
+    scaling_factor = (surface_area+explicit_spine_surface)/surface_area
+    
+    comp.Cm = old_Cm / scaling_factor
+    comp.Rm = old_Rm * scaling_factor
     
 
 def spine_surface(SpineParams):
@@ -120,12 +135,18 @@ def addSpines(model, container,ghkYN,name_soma):
         dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
         if name_soma not in comp.path and comp.name in compList and (SpineParams.spineEnd > dist > SpineParams.spineStart):
             #determine the number of spines
-            numSpines = int(np.round(SpineParams.spineDensity*comp.length))
+            try:
+                #If SpineParams has this, use this density
+                density=SpineParams.explicitSpineDensity
+            except KeyError:
+                #Else, just use the actual density value
+                density=SpineParams.SpineDensity
+            numSpines = int(np.round(density*comp.length))
 
             #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
             if not numSpines:
                  rand = random.random()
-                 if rand > SpineParams.spineDensity*comp.length:
+                 if rand > density*comp.length:
                      numSpines = 1
                      suma += 1
             #calculate total surface area of the added spines
@@ -137,7 +158,7 @@ def addSpines(model, container,ghkYN,name_soma):
             #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
             # else:
             #increase resistance according to the spines that should be there but aren't
-            compensate_for_spines(comp,total_spine_surface,surface_area)
+            reverse_compensate_for_explicit_spines(comp,total_spine_surface,surface_area)
      
             #spineSpace = comp.length/(numSpines+1)
             #for each spine, make a spine and possibly compensate for its surface area
@@ -145,15 +166,6 @@ def addSpines(model, container,ghkYN,name_soma):
                 frac = (index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
                 head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
-
-                #now decrease resistance of compartment back to original value?!?!
-                if SpineParams.compensationSpineDensity:
-                    decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
-                else:
-                    #why are we altering head and neck resistance?!?!
-                    compensate_for_spines(head,total_spine_surface,surface_area)
-                    compensate_for_spines(neck,total_spine_surface,surface_area)
-                    
                 headarray.append(head)
                 if SpineParams.spineChanList:
                     if ghkYN:

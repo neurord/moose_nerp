@@ -4,7 +4,7 @@ from moose_nerp.prototypes import util as _util
 
 SpineParams = _util.NamedDict(
     'SpineParams',
-    spineDensity = 1.01e6,      #should make this distance dependent
+    spineDensity = 1.01e6,      #Actual, experimentally reported/estimated spine density, used to compensate for spines when spines not explicitly modeled; should make this distance dependent
     necklen = 0.5e-6,          #define all these parameters elsewhere
     neckdia = 0.12e-6,
     headdia = 0.5e-6,
@@ -18,7 +18,7 @@ SpineParams = _util.NamedDict(
     spineStart = 26.1e-6,
     spineEnd = 300e-6,
     
-    compensationSpineDensity = 0,
+    explicitSpineDensity = .3e6, #Density of spines to explicitly model, < or = to spineDensity
     spineChanList = [['CaL13'],['CaL12','CaR','CaT']],
     #spines added to branches that are childrne of this branch:
     spineParent = 'secdend11',
