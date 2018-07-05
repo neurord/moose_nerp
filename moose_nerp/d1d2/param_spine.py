@@ -2,6 +2,8 @@ from . import param_cond
 
 from moose_nerp.prototypes import util as _util
 
+#TODO: Automatically pull spine RM, CM, values from p File values?
+
 SpineParams = _util.NamedDict(
     'SpineParams',
     spineDensity = 1.01e6,      #Actual, experimentally reported/estimated spine density, used to compensate for spines when spines not explicitly modeled; should make this distance dependent
@@ -9,12 +11,12 @@ SpineParams = _util.NamedDict(
     neckdia = 0.12e-6,
     headdia = 0.5e-6,
     headlen = 0.5e-6,
-    headRA = 1.25,    #additional factor of 4 due to exptl higher than expected Ra Spine
-    neckRA = 11.3,
-    spineRM = 1.875,
-    spineCM = 0.01,
-    spineELEAK = -70e-3,
-    spineEREST = -80e-3,
+    headRA = 1.921,
+    neckRA = 1.921*4,    #additional factor of 4 due to exptl higher than expected Ra Spine
+    spineRM = 4.8448,
+    spineCM = 0.03,
+    spineELEAK = -79.2e-3,
+    spineEREST = -86e-3,
     spineStart = 26.1e-6,
     spineEnd = 300e-6,
     
