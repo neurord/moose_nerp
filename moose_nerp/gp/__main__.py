@@ -37,6 +37,14 @@ option_parser = standard_options.standard_options(
     default_injection_width=1.0,
     default_injection_delay=0.047,
     default_plotdt=0.0001)
+#,default_stim='PSP_1')
+# Issue with stimulation needs fixing:
+#Line 83: st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(model,ntype)
+#File "moose_nerp/prototypes/inject_func.py", line 227, in ConnectPreSynapticPostSynapticStimulation
+#stim_spines.update(new_spines)
+#TypeError: 'NoneType' object is not iterable
+#same error with or without spines
+ 
 
 param_sim = option_parser.parse_args()
 param_sim.save=1
