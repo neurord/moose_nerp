@@ -4,3 +4,4 @@ __pycache__/
 # py.test uses this for something
 .cache/
 *txt
+*.npz
