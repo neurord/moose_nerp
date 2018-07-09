@@ -30,10 +30,6 @@ def create_neuron(model, ntype, ghkYN):
     #######channels
     Cond = model.Condset[ntype]
     for comp in moose.wildcardFind('{}/#[TYPE=Compartment]'.format(ntype)):
-        #Compensate for actual, experimentally estimated spine density.
-        #This gives a model that can be simulated with no explicit spines or
-        #any number of explicitly modeled spines up to the actual spine density:
-        spines.compensate_for_spines(model,comp,model.param_cond.NAME_SOMA)
         #If we are using GHK, just create one GHK per compartment, connect it to comp
         #calcium concentration is connected in a different function
         if ghkYN:
@@ -48,6 +44,12 @@ def create_neuron(model, ntype, ghkYN):
                 log.debug('Testing Cond If {} {}', channame, c)
                 calciumPermeable = model.Channels[channame].calciumPermeable
                 add_channel.addOneChan(channame, c, comp, ghkYN, ghk, calciumPermeable=calciumPermeable)
+
+        #Compensate for actual, experimentally estimated spine density.
+        #This gives a model that can be simulated with no explicit spines or
+        #any number of explicitly modeled spines up to the actual spine density:
+        spines.compensate_for_spines(model,comp,model.param_cond.NAME_SOMA)
+
     return cellproto
 
 def neuronclasses(model):

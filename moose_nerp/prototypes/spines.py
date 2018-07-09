@@ -85,22 +85,56 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
         total_spine_surface = numSpines*single_spine_surface
         surface_area = comp.diameter*comp.length*np.pi
 
+        ## Compensate RM and CM
         old_Cm = comp.Cm
         old_Rm = comp.Rm
         scaling_factor = (surface_area+total_spine_surface)/surface_area
     
         comp.Cm = old_Cm * scaling_factor
         comp.Rm = old_Rm / scaling_factor
+        
+        ## Additionally, compensate for ion channels in spines
+        # Flatten the nested chan list:
+        chan_list = []
+        for c in SpineParams.spineChanList:
+            chan_list.extend(c)
+        # Get the conductance for each channel:
+        for chanpath in chan_list:
+            if moose.exists(comp.path+'/'+chanpath):
+                chan = moose.element(comp.path+'/'+chanpath)
+                old_gbar = chan.Gbar/surface_area                    
+                spine_dend_gbar_ratio = 1.0 #TODO: Change if spine has different gbar than dendrite
+                gbar_factor = (surface_area + spine_dend_gbar_ratio*total_spine_surface)/surface_area
+                new_gbar = old_gbar*gbar_factor
+                chan.Gbar = new_gbar*surface_area
+                if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
+                    print('Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
 
-
-def reverse_compensate_for_explicit_spines(comp,explicit_spine_surface,surface_area):
+def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,surface_area):
     old_Cm = comp.Cm
     old_Rm = comp.Rm
     scaling_factor = (surface_area+explicit_spine_surface)/surface_area
     
-    comp.Cm = old_Cm / scaling_factor
+    comp.Cm = old_Cm / scaling_factor # Note, opposite signs from spine compensation
     comp.Rm = old_Rm * scaling_factor
-    
+    ## Additionally, reverse compensate for ion channels in spines
+    # Flatten the nested chan list:
+    SpineParams = model.SpineParams
+    chan_list = []
+    for c in SpineParams.spineChanList:
+        chan_list.extend(c)
+    # Get the conductance for each channel:
+    for chanpath in chan_list:
+        if moose.exists(comp.path+'/'+chanpath):
+            chan = moose.element(comp.path+'/'+chanpath)
+            old_gbar = chan.Gbar/surface_area                  
+            spine_dend_gbar_ratio = 1.0 #TODO: Change if spine has different gbar than dendrite
+            gbar_factor = (surface_area + spine_dend_gbar_ratio*explicit_spine_surface)/surface_area
+            new_gbar = old_gbar/gbar_factor
+            chan.Gbar = new_gbar*surface_area
+            if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
+                print('Reverse Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
+
 
 def spine_surface(SpineParams):
     headdia = SpineParams.headdia
@@ -158,7 +192,7 @@ def addSpines(model, container,ghkYN,name_soma):
             #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
             # else:
             #increase resistance according to the spines that should be there but aren't
-            reverse_compensate_for_explicit_spines(comp,total_spine_surface,surface_area)
+            reverse_compensate_for_explicit_spines(model,comp,total_spine_surface,surface_area)
      
             #spineSpace = comp.length/(numSpines+1)
             #for each spine, make a spine and possibly compensate for its surface area
