@@ -107,8 +107,8 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
                 gbar_factor = (surface_area + spine_dend_gbar_ratio*total_spine_surface)/surface_area
                 new_gbar = old_gbar*gbar_factor
                 chan.Gbar = new_gbar*surface_area
-                if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
-                    print('Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
+                #if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
+                #    print('Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
 
 def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,surface_area):
     old_Cm = comp.Cm
@@ -132,8 +132,8 @@ def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,sur
             gbar_factor = (surface_area + spine_dend_gbar_ratio*explicit_spine_surface)/surface_area
             new_gbar = old_gbar/gbar_factor
             chan.Gbar = new_gbar*surface_area
-            if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
-                print('Reverse Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
+            #if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
+            #    print('Reverse Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
 
 
 def spine_surface(SpineParams):
