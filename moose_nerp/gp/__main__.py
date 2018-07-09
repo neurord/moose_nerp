@@ -44,6 +44,7 @@ option_parser = standard_options.standard_options(
 #stim_spines.update(new_spines)
 #TypeError: 'NoneType' object is not iterable
 #same error with or without spines
+ 
 
 param_sim = option_parser.parse_args()
 param_sim.save=1
