@@ -52,7 +52,10 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
    + helper variables to specify distance, e.g. prox=(0,50e06), then conductance specified as: krp={prox:5}
    + can add structure type to helper variable, e.g. axon=(0,1000e-6,'axon')
    + If using swc files, use these structure names: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon, e.g. axon=(0,100e-6,'_4')
-4. edit param_spine for your neuron type.  Note that if you don't want spines, no need to edit this, just make spineYN=0 in `__init__.py`.  If you do have spines, make sure that spineParent is a compartment name from your pfile.
+4. edit param_spine for your neuron type.  
+    - Note that the model performs spine compensation using the spinedensity parameter in param_spine; this should be the actual/estimated density of the neuron type. If you don't want spine compensation then set this spine density to zero. 
+    - Note that if you don't want spines, set spineYN=0 in `__init__.py`. 
+    - Any number of spines can also be explicitly modeled by setting the explicitSpineDensity parameter (less than or equal to the actual spineDensity). The spineParent compartment allows explicitly including spines only on specific branches--make sure to use a compartment name from your pfile. Using the soma name includes all branches.
 5. edit param_ca_plas for your neuron type.  Note that if you don't want calcium, no need to edit this, just make calYN=0 in `__init__.py`.  If you want calcium but not plasticity, make calYN=1 and plasYN=0
 6. edit param_syn for your neuron type.  Note that if you don't want synapses, no need to edit this, just make synYN=0 in `__init__.py`
 7. Note that if calYN=0 or synYN=0, no plasticity will be created, even if plasYN=1

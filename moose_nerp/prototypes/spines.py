@@ -70,6 +70,13 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
 
 def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_area):
     SpineParams = model.SpineParams
+    if SpineParams.spineDensity == 0:
+        return
+    if not compensate_for_spines.has_been_called:
+        print('Compensating for spines using SpineParams.spineDensity = ' + 
+              str(SpineParams.spineDensity) + 
+              ' ; Set to zero skip spine compensation.' )
+        compensate_for_spines.has_been_called = True
     dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
     if name_soma not in comp.path and (SpineParams.spineEnd > dist > SpineParams.spineStart):
         #determine the number of spines
@@ -109,6 +116,8 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
                 chan.Gbar = new_gbar*surface_area
                 #if 'CaR' in chan.path and 'tertdend1_2' in chan.path:
                 #    print('Compensating ' + chan.path + ' from old gbar: ' + str(old_gbar) + ' to new: ' + str(new_gbar))
+#Initialize function attribute:
+compensate_for_spines.has_been_called = False
 
 def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,surface_area):
     old_Cm = comp.Cm
