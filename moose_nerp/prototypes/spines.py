@@ -171,6 +171,9 @@ def addSpines(model, container,ghkYN,name_soma):
     single_spine_surface = spine_surface(SpineParams)
      
     parentComp = container+'/'+SpineParams.spineParent
+    print('Adding spines to parent: ' + parentComp)
+    if not moose.exists(parentComp):
+        raise Exception(parentComp + ' Does not exist in Moose model!')
     compList = [SpineParams.spineParent]
     getChildren(parentComp,compList)
 
