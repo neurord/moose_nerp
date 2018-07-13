@@ -1,4 +1,5 @@
 import argparse
+import numbers
 import numpy as np
 from . import util
 
@@ -12,6 +13,7 @@ def inclusive_range_from_string(arg):
     elif len(parts) == 3:
         return util.inclusive_range(start, stop, float(parts[2]))
     raise ValueError('too many colons')
+
 
 def comma_seperated_list(float):
     def parser(arg):
@@ -69,6 +71,12 @@ def standard_options(parser=None,
                         help='Implement synapses',
                         const=True, default=default_calcium)
     
+    #Argument/parameters to control model parameter overrides.
+    #ONLY applies to subattritubes of model, anything accessible as model[dot]XX
+    parser.add_argument('--modelParamOverrides', default=None, nargs='*',
+                        metavar='PARAMS.PARAMNAME:PARAMVALUE',
+                        help='One or more (space separated) param:value pairs (colon-designated) to override model params, e.g.: ParamSpine.SpineDensity:1e6 SYNAPSE_TYPES.ampa.Gbar:1e-9')
+    
     #arguments / parameters to control stimulation during simulation
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
                         metavar='CURRENT',
@@ -90,8 +98,8 @@ def standard_options(parser=None,
     parser.add_argument('--stim_loc', type=str,
                         help='compartment for synapses',
                         default=default_stim_loc)
-
-    #arguments that control what to plot
+    
+        #arguments that control what to plot
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',
                         const=True, default=default_plot_vm)
@@ -125,7 +133,44 @@ def standard_options(parser=None,
                         const=True)
     return parser
 
-def overrides(param_sim,model,plotcomps):
+
+def parseModelParamOverrides(model, modelParamOverrides):
+    ''' modelParamOverrides is a list of strings, each string indicating a
+    param to override. Each list item is a colon separated key:value pair,
+    e.g. 'SpineParams.SpineDensity:1e6'. Params can consist of multiple
+    periods, e.g. MyParams.Aparams.Bparams.C '''
+    # TODO: In addition to attribute access, could add index access with [];
+    #    This would allow param like: model.SpineParams.SpineChanList[0]:'CaT'
+    for i in modelParamOverrides:  # for string in override list
+        paramString, valueString = i.split(':')  # split on colon
+        # Split on period to determine nested attributes
+        paramList = paramString.split('.')
+        # Makes sure first entry is an attribute of model, e.g.
+        # model.SpineParams. Raises attribute error if attribute does not exist
+        j = 0
+        a = getattr(model, paramList[j])
+        # successively check that attribute exists
+        for j in range(1, len(paramList)):  # Won't enter loop if length is 1
+            a = getattr(a, paramList[j])
+        # Limit to string or number
+        if isinstance(a, (str, numbers.Number)):
+            # Convert the value string to value of same class type as a. if a
+            # is float, will convert value string to float.
+            value = a.__class__(valueString)
+            originalvalue = a
+        else:
+            raise Exception('modelParamOverrides limited to strings & numbers')
+        # Now get 2nd to last attribute and set attribute of last item
+        a = getattr(model, paramList[0])
+        # Won't enter loop if length is 1; will loop to the second to last item
+        for j in range(1, len(paramList)-1):
+            a = getattr(a, paramList[j])
+        setattr(a, paramList[-1], value)  # Set a.paramValue to new value
+        print('Setting attribute ' + paramList[-1] + ' of object '+str(a) +
+              ' from ' + str(originalvalue) + ' to ' + str(value))
+
+
+def overrides(param_sim, model, plotcomps):
     #These assignment statements are required because they are not part of param_sim namespace.
     if param_sim.calcium is not None:
         model.calYN = param_sim.calcium
@@ -137,7 +182,8 @@ def overrides(param_sim,model,plotcomps):
         model.param_stim.Stimulation.Paradigm=model.param_stim.paradigm_dict[param_sim.stim_paradigm]
     if param_sim.stim_loc is not None:
         model.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
-
+    if param_sim.modelParamOverrides is not None:
+        parseModelParamOverrides(model,param_sim.modelParamOverrides)
     #These assignments make assumptions about which parameters should be changed together   
     if model.calYN and param_sim.plot_calcium is None:
         param_sim.plot_calcium = True
