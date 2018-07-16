@@ -97,6 +97,7 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
 
 def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_area):
     SpineParams = model.SpineParams
+    distance_mapped_spineDensity = {(SpineParams.spineStart,SpineParams.spineEnd):SpineParams.spineDensity}
     if SpineParams.spineDensity == 0:
         return
     if not compensate_for_spines.has_been_called:
@@ -107,12 +108,16 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
     dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
     if name_soma not in comp.path and (SpineParams.spineEnd > dist > SpineParams.spineStart):
         #determine the number of spines
-        numSpines = int(np.round(SpineParams.spineDensity*comp.length))
+        spineDensity = distance_mapping(distance_mapped_spineDensity,comp)
+        if spineDensity < 0 or spineDensity > 20e6:
+            print('SpineDensity {} may be unrealistic; check function'.format(spineDensity))
+        numSpines = int(np.round(spineDensity*comp.length))
+        #print('Spine Density = ' + str(spineDensity), 'NumSpines={}'.format(numSpines))
 
         #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
         if not numSpines:
              rand = random.random()
-             if rand > SpineParams.spineDensity*comp.length:
+             if rand > spineDensity*comp.length:
                  numSpines = 1
         #calculate total surface area of the added spines
         single_spine_surface = spine_surface(SpineParams)
@@ -190,6 +195,7 @@ def getChildren(parentname,childrenlist):
             getChildren(child,childrenlist)
 
 def addSpines(model, container,ghkYN,name_soma):
+    distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
     headarray=[]
     # Sets Spine Params to global values for RM, CM, etc. if value is None:
     setPassiveSpineParams(model,container,name_soma)
@@ -215,7 +221,7 @@ def addSpines(model, container,ghkYN,name_soma):
                 density=SpineParams.explicitSpineDensity
             except KeyError:
                 #Else, just use the actual density value
-                density=SpineParams.SpineDensity
+                density=distance_mapping(distance_mapped_spineDensity,comp)
             numSpines = int(np.round(density*comp.length))
 
             #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
