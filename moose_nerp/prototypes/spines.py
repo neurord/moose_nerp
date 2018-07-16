@@ -14,10 +14,10 @@ log = logutil.Logger()
 NAME_NECK = "neck"
 NAME_HEAD = "head"
 
-'''Need to decide whether Rm represents the compensated no spine case 
-(in which case adding spines needs to be decompensated)
-or whether Rm represents the case with spines 
-(in which case lack of spines needs to be compensated in a different place)
+'''The default behavior for spines is to assume no explicit spines and
+compensate for the spineDensity parameter in initial model construction. This
+file includes the compensation function, called in cellproto. Then, if any
+explicit spines are to be included, reverse compensation is performed.
 '''
 
 def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
@@ -31,7 +31,7 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
     log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
               comp.path, XArea, circumf,
               CM,np.pi*comp.diameter*comp.length)
-    comp.Ra = 4*RA*comp.length/XArea
+    comp.Ra = RA*comp.length/XArea
     comp.Rm = RM/(np.pi*comp.diameter*comp.length)
     cm = CM*np.pi*comp.diameter*comp.length
     if cm < 1e-15:
@@ -40,6 +40,34 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
     comp.Em = model.SpineParams.spineELEAK
     comp.initVm = model.SpineParams.spineEREST
     
+
+def setPassiveSpineParams(model,container,name_soma):
+    '''Sets the Spine Params for RM, CM, RA, from global values if NONE '''
+    # Get the global values by converting from Soma values:
+    soma = moose.element(container+'/'+name_soma)
+    globalRM = soma.Rm * (np.pi * soma.diameter * soma.length)
+    globalCM = soma.Cm / (np.pi * soma.diameter * soma.length)
+    globalRA = soma.Ra / (soma.length / (np.pi * soma.diameter * soma.diameter/4))
+    globalELEAK = soma.Em
+    globalEREST = soma.initVm
+    if model.SpineParams.spineRM is None:
+        model.SpineParams.spineRM = globalRM
+        log.debug('Setting spineRM to globalRM = {}', globalRM)
+    if model.SpineParams.spineCM is None:
+        model.SpineParams.spineCM = globalCM
+        log.debug('Setting spineCM to globalCM = {}', globalCM)
+    if model.SpineParams.neckRA is None:
+        model.SpineParams.neckRA = globalRA
+        log.debug('Setting neckRA to globalRA = {}', globalRA)
+    if model.SpineParams.headRA is None:
+        model.SpineParams.headRA = globalRA
+        log.debug('Setting headRA to globalRA = {}', globalRA)
+    if model.SpineParams.spineELEAK is None:
+        model.SpineParams.spineELEAK = globalELEAK
+        log.debug('Setting spineELEAK to globalELEAK = {}', globalELEAK)
+    if model.SpineParams.spineEREST is None:
+        model.SpineParams.spineEREST = globalEREST
+        log.debug('Setting spineEREST to globalEREST = {}', globalEREST)
 
 def makeSpine(model, parentComp, compName,index,frac,SpineParams):
     #frac is where along the compartment the spine is attached
@@ -64,7 +92,6 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
     head.x, head.y, head.z = head.x0, head.y0 + SpineParams.headlen, head.z0
 
     setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
-
     return head, neck
 
 
@@ -164,6 +191,8 @@ def getChildren(parentname,childrenlist):
 
 def addSpines(model, container,ghkYN,name_soma):
     headarray=[]
+    # Sets Spine Params to global values for RM, CM, etc. if value is None:
+    setPassiveSpineParams(model,container,name_soma)
     SpineParams = model.SpineParams
     suma = 0
 
