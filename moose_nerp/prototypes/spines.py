@@ -44,6 +44,10 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
 def setPassiveSpineParams(model,container,name_soma):
     '''Sets the Spine Params for RM, CM, RA, from global values if NONE '''
     # Get the global values by converting from Soma values:
+    # TODO: Make work with sperincal soma:
+    # e.g. if length == 0:
+    #     SA = np.pi*diam**2
+
     soma = moose.element(container+'/'+name_soma)
     globalRM = soma.Rm * (np.pi * soma.diameter * soma.length)
     globalCM = soma.Cm / (np.pi * soma.diameter * soma.length)
@@ -96,6 +100,7 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
 
 
 def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_area):
+    setPassiveSpineParams(model,comp.parent.name,name_soma)
     SpineParams = model.SpineParams
     distance_mapped_spineDensity = {(SpineParams.spineStart,SpineParams.spineEnd):SpineParams.spineDensity}
     if SpineParams.spineDensity == 0:
