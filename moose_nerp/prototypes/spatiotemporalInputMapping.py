@@ -56,6 +56,7 @@ import numpy as np
 import moose_nerp.prototypes.util as util
 import moose
 
+
 def selectRandom(elementList, n=1, replace=False, weight=None):
     '''Returns array of n elements selected from elementList.
     
@@ -65,6 +66,7 @@ def selectRandom(elementList, n=1, replace=False, weight=None):
     '''
     selections = np.random.choice(elementList, size=n, replace=replace, p=weight)
     return selections
+
 
 def distanceWeighting(elementList, distanceMapping):
     '''Creates non-uniform, distance-dependent weighted probability.
@@ -83,6 +85,7 @@ def distanceWeighting(elementList, distanceMapping):
     # Normalize weights to sum to 1:
     weights = weights/np.sum(weights)
     return weights
+
 
 def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan', 
                         minDistance=0, maxDistance=1, commonParentOrder=0, 
@@ -119,13 +122,17 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     elementList = []
     for el in allList:
         # Get Distance of element, or parent compartment if element not compartment
+        el = moose.element(el)
         if isinstance(el, (moose.Compartment, moose.ZombieCompartment)):
             dist,name = util.get_dist_name(el)
         elif isinstance(moose.element(el.parent),(moose.Compartment,moose.ZombieCompartment)):
             dist,name = util.get_dist_name(moose.element(el.parent))
         else:
             print('Invalid Element')
-        if (minDistance<dist<maxDistance) and moose.element(name).path in possibleCompartments:
+        if any(s in name.lower() for s in ['head'.lower(),'neck'.lower()]):
+            dist,name = util.get_dist_name(moose.element(el.parent))
+ 
+        if (minDistance<dist<maxDistance) and moose.element(neuron.path+'/'+name).path in possibleCompartments:
             elementList.append(el)
     return elementList
 
@@ -204,7 +211,7 @@ def mapCompartmentToBranch(neuron):
                     compToBranchDict[comp.path]['BranchPath']=bd[k]['BranchPath']
     return compToBranchDict    
     
-#%%
+
 def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0):
     '''Returns n Branches selected without replacement of specified order from
     soma (0=soma, 1=primary branch, etc.). n can be an int, less than the
