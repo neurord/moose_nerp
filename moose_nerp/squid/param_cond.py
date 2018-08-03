@@ -40,7 +40,9 @@ _squid = _util.NamedDict(
     'squid',
     K={prox: 360, dist: 560}, # Potassium channel g_bar to the squid axon surface.
     Na={prox: 1200, dist: 1000}, # Sodium channel g_bar to the squid axon surface.
-)
+    Krp={prox: 1, dist: 3},
+    SKCa={prox: 1, dist: 3}
+    )
 
 # Channel conductances
 Condset  = _util.NamedDict(

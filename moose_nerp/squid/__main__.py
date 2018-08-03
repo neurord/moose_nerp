@@ -33,18 +33,20 @@ from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 from ajustador.helpers.loggingsystem import getlogger
 logger = getlogger(__name__)
 logger.setLevel(logging.DEBUG)
-handle = logging.StreamHandler()
-handle.setLevel(logging.DEBUG)
-logger.addHandler(handle)
-logger.debug("@@@@@@@")
+#handle = logging.StreamHandler()
+#handle.setLevel(logging.DEBUG)
+#logger.addHandler(handle)
 
 #import engineering_notation as eng
 
 option_parser = standard_options.standard_options(
     default_injection_current=[1e-9], #units (Amperes)
-    default_simulation_time=100e-3, #units (Seconds)
-    default_injection_width=40e-3, #units (Seconds)
-    default_injection_delay=20e-3, #units (Seconds)
+    #default_simulation_time=100e-3, #units (Seconds)
+    #default_injection_width=40e-3, #units (Seconds)
+    #default_injection_delay=20e-3, #units (Seconds)
+    default_simulation_time=200e-3, #units (Seconds) #2 second simulations
+    default_injection_width=130e-3, #units (Seconds)  #1 second injection spacing
+    default_injection_delay=30e-3, #units (Seconds)  #0.5 second injection start
     default_plotdt=25e-6 #units (Seconds)
 
     #default_injection_current=[float(eng.EngUnit('1nA'))], #units (Amperes)
@@ -57,6 +59,8 @@ option_parser = standard_options.standard_options(
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
 param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace.npy'
+#param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau.npy'
+#param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau_z.npy'
 
 plotcomps=[model.param_cond.NAME_SOMA]
 

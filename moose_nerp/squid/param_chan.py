@@ -2,7 +2,8 @@ from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import AlphaBetaChannelParams
 from moose_nerp.prototypes.chan_proto import ChannelSettings
 from moose_nerp.prototypes.chan_proto import TypicalOneD
-
+from moose_nerp.prototypes.chan_proto import TauInfMinChannelParams
+from moose_nerp.prototypes.chan_proto import ZChannelParams
 
 EREST_ACT = -70e-3 # units(Volts) # Neuron resting potential.
 
@@ -66,8 +67,43 @@ K_n_params = AlphaBetaChannelParams(A_rate = -1e4*(-10e-3 - EREST_ACT),
 
 KSparam = ChannelSettings(Xpow=4, Ypow=0, Zpow=0, Erev=krev, name='K')
 
+Krp_X_params = AlphaBetaChannelParams(A_rate = 16,
+                                      A_B = 0,
+                                      A_C = 0.0,
+                                      A_vhalf = 0,
+                                      A_vslope = -20e-3,
+                                      B_rate = 2.4,
+                                      B_B = 0.0,
+                                      B_C = 0.0,
+                                      B_vhalf = 0.0,
+                                      B_vslope = 40e-3)
+
+Krp_Y_params = TauInfMinChannelParams(T_min = 0.287,
+                                    T_vdep = 4.16,
+                                    T_vhalf = -0.042,
+                                    T_vslope = 0.013,
+                                    SS_min = 0.13,
+                                    SS_vdep = 0.87,
+                                    SS_vhalf = -0.056,
+                                    SS_vslope = 0.014)
+
+Krpparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='Krp')
+
+
+SK_Z_params = ZChannelParams(Kd=0.00035,
+                             power=4.6,
+                             tau=0.002,
+                             taumax=0.0037928,
+                             tau_power=4.3,
+                             cahalf=0.002703
+                             )
+
+SKparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=krev, name='SKCa')
+
 Channels = NamedDict(
     'Channels',
     Na = TypicalOneD(NaSparam, Na_m_params, Na_h_params),
-    K =  TypicalOneD(KSparam, K_n_params, None)
+    K =  TypicalOneD(KSparam, K_n_params, None),
+    Krp = TypicalOneD(Krpparam, Krp_X_params,Krp_Y_params),
+    SKCa =TypicalOneD(SKparam, [], [], SK_Z_params, calciumDependent=True)
 )
