@@ -43,15 +43,16 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
 
 def setPassiveSpineParams(model,container,name_soma):
     '''Sets the Spine Params for RM, CM, RA, from global values if NONE '''
-    # Get the global values by converting from Soma values:
-    # TODO: Make work with sperincal soma:
-    # e.g. if length == 0:
-    #     SA = np.pi*diam**2
-
     soma = moose.element(container+'/'+name_soma)
-    globalRM = soma.Rm * (np.pi * soma.diameter * soma.length)
-    globalCM = soma.Cm / (np.pi * soma.diameter * soma.length)
-    globalRA = soma.Ra / (soma.length / (np.pi * soma.diameter * soma.diameter/4))
+    if soma.length == 0:
+         SA = np.pi*soma.diameter**2
+         len_by_XA=1/(np.pi * soma.diameter/8) #eqn from Hendrickson & Jaeger 2010
+    else:
+        SA =np.pi * soma.diameter * soma.length 
+        len_by_XA=soma.length / (np.pi * soma.diameter * soma.diameter/4) #4 converts dia to radius
+    globalRM = soma.Rm * SA
+    globalCM = soma.Cm / SA
+    globalRA = soma.Ra / len_by_XA
     globalELEAK = soma.Em
     globalEREST = soma.initVm
     if model.SpineParams.spineRM is None:
