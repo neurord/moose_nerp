@@ -97,7 +97,7 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
 def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
         if Params.A_rate != Params.A_B * Params.A_vhalf: 
-            log.warn("Please verify constrain on Alpha: A = B * vhalf {}", type(Params))
+            log.warn("Please verify constrain on Alpha: A = B * vhalf {}", Params)
         V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.A_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
@@ -107,7 +107,7 @@ def fix_singularities(model, Params, Gate):
 
     if Params.B_C < 0:
         if Params.B_rate != Params.B_B * Params.B_vhalf: 
-            log.warn("Please verify constrain on Beta: A = B * vhalf {}", type(Params))
+            log.warn("Please verify constrain on Beta: A = B * vhalf {}", Params)
         V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.B_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
