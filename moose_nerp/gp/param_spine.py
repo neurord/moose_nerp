@@ -1,5 +1,3 @@
-from . import param_cond
-
 from moose_nerp.prototypes import util as _util
 
 SpineParams = _util.NamedDict(
