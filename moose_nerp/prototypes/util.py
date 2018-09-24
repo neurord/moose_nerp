@@ -45,31 +45,17 @@ def get_dist_name(comp):
     return dist,name
 
 def distance_mapping(mapping, where):
-    # We assume that the dictionary is very small, so a linear search is OK.
-   
+    #where is a location, either a compartment or string or moose.vec
     if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
-        dist,name = get_dist_name(where)
-        
+        comp=where
     elif isinstance(where,moose.vec):
         #Needs to be tested.  May need to loop over comps in moose.vec
         comp = moose.element(where)
-        if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
-            dist,name = get_dist_name(comp)
-        else:
-            print('Wrong element class ',dist)
-            return 0
-
     elif isinstance(where,str):
         try:
             comp =  moose.element(where)
         except ValueError:
             print('No element ',where)
-            return 0
-        
-        if isinstance(comp, (moose.Compartment, moose.ZombieCompartment)):
-            dist,name = get_dist_name(comp)
-        else:
-            print('Wrong element class ',where)
             return 0
     elif isinstance(where, _numbers.Number):
         name = ''
@@ -77,40 +63,43 @@ def distance_mapping(mapping, where):
     else:
         print('Wrong distance/element passed in distance mapping ',where)
         return 0
+    #calculate distance of compartment from soma
+    if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
+        dist,name = get_dist_name(where)
 
-    res = {}
-    for k, v in mapping.items():
-        if len(k)  == 3:
-            left, right, description = k
+    from collections import OrderedDict as od
+    ordered_map=od(sorted(mapping.items(),key=lambda x:len(x[0]),reverse=True))
+    result=None
+    for k, value in ordered_map.items():
+        #print('k,v',k,value)
+        if len(k) == 3:
+            min_dist, max_dist, description = k
         elif len(k) == 2:
-            left, right = k
-            description = ''
+            min_dist, max_dist = k
+            description=''
         else:
             continue
-        if left <= dist < right:
+        if min_dist <= dist < max_dist:
             if description:
-                #name.endswith allows using swc files with _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
+                #name.startswith allows using swc files with _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
                 if name.startswith(description) or name.endswith(description):
-                    res['description'] = v
+                    result = value
+                    break
             else:
-                res['no_description'] = v
-            
-    if not res: 
+                result = value
+                break
+    #print('##########', comp.name,'at',dist,'=',result)
+    if not result:
         return 0
 
-    if 'description' in res:
-        v = res['description']
-    else:
-        v = res['no_description']
-    if isinstance(v, _numbers.Number):
-        return v
-    #These next two are likely not used yet.  May be place holder for adding distance dependent conductance
-    elif isinstance(v, list):
-        return v
-    elif isinstance(v, dict):
-        return v
-    
-    return v(dist)
+    if isinstance(result, _numbers.Number):
+        return result
+    elif isinstance(result, list):
+        return result
+    elif isinstance(result, dict): #Used for calcium buffer and pump dictionaries
+        return result
+    #otherwise, calculate distance dependent function.  
+    return result(dist)
 
 try:
     from __builtin__ import execfile
