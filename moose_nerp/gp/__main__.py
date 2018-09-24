@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
-
+#1. repeat optimizations with fixed Buffer Capacity.  
+#2. use helpers to copy parameters into param_cond
+#3. run single neuron simulations to verify
+#4. run network simulations (single = True, then False) with and without ethanol - prelim
 ####################
 ## Code to create two globus pallidus neurons
 ##      using dictionaries for channels and synapses
@@ -18,95 +21,67 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from moose_nerp.prototypes import (cell_proto,
-                     calcium,
-                     clocks,
-                     inject_func,
-                     tables,
-                     plasticity_test,
-                     logutil,
-                     util,
-                     standard_options,
-                     constants)
+from moose_nerp.prototypes import (create_model_sim,
+                                   cell_proto,
+                                   calcium,
+                                   clocks,
+                                   inject_func,
+                                   tables,
+                                   plasticity_test,
+                                   logutil,
+                                   util,
+                                   standard_options,
+                                   constants)
 from moose_nerp import gp as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
-
-option_parser = standard_options.standard_options(
-    default_injection_current=[-100e-12],
-    default_simulation_time=0.1,
-    default_injection_width=1.0,
-    default_injection_delay=0.047,
-    default_plotdt=0.0001)
-#,default_stim='PSP_1')
-# Issue with stimulation needs fixing:
-#Line 83: st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(model,ntype)
-#File "moose_nerp/prototypes/inject_func.py", line 227, in ConnectPreSynapticPostSynapticStimulation
-#stim_spines.update(new_spines)
-#TypeError: 'NoneType' object is not iterable
-#same error with or without spines
- 
-
-param_sim = option_parser.parse_args()
-param_sim.save=1
-param_sim.plot_channels=0
-
-plotcomps=[model.param_cond.NAME_SOMA]
-
-######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
-#################################-----------create the model
-##create 2 neuron prototypes, optionally with synapses, calcium, and spines
+#set-up option parser with overrides specified from with python terminal
+#no default_x specs are needed if running from unix terminal
+option_parser = standard_options.standard_options(
+      default_injection_current=[0e-12,-200e-12],
+      default_simulation_time=1.01,
+      default_injection_width=1.0,
+      default_injection_delay=0.047,
+      default_plotdt=0.0001)
+param_sim = option_parser.parse_args()
 
-syn,neuron = cell_proto.neuronclasses(model)
-print('syn:', syn)
-print('neuron:', neuron)
+#additional, optional parameter overrides specified from with python terminal
+param_sim.save=0
+param_sim.plot_channels=0
 
-plas = {}
+#list of size >=1 is required for plotcomps
+plotcomps=[model.param_cond.NAME_SOMA]
 
-####### Set up stimulation
-pg,param_sim=inject_func.setup_stim(model,param_sim,neuron)
+######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
+model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
-#If calcium and synapses created, could test plasticity at a single synapse in syncomp
-#Need to debug this since eliminated param_sim.stimtimes
-#See what else needs to be changed in plasticity_test. 
-if model.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(model, param_sim.syncomp, syn, param_sim.stimtimes)
-    
-###############--------------output elements
+#default file name is obtained from stimulation parameters
+fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
+
+############## required for all simulations: create the model, set up stimulation and basic output
+
+syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+
+############# Optionally, some additional output ##############
+
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
 
-vmtab, catab, plastab, currtab = tables.graphtables(model, neuron, 
-                              param_sim.plot_current,
-                              param_sim.plot_current_message,
-                              plas,plotcomps)
-
 # create spikegens to detect and spike tables to count spikes
 spiketab=tables.spiketables(neuron,model.param_cond)
-
-if param_sim.save:
-    fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
-    tables.setup_hdf5_output(model, neuron, filename=fname+'.npz')
 
 if model.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
 else:
     spinevmtab=[]
-########## clocks are critical. assign_clocks also sets up the hsolver
-simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
-clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 
-if param_sim.hsolve and model.calYN:
-    calcium.fix_calcium(util.neurontypes(model.param_cond), model)
-
-###########Actually run the simulation
+########### Actually run the simulation: customize as desired
 def run_simulation( simtime,injection_current=None):
     if model.param_stim.Stimulation.Paradigm.name == 'inject':
         print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
@@ -142,22 +117,6 @@ for inj in param_sim.injection_current:
     if len(spinevmtab) and param_sim.plot_vm:
         spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
 
-#
-#subset1=['proto_HCN1','proto_HCN2' ]
-#subset2=['proto_NaS']
-#subset3=['proto_Ca']
-#subset4=['proto_BKCa']
-#subset5=['proto_NaS']
-#subset6 = ['proto_KvS']
-#subsetin=['proto_HCN1','proto_HCN2','proto_NaS', 'proto_Ca' ,'proto_NaF']
-#subsetout=['proto_KCNQ','proto_KvS', 'proto_KvF', 'proto_Kv3', 'proto_SKCa','proto_KDr' ]
-#neuron_graph.CurrentGraphSet(value,label,subsetin, param_sim.simtime)
-#neuron_graph.CurrentGraphSet(value, label, subsetout, param_sim.simtime)
-#neuron_graph.CurrentGraphSet(value, label, subset3, param_sim.simtime)
-#neuron_graph.CurrentGraphSet(value, label, subset4, param_sim.simtime)
-#neuron_graph.CurrentGraphSet(value, label, subset5, param_sim.simtime)
-#neuron_graph.CurrentGraphSet(value, label, subset6, param_sim.simtime)
-
 if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if model.calYN and param_sim.plot_calcium:
@@ -169,3 +128,8 @@ util.block_if_noninteractive()
 for st in spiketab:
       print("number of spikes", st.path, ' = ',len(st.vector))
 
+#dat=pickle.load(open('params.pickle','rb'))
+'''dat=np.load('/tmp/fitgp-arky-tmp_arky1202938/tmpwp_8zpqg/ivdata--2e-10.npy','r')
+ts=np.arange(0,2.0,0.0001)
+plt.plot(ts[0:6000],dat[0:6000])
+'''
