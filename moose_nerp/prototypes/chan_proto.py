@@ -79,7 +79,7 @@ def make_sigmoid_gate(model,params,Gate):
     Gate.divs = model.VDIVS
     Gate.tableA = minf/tau
     Gate.tableB = 1/tau
-    
+
 def interpolate_values_in_table(model, tabA, V_0, l=40):
     '''This function interpolates values in the table
     around tabA[V_0]. '''
@@ -93,9 +93,11 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     b = A_max - a*V_max
     tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
     return tabA
- 
+
 def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
+        if Params.A_rate != Params.A_B * Params.A_vhalf:
+            log.warning("Please verify constraint on Alpha: A = B * vhalf {}", Params)
         V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.A_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
@@ -104,6 +106,8 @@ def fix_singularities(model, Params, Gate):
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)
 
     if Params.B_C < 0:
+        if Params.B_rate != Params.B_B * Params.B_vhalf:
+            log.warning("Please verify constraint on Beta: A = B * vhalf {}", Params)
         V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.B_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
@@ -126,9 +130,9 @@ def chan_proto(model, chanpath, params):
 
     chan.Xpower = params.channel.Xpow
     if params.channel.Xpow > 0:
-        xGate = moose.HHGate(chan.path + '/gateX')     
+        xGate = moose.HHGate(chan.path + '/gateX')
         make_gate(params.X,model,xGate)
-        
+
     chan.Ypower = params.channel.Ypow
     if params.channel.Ypow > 0:
         yGate = moose.HHGate(chan.path + '/gateY')
@@ -229,4 +233,3 @@ def chanlib(model):
         ghk.T = model.Temp
         ghk.Cout = model.ConcOut
         ghk.valency=2
-
