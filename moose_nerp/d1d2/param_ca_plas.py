@@ -22,7 +22,7 @@ SLAB = 1
 CUSTOM = 3
 
 #region/distance definitions
-soma = (0,141e-6)
+soma = (0,14.1e-6)
 dend = (14.100000000000000001e-6,1000e-6)
 everything = (0.,1.)
 spines = (0.,1.,'sp')
