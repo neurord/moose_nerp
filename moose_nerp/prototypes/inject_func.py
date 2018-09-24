@@ -288,7 +288,7 @@ def inject_pop(population, num_inject):
             choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
     return choice_neurs
 
-def setup_stim(model,param_sim,neuron):
+def setup_stim(model,param_sim,neuron_paths):
     if model.param_stim.Stimulation.Paradigm.name is not 'inject':
         ### plasticity paradigms combining synaptic stimulation with optional current injection
         sim_time = []
@@ -305,9 +305,9 @@ def setup_stim(model,param_sim,neuron):
             param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
             param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
             param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
-        all_neurons={}
-        for ntype in neuron.keys():
-            all_neurons[ntype]=list([neuron[ntype].path])
-        pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,all_neurons)
+        #all_neurons={}
+        #for ntype in neuron.keys():
+        #    all_neurons[ntype]=list([neuron[ntype].path])
+        pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,neuron_paths)
     return pg,param_sim
 
