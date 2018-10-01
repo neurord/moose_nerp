@@ -13,16 +13,6 @@ Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
 
-# _neurontypes = None
-#def neurontypes(override=None):
-#    "Query or set names of neurontypes of each neuron created"
-#    global _neurontypes
-#    if override is None:
-#        return _neurontypes if _neurontypes is not None else sorted(Condset.keys())
-#    else:
-#        if any(key not in Condset.keys() for key in override):
-#            raise ValueError('unknown neuron types requested')
-#        _neurontypes = override
 
 # NOTE: Morph file is neuron shape file (*.p) in the model root directory.
 #morph_file = {'squid':'squid.p'} # Single compartment Squid morphology model.

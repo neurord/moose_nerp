@@ -18,16 +18,17 @@ plt.ion()
 from pprint import pprint
 import moose
 
-from moose_nerp.prototypes import (cell_proto,
-                     calcium,
-                     clocks,
-                     inject_func,
-                     tables,
-                     plasticity_test,
-                     logutil,
-                     util,
-                     standard_options,
-                     constants)
+from moose_nerp.prototypes import (create_model_sim,
+                                   cell_proto,
+                                   calcium,
+                                   clocks,
+                                   inject_func,
+                                   tables,
+                                   plasticity_test,
+                                   logutil,
+                                   util,
+                                   standard_options,
+                                   constants)
 from moose_nerp import squid as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 from ajustador.helpers.loggingsystem import getlogger
@@ -36,6 +37,8 @@ logger.setLevel(logging.DEBUG)
 #handle = logging.StreamHandler()
 #handle.setLevel(logging.DEBUG)
 #logger.addHandler(handle)
+logging.basicConfig(level=logging.DEBUG)
+log = logutil.Logger()
 
 #import engineering_notation as eng
 
@@ -59,6 +62,7 @@ option_parser = standard_options.standard_options(
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
 param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace.npy'
+param_sim.plot_channels=1
 #param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau.npy'
 #param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau_z.npy'
 
@@ -66,70 +70,34 @@ plotcomps=[model.param_cond.NAME_SOMA]
 
 model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
-logging.basicConfig(level=logging.DEBUG)
-log = logutil.Logger()
 
-######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-#These assignment statements are required because they are not part of param_sim namespace.
-if param_sim.calcium is not None:
-    model.calYN = param_sim.calcium
-if param_sim.spines is not None:
-    model.spineYN = param_sim.spines
-if param_sim.stim_paradigm is not None:
-    model.param_stim.Stimulation.Paradigm=ep.param_stim.paradigm_dict[param_sim.stim_paradigm]
-if param_sim.stim_loc is not None:
-    model.param_stim.Stimulation.StimLoc.stim_dendrites=param_sim.stim_loc
+######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
+model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
-#These assignments make assumptions about which parameters should be changed together
-if model.calYN and param_sim.plot_calcium is None:
-    param_sim.plot_calcium = True
-if model.param_stim.Stimulation.Paradigm.name is not 'inject':
-    #override defaults if synaptic stimulation is planned
-    model.synYN=1
-    #this will need enhancement in future, e.g. in option_parser, to plot additional locations
-    plotcomps=plotcomps+model.param_stim.location.stim_dendrites
+#default file name is obtained from stimulation parameters
+fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
-#################################-----------create the model
-##create neuron prototype, optionally with synapses, calcium, and spines
+############## required for all simulations: create the model, set up stimulation and basic output
+
+syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+
 
 logger.debug("{} ?????".format(model.param_cond))
 logger.debug("Check for simtime: {}".format(param_sim))
-MSNsyn,neuron = cell_proto.neuronclasses(model)
-print('MSNsyn:', MSNsyn)
+
+print('syn:', syn)
 print('neuron:', neuron)
 
-plas = {}
+############# Optionally, some additional output ##############
 
-####### Set up stimulation
-if model.param_stim.Stimulation.Paradigm.name is not 'inject':
-    ### plasticity paradigms combining synaptic stimulation with optional current injection
-    sim_time = []
-    for ntype in model.neurontypes():
-        #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
-        st, spines, pg = inject_func.ConnectPreSynapticPostSynapticStimulation(ep,ntype)
-        sim_time.append( st)
-        plas[ntype] = spines
-    param_sim.simtime = max(sim_time)
-    param_sim.injection_current = [0]
-else:
-    ### Current Injection alone, either use values from Paradigm or from command-line options
-    if not np.any(param_sim.injection_current):
-        param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
-        param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
-        param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
-    all_neurons={}
-    for ntype in neuron.keys():
-        all_neurons[ntype]=list([neuron[ntype].path])
-    pg=inject_func.setupinj(model, param_sim.injection_delay, param_sim.injection_width,all_neurons)
-
-#If calcium and synapses created, could test plasticity at a single synapse in syncomp
-#Need to debug this since eliminated param_sim.stimtimes
-#See what else needs to be changed in plasticity_test.
-if model.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(model, param_sim.syncomp, MSNsyn, param_sim.stimtimes)
+if param_sim.plot_channels:
+    for chan in model.Channels.keys():
+        libchan=moose.element('/library/'+chan)
+        plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
+                                      model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
 
 ###############--------------output elements
-param_sim.plot_channels=1 #Set 1 to plot_channels else 0.
+ #Set 1 to plot_channels else 0.
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
         libchan=moose.element('/library/'+chan)
@@ -137,24 +105,10 @@ if param_sim.plot_channels:
                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
 
 
-vmtab, catab, plastab, currtab = tables.graphtables(model, neuron,
-                              param_sim.plot_current,
-                              param_sim.plot_current_message,
-                              plas,plotcomps)
-
-if param_sim.save:
-    tables.setup_hdf5_output(d1d2, neuron, param_sim.save)
-
 if model.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
 else:
     spinevmtab=[]
-########## clocks are critical. assign_clocks also sets up the hsolver
-simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
-clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
-
-if param_sim.hsolve and model.calYN:
-    calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):

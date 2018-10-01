@@ -18,83 +18,62 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from moose_nerp.prototypes import (cell_proto,
-                     calcium,
-                     clocks,
-                     inject_func,
-                     tables,
-                     plasticity_test,
-                     logutil,
-                     util,
-                     standard_options,
-                     constants)
+from moose_nerp.prototypes import (create_model_sim,
+                                   cell_proto,
+                                   calcium,
+                                   clocks,
+                                   inject_func,
+                                   tables,
+                                   plasticity_test,
+                                   logutil,
+                                   util,
+                                   standard_options,
+                                   constants)
 from moose_nerp import d1d2 as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
-
-#two examples of calling option_parser - one overrides the defaults and is useful when running from python window
-option_parser = standard_options.standard_options()
-option_parser = standard_options.standard_options(default_calcium=True, default_synapse=True,default_spines=True,default_injection_current=[0.2e-9],default_simulation_time=0.2,default_stim='inject',default_stim_loc='soma')
-#,default_simulation_time=0.01)
-param_sim = option_parser.parse_args()
-
-param_sim.save=1
-param_sim.plot_channels=0
-plotcomps=[model.param_cond.NAME_SOMA]
-
-######## adjust the model settings if specified by command-line options and retain model defaults otherwise
-model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
-#################################-----------create the model
-##create 2 neuron prototypes, optionally with synapses, calcium, and spines
+#two examples of calling option_parser - one overrides the defaults and is useful when running from python window
+#option_parser = standard_options.standard_options()
+option_parser = standard_options.standard_options(
+      default_injection_current=[-0.2e-9,0.26e-9],
+      default_stim='inject',
+      default_stim_loc='soma')
+param_sim = option_parser.parse_args()
 
-syn,neuron= cell_proto.neuronclasses(model)
+#additional, optional parameter overrides specified from with python terminal
+param_sim.save=0
+param_sim.plot_channels=0
 
-plas = {}
+#list of size >=1 is required for plotcomps
+plotcomps=[model.param_cond.NAME_SOMA]
 
-####### Set up stimulation 
-pg,param_sim=inject_func.setup_stim(model,param_sim,neuron)
+######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
+model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
-#If calcium and synapses created, could test plasticity at a single synapse in syncomp
-#Need to debug this since eliminated param_sim.stimtimes
-#See what else needs to be changed in plasticity_test. 
-if model.plasYN:
-      plas,stimtab=plasticity_test.plasticity_test(model, param_sim.syncomp, syn, param_sim.stimtimes)
-    
-###############--------------output elements
+#default file name is obtained from stimulation parameters
+fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
+
+
+############# required for all simulations: create the model, set up stimulation and basic output
+
+syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+
+############# Optionally, some additional output ##############
+
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
 
-vmtab, catab, plastab, currtab = tables.graphtables(model, neuron,
-                              param_sim.plot_current,
-                              param_sim.plot_current_message,
-                              plas,plotcomps)
-if param_sim.save:
-    fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
-    tables.setup_hdf5_output(model, neuron, filename=fname+'.npz')
-
 if model.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
 else:
     spinevmtab=[]
 
-########## clocks are critical. assign_clocks also sets up the hsolver
-simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
-clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve, model.param_cond.NAME_SOMA)
-print("simdt", param_sim.simdt, "hsolve", param_sim.hsolve)
-
-if param_sim.hsolve and model.calYN:
-    calcium.fix_calcium(util.neurontypes(model.param_cond), model)
-
-########### plot xgate
-xtab=moose.Table('data/xgate')
-kirchan=moose.element('/D1/soma/Kir')
-moose.connect(xtab,'requestOut', kirchan,'getX')
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
     if model.param_stim.Stimulation.Paradigm.name == 'inject':
@@ -135,11 +114,12 @@ if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if model.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
-'''plt.figure()
-ts = np.linspace(0, param_sim.simtime, len(xtab.vector))
-plt.plot(ts,xtab.vector,label='Kir, X value')
-plt.legend()
-plt.show()
+
+'''dat=np.load('/tmp/fitd1d2-D1-tmp_non05Jan2015_SLH00462938/tmpu3y709a8/ivdata-2.6e-10.npy','r')
+ts=np.arange(0,0.8,0.0002)
+plt.plot(ts[0:3500],dat[500:4000])
 '''
 # block in non-interactive mode
 util.block_if_noninteractive()
+
+#may need to eliminate parameter_overrides for Cal, Syn, etc - to prevent ajustador - moose_nerp differences
