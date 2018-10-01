@@ -19,19 +19,19 @@ def create_model_sim(model,fname,param_sim,plotcomps):
 
     #If calcium and synapses created, could test plasticity at a single synapse in syncomp
     #Need to debug this since eliminated param_sim.stimtimes
-    #See what else needs to be changed in plasticity_test. 
+    #See what else needs to be changed in plasticity_test.
     plas = {}
     if model.plasYN:
         plas,stimtab=plasticity_test.plasticity_test(model, param_sim.syncomp, syn, param_sim.stimtimes)
 
     ###############--------------output elements
-    vmtab, catab, plastab, currtab = tables.graphtables(model, neurons, 
+    vmtab, catab, plastab, currtab = tables.graphtables(model, neurons,
                                                         param_sim.plot_current,
                                                         param_sim.plot_current_message,
                                                         plas,plotcomps)
 
     if param_sim.save:
-        writer=tables.setup_hdf5_output(model, neurons, filename=fname+'.npz')
+        writer=tables.setup_hdf5_output(model, neurons, filename=fname+'.npz', compartments=[model.param_cond.NAME_SOMA])
     else:
         writer=None
 
