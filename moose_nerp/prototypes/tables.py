@@ -31,7 +31,7 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
     else:
         print('using', HDF5WRITER_NAME)
         writer = moose.element(HDF5WRITER_NAME)
-    
+
     for typenum,neur_type in enumerate(neuron.keys()):
         for ii,compname in enumerate(compartments):  #neur_comps):
             comp=moose.element(neur_type+'/'+compname)
@@ -47,14 +47,14 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
                         moose.connect(writer, 'requestOut', cal, 'getC')
     return writer
 
-def write_textfile(tabset,tabname,fname,inj, simtime):
+def write_textfile(tabset:list, tabname:str, fname:str, inj:float, simtime:float) -> str:
     time=np.linspace(0, simtime, len(tabset[0][0].vector))
     header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tab])
     outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tab])))
     new_fname=fname+str(inj)+tabname+'.txt'
     #f.write(header+'\n')
     np.savetxt(new_fname,outputdata,fmt='%.6f',header=header)
-    return
+    return new_fname
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
