@@ -99,7 +99,7 @@ def standard_options(parser=None,
                         help='compartment for synapses',
                         default=default_stim_loc)
     
-        #arguments that control what to plot
+    #arguments that control what to plot
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',
                         const=True, default=default_plot_vm)

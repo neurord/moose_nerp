@@ -34,6 +34,7 @@ from moose_nerp.prototypes import (create_model_sim,
                                    constants)
 from moose_nerp import gp as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
+from moose_nerp.prototypes import print_params
 
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
@@ -59,13 +60,21 @@ plotcomps=[model.param_cond.NAME_SOMA]
 model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
 #default file name is obtained from stimulation parameters
-fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
+fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
 
 ############## required for all simulations: create the model, set up stimulation and basic output
 
-syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+
+####### Set up stimulation - could be current injection or synaptic
+neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+
+pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
+if log.logger.level==logging.DEBUG:
+    for neur in neuron.keys():
+        print_params.print_elem_params(model,neur,param_sim)
 
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
@@ -89,6 +98,7 @@ def run_simulation( simtime,injection_current=None):
     moose.reinit()
     moose.start(simtime)
 
+vmtab, catab, plastab, currtab=outtables
 traces, names = [], []
 value = {}
 label = {}
@@ -130,6 +140,7 @@ for st in spiketab:
 
 #dat=pickle.load(open('params.pickle','rb'))
 '''dat=np.load('/tmp/fitgp-arky-tmp_arky1202938/tmpwp_8zpqg/ivdata--2e-10.npy','r')
-ts=np.arange(0,2.0,0.0001)
+simtime=2.0
+ts=np.arange(0,simtime,simtime/(len(dat)-1))
 plt.plot(ts[0:6000],dat[0:6000])
 '''
