@@ -33,6 +33,7 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
         if hsolveYN:
             hsolve = moose.HSolve(path + '/hsolve')
             hsolve.dt=simdt
+            # Compartment is transformed into zombiecompartment after below statement.
             hsolve.target = path+'/'+name_soma
             log.info("Using HSOLVE for {} clock {}", hsolve.path, hsolve.tick)
     moose.reinit()
