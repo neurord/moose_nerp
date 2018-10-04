@@ -27,7 +27,7 @@ def create_model_sim(model,fname,param_sim,plotcomps):
                                                         plas,plotcomps)
 
     if param_sim.save:
-        writer=tables.setup_hdf5_output(model, neurons, filename=fname)
+        writer=tables.setup_hdf5_output(model, neurons, filename=fname,compartments=plotcomps)
     else:
         writer=None
 
