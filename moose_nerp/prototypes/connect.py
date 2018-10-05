@@ -57,7 +57,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn):
     syncomps=[]
     totalsyn=0
     for syncomp in allsyncomp_list:
-        dist,nm=util.get_dist_name(syncomp)
+        dist,nm=util.get_dist_name(syncomp.parent)
         SynPerComp = util.distance_mapping(NumSyn[syntype], dist)
         syncomps.append([syncomp.path,SynPerComp])
         totalsyn+=SynPerComp
