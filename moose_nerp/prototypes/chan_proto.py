@@ -98,7 +98,7 @@ def fix_singularities(model, Params, Gate):
     if Params.A_C < 0:
         delta = Params.A_rate - Params.A_B * Params.A_vhalf
         if delta > 0.002 or delta < -0.002:
-            log.warning("Please verify constraint on Alpha: A = B * vhalf {}", Params)
+            log.warning("Please verify constraint on Alpha: A = B * vhalf {}\n A - B*Vhalf: {}", Params, delta)
         V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.A_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
@@ -109,7 +109,7 @@ def fix_singularities(model, Params, Gate):
     if Params.B_C < 0:
         delta = Params.B_rate - Params.B_B * Params.B_vhalf
         if delta > 0.002 or delta < -0.002:
-            log.warning("Please verify constraint on Beta: A = B * vhalf {}", Params)
+            log.warning("Please verify constraint on Beta: A = B * vhalf {}\n A - B*Vhalf: {}", Params, delta)
         V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.B_vhalf
 
         if model.VMIN < V_0 < model.VMAX:
