@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 ######## SPneuronSim.py ############
-## Code to create two SP neuron classes 
+## Code to create two SP neuron classes
 ##      using dictionaries for channels and synapses
 ##      calcium based learning rule/plasticity function, optional
 ##      spines, optionally with ion channels and synpases
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-import moose 
+import moose
 
 from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
@@ -57,9 +57,11 @@ model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
 
-############# required for all simulations: create the model, set up stimulation and basic output
-
-syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+############## required for all simulations: create the model, set up stimulation and basic output
+syn,neuron,writer,[vmtab, catab, plastab, currtab]=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+####### Set up stimulation - could be current injection or synaptic
+neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
 
