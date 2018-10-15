@@ -238,7 +238,7 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
 
     BufferParams = model.CaPlasticityParams.BufferParams
 
-    PumpKm = model.CaPlasticityParams.PumpKm
+    PumpParams = model.CaPlasticityParams.PumpParams
 
     difshell = []
     buffers = []
