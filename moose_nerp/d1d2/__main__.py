@@ -32,7 +32,8 @@ from moose_nerp.prototypes import (create_model_sim,
 from moose_nerp import d1d2 as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-logging.basicConfig(level=logging.INFO)
+level = logging.DEBUG
+logging.basicConfig(level=level)
 log = logutil.Logger()
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
@@ -61,12 +62,16 @@ fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.s
 #create_model_sim.limit_Condset(model, condSubset='D1')
 
 ############## required for all simulations: create the model, set up stimulation and basic output
-syn,neuron,writer,[vmtab, catab, plastab, currtab]=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+vmtab, catab, plastab, currtab = outtables
 ####### Set up stimulation - could be current injection or synaptic
 neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
 pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
+if level == logging.DEBUG:
+    for neur in neuron.keys():
+        print_params.print_elem_params(model,neur,param_sim)
 
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
