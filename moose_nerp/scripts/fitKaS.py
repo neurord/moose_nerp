@@ -6,6 +6,10 @@ Created on Tue Jun 26 16:01:33 2018
 @author: dandorman
 """
 
+#TODO: Convert to generalizable function/class for fitting channel params
+# Note: See https://stackoverflow.com/questions/19244527/scipy-optimize-how-to-restrict-argument-values 
+# for a possible, different approach for fitting Linoid, Sigmoid, OR exp forms with constraints on parameters
+
 import numpy as np
 from matplotlib import pyplot as plt
 import scipy.optimize
@@ -70,7 +74,7 @@ def fit(X,*args):
     sserror=(ss-ssfit)/np.max(ssfit)
     taurms = np.sqrt(np.mean(tauerror**2))
     ssrms = np.sqrt(np.mean(sserror**2))
-    error=taurms+ssrms
+    error=2*taurms+ssrms
     return error
 
 ### Parameter boundaries for fitting function:
@@ -81,7 +85,7 @@ vslopebound=(-20000,20000)
 bounds=[ratebound,vhalfbound,vslopebound]*2
 
 ### Fitting Function, passing yInf/yTau equations to fit yGate:
-resY=scipy.optimize.differential_evolution(fit,bounds,args=(yInfWolf,yTauWolf),tol=1e-15,maxiter=20000)#,mutation=1.9,seed=12,popsize=60,recombination=0.2)
+resY=scipy.optimize.differential_evolution(fit,bounds,args=(yInfWolf,yTauWolf),tol=1e-15,maxiter=200)#,mutation=1.9,seed=12,popsize=60,recombination=0.2)
 
 # Get best alpha,beta,tau,and ss values using the outcome of fitting procedure:
 alpha,beta,tau,ss = alphabetafunction(resY.x)
@@ -99,7 +103,7 @@ plt.legend()
 
 
 ### Fitting Function, passing xInf/xTau equations to fit xGate:
-resX=scipy.optimize.differential_evolution(fit,bounds,args=(xInfWolf,xTauWolf),tol=1e-15,maxiter=20000)#,mutation=1.9,seed=12,popsize=60,recombination=0.2)
+resX=scipy.optimize.differential_evolution(fit,bounds,args=(xInfWolf,xTauWolf),tol=1e-15,maxiter=200)#,mutation=1.9,seed=12,popsize=60,recombination=0.2)
 
 # Get best alpha,beta,tau,and ss values using the outcome of fitting procedure:
 alphaX,betaX,tauX,ssX = alphabetafunction(resX.x)
@@ -114,3 +118,31 @@ ax = plt.subplot(1,2,2)
 plt.plot(v,xTauWolf,label='XTauWolf',marker='.')
 plt.plot(v,tauX,label='taufit')
 plt.legend()
+
+#%% Current Model Version:
+from moose_nerp.d1d2 import param_chan
+rateMult=1e-3/3.
+vMult=1e3
+X_model = (param_chan.KaS_X_params.A_rate*rateMult, param_chan.KaS_X_params.A_vhalf*vMult,param_chan.KaS_X_params.A_vslope*vMult,param_chan.KaS_X_params.B_rate*rateMult,param_chan.KaS_X_params.B_vhalf*vMult,param_chan.KaS_X_params.B_vslope*vMult)
+Y_model = (param_chan.KaS_Y_params.A_rate*rateMult, param_chan.KaS_Y_params.A_vhalf*vMult,param_chan.KaS_Y_params.A_vslope*vMult,param_chan.KaS_Y_params.B_rate*rateMult,param_chan.KaS_Y_params.B_vhalf*vMult,param_chan.KaS_Y_params.B_vslope*vMult)
+alphaXmodel,betaXmodel,tauXmodel,ssXmodel = alphabetafunction(X_model)
+alphaYmodel,betaYmodel,tauYmodel,ssYmodel = alphabetafunction(Y_model)
+plt.figure()
+ax = plt.subplot(1,2,1)
+plt.plot(v,xInfWolf,label='XinfWolf')
+plt.plot(v,ssXmodel,label='ssmodel')
+plt.legend()
+ax = plt.subplot(1,2,2)
+plt.plot(v,xTauWolf,label='XTauWolf',marker='.')
+plt.plot(v,tauXmodel,label='taumodel')
+plt.legend()
+plt.figure()
+ax = plt.subplot(1,2,1)
+plt.plot(v,yInfWolf,label='YinfWolf')
+plt.plot(v,ssYmodel,label='ssmodel')
+plt.legend()
+ax = plt.subplot(1,2,2)
+plt.plot(v,yTauWolf,label='YTauWolf',marker='.')
+plt.plot(v,tauYmodel,label='taumodel')
+plt.legend()
+
