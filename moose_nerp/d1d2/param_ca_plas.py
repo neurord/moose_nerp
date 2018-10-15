@@ -86,20 +86,12 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
     }
 
 #Pump Vmax, NCX distribution from Lorincz et al. 2007 PNAS
-#*************Change this to 1st specify PumpVmaxNCX, and PumpVmaxPMCA, and then collect PumpDensities below.
-#*******Or have single spec as in param_cond
-PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
-PumpVmaxSoma = {'MMPump':85e-8}
-PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
-
 PumpVmaxDensities = NamedDict('PumpVmaxDensities')
 PumpVmaxDensities.MMPump = {soma:85e-8, dend:8.e-8, spines:1.e-8}
 PumpVmaxDensities.NCX = {soma:0, dend:0, spines:8.e-8}
 ##########################################################
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
-#Pump density specification -- used with diffshells
-PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxSpine}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:20.,dend:20.}
 

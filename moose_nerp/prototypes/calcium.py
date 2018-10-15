@@ -349,7 +349,6 @@ def extract_and_add_difshell(model, shellMode, comp,spine):
     Pumps = {}
     for pump in params.PumpVmaxDensities.keys():
         Pumps[pump] = distance_mapping(params.PumpVmaxDensities[pump], comp)
-    #Pumps = distance_mapping(params.PumpDensity,comp)
 
     Buffers = distance_mapping(params.BufferDensity,comp)
     shape = distance_mapping(params.ShapeConfig,comp)
