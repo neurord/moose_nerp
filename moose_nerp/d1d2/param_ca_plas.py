@@ -1,6 +1,6 @@
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
-from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, PumpParams, CellCalcium, ShapeParams
+from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, SinglePumpParams, CellCalcium, ShapeParams
 
 #to change the type of calcium model, change CaShellModeDensity
 #if using CAPOOL, may want to adjust CalciumParams.tau (decay time constant) or BufferCapacityDensity
@@ -13,7 +13,7 @@ from moose_nerp.prototypes.calcium import CalciumConfig, SingleBufferParams, Pum
 #definitions, 1. shellMode
 #CAPOOL implements caconc object with single time constant of Ca decay
 #   thickness is outershell_thickness, and BuferCapacityDensity is used
-CAPOOL = -1 
+CAPOOL = -1
 #difshell types
 #SHELL subdivides dendrite in cylinderical sheels, with diffusion between outer/submembrane shell and central core
 SHELL = 0
@@ -36,6 +36,7 @@ LINEAR = 0
 
 #SPECIFY TYPE OF CALCIUM DYNAMICS HERE
 CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
+#CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 
 ############################################
 #intrinsic calcium params
@@ -45,36 +46,32 @@ CaBasal = 50e-6
 CalciumParams = CellCalcium(CaName='Shell',Ceq=CaBasal,DCa=200e-12,tau=20e-3)
 
 #################################
+BufferParams = NamedDict('BufferParams') # Buffer params dictionary
 #kinetic parameters of various calcium Buffers / indicators
 #Calbindin binding rates from Schmidt et al. 2007 J Physiol
-calbindin = SingleBufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
+BufferParams.Calbindin = SingleBufferParams('Calbindin',  kf=0.028e6, kb=19.6, D=66e-12)
 #Calmodulin binding rates from Brown SE, Martin SR, Bayley PM (1997) J Biol Chem and Putkey JA, Kleerekoper Q, Gaertner TR, Waxham MN (2003) J Biol Chem
-camc = SingleBufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12) 
-camn = SingleBufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
-fixed_buffer = SingleBufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0) 
-Fura2 = SingleBufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11) 
-Fluo5F = SingleBufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4 = SingleBufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
-Fluo4FF = SingleBufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11) 
-
-#Buffer params dictionary
-BufferParams = NamedDict('BufferParams',Calbindin=calbindin,CaMN=camn,CaMC=camc,FixedBuffer=fixed_buffer,Fura2=Fura2,Fluo5F=Fluo5F,Fluo4=Fluo4,Flou4FF=Fluo4FF)
+BufferParams.CaMC = SingleBufferParams('CaMC', kf=0.006e6, kb=9.1, D=66.0e-12)
+BufferParams.CaMN = SingleBufferParams('CaMN',  kf=0.1e6, kb=1000., D=66.0e-12)
+BufferParams.FixedBuffer = SingleBufferParams('Fixed_Buffer',  kf=0.4e6, kb=20e3, D=0)
+BufferParams.Fura2 = SingleBufferParams('Fura-2',  kf=1000e3, kb=185, D=6e-11)
+BufferParams.Fluo5F = SingleBufferParams('Fluo5f_Wickens',  kf=2.36e5, kb=82.6, D=6e-11)
+BufferParams.Fluo4 = SingleBufferParams('Fluo4',  kf=2.36e5, kb=82.6, D=6e-11)
+BufferParams.Fluo4FF = SingleBufferParams('Fluo4FF', kf=.8e5, kb=776, D=6e-11)
 
 ####################################################
 #Kinetic parameters for calcium extrusion (pump) mechanisms
+PumpParams = NamedDict('PumpParams') # Buffer params dictionary
 #PMCA (mmpump) Km from sedova, Blatter 1999 cell calcium, Km=150-320
-MMPump = PumpParams('MMpump',Kd=0.3e-3)
+PumpParams.MMPump = SinglePumpParams('MMpump',Kd=0.3e-3)
 #NCX affinity from Gall et al. 1999 Biophys J, Km=1.5 uM
-NCX = PumpParams("NCX",Kd=1e-3)
-
-#Pump params dictionary
-PumpKm = {'MMPump':MMPump,'NCX':NCX}
+PumpParams.NCX = SinglePumpParams("NCX",Kd=1e-3)
 
 ##################### VARY THESE PARAMETERS TO CONTROL CALCIUM DYNAMICS #############
 #dye used in simulations
 which_dye = "no_dye"
 
-#Quantity of calcium buffers.  "no_dye" is specifies the exogenous buffer quantity. 
+#Quantity of calcium buffers.  "no_dye" is specifies the exogenous buffer quantity.
 #Other possible dye sets are for replicating calcium imaging experiments, and assume the diffusible buffers are dialyzed
 #Quantities of calcium indicators taken directly from experimental papers
 
@@ -89,17 +86,12 @@ BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffe
     }
 
 #Pump Vmax, NCX distribution from Lorincz et al. 2007 PNAS
-#*************Change this to 1st specify PumpVmaxNCX, and PumpVmaxPMCA, and then collect PumpDensities below.
-#*******Or have single spec as in param_cond
-PumpVmaxDend = {'NCX':0.,'MMPump':8e-8}
-PumpVmaxSoma = {'MMPump':85e-8}
-PumpVmaxSpine =  {'NCX':8.e-8,'MMPump':1e-8}
-
+PumpVmaxDensities = NamedDict('PumpVmaxDensities')
+PumpVmaxDensities.MMPump = {soma:85e-8, dend:8.e-8, spines:1.e-8}
+PumpVmaxDensities.NCX = {soma:0, dend:0, spines:8.e-8}
 ##########################################################
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
-#Pump density specification -- used with diffshells
-PumpDensity = {soma:PumpVmaxSoma,dend:PumpVmaxDend,spines:PumpVmaxSpine}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:20.,dend:20.}
 
