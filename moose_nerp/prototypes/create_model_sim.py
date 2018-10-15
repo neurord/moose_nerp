@@ -8,6 +8,24 @@ from moose_nerp.prototypes import (cell_proto,
                                    plasticity_test,
                                    util)
 
+def limit_Condset(model,condSubset = 'all'):
+    '''To only create and simulate a subset of neurons in model Condset.
+       For instance, passing 'D1' to condset argument will remove D2 from
+       moose_nerp.d1d2 model. if condset passed as a list/tuple, then all
+       listed condsets are kept and any others are removed.
+    '''
+    if condSubset == 'all':
+        return
+    if isinstance(condSubset,str):
+        condSubset = [condSubset]
+    for c in condSubset:
+        if c not in model.Condset.keys():
+            print('{} Is not a valid condset; not limiting condset'.format(c))
+    for k in list(model.Condset.keys()): # must convert keys to list since keys are popped from dictionary within loop
+        if k not in condSubset:
+            model.Condset.pop(k)
+            print("Removing {} from condset".format(k))
+
 def create_model_sim(model,fname,param_sim,plotcomps):
 
     #create model

@@ -56,6 +56,9 @@ model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 #default file name is obtained from stimulation parameters
 fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
+# Optionally include this line to only model D1; change to "D2" if desired;
+# Remove line/comment out or change condSubset to 'all' to not limit it.
+#create_model_sim.limit_Condset(model, condSubset='D1')
 
 ############## required for all simulations: create the model, set up stimulation and basic output
 syn,neuron,writer,[vmtab, catab, plastab, currtab]=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
