@@ -34,6 +34,8 @@ def setupOptions(model, **kwargs):
     # Handle kwargs successively; when a kwarg meets criteria, pop it from kwargs
     # At the end, if anything is left unpopped from kwargs, raise warning that
     # a meaningless kwarg has been passed.
+    if setupOptions.hasBeenCalled == True:
+        print('Warning, setupOptions has already been called; overwriting with new options')
     if "plotcomps" in kwargs.keys():
         plotcomps = kwargs.pop("plotcomps")
     else:
@@ -80,31 +82,27 @@ def setupOptions(model, **kwargs):
     model.plotcomps = plotcomps
     model.param_sim = param_sim
     model.fname = fname
+    setupOptions.hasBeenCalled = True
     return #model, plotcomps, param_sim, fname
 
-def setupStim(model,**kwargs):
-    neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-    pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
-    return pg, param_sim
+setupOptions.hasBeenCalled = False # intializes to False; toggled to True within funciton call
 
-def setupOutput(neuron, param_sim, model,level = logging.DEBUG):
-    if level == logging.DEBUG:
-        for neur in neuron.keys():
-            print_params.print_elem_params(model,neur,param_sim)
+def setupNeurons(model, forceSetupOptions=True):
+    '''Creates neuron(s) defined by model. forceSetupOptions=True by default will
+    ensure that setupOptions is called before setupNeurons, but if a user passes
+    forceSetupOptions = False, neurons can be created whether options setup or not.
+    '''
+    if forceSetupOptions == True:
+        if setupOptions.hasBeenCalled == False:
+            setupOptions(model) # sets up with default option_string
+    model.syn, model.neurons = cell_proto.neuronclasses(model)
 
-    if param_sim.plot_channels:
-        for chan in model.Channels.keys():
-            libchan=moose.element('/library/'+chan)
-            plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
-                                          model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
+    model.plas = {}
+    if model.plasYN:
+        model.plas, model.stimtab=plasticity_test.plasticity_test(model, model.param_sim.syncomp, model.syn, model.param_sim.stimtimes)
+    return model
 
-    if model.spineYN:
-        spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
-    else:
-        spinevmtab=[]
-
-def create_model_sim(model,fname,param_sim,plotcomps):
-
+def create_model_sim(model):
     #create model
     syn,neurons = cell_proto.neuronclasses(model)
 
@@ -135,6 +133,28 @@ def create_model_sim(model,fname,param_sim,plotcomps):
         calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
     return syn,neurons,writer,[vmtab, catab, plastab, currtab]
+
+def setupStim(model,**kwargs):
+    neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+    pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
+    return pg, param_sim
+
+def setupOutput(neuron, param_sim, model,level = logging.DEBUG):
+    if level == logging.DEBUG:
+        for neur in neuron.keys():
+            print_params.print_elem_params(model,neur,param_sim)
+
+    if param_sim.plot_channels:
+        for chan in model.Channels.keys():
+            libchan=moose.element('/library/'+chan)
+            plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
+                                          model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
+
+    if model.spineYN:
+        spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
+    else:
+        spinevmtab=[]
+
 
 def run_simulation(simtime,injection_current=None):
     if model.param_stim.Stimulation.Paradigm.name == 'inject':
