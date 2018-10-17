@@ -8,81 +8,66 @@
 ##      Synapses to test the plasticity function, optional
 ##      used to tune parameters and channel kinetics (but using larger morphology)
 
-from __future__ import print_function, division
-import logging
-
-import numpy as np
-import matplotlib.pyplot as plt
-plt.ion()
-
-from pprint import pprint
-import moose
-
-from moose_nerp.prototypes import (create_model_sim,
-                                   cell_proto,
-                                   calcium,
-                                   clocks,
-                                   inject_func,
-                                   tables,
-                                   plasticity_test,
-                                   logutil,
-                                   util,
-                                   standard_options,
-                                   constants)
 from moose_nerp import d1d2 as model
-from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-level = logging.DEBUG
-logging.basicConfig(level=level)
-log = logutil.Logger()
+log = model.setupLogging(level = logging.DEBUG)
+
+model, plotcomps, param_sim, fname = model.setupOptions(defaultOverrides = {
+                    'default_injection_current':[-0.2e-9,0.26e-9],
+                    'default_stim':'inject',
+                    'default_stim_loc':'soma'}
+                   param_sim_overrides = {
+                       'save':0,
+                       'plot_channels':0}
+                    )
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
 #option_parser = standard_options.standard_options()
-option_parser = standard_options.standard_options(
-      default_injection_current=[-0.2e-9,0.26e-9],
-      default_stim='inject',
-      default_stim_loc='soma')
-param_sim = option_parser.parse_args()
+# option_parser = standard_options.standard_options(
+#       default_injection_current=[-0.2e-9,0.26e-9],
+#       default_stim='inject',
+#       default_stim_loc='soma')
+# param_sim = option_parser.parse_args()
 
 #additional, optional parameter overrides specified from with python terminal
-param_sim.save=0
-param_sim.plot_channels=0
+# param_sim.save=0
+# param_sim.plot_channels=0
 
 #list of size >=1 is required for plotcomps
-plotcomps=[model.param_cond.NAME_SOMA]
+# plotcomps=[model.param_cond.NAME_SOMA]
 
 ######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
-model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
+# model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 
 #default file name is obtained from stimulation parameters
-fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
+#fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
 # Optionally include this line to only model D1; change to "D2" if desired;
 # Remove line/comment out or change condSubset to 'all' to not limit it.
 #create_model_sim.limit_Condset(model, condSubset='D1')
 
 ############## required for all simulations: create the model, set up stimulation and basic output
-syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+syn,neuron,writer,outtables=model.create_model_sim(model,fname,param_sim,plotcomps)
 vmtab, catab, plastab, currtab = outtables
 ####### Set up stimulation - could be current injection or synaptic
-neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
+#neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+#pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
-if level == logging.DEBUG:
-    for neur in neuron.keys():
-        print_params.print_elem_params(model,neur,param_sim)
-
-if param_sim.plot_channels:
-    for chan in model.Channels.keys():
-        libchan=moose.element('/library/'+chan)
-        plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
-                                      model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
-
-if model.spineYN:
-    spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
-else:
-    spinevmtab=[]
+# if level == logging.DEBUG:
+#     for neur in neuron.keys():
+#         print_params.print_elem_params(model,neur,param_sim)
+#
+# if param_sim.plot_channels:
+#     for chan in model.Channels.keys():
+#         libchan=moose.element('/library/'+chan)
+#         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
+#                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
+#
+# if model.spineYN:
+#     spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
+# else:
+#     spinevmtab=[]
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
