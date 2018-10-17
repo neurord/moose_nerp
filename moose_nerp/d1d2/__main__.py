@@ -48,6 +48,7 @@ param_sim.save=0
 param_sim.plot_channels=0
 
 #list of size >=1 is required for plotcomps
+# TODO: Change if desired; also change in standard options if i do
 plotcomps=[model.param_cond.NAME_SOMA]
 
 ######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
@@ -59,7 +60,8 @@ fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.s
 # Optionally include this line to only model D1; change to "D2" if desired;
 # Remove line/comment out or change condSubset to 'all' to not limit it.
 #create_model_sim.limit_Condset(model, condSubset='D1')
-
+# TODO: use same function as ajustador
+# Option parser can use
 ############## required for all simulations: create the model, set up stimulation and basic output
 syn,neuron,writer,[vmtab, catab, plastab, currtab]=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
 ####### Set up stimulation - could be current injection or synaptic
