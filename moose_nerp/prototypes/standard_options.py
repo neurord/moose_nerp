@@ -91,14 +91,14 @@ def standard_options(parser=None,
                         help='Inject current for this much time',
                         default=default_injection_width)
     #Test that specifying 'TBS' will work, maybe not str but Paradigm
-    parser.add_argument('--stim_paradigm', type=str, 
+    parser.add_argument('--stim-paradigm', type=str,
                         help='Stimuation Paradigm from param_stim.py, or inject',
                         default=default_stim)
     # type= for stimLoc - allow multiple spines
-    parser.add_argument('--stim_loc', type=str,
+    parser.add_argument('--stim-loc', type=str,
                         help='compartment for synapses',
                         default=default_stim_loc)
-    
+
     #arguments that control what to plot
     parser.add_argument('--plot-vm', type=parse_boolean, nargs='?',
                         help='Whether to plot membrane potential Vm',

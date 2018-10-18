@@ -106,7 +106,6 @@ def fix_singularities(model, Params, Gate):
     #This needs to be extended to work with standardMooseTauInfparams
     if Params.A_C < 0:
         Params.A_rate,V_0=calc_V0(Params.A_rate,Params.A_B,Params.A_C,Params.A_vhalf,Params.A_vslope)
-
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableA and tableB, because tableB contains sum of alpha and beta
             Gate.tableA = interpolate_values_in_table(model, Gate.tableA, V_0)
@@ -114,7 +113,6 @@ def fix_singularities(model, Params, Gate):
 
     if Params.B_C < 0:
         Params.B_rate,V_0=calc_V0(Params.B_rate,Params.B_B,Params.B_C,Params.B_vhalf,Params.B_vslope)
-
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableB (alpha is stored in tableA)
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)

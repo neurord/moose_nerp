@@ -23,7 +23,7 @@ def print_elem_params(model, neur, param_sim):
 
     print(param_sim, 'cal=',model.calYN,'syn=',model.synYN,'spine=',model.spineYN,'ca type',
           model.param_ca_plas.CaShellModeDensity)
-    
+
     if model.calYN and max(list(model.param_ca_plas.CaShellModeDensity.values()))>0:
         catypes = catypes+['DifShell', 'DifBuffer', 'MMPump']
 
@@ -47,5 +47,5 @@ def print_elem_params(model, neur, param_sim):
                           pool.D,'volume', pool.volume, 'thickness',pool.thickness, 'innerArea',pool.innerArea,
                           'outerArea',pool.outerArea, 'diameter', pool.diameter, 'tick',pool.tick, 'dt', pool.dt)
                 else:
-                    print ('Pump: ', pool.name, pool.className, 'tick', pool.tick,'dt', pool.dt, 'kd', pool.kd, 'Vmax',
+                    print ('Pump: ', pool.name, pool.className, 'tick', pool.tick,'dt', pool.dt, 'Kd', pool.Kd, 'Vmax',
                            pool.Vmax)

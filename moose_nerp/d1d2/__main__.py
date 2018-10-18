@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 ######## SPneuronSim.py ############
-## Code to create two SP neuron classes 
+## Code to create two SP neuron classes
 ##      using dictionaries for channels and synapses
 ##      calcium based learning rule/plasticity function, optional
 ##      spines, optionally with ion channels and synpases
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-import moose 
+import moose
 
 from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
@@ -32,7 +32,8 @@ from moose_nerp.prototypes import (create_model_sim,
 from moose_nerp import d1d2 as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-logging.basicConfig(level=logging.INFO)
+level = logging.DEBUG
+logging.basicConfig(level=level)
 log = logutil.Logger()
 
 #two examples of calling option_parser - one overrides the defaults and is useful when running from python window
@@ -48,6 +49,7 @@ param_sim.save=0
 param_sim.plot_channels=0
 
 #list of size >=1 is required for plotcomps
+# TODO: Change if desired; also change in standard options if i do
 plotcomps=[model.param_cond.NAME_SOMA]
 
 ######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
@@ -57,16 +59,23 @@ model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
 
-############# required for all simulations: create the model, set up stimulation and basic output
-
+# Optionally include this line to only model D1; change to "D2" if desired;
+# Remove line/comment out or change condSubset to 'all' to not limit it.
+#create_model_sim.limit_Condset(model, condSubset='D1')
+# TODO: use same function as ajustador
+# Option parser can use
+############## required for all simulations: create the model, set up stimulation and basic output
 syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
-
+vmtab, catab, plastab, currtab = outtables
 ####### Set up stimulation - could be current injection or synaptic
 neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-
+>>>>>>> f1bb13df507f903b184d53ae5b3c1b8ad52135e8
 pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
+if level == logging.DEBUG:
+    for neur in neuron.keys():
+        print_params.print_elem_params(model,neur,param_sim)
 
 if param_sim.plot_channels:
     for chan in model.Channels.keys():
