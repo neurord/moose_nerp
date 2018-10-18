@@ -58,18 +58,19 @@ model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
 #default file name is obtained from stimulation parameters
 fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
 
-
 # Optionally include this line to only model D1; change to "D2" if desired;
 # Remove line/comment out or change condSubset to 'all' to not limit it.
 #create_model_sim.limit_Condset(model, condSubset='D1')
 # TODO: use same function as ajustador
 # Option parser can use
+
 ############## required for all simulations: create the model, set up stimulation and basic output
 syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
 vmtab, catab, plastab, currtab = outtables
+
 ####### Set up stimulation - could be current injection or synaptic
 neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
->>>>>>> f1bb13df507f903b184d53ae5b3c1b8ad52135e8
+
 pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
@@ -96,7 +97,6 @@ def run_simulation( simtime,injection_current=None):
     moose.reinit()
     moose.start(simtime)
 
-vmtab, catab, plastab, currtab=outtables
 traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(simtime=param_sim.simtime,injection_current=inj)
