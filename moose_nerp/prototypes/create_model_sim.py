@@ -108,7 +108,7 @@ def setupOptions(model, **kwargs):
     ######### Append these variables as fields to model namespace to simplify
     ######### passing and returning. No need to return anything because this
     ######### function takes model as pass by reference; and everything modified
-    ######### and needed outside this function is done to model.
+    ######### and needed outside this function is done to model namespace.
     model.plotcomps = plotcomps
     model.param_sim = param_sim
     model.fname = fname
@@ -116,8 +116,9 @@ def setupOptions(model, **kwargs):
     setupOptions.hasBeenCalled = True
     return #model, plotcomps, param_sim, fname
 # Must be initialized here after function definition, intializes to False;
-# toggled to True within function call:
+#   toggled to True within function call:
 setupOptions.hasBeenCalled = False
+
 
 def setupNeurons(model, forceSetupOptions=True, **kwargs):
     '''Creates neuron(s) defined by model. forceSetupOptions=True by default
@@ -212,6 +213,7 @@ def setupOutput(model, **kwargs):
         model.spinevmtab=[]
     return
 
+
 def runOneSim(model, simtime=None, injection_current=None):
     if model.param_stim.Stimulation.Paradigm.name == 'inject':
         print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
@@ -219,6 +221,7 @@ def runOneSim(model, simtime=None, injection_current=None):
     if simtime is None: simtime = model.param_sim.simtime
     moose.reinit()
     moose.start(simtime)
+
 
 def runAll(model):
     traces, names, catraces = [], [], []
@@ -260,6 +263,7 @@ def runAll(model):
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
+
 
 def main(model,**kwargs):
     setupOptions(model, **kwargs)

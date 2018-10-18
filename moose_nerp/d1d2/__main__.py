@@ -8,6 +8,7 @@
 ##      Synapses to test the plasticity function, optional
 ##      used to tune parameters and channel kinetics (but using larger morphology)
 
+from __future__ import print_function, division
 from moose_nerp import d1d2 as model
 
 # options to be passed as **kwargs for main simulation function
