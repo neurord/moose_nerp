@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes.chan_proto import (
@@ -45,46 +45,44 @@ CADIVS = 5999 #10 nM steps
 # Rate has units of per sec, and B has units of per sec per volt
 # taumin and tauVdep have units of per sec
 
-#Fast sodium - same as GP, but no slow gating
 qfactNaF = 1.0
 
-#These values were too fast - change rate from 35e3 to 12e3
-Na_m_params = AlphaBetaChannelParams(A_rate = 8e3,
+#These values were too fast - change rate from 35e3 to 16e3
+Na_m_params = AlphaBetaChannelParams(A_rate = 16e3,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = 36e-3,
                                       A_vslope = -5e-3,
-                                      B_rate = 8e3,
+                                      B_rate = 16e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 36e-3,
                                       B_vslope = 5e-3)
 
-Na_h_params = AlphaBetaChannelParams(A_rate = 4500,
+Na_h_params = AlphaBetaChannelParams(A_rate = 4.0e3,
                                       A_B = 0,
                                       A_C = 1,
-                                      A_vhalf = 70e-3,
+                                      A_vhalf = 72e-3,
                                       A_vslope = 9e-3,
-                                      B_rate = 3000,
+                                      B_rate = 4e3,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = 32e-3,
                                       B_vslope = -5e-3)
 
-#Zgate not working
 Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       A_B = 0,
                                       A_C = 1,
                                       A_vhalf = 84e-3,
                                       A_vslope = 10.0e-3,
-                                      B_rate = 0.0080,
+                                      B_rate = 80,
                                       B_B = 0.0,
                                       B_C = 1,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
 
-Na_s_params= TauInfMinChannelParams(SS_min=0.99,  
-                                    SS_vdep=0.01,  
+Na_s_params= TauInfMinChannelParams(SS_min=0.15,
+                                    SS_vdep=0.85,
                                     SS_vhalf=-0.045,
                                     SS_vslope=0.0054,
                                     T_min = 0.01,
@@ -96,9 +94,20 @@ Na_s_params= TauInfMinChannelParams(SS_min=0.99,
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 
-#persistent Na_channel- same as GP, but no slow gating
-#Two changes made recently: slow down activation (still < 1 ms), less steep vdep of inactivation
-NaS_m_params = AlphaBetaChannelParams(A_rate=25e3,
+#persistent Na_channel.  Slow down from Dieter Jaeger
+
+NaS_m_params = AlphaBetaChannelParams(A_rate=76e3,
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=-55.4e-3,
+                                     A_vslope=-13.6e-3,
+                                    B_rate=70e3,
+                                     B_B=0.0,
+                                     B_C=1,
+                                     B_vhalf=135e-3,
+                                     B_vslope=13.5e-3)
+
+NaS_mnew_params = AlphaBetaChannelParams(A_rate=25e3,
                                      A_B=0,
                                      A_C=1,
                                      A_vhalf=-55.4e-3,
@@ -109,26 +118,37 @@ NaS_m_params = AlphaBetaChannelParams(A_rate=25e3,
                                      B_vhalf=135e-3,
                                      B_vslope=26.2e-3)
 
-NaS_h_params = TauInfMinChannelParams(SS_min = 0.154,
-                                      SS_vdep = 0.846,
-                                      SS_vhalf = -0.057,
-                                      SS_vslope = 0.004,
-                                      T_min = 0.03,
-                                      T_vdep = 0.015,
-                                      T_vhalf = -0.03,
-                                      T_vslope = 0.022,
-                                      T_power=2)
-
 NaS_h_params = AlphaBetaChannelParams(A_rate=32,
-                                      A_B=0,
-                                      A_C=1,
-                                      A_vhalf=58e-3,
-                                      A_vslope=10e-3,
-                                      B_rate=30,
-                                      B_B=0.0,
-                                      B_C=1,
-                                      B_vhalf=57e-3,
-                                      B_vslope=-10e-3)
+                                     A_B=0,
+                                     A_C=1,
+                                     A_vhalf=58e-3,
+                                     A_vslope=4.5e-3,
+                                     B_rate=30,
+                                     B_B=0.0,
+                                     B_C=1,
+                                    B_vhalf=57e-3,
+                                     B_vslope=-4e-3)
+
+NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
+                                     A_B=-8.64,
+                                     A_C=1,
+                                     A_vhalf=0.017,
+                                     A_vslope=4.63e-3,
+                                     B_rate=1.341,
+                                     B_B=20.82,
+                                     B_C=1,
+                                     B_vhalf=64.4e-3,
+                                    B_vslope=-2.63e-3)
+
+NaS_snew_params = TauInfMinChannelParams(SS_min = 0,
+                                         SS_vdep = 1,
+                                         SS_vhalf = -0.010,
+                                         SS_vslope = 0.0049,
+                                         T_min = 0.5,
+                                         T_vdep = 8,
+                                         T_vhalf = -0.066,
+                                         T_vslope = -0.016,
+                                         T_power=2)
 
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
@@ -161,7 +181,7 @@ Kv3param = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='Kv3')
 
 
 #qfactKrp=1
-#Slightly faster to match DJ tau at hyperpol potentials
+
 Kv3_X_params = AlphaBetaChannelParams(A_rate = 4000,
                                       A_B = 0,
                                       A_C = 1,
@@ -173,7 +193,6 @@ Kv3_X_params = AlphaBetaChannelParams(A_rate = 4000,
                                       B_vhalf = 78e-3,
                                       B_vslope = 15e-3)
 
-#Use SSTau Quadratic to better match minimal inactivation of this channel
 Kv3_Y_params =  TauInfMinChannelParams(SS_min = 0.6,
                                  SS_vdep = 0.4,
                                  SS_vhalf = -20e-3,
@@ -234,10 +253,10 @@ KvS_Y_params = AlphaBetaChannelParams(A_rate =19 ,
                                       B_vhalf =77e-3 ,
                                       B_vslope = -12e-3)
 
-#less steep voltage dependence than than GP channel
+
+
 HCN1param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN1')
 
-#previous values were too fast
 HCN1_X_params = AlphaBetaChannelParams(A_rate = 120,
                                         A_B = 0,
                                         A_C = 1,
@@ -255,18 +274,18 @@ HCN2param = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=hcnrev, name='HCN2')
 HCN2_X_params = AlphaBetaChannelParams(A_rate = 12,
                                         A_B = 0,
                                         A_C = 1,
-                                        A_vhalf = 0.15,
+                                        A_vhalf = 0.135,
                                         A_vslope = 0.01,
                                         B_rate = 8,
                                         B_B = 0,
                                         B_C = 1,
-                                        B_vhalf = 0.03,
+                                        B_vhalf = 0.015,
                                         B_vslope = -0.012)
 HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
 Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
-Ca_X_params=AlphaBetaChannelParams(A_rate = 147272.7273,
+Ca_X_params=AlphaBetaChannelParams(A_rate = -2727272.73*-54e-3,
                                         A_B = -2727272.73,
                                         A_C = -1,
                                         A_vhalf = -54e-3,
@@ -300,8 +319,8 @@ Channels = NamedDict(
     KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
     HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
-    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params, Na_s_params),
-    NaS= TypicalOneD(NaSparam,NaS_m_params,NaS_h_params),
+    NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_params),
+    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_s_params),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
