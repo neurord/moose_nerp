@@ -6,6 +6,7 @@ plt.ion()
 from pprint import pprint
 import moose
 import logging
+import inspect
 
 from moose_nerp.prototypes import (cell_proto,
                                    calcium,
@@ -19,10 +20,21 @@ from moose_nerp.prototypes import (cell_proto,
                                    constants)
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-def setupLogging(level = logging.DEBUG):
-    logging.basicConfig(level=level)
-    log = logutil.Logger()
-    return log
+def setupLogging(model, level = logging.INFO):
+    #logging.basicConfig(level=level) # basicConfig only works if called in __main__
+    logging.getLogger().setLevel(level) # Setting this works outside of __main__
+    model.log = logutil.Logger()
+    return model.log
+
+def testInspect():
+    frame = inspect.stack()[1]
+    print(inspect.currentframe().f_back.f_globals)
+    mod = inspect.getmodule(frame[0])
+    print(frame)
+    print(mod)
+    stack = inspect.stack()
+    print(stack)
+    return stack
 
 def setupOptions(model, **kwargs):
     '''Can be called with no arguments (except model; but maybe I can figure
@@ -71,7 +83,7 @@ def setupOptions(model, **kwargs):
     if 'logging_level' in kwargs.keys():
         log = setupLogging(level = kwargs.pop('logging_level'))
     else:
-        log = setupLogging()
+        log = setupLogging(model)
 
     ### Add any new code here to parse additional possible kwargs. Pop any handled kwarg from kwargs###
 
@@ -97,101 +109,100 @@ def setupNeurons(model, forceSetupOptions=True):
             setupOptions(model) # sets up with default option_string
     model.syn, model.neurons = cell_proto.neuronclasses(model)
 
-    model.plas = {}
-    if model.plasYN:
-        model.plas, model.stimtab=plasticity_test.plasticity_test(model, model.param_sim.syncomp, model.syn, model.param_sim.stimtimes)
-    return model
-
-def create_model_sim(model):
-    #create model
-    syn,neurons = cell_proto.neuronclasses(model)
-
     #If calcium and synapses created, could test plasticity at a single synapse in syncomp
     #Need to debug this since eliminated param_sim.stimtimes
     #See what else needs to be changed in plasticity_test.
-    plas = {}
+    model.plas = {}
     if model.plasYN:
-        plas,stimtab=plasticity_test.plasticity_test(model, param_sim.syncomp, syn, param_sim.stimtimes)
+        model.plas, model.stimtab=plasticity_test.plasticity_test(model, model.param_sim.syncomp, model.syn, model.param_sim.stimtimes)
 
     ###############--------------output elements
-    vmtab, catab, plastab, currtab = tables.graphtables(model, neurons,
-                                                        param_sim.plot_current,
-                                                        param_sim.plot_current_message,
-                                                        plas,plotcomps)
+    vmtab, catab, plastab, currtab = tables.graphtables(model, model.neurons,
+                                                        model.param_sim.plot_current,
+                                                        model.param_sim.plot_current_message,
+                                                        model.plas, model.plotcomps)
 
-    if param_sim.save:
-        writer=tables.setup_hdf5_output(model, neurons, filename=fname,compartments=plotcomps)
+    if model.param_sim.save:
+        writer=tables.setup_hdf5_output(model, model.neurons,
+                                        filename=model.fname, compartments=model.plotcomps)
     else:
         writer=None
 
     ########## clocks are critical. assign_clocks also sets up the hsolver
     simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
 
-    clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+    clocks.assign_clocks(simpaths, model.param_sim.simdt, model.param_sim.plotdt,
+                         model.param_sim.hsolve, model.param_cond.NAME_SOMA)
     #fix calculation of B parameter in CaConc if using hsolve
-    if param_sim.hsolve and model.calYN:
+    if model.param_sim.hsolve and model.calYN:
         calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
-    return syn,neurons,writer,[vmtab, catab, plastab, currtab]
+    #return syn,neurons,writer,[vmtab, catab, plastab, currtab]
+    model.vmtab = vmtab
+    model.catab = catab
+    model.plastab = plastab
+    model.currtab = currtab
+    return model
 
 def setupStim(model,**kwargs):
-    neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-    pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
-    return pg, param_sim
+    neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
+    model.pg, model.param_sim = inject_func.setup_stim(model, model.param_sim, neuron_paths)
+    return model
+    #return pg, param_sim
 
-def setupOutput(neuron, param_sim, model,level = logging.DEBUG):
-    if level == logging.DEBUG:
-        for neur in neuron.keys():
+def setupOutput(model):
+    if model.log.getEffectiveLevel() == logging.DEBUG:
+        for neur in model.neurons.keys():
             print_params.print_elem_params(model,neur,param_sim)
 
-    if param_sim.plot_channels:
+    if model.param_sim.plot_channels:
         for chan in model.Channels.keys():
             libchan=moose.element('/library/'+chan)
             plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                           model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
 
     if model.spineYN:
-        spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
+        model.spinecatab, model.spinevmtab=tables.spinetabs(model,neuron,plotcomps)
     else:
-        spinevmtab=[]
+        model.spinevmtab=[]
+    return
 
-
-def run_simulation(simtime,injection_current=None):
+def run_simulation(model,simtime,injection_current=None):
     if model.param_stim.Stimulation.Paradigm.name == 'inject':
         print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-        pg.firstLevel = injection_current
+        model.pg.firstLevel = injection_current
     moose.reinit()
     moose.start(simtime)
 
-def run_all():
+def run_all(model):
     traces, names, catraces = [], [], []
-    for inj in param_sim.injection_current:
-        run_simulation(simtime=param_sim.simtime,injection_current=inj)
-        if param_sim.plot_vm:
-            neuron_graph.graphs(model, vmtab, param_sim.plot_current, param_sim.simtime,
-                            currtab, param_sim.plot_current_label,
-                            catab, plastab)
+    for inj in model.param_sim.injection_current:
+        run_simulation(model,simtime=model.param_sim.simtime,injection_current=inj)
+        if model.param_sim.plot_vm:
+            neuron_graph.graphs(model, model.vmtab, model.param_sim.plot_current, model.param_sim.simtime,
+                            model.currtab, model.param_sim.plot_current_label,
+                            model.catab, model.plastab)
         #set up tables that accumulate soma traces for multiple simulations
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-            traces.append(vmtab[neurnum][0].vector)
-            if model.calYN and param_sim.plot_calcium:
-                catraces.append(catab[neurnum][0].vector)
+            traces.append(model.vmtab[neurnum][0].vector)
+            if model.calYN and model.param_sim.plot_calcium:
+                catraces.append(model.catab[neurnum][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
             # In Python3.6, the following syntax works:
             #names.append(f'{neurtype} @ {inj}')
         #plot spines
-        if len(spinevmtab) and param_sim.plot_vm:
-            spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
+        if len(model.spinevmtab) and model.param_sim.plot_vm:
+            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, model.param_sim.simtime)
         #save output - expand this to optionally save current data
-        if param_sim.save:
+        if model.param_sim.save:
             inj_nA=inj*1e9
-            tables.write_textfile(vmtab,'Vm', fname,inj_nA,param_sim.simtime)
+            tables.write_textfile(model.vmtab,'Vm', model.fname,inj_nA,model.param_sim.simtime)
             if model.calYN:
-                tables.write_textfile(catab,'Ca', fname,inj_nA,param_sim.simtime)
-            if model.spineYN and len(spinevmtab):
-                tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
-                if model.spineYN and len(spinecatab):
-                    tables.write_textfile(list(spinecatab.values()),'SpCa', fname,inj_nA,param_sim.simtime)
+                tables.write_textfile(model.catab,'Ca', model.fname,inj_nA,model.param_sim.simtime)
+            if model.spineYN and len(model.spinevmtab):
+                tables.write_textfile(list(model.spinevmtab.values()),'SpVm', model.fname,inj_nA,model.param_sim.simtime)
+                if model.spineYN and len(model.spinecatab):
+                    tables.write_textfile(list(model.spinecatab.values()),'SpCa', model.fname,inj_nA,model.param_sim.simtime)
 
 def plotOutputs():
     if param_sim.plot_vm:
@@ -199,35 +210,10 @@ def plotOutputs():
         if model.calYN and param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
 
-def main():
-    log = model.setupLogging(level = logging.DEBUG)
-    model, plotcomps, param_sim, fname = model.setupOptions(defaultOverrides = {
-                        'default_injection_current':[-0.2e-9,0.26e-9],
-                        'default_stim':'inject',
-                        'default_stim_loc':'soma'},
-                       param_sim_overrides = {
-                           'save':0,
-                           'plot_channels':0}
-                        )
-    syn,neuron,writer,outtables=model.create_model_sim(model,fname,param_sim,plotcomps)
-    vmtab, catab, plastab, currtab = outtables
-    pg,param_sim=setupStim(neuron,model,param_sim)
-    run_all()
-
-def limit_Condset(model,condSubset = 'all'):
-    '''To only create and simulate a subset of neurons in model Condset.
-       For instance, passing 'D1' to condset argument will remove D2 from
-       moose_nerp.d1d2 model. if condset passed as a list/tuple, then all
-       listed condsets are kept and any others are removed.
-    '''
-    if condSubset == 'all':
-        return
-    if isinstance(condSubset,str):
-        condSubset = [condSubset]
-    for c in condSubset:
-        if c not in model.Condset.keys():
-            print('{} Is not a valid condset; not limiting condset'.format(c))
-    for k in list(model.Condset.keys()): # must convert keys to list since keys are popped from dictionary within loop
-        if k not in condSubset:
-            model.Condset.pop(k)
-            print("Removing {} from condset".format(k))
+def main(model):
+    setupOptions(model, default_injection_current=[-0.2e-9,0.26e-9],
+                 default_stim='inject', default_stim_loc='soma',simtime = .1)
+    setupNeurons(model)
+    setupOutput(model)
+    setupStim(model)
+    run_all(model)
