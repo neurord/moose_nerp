@@ -59,7 +59,12 @@ fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.s
 
 ############# required for all simulations: create the model, set up stimulation and basic output
 
-syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+
+####### Set up stimulation - could be current injection or synaptic
+neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+
+pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
 
@@ -82,6 +87,7 @@ def run_simulation( simtime,injection_current=None):
     moose.reinit()
     moose.start(simtime)
 
+vmtab, catab, plastab, currtab=outtables
 traces, names, catraces = [], [], []
 for inj in param_sim.injection_current:
     run_simulation(simtime=param_sim.simtime,injection_current=inj)
