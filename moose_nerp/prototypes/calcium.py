@@ -410,7 +410,7 @@ def addCalcium(model,ntype):
                     if not heads:
                         'Could not find heads!!!'
                     for head in heads:
-                        shellMode =  distance_mapping(params.CaShellModeDensity,head)
+                        shellMode =  distance_mapping(params.CaShellModeDensity,moose.element(head))
                         dshells_head = add_calcium_to_compartment(model,shellMode,moose.element(head),pools,capool,spine=True)
                         if dshells_head == -1:
                             return
