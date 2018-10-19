@@ -1,5 +1,4 @@
 from __future__ import print_function, division
-print(__name__)
 from .param_chan import (VMIN, VMAX, VDIVS, CAMIN, CAMAX, CADIVS,
                          qfactNaF,
                          Channels)
