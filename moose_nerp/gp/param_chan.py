@@ -69,7 +69,7 @@ Na_h_params = AlphaBetaChannelParams(A_rate = 4.0e3,
                                       B_C = 1,
                                       B_vhalf = 32e-3,
                                       B_vslope = -5e-3)
-
+'''
 Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       A_B = 0,
                                       A_C = 1,
@@ -80,7 +80,7 @@ Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       B_C = 1,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
-
+'''
 Na_s_params= TauInfMinChannelParams(SS_min=0.15,
                                     SS_vdep=0.85,
                                     SS_vhalf=-0.045,
@@ -95,7 +95,7 @@ NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 
 #persistent Na_channel.  Slow down from Dieter Jaeger
-
+'''
 NaS_m_params = AlphaBetaChannelParams(A_rate=76e3,
                                      A_B=0,
                                      A_C=1,
@@ -106,8 +106,8 @@ NaS_m_params = AlphaBetaChannelParams(A_rate=76e3,
                                      B_C=1,
                                      B_vhalf=135e-3,
                                      B_vslope=13.5e-3)
-
-NaS_mnew_params = AlphaBetaChannelParams(A_rate=25e3,
+'''
+NaS_m_params = AlphaBetaChannelParams(A_rate=25e3,
                                      A_B=0,
                                      A_C=1,
                                      A_vhalf=-55.4e-3,
@@ -139,8 +139,8 @@ NaS_s_params = AlphaBetaChannelParams(A_rate=-0.147,
                                      B_C=1,
                                      B_vhalf=64.4e-3,
                                     B_vslope=-2.63e-3)
-
-NaS_snew_params = TauInfMinChannelParams(SS_min = 0,
+'''
+NaS_s_params = TauInfMinChannelParams(SS_min = 0,
                                          SS_vdep = 1,
                                          SS_vhalf = -0.010,
                                          SS_vslope = 0.0049,
@@ -149,7 +149,7 @@ NaS_snew_params = TauInfMinChannelParams(SS_min = 0,
                                          T_vhalf = -0.066,
                                          T_vslope = -0.016,
                                          T_power=2)
-
+'''
 NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
 #KDrparam -Kv2
@@ -337,7 +337,7 @@ Channels = NamedDict(
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),
     KCNQ =  TypicalOneD(KCNQparam,KCNQ_X_params, []),
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params,Na_s_params),
-    NaS= TypicalOneD(NaSparam,NaS_mnew_params,NaS_h_params,NaS_s_params),
+    NaS= TypicalOneD(NaSparam,NaS_m_params,NaS_h_params,NaS_s_params),
     Ca =   TypicalOneD(Caparam,Ca_X_params, [],[], calciumPermeable=True),
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
