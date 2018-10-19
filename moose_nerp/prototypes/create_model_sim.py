@@ -263,7 +263,7 @@ def runAll(model):
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
-
+    model.traces = traces
 
 def main(model,**kwargs):
     setupOptions(model, **kwargs)
@@ -271,3 +271,4 @@ def main(model,**kwargs):
     setupOutput(model)
     setupStim(model)
     runAll(model)
+    return model
