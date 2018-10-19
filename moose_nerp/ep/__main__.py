@@ -36,15 +36,16 @@ logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[-200e-12],
-    default_simulation_time=0.2,
+    default_injection_current=[-200e-12, -100e-12, 0, 100e-12],
+    default_simulation_time=0.5,
     default_injection_width=0.3,
     default_injection_delay=0.1,
     default_plotdt=0.0001)
 
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
-param_sim.plot_channels=0
+param_sim.plot_channels=1
+param_sim.plot_current=1
 
 plotcomps=[model.param_cond.NAME_SOMA]
 
@@ -56,12 +57,22 @@ fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.s
 
 ############## required for all simulations: create the model, set up stimulation and basic output
 
-syn,neuron,pg,param_sim,writer,vmtab, catab, plastab, currtab=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+vmtab, catab, plastab, currtab = outtables
+
+####### Set up stimulation - could be current injection or synaptic
+neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+
+pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
+########### plot zgate
+ztab=moose.Table('data/zgate')
+naf_chan=moose.element('/ep/soma/NaF')
+moose.connect(ztab,'requestOut', naf_chan,'getZ')
 
 if param_sim.plot_channels:
-    for chan in model.Channels.keys():
+    for chan in ['NaF']:#model.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
@@ -83,22 +94,16 @@ def run_simulation( simtime,injection_current=None):
     moose.start(simtime)
 
 traces, names = [], []
-value = {}
-label = {}
 calcium_traces=[]
+current_traces,curr_names=[],[]
+
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
-    if param_sim.plot_vm:
-        neuron_graph.graphs(model, vmtab, param_sim.plot_current, param_sim.simtime,
-                        currtab,param_sim.plot_current_label, catab, plastab)
     for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-        #
         if param_sim.plot_current:
             for channame in model.Channels.keys():
-                key =  neurtype+'_'+channame
-                print(channame,key)
-                value[key] = currtab[neurtype][channame][0].vector
-                label[key] = '{} @ {}'.format(neurtype, channame)
+                current_traces.append(currtab[neurtype][channame][0].vector)
+                curr_names.append('{}: {} @ {}'.format(neurtype, channame,inj))
         traces.append(vmtab[neurnum][0].vector)
         if model.calYN and param_sim.plot_calcium:
             calcium_traces.append(catab[neurnum][0].vector)
@@ -111,6 +116,15 @@ if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if model.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
+        
+    if param_sim.plot_current:
+        num_currents=np.shape(current_traces)[0]//len(param_sim.injection_current)
+        neuron_graph.SingleGraphSet(current_traces[-num_currents:], curr_names,param_sim.simtime)
+        plt.figure()
+        ts = np.linspace(0, param_sim.simtime, len(ztab.vector))
+        plt.plot(ts,ztab.vector,label='NaF, Z value')
+        plt.legend()
+        plt.show()
 
 # block in non-interactive mode
 util.block_if_noninteractive()
@@ -118,3 +132,4 @@ util.block_if_noninteractive()
 for st in spiketab:
       print("number of spikes", st.path, ' = ',len(st.vector))
 
+moose.showfield('/ep/soma/NaF')
