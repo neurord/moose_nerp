@@ -2,11 +2,11 @@
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-plt.ion()
 from pprint import pprint
 import moose
 import logging
 import inspect
+
 
 from moose_nerp.prototypes import (cell_proto,
                                    calcium,
@@ -49,7 +49,7 @@ def setupOptions(model, **kwargs):
     initialized to False. When the function is called, this gets set to True.
     '''
     # Warn if overwriting prior setupOptions
-    if setupOptions.hasBeenCalled == True:
+    if setupOptions.hasBeenCalled is True:
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
@@ -127,13 +127,13 @@ def setupNeurons(model, forceSetupOptions=True, **kwargs):
     setup or not--Could be useful for inspecting default model. kwargs are
     simply passed to setupOptions.
     '''
-    if forceSetupOptions == True and setupOptions.hasBeenCalled == False:
+    if forceSetupOptions is True and setupOptions.hasBeenCalled is False:
         setupOptions(model, **kwargs)
 
     # build neurons and specify returns to model namespace
     model.syn, model.neurons = cell_proto.neuronclasses(model)
-    if forceSetupOptions == False: # Only build neuron and return.
-        Return
+    if forceSetupOptions is False: # Only build neuron and return.
+        return
     param_sim = model.param_sim
     # If calcium and synapses created, could test plasticity at a single synapse
     # in syncomp. Need to debug this since eliminated param_sim.stimtimes. See
@@ -161,7 +161,7 @@ def setupStim(model,**kwargs):
     '''Setup the stimulation pulse generator. This function requires that the
     neurons have already been setup, and so if they haven't it first calls
     setupNeurons(), passing any kwargs '''
-    if setupNeurons.hasBeenCalled == False:
+    if setupNeurons.hasBeenCalled is False:
         setupNeurons(model, forceSetupOptions=True, **kwargs)
     neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
     pg, param_sim = inject_func.setup_stim(model, model.param_sim, neuron_paths)
@@ -169,7 +169,7 @@ def setupStim(model,**kwargs):
     return model
 
 def setupOutput(model, **kwargs):
-    if setupNeurons.hasBeenCalled == False:
+    if setupNeurons.hasBeenCalled is False:
         setupNeurons(model, forceSetupOptions=True, **kwargs)
     ###############--------------output elements
     (vmtab,
@@ -200,17 +200,18 @@ def setupOutput(model, **kwargs):
 
     if model.param_sim.plot_channels:
         for chan in model.Channels.keys():
-            libchan=moose.element('/library/'+chan)
-            plot_channel.plot_gate_params(libchan, param_sim.plot_activation,
-                                          model.VMIN, model.VMAX, model.CAMIN,
-                                          model.CAMAX)
+            libchan = moose.element('/library/'+chan)
+            plot_channel.plot_gate_params(libchan,
+                                          model.param_sim.plot_activation,
+                                          model.VMIN, model.VMAX,
+                                          model.CAMIN, model.CAMAX)
 
     if model.spineYN:
         model.spinecatab, model.spinevmtab = tables.spinetabs(model,
                                                               model.neurons,
                                                               model.plotcomps)
     else:
-        model.spinevmtab=[]
+        model.spinevmtab = []
     return
 
 
@@ -224,6 +225,7 @@ def runOneSim(model, simtime=None, injection_current=None):
 
 
 def runAll(model):
+    plt.ion()
     traces, names, catraces = [], [], []
     for inj in model.param_sim.injection_current:
         runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
@@ -264,6 +266,7 @@ def runAll(model):
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
     model.traces = traces
+    util.block_if_noninteractive()
 
 def main(model,**kwargs):
     setupOptions(model, **kwargs)
