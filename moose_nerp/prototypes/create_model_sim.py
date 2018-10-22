@@ -96,7 +96,7 @@ def setupOptions(model, **kwargs):
 
     ######### Now we must first call option_parser.parse_args(), and then can
     ######### apply any kwargs that are param_sim overrides.
-    param_sim = option_parser.parse_args()
+    param_sim, _ = option_parser.parse_known_args()
     # Find set of all kwargs that match param_sim variables
     param_sim_overrides = set(set(kwargs.keys()) & set(vars(param_sim).keys()))
     # Override each param_sim parameter in kwargs and pop item from kwargs
