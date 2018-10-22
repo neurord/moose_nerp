@@ -50,7 +50,26 @@ def setupOptions(model, **kwargs):
     if setupOptions.calls > 1:
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
-                          
+
+    # Optional implementation: Check if model-specific defaults are present;
+    # (they must be imported in __init__.py, e.g. from defaults import defaults,
+    # where defaults.py contains a dictionary named defaults that contains all
+    # desired default parameters. Or they can be specified directly in __init__)
+    # If model has attribute defaults, then use these unless explicitly
+    # overridden by kwargs.
+    if hasattr(model,'defaults'):
+        print('Parsing model specific defaults')
+        print(model.defaults)
+        for k,v in model.defaults.items():
+            # Don't overwrite existing kwargs, only add default to kwargs if
+            # default keys are not already in kwargs.
+            if k not in kwargs:
+                kwargs[k] = v
+                print('Adding {} = {} to kwargs in setupOptions'.format(k,v))
+            else:
+                print('''{} = {} passed to setupOptions and will overide default
+                      of {} = {}'''.format(k,kwargs[k],k,v))
+
     # Setup logging level if passed in kwargs, else set to a default level
     if 'logging_level' in kwargs.keys():
         log = setupLogging(model,level = kwargs.pop('logging_level'))

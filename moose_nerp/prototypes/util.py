@@ -264,8 +264,12 @@ def listize(func):
 def call_counter(func):
     '''Decorator to count number of times a function has been called'''
     def wrapper(*args,**kwargs):
-        wrapper.calls += 1
-        return func(*args,**kwargs)
+        try:
+            wrapper.calls += 1
+            return func(*args,**kwargs)
+        except:
+            wrapper.calls += -1
+            return func(*args,**kwargs)
     wrapper.calls = 0
     return functools.update_wrapper(wrapper, func)
 

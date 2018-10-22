@@ -27,9 +27,19 @@ from moose_nerp.prototypes import (create_model_sim,
 
 plasYN = False
 desenYN = False
-ghkYN = False
+ghkYN = False #note that if ghkYN=0, make sure that ghKluge = 1
 spineYN = False
 synYN = False
 calYN = True
 
-#note that if ghkYN=0, make sure that ghKluge = 1
+# Putting here for now for testing, but could create a separate .py file
+# called "defaults.py" or something, and just import it here. If so, could also
+# set plasYN, desenYN, ghkYN, spineYN, synYN, and calYN in defaults.py rather
+# than here in __init__.py
+defaults = {}
+defaults['logging_level'] = logging.DEBUG
+defaults['default_injection_current'] = [-0.2e-9, 0.26e-9]
+defaults['default_stim'] = 'inject'
+defaults['default_stim_loc'] = NAME_SOMA
+defaults['save'] = 0
+defaults['plot_channels'] = 0
