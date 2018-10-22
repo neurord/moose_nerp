@@ -280,7 +280,7 @@ def gitlog(model):
     Need to also know any command line arguments or optional kwargs passed to
     model at setup.
     '''
-    enc = sys.stdout.encoding
+    enc = _sys.stdout.encoding
     modelpath = model.__path__[0]
     gitRepoPath = check_output(['git', '-C', modelpath, 'rev-parse',
                                 '--show-toplevel']).decode(enc).rstrip()
