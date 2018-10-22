@@ -301,11 +301,7 @@ HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
 Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
-<<<<<<< Updated upstream
-Ca_X_params=AlphaBetaChannelParams(A_rate = -2727272.73*-54e-3,
-=======
 Ca_X_params=AlphaBetaChannelParams(A_rate = -2727272.73 * -54e-3,
->>>>>>> Stashed changes
                                         A_B = -2727272.73,
                                         A_C = -1,
                                         A_vhalf = -54e-3,

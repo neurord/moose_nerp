@@ -80,15 +80,9 @@ Na_s_params= AlphaBetaChannelParams(A_rate = 100,
                                       B_C = 1,
                                       B_vhalf = -26e-3,
                                       B_vslope = -14e-3)
-<<<<<<< Updated upstream
 '''
 Na_s_params= TauInfMinChannelParams(SS_min=0.15,
                                     SS_vdep=0.85,
-=======
-
-Na_s_params= TauInfMinChannelParams(SS_min=0.99,
-                                    SS_vdep=0.01,
->>>>>>> Stashed changes
                                     SS_vhalf=-0.045,
                                     SS_vslope=0.0054,
                                     T_min = 0.01,
@@ -291,11 +285,7 @@ HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
 Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
-<<<<<<< Updated upstream
-Ca_X_params=AlphaBetaChannelParams(A_rate = -2727272.73*-54e-3,
-=======
 Ca_X_params=AlphaBetaChannelParams(A_rate = -2727272.73 * -54e-3,
->>>>>>> Stashed changes
                                         A_B = -2727272.73,
                                         A_C = -1,
                                         A_vhalf = -54e-3,
