@@ -38,9 +38,6 @@ def setupOptions(model, **kwargs):
     added to standard_options or any argument added to standard_options can be
     used without modifying this function.
 
-    Current possible kwargs:
-    ### Insert list
-
     Function logic: This function handles kwargs successively; when a kwarg
     meets a criteria, it is popped from kwargs. At the end of the function,
     kwargs should be empy; if anything is left in kwargs, then a meaningless
@@ -53,7 +50,7 @@ def setupOptions(model, **kwargs):
     if setupOptions.calls > 1:
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
-
+                          
     # Setup logging level if passed in kwargs, else set to a default level
     if 'logging_level' in kwargs.keys():
         log = setupLogging(model,level = kwargs.pop('logging_level'))
@@ -195,6 +192,7 @@ def setupOutput(model, **kwargs):
             print_params.print_elem_params(model, neur, model.param_sim)
 
     if model.param_sim.plot_channels:
+        plt.ion()
         for chan in model.Channels.keys():
             libchan = moose.element('/library/'+chan)
             plot_channel.plot_gate_params(libchan,
@@ -220,12 +218,12 @@ def runOneSim(model, simtime=None, injection_current=None):
     moose.start(simtime)
 
 
-def runAll(model):
+def runAll(model, plotIndividualInjections = False):
     plt.ion()
     traces, names, catraces = [], [], []
     for inj in model.param_sim.injection_current:
         runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
-        if model.param_sim.plot_vm:
+        if model.param_sim.plot_vm and plotIndividualInjections:
             neuron_graph.graphs(model, model.vmtab, model.param_sim.plot_current,
                                 model.param_sim.simtime, model.currtab,
                                 model.param_sim.plot_current_label,

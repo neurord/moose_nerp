@@ -96,4 +96,24 @@ options['plot_channels'] = 0
 # options['fname'] # Set by default from model.param_stim
 
 # Main
+'''
+Note: create_model_sim.main is a simple wrapper function that sequentially calls
+5 other functions in create_model_sim:
+    1. setupOptions(model,**kwargs) where all the **kwargs to main get passed
+    2. setupNeurons(model)
+    3. setupOutput(model)
+    4. setupStim(model)
+    5. runAll(model)
+These functions can be called individually if desired to inspect and or modify
+their outcome. E.g. to just inspect the moose model without simulating,
+model.create_model_sim.setupNeurons(model) could be called.
+
+Also note: model is passed to all these functions as a reference to the module,
+and rather than having to return multiple variables, the functions simply add
+variables to the model namespace. For instance, rather than having to return
+param_sim, the function setupOptions adds param_sim to model namespace as
+model.param_sim. After calling setupOptions, model.param_sim is available and
+does not require a return.
+
+'''
 model.create_model_sim.main(model, **options)
