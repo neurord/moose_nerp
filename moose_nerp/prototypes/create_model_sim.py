@@ -55,7 +55,7 @@ def setupOptions(model, **kwargs):
     # (they must be imported in __init__.py, e.g. from defaults import defaults,
     # where defaults.py contains a dictionary named defaults that contains all
     # desired default parameters. Or they can be specified directly in __init__)
-    # If model has attribute defaults, then use these unless explicitly
+    # If model has the attribute "defaults", then use these unless explicitly
     # overridden by kwargs.
     if hasattr(model,'defaults'):
         print('Parsing model specific defaults')
