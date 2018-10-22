@@ -94,26 +94,27 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
     return tabA
 
-def fix_singularities(model, Params, Gate):
-    if Params.A_C < 0:
-        delta = Params.A_rate - Params.A_B * Params.A_vhalf
-        if delta > 0.002 or delta < -0.002:
-            log.warning("Please verify constraint on Alpha: A = B * vhalf {}\n A - B*Vhalf: {}", Params, delta)
-        V_0 = Params.A_vslope*np.log(-Params.A_C)-Params.A_vhalf
+def  calc_V0(rate,B,C,vhalf,vslope,Params):
+        delta = rate - B * vhalf
+        if delta > 1e-10 or delta < -1e-10:
+            log.warning("Fixing Singularities. Please verify constraint on Beta: A = B * vhalf {}", Params)
+            rate= B * vhalf
+        V_0 = vslope*np.log(-C)-vhalf
+        return rate,V_0
 
+def fix_singularities(model, Params, Gate):
+    #This needs to be extended to work with standardMooseTauInfparams
+    if Params.A_C < 0:
+        Params.A_rate,V_0=calc_V0(Params.A_rate,Params.A_B,Params.A_C,Params.A_vhalf,Params.A_vslope, Params)
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableA and tableB, because tableB contains sum of alpha and beta
             Gate.tableA = interpolate_values_in_table(model, Gate.tableA, V_0)
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)
 
     if Params.B_C < 0:
-        delta = Params.B_rate - Params.B_B * Params.B_vhalf
-        if delta > 0.002 or delta < -0.002:
-            log.warning("Please verify constraint on Beta: A = B * vhalf {}\n A - B*Vhalf: {}", Params, delta)
-        V_0 = Params.B_vslope*np.log(-Params.B_C)-Params.B_vhalf
-
+        Params.B_rate,V_0=calc_V0(Params.B_rate,Params.B_B,Params.B_C,Params.B_vhalf,Params.B_vslope, Params)
         if model.VMIN < V_0 < model.VMAX:
-            #change values in tableB
+            #change values in tableB (alpha is stored in tableA)
             Gate.tableB = interpolate_values_in_table(model, Gate.tableB, V_0)
 
 def make_gate(params,model,gate):

@@ -20,74 +20,82 @@ plt.ion()
 from pprint import pprint
 import moose 
 
-from moose_nerp.prototypes import (cell_proto,
-                     clocks,
-                     inject_func,
-                     create_network,
-                     tables,
-                     net_output,
-                     logutil,
-                     util,
-                     standard_options)
+from moose_nerp.prototypes import (create_model_sim,
+                                   cell_proto,
+                                   clocks,
+                                   inject_func,
+                                   create_network,
+                                   tables,
+                                   net_output,
+                                   logutil,
+                                   util,
+                                   standard_options)
 from moose_nerp import gp as model
 from moose_nerp import gp_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
-option_parser = standard_options.standard_options(default_injection_current=[50e-12])#, 100e-12]
-param_sim = option_parser.parse_args()
-
 logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
-#################################-----------create the model
-#overrides:
+#set-up option parser with overrides specified from with python terminal
+#no default_x specs are needed if running from unix terminal
+option_parser = standard_options.standard_options(default_injection_current=[0e-12])#, 100e-12]
+param_sim = option_parser.parse_args()
+
+#additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.plasYN = False
+net.single=False
 ###alcohol injection--> Bk channel constant multiplier
-alcohol = 2
+alcohol = 1
 for neurtype in model.param_cond.Condset:
         for key in model.param_cond.Condset[neurtype]['BKCa']:
 		model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
 if alcohol > 1:
         net.outfile = 'alcohol'+str(alcohol)
 
-##create neuron prototypes with synapses and calcium
-syn,neuron = cell_proto.neuronclasses(model)
+#list of size >=1 is required for plotcomps
+plotcomps=[model.param_cond.NAME_SOMA]
 
-all_neur_types=neuron
-#create network and plasticity
-population,connections,plas=create_network.create_network(model, net, all_neur_types)
+#################################-----------create the model and stimulation
+if net.single:
+        fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
+        syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+        ####### Set up stimulation - could be current injection or synaptic
+        neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+        pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
+        
+else:   #population of neurons
+        ##1st create neuron prototypes
+        syn,neuron = cell_proto.neuronclasses(model)
+        all_neur_types=neuron
+        #2nd create network and plasticity
+        population,connections,plas=create_network.create_network(model, net, all_neur_types)
 
-###------------------Current Injection
-if net.num_inject<np.inf and not net.single :
-    inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
-else:
-    inject_pop=population['pop']
-pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
-moose.showmsg(pg)
+        ####### Set up stimulation - could be current injection or synaptic
+        if net.num_inject<np.inf :
+                inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+        else:
+                inject_pop=population['pop']
+        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
+        moose.showmsg(pg)
+        ########## clocks are critical
+        ## these function needs to be tailored for each simulation
+        ## if things are not working, you've probably messed up here.
+        #possibly need to setup an hsolver separately for each cell in the network
+        simpath=[net.netname]
+        clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+
 ##############--------------output elements
 if net.single:
-    vmtab, catab, plastab, currtab = tables.graphtables(model, all_neur_types,
-                                                        param_sim.plot_current,
-                                                        param_sim.plot_current_message,
-                                                        [])
-    if model.synYN:
-        #overwrite plastab above, since it is empty
-        syntab, plastab=tables.syn_plastabs(connections,plas)
-    if model.spineYN:
-        spinecatab,spinevmtab=tables.spinetabs(model,neuron)
+        vmtab, catab, plastab, currtab=outtables
+        if model.synYN:
+                #overwrite plastab above, since it is empty
+                syntab, plastab=tables.syn_plastabs(connections,plas)
+        if model.spineYN:
+                spinecatab,spinevmtab=tables.spinetabs(model,neuron)
 else:
-    spiketab, vmtab, plastab, catab = net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
-
-########## clocks are critical
-## these function needs to be tailored for each simulation
-## if things are not working, you've probably messed up here.
-if net.single:
-    simpath=['/'+neurotype for neurotype in all_neur_types]
-else:
-    #possibly need to setup an hsolver separately for each cell in the network
-    simpath=[net.netname]
-clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+        spiketab, vmtab, plastab, catab = net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):

@@ -1,4 +1,10 @@
-     
+1. NeuroML
+   a. put reading nml file into cell_proto.neuronclasses or cell_proto.creat_neuron?
+   b. what to do about spine compensation for nml - should spineYN=0, and explicit spine density = 0
+   c. synapses - these can be specified in nml, but they wouldn't be on spines
+   d. when all is said and done, simplify specification to run nml model exactly, and then add spines and calcium
+   e. Calcium has to be improved. - Define named dict 1st for pumps and buffers, create parameters for calcium diffusion, etc, re-order pump density spec.
+   
 4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
                 syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
    Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
