@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-#1. repeat optimizations with fixed Buffer Capacity.  
+#1. repeat optimizations with fixed Buffer Capacity.
 #2. use helpers to copy parameters into param_cond
 #3. run single neuron simulations to verify
 #4. run network simulations (single = True, then False) with and without ethanol - prelim
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-import moose 
+import moose
 
 from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
@@ -42,11 +42,11 @@ log = logutil.Logger()
 #set-up option parser with overrides specified from with python terminal
 #no default_x specs are needed if running from unix terminal
 option_parser = standard_options.standard_options(
-      default_injection_current=[0e-12,-200e-12],
-      default_simulation_time=1.01,
+      default_injection_current=[-1e-10], #[0e-12,-200e-12],
+      default_simulation_time= 2.0, #1.01,
       default_injection_width=1.0,
       default_injection_delay=0.047,
-      default_plotdt=0.0001)
+      default_plotdt=0.00019998000199980003)
 param_sim = option_parser.parse_args()
 
 #additional, optional parameter overrides specified from with python terminal
@@ -128,10 +128,21 @@ for inj in param_sim.injection_current:
         spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
 
 if param_sim.plot_vm:
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+    neuron_graph.SingleGraphSet([traces[1]], [names[1]], param_sim.simtime)
+    import numpy as np
+    opt_data = np.load('/tmp/Sriramsagargp-proto-proto079-2sproto079/tmpmnykb7p0/ivdata--1e-10.npy')
+    x = np.linspace(0, param_sim.simtime, len(opt_data)) #proto
+    plt.plot(x, opt_data)
     if model.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
 
+plt.show()
+
+'''
+from moose_nerp.prototypes.tables import write_textfile
+# write data to a text file
+write_textfile(tabset=vmtab, tabname='proto', fname= 'to_33333', inj=-2.00000000e-10, simtime=param_sim.simtime)
+'''
 # block in non-interactive mode
 util.block_if_noninteractive()
 

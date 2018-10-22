@@ -1,3 +1,4 @@
+# Generated from npzfile: Sriramsagarsquid-squid-squid_experimentaltau_z.npz of fit number: 1
 # Contains maximal conductances, name of .p file(neuron morphology file), and some other parameters
 import numpy as np
 
@@ -16,7 +17,7 @@ neurontypes = None
 
 # NOTE: Morph file is neuron shape file (*.p) in the model root directory.
 #morph_file = {'squid':'squid.p'} # Single compartment Squid morphology model.
-morph_file = {'squid':'squid_10C.p'} # ten compartments Squid morphology model.
+morph_file = {'squid':'squid_10C_squid_1.p'} # ten compartments Squid morphology model.
 NAME_SOMA='axon' # Parent compartment to simulate squid axon where NAME_SOMA is application variable.
 
 #CONDUCTANCES
@@ -28,8 +29,8 @@ dist = (1e-3, 100e-3)
 # Channel conductances declaration for the squid axon.
 _squid = _util.NamedDict(
     'squid',
-    K={prox: 360, dist: 560}, # Potassium channel g_bar to the squid axon surface.
-    Na={prox: 1200, dist: 1000}, # Sodium channel g_bar to the squid axon surface.
+    K={prox: 375.03539122514456, dist: 528.0073725807185},  # Potassium channel g_bar to the squid axon surface.
+    Na={prox: 1239.4810169236575, dist: 1349.8902763186481}, # Sodium channel g_bar to the squid axon surface.
     Krp={prox: 1, dist: 3},
     SKCa={prox: 1, dist: 3}
     )

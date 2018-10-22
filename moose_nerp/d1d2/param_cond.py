@@ -30,7 +30,8 @@ dist = (50e-6, 1000e-6)
 #e.g. med=(26.1e-6, 50e-6,'_2')
 #_1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
 #Parameters used by optimization from here down
-morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'}
+#morph_file = {'D1':'MScell-primDend.p', 'D2': 'MScell-primDend.p'} # test_version.
+morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'} # old_version.
 
 #CONDUCTANCES - UNITS of Siemens/meter squared
 _D1 = _util.NamedDict(
@@ -51,7 +52,6 @@ _D1 = _util.NamedDict(
 _D2 = _util.NamedDict(
     'D2',
     Krp = {prox:177.25, med:177.25, dist:27.25},
-    #KaF = {prox:3214, med: 471, dist: 234},
     KaF = {prox:641, med:300, dist:100},
     KaS = {prox:372, med: 32.9, dist: 0},
     Kir = {prox:6.2, med: 6.2, dist: 6.2},

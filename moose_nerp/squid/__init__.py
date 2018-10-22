@@ -38,7 +38,6 @@ synYN = False #Flag to set for simulation of synapses.
 # (Next 2 weeks)
 ## Write- up pre-reqs (NEXT STEP)
 ## paper for publication baseline schematics.
-## Need infromation for Data analytics research project evaluation pattern.
 ## Fix deadlines with professor for research project sections.
 
 ##***** paperwork submission and deadline for review committe and department.

@@ -163,7 +163,7 @@ KaF_Y_params = AlphaBetaChannelParams(A_rate = 0.105e3*qfactKaF,
 #KaS based on Shen 2004 data and Wolf 2005 model code. Note that the Wolf model
 #code on ModelDB notes that, via personal correspondance with Shen 2004 author,
 #parameters in Shen 2004 were misreported, and are subsequently corrected in
-#the Wolf 2005 code. Alpha/Beta channel params were fit to be similar to the 
+#the Wolf 2005 code. Alpha/Beta channel params were fit to be similar to the
 #Wolf steady state and tau equations--see fitKaS.py for fitting script.
 #Note: Fit looks ok with these parameters but could stand to be improved.
 KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
@@ -202,17 +202,25 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate = 25644952.0*qfactKaS,
 #CaL12 does not differ between D1 and D2.
 CaL12param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL12')
 qfactCaL = 2
+<<<<<<< Updated upstream
 CaL12_X_params =AlphaBetaChannelParams(A_rate = -220e3*4.0003e-3*qfactCaL,
+=======
+CaL12_X_params =AlphaBetaChannelParams(A_rate = -220e3* 4.0003e-3 *qfactCaL,
+>>>>>>> Stashed changes
                                          A_B = -220e3*qfactCaL,
                                          A_C = -1.0,
                                          A_vhalf = 4.0003e-3,
                                          A_vslope = -8e-3,
+<<<<<<< Updated upstream
                                          B_rate = 71e3*-4.0003e-3*qfactCaL,
+=======
+                                         B_rate = 71e3* -4.0003e-3 *qfactCaL,
+>>>>>>> Stashed changes
                                          B_B = 71e3*qfactCaL,
                                          B_C = -1.0,
                                          B_vhalf = -4.0003e-3,
                                          B_vslope = 5e-3)
- 
+
 
 CaL12_Y_params = TauInfMinChannelParams(T_min = 44.3e-3/qfactCaL,
                                         T_vdep = 0,
@@ -253,14 +261,22 @@ CaT_X_params = AlphaBetaChannelParams(A_rate = 1000*qfactCaT,
                                       A_C = 0.0,
                                       A_vhalf = 0.0,
                                       A_vslope = -19e-3,
+<<<<<<< Updated upstream
                                       B_rate = 16500*81.0003e-3*qfactCaT,
+=======
+                                      B_rate = 16500 * 81.0003e-3 * qfactCaT,
+>>>>>>> Stashed changes
                                       B_B = 16500*qfactCaT,
                                       B_C = -1.0,
                                       B_vhalf = 81.0003e-3,
                                       B_vslope = 7.12e-3)
 
 #Original inactivation ws too slow compared to activation, made closder the alpha1G
+<<<<<<< Updated upstream
 CaT_Y_params = AlphaBetaChannelParams(A_rate = 34000*113.0003e-3*qfactCaT,
+=======
+CaT_Y_params = AlphaBetaChannelParams(A_rate = 34000 * 113.0003e-3 * qfactCaT,
+>>>>>>> Stashed changes
                                       A_B = 34000*qfactCaT,
                                       A_C = -1.0,
                                       A_vhalf = 113.0003e-3,
@@ -282,7 +298,11 @@ CaN_X_params = AlphaBetaChannelParams(A_rate = 304*qfactCaN,
                                       A_C = 0.0,
                                       A_vhalf = 0.0,
                                       A_vslope = -14.0e-3,
+<<<<<<< Updated upstream
                                       B_rate = 52800*14.20003e-3*qfactCaN,
+=======
+                                      B_rate = 52800* 14.20003e-3 *qfactCaN,
+>>>>>>> Stashed changes
                                       B_B = 52800*qfactCaN,
                                       B_C = -1.0,
                                       B_vhalf = 14.20003e-3,
@@ -308,13 +328,17 @@ CaR_X_params = AlphaBetaChannelParams(A_rate = 240*qfactCaR,
                                       A_C =  0.0,
                                       A_vhalf =  0.0,
                                       A_vslope = -28.0e-3,
+<<<<<<< Updated upstream
                                       B_rate = 1.264e6*qfactCaR,
+=======
+                                      B_rate = 8e6* 158e-3 *qfactCaR,
+>>>>>>> Stashed changes
                                       B_B = 8e6*qfactCaR,
                                       B_C = -1.0,
                                       B_vhalf = 158e-3,
                                       B_vslope = 13.6e-3)
 
-CaR_Y_params = AlphaBetaChannelParams(A_rate = 1100,
+CaR_Y_params = AlphaBetaChannelParams(A_rate = 10000 * 0.11,
                                       A_B = 10000,
                                       A_C = -1.0,
                                       A_vhalf = 0.11,
