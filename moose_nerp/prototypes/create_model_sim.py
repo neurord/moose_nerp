@@ -27,6 +27,7 @@ def setupLogging(model, level = logging.INFO):
     model.log = logutil.Logger()
     return model.log
 
+@util.call_counter
 def setupOptions(model, **kwargs):
     '''Can be called with no arguments except model. This will use the defaults
     in standard_options.standard_options() and apply no param_sim overrides.
@@ -45,11 +46,11 @@ def setupOptions(model, **kwargs):
     kwargs should be empy; if anything is left in kwargs, then a meaningless
     kwarg was passed and a warning is raised.
 
-    After the function definition, an attribute setupOptions.hasBeenCalled is
-    initialized to False. When the function is called, this gets set to True.
+    Function is wrapped with a function that counts calls to enable checking if
+    options have already been set up.
     '''
     # Warn if overwriting prior setupOptions
-    if setupOptions.hasBeenCalled is True:
+    if setupOptions.calls > 1:
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
@@ -112,14 +113,10 @@ def setupOptions(model, **kwargs):
     model.plotcomps = plotcomps
     model.param_sim = param_sim
     model.fname = fname
-    # Set hasBeenCalled flag to True
-    setupOptions.hasBeenCalled = True
     return #model, plotcomps, param_sim, fname
-# Must be initialized here after function definition, intializes to False;
-#   toggled to True within function call:
-setupOptions.hasBeenCalled = False
 
 
+@util.call_counter
 def setupNeurons(model, forceSetupOptions=True, **kwargs):
     '''Creates neuron(s) defined by model. forceSetupOptions=True by default
     will ensure that setupOptions is called before setupNeurons, but if a user
@@ -127,7 +124,7 @@ def setupNeurons(model, forceSetupOptions=True, **kwargs):
     setup or not--Could be useful for inspecting default model. kwargs are
     simply passed to setupOptions.
     '''
-    if forceSetupOptions is True and setupOptions.hasBeenCalled is False:
+    if forceSetupOptions is True and setupOptions.calls == 0:
         setupOptions(model, **kwargs)
 
     # build neurons and specify returns to model namespace
@@ -153,15 +150,14 @@ def setupNeurons(model, forceSetupOptions=True, **kwargs):
     if model.param_sim.hsolve and model.calYN:
         calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
-    setupNeurons.hasBeenCalled = True
     return model
-setupNeurons.hasBeenCalled = False
+
 
 def setupStim(model,**kwargs):
     '''Setup the stimulation pulse generator. This function requires that the
     neurons have already been setup, and so if they haven't it first calls
     setupNeurons(), passing any kwargs '''
-    if setupNeurons.hasBeenCalled is False:
+    if setupNeurons.calls == 0:
         setupNeurons(model, forceSetupOptions=True, **kwargs)
     neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
     pg, param_sim = inject_func.setup_stim(model, model.param_sim, neuron_paths)
@@ -169,7 +165,7 @@ def setupStim(model,**kwargs):
     return model
 
 def setupOutput(model, **kwargs):
-    if setupNeurons.hasBeenCalled is False:
+    if setupNeurons.calls == 0:
         setupNeurons(model, forceSetupOptions=True, **kwargs)
     ###############--------------output elements
     (vmtab,

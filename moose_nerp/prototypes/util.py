@@ -7,6 +7,7 @@ from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
 import functools
 import moose
+from subprocess import check_output
 
 def syn_name(synpath,headname):
     if headname in synpath:
@@ -259,8 +260,14 @@ def listize(func):
         return list(func(*args, **kwargs))
     return functools.update_wrapper(wrapper, func)
 
-from subprocess import check_output
-import sys
+
+def call_counter(func):
+    '''Decorator to count number of times a function has been called'''
+    def wrapper(*args,**kwargs):
+        wrapper.calls += 1
+        return func(*args,**kwargs)
+    wrapper.calls = 0
+    return functools.update_wrapper(wrapper, func)
 
 
 def gitlog(model):
