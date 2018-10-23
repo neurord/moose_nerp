@@ -25,6 +25,7 @@ from moose_nerp.prototypes import (create_model_sim,
 #synYN:No point adding synapses unless they receive inputs
 #plasYN:include or exclude plasticity based on calcium
 
+# Separte file and import here
 plasYN = False
 desenYN = False
 ghkYN = False #note that if ghkYN=0, make sure that ghKluge = 1
@@ -36,6 +37,7 @@ calYN = True
 # called "defaults.py" or something, and just import it here. If so, could also
 # set plasYN, desenYN, ghkYN, spineYN, synYN, and calYN in defaults.py rather
 # than here in __init__.py
+# Separate file and import in __main__
 defaults = {}
 defaults['logging_level'] = logging.DEBUG
 defaults['default_injection_current'] = [-0.2e-9, 0.26e-9]

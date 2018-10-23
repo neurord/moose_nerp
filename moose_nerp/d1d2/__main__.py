@@ -96,6 +96,8 @@ options['plot_channels'] = 0
 # options['fname'] # Set by default from model.param_stim
 
 # Main
+model.create_model_sim.main(model, **options)
+
 '''
 Note: create_model_sim.main is a simple wrapper function that sequentially calls
 5 other functions in create_model_sim:
@@ -116,4 +118,3 @@ model.param_sim. After calling setupOptions, model.param_sim is available and
 does not require a return.
 
 '''
-model.create_model_sim.main(model, **options)

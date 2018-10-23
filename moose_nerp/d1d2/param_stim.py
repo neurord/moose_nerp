@@ -30,7 +30,7 @@ Shen_Post = ParadigmParams(f_pulse = 50., n_pulse = 1,A_inject=1e-9, f_burst=5, 
 TBS =  ParadigmParams(f_pulse = 50., n_pulse = 4,A_inject=0, f_burst=8, n_burst=10, f_train=0.1, n_train=1, width_AP=1.1, AP_interval=2., n_AP=1, ISI=0, name="TBS")
 
 TestPlas = ParadigmParams(f_pulse = 5, n_pulse = 3,A_inject=0, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="TestPlas")
-
+#TODO: add defualt simtime to inject; ie. nAP = 1 and injection width = AP width
 inject = ParadigmParams(f_pulse = 5, n_pulse = 0,A_inject=0.25e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="inject")
 
 #This list is required to assign different stim paradigms if specified by the arg_parser

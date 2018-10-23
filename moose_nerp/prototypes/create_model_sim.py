@@ -51,6 +51,7 @@ def setupOptions(model, **kwargs):
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
+
     # Optional implementation: Check if model-specific defaults are present;
     # (they must be imported in __init__.py, e.g. from defaults import defaults,
     # where defaults.py contains a dictionary named defaults that contains all
@@ -83,6 +84,7 @@ def setupOptions(model, **kwargs):
     ######### Parse default arguments in standard_options.standard_options();
     ######### check if any kwargs match, and assign new default values if so.
     # Get the possible default arguments in standard_options:
+    # TO DO: Only apply overrides to param_sim
     standard_options_argnames = (standard_options.standard_options.__code__.
                                  co_varnames)
     # Find set of all kwargs that are also standard_options_argnames:
@@ -133,7 +135,7 @@ def setupOptions(model, **kwargs):
 
 
 @util.call_counter
-def setupNeurons(model, forceSetupOptions=True, **kwargs):
+def setupNeurons(model, forceSetupOptions=True, **kwargs): # remove force setup options
     '''Creates neuron(s) defined by model. forceSetupOptions=True by default
     will ensure that setupOptions is called before setupNeurons, but if a user
     passes forceSetupOptions = False, neurons can be created whether options
@@ -261,7 +263,7 @@ def runAll(model, plotIndividualInjections = False):
             spine_graph.spineFig(model, model.spinecatab, model.spinevmtab,
                                  model.param_sim.simtime)
         #save output - expand this to optionally save current data
-        if model.param_sim.save:
+        if model.param_sim.save: #TODO: separate hdf5 from save text and make savetext separate function
             inj_nA=inj*1e9
             tables.write_textfile(model.vmtab, 'Vm', model.fname, inj_nA,
                                   model.param_sim.simtime)
@@ -286,5 +288,5 @@ def main(model,**kwargs):
     setupNeurons(model)
     setupOutput(model)
     setupStim(model)
-    runAll(model)
+    runAll(model) # Put outside of main
     return model

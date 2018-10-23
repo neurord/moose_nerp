@@ -297,7 +297,7 @@ def setup_stim(model,param_sim,neuron_paths):
             st, spines, pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
             sim_time.append( st)
             plas[ntype] = spines
-        param_sim.simtime = max(sim_time)
+        param_sim.simtime = max(sim_time) # TODO: add + model.param_stim.delay
         param_sim.injection_current = [0]
     else:
         ### Current Injection alone, either use values from Paradigm or from command-line options
