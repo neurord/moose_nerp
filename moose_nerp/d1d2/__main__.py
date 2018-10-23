@@ -79,7 +79,7 @@ from moose_nerp import d1d2 as model
 options = {}
 
 # Optionally set logging level; default is INFO
-options['logging_level'] = model.logging.DEBUG
+options['logging_level'] = model.logging.WARNING #DEBUG
 
 # Options related to overriding the default values in
 # standard_options.standard_options()
