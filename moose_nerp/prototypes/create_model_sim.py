@@ -51,26 +51,6 @@ def setupOptions(model, **kwargs):
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
-
-    # Optional implementation: Check if model-specific defaults are present;
-    # (they must be imported in __init__.py, e.g. from defaults import defaults,
-    # where defaults.py contains a dictionary named defaults that contains all
-    # desired default parameters. Or they can be specified directly in __init__)
-    # If model has the attribute "defaults", then use these unless explicitly
-    # overridden by kwargs.
-    if hasattr(model,'defaults'):
-        print('Parsing model specific defaults')
-        print(model.defaults)
-        for k,v in model.defaults.items():
-            # Don't overwrite existing kwargs, only add default to kwargs if
-            # default keys are not already in kwargs.
-            if k not in kwargs:
-                kwargs[k] = v
-                print('Adding {} = {} to kwargs in setupOptions'.format(k,v))
-            else:
-                print('''{} = {} passed to setupOptions and will overide default
-                      of {} = {}'''.format(k,kwargs[k],k,v))
-
     # Setup logging level if passed in kwargs, else set to a default level
     if 'logging_level' in kwargs.keys():
         log = setupLogging(model,level = kwargs.pop('logging_level'))
@@ -81,29 +61,33 @@ def setupOptions(model, **kwargs):
         plotcomps = kwargs.pop("plotcomps")
     else: plotcomps = [model.NAME_SOMA]
 
-    ######### Parse default arguments in standard_options.standard_options();
-    ######### check if any kwargs match, and assign new default values if so.
-    # Get the possible default arguments in standard_options:
-    # TO DO: Only apply overrides to param_sim
-    standard_options_argnames = (standard_options.standard_options.__code__.
-                                 co_varnames)
-    # Find set of all kwargs that are also standard_options_argnames:
-    standard_options_default_overrides = set(set(kwargs.keys())
-                                             & set(standard_options_argnames))
-    #create dictionary for standard options overrides and pop item from kwargs
-    standard_options_dict = dict([ (k, kwargs.pop(k)) for k in
-                                          standard_options_default_overrides])
-    # Now call standard_options, passing any default overrides
-    option_parser = standard_options.standard_options(**standard_options_dict)
+    # Get the option_parser
+    option_parser = standard_options.standard_options()
 
-    ######### Now we must first call option_parser.parse_args(), and then can
-    ######### apply any kwargs that are param_sim overrides.
-    param_sim, _ = option_parser.parse_known_args()
+    # First parse args with empty list to return param_sim defaults
+    # to override below
+    param_sim, _ = option_parser.parse_known_args([])
+
+    ###### apply any kwargs that are param_sim overrides. #####
     # Find set of all kwargs that match param_sim variables
     param_sim_overrides = set(set(kwargs.keys()) & set(vars(param_sim).keys()))
     # Override each param_sim parameter in kwargs and pop item from kwargs
     for k in param_sim_overrides:
         setattr(param_sim, k, kwargs.pop(k))
+
+    # Precedence order: Command Line > python module passed kwargs >
+    #   model specific defaults > prototype defaults
+
+    # Command line args should have precedence--call here to update param_sim
+    # with any command line options after applying param_sim_overrides above
+    # TODO: This seems to work but it is not obvious that param_sim attributes
+    # are not overridden except only by explicitly passed command line args.
+    # Another option: use option_parser.set_defaults(**param_sim_kwargs) to set
+    # the param_sim overrides and then call option_parser.parse_known_args.
+    # OR yet another option: create sim_params within model directory; import
+    # in __init__.py, then calling below command will use the existing namespace
+    # and only change any specifically passed command line args
+    option_parser.parse_known_args(namespace = param_sim)
     # Pass param_sim to overrides and return model, plotcomps, and param_sim
     model, plotcomps, param_sim = standard_options.overrides(param_sim, model,
                                                              plotcomps)
@@ -135,20 +119,11 @@ def setupOptions(model, **kwargs):
 
 
 @util.call_counter
-def setupNeurons(model, forceSetupOptions=True, **kwargs): # remove force setup options
-    '''Creates neuron(s) defined by model. forceSetupOptions=True by default
-    will ensure that setupOptions is called before setupNeurons, but if a user
-    passes forceSetupOptions = False, neurons can be created whether options
-    setup or not--Could be useful for inspecting default model. kwargs are
-    simply passed to setupOptions.
-    '''
-    if forceSetupOptions is True and setupOptions.calls == 0:
-        setupOptions(model, **kwargs)
+def setupNeurons(model, **kwargs):
+    '''Creates neuron(s) defined by model. kwargs not yet implemented.'''
 
     # build neurons and specify returns to model namespace
     model.syn, model.neurons = cell_proto.neuronclasses(model)
-    if forceSetupOptions is False: # Only build neuron and return.
-        return
     param_sim = model.param_sim
     # If calcium and synapses created, could test plasticity at a single synapse
     # in syncomp. Need to debug this since eliminated param_sim.stimtimes. See
@@ -173,18 +148,13 @@ def setupNeurons(model, forceSetupOptions=True, **kwargs): # remove force setup 
 
 def setupStim(model,**kwargs):
     '''Setup the stimulation pulse generator. This function requires that the
-    neurons have already been setup, and so if they haven't it first calls
-    setupNeurons(), passing any kwargs '''
-    if setupNeurons.calls == 0:
-        setupNeurons(model, forceSetupOptions=True, **kwargs)
+    neurons and options have already been setup'''
     neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
     pg, param_sim = inject_func.setup_stim(model, model.param_sim, neuron_paths)
     model.pg, model.param_sim = pg, param_sim
     return model
 
 def setupOutput(model, **kwargs):
-    if setupNeurons.calls == 0:
-        setupNeurons(model, forceSetupOptions=True, **kwargs)
     ###############--------------output elements
     (vmtab,
      catab,
@@ -283,10 +253,9 @@ def runAll(model, plotIndividualInjections = False):
     model.traces = traces
     util.block_if_noninteractive()
 
-def main(model,**kwargs):
+def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)
     setupNeurons(model)
     setupOutput(model)
     setupStim(model)
-    runAll(model) # Put outside of main
     return model

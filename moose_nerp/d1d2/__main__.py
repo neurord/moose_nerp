@@ -16,24 +16,6 @@ the listed values (which correspond to moose_nerp.prototypes.standard_options).
     detected when parsing options, so this static list may not represent the
     full current state of possible valid options).
 
-    Default args in prototypes.standard_options.standard_options():
-        parser=None,
-        default_simulation_time=0.35,
-        default_plotdt=0.2e-3,
-        default_calcium=None,
-        default_spines=None,
-        default_synapse=None,
-        default_injection_current=None,
-        default_injection_delay=0.1,
-        default_injection_width=0.4,
-        default_plot_vm=True,
-        default_stim=None,
-        default_stim_loc=None
-
-    Default params returned by default call of standard_options().
-    (Note that these will take precedence over the "default_" args above, so
-    e.g. if both "default_simulation_time" (above) and "simtime" (below) are
-    specified and differ, "simtime" will override "default_simulation_time"):
         simtime = 0.35
         simdt = 1e-05
         plotdt = 0.0002
@@ -81,13 +63,10 @@ options = {}
 # Optionally set logging level; default is INFO
 options['logging_level'] = model.logging.WARNING #DEBUG
 
-# Options related to overriding the default values in
-# standard_options.standard_options()
-options['default_injection_current'] = [-0.2e-9, 0.26e-9]
-options['default_stim'] = 'inject'
-options['default_stim_loc'] = model.NAME_SOMA
+options['injection_current'] = [-0.2e-9, 0.26e-9]
+options['stim_paradigm'] = 'inject'
+options['stim_loc'] = model.NAME_SOMA
 
-# Options for overriding param_sim parameters after calling parse_args()
 options['save'] = 0
 options['plot_channels'] = 0
 
@@ -96,16 +75,15 @@ options['plot_channels'] = 0
 # options['fname'] # Set by default from model.param_stim
 
 # Main
-model.create_model_sim.main(model, **options)
-
+model.create_model_sim.setupAll(model, **options)
+model.create_model_sim.runAll(model)
 '''
-Note: create_model_sim.main is a simple wrapper function that sequentially calls
-5 other functions in create_model_sim:
+Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
+4 other functions in create_model_sim:
     1. setupOptions(model,**kwargs) where all the **kwargs to main get passed
     2. setupNeurons(model)
     3. setupOutput(model)
     4. setupStim(model)
-    5. runAll(model)
 These functions can be called individually if desired to inspect and or modify
 their outcome. E.g. to just inspect the moose model without simulating,
 model.create_model_sim.setupNeurons(model) could be called.
