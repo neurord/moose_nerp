@@ -33,7 +33,7 @@ from moose_nerp.prototypes import (create_model_sim,
 from moose_nerp import d1d2 as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 
-level = logging.DEBUG
+level = logging.WARNING # DEBUG
 logging.basicConfig(level=level)
 log = logutil.Logger()
 
