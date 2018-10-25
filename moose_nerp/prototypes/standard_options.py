@@ -59,24 +59,25 @@ def standard_options(parser=None,
     parser.add_argument('--save', nargs='?', metavar='FILE',
                         help='Write voltage and calcium (if enabled) to (HDF5) file. use single character for auto naming',
                         const='d1d2.h5')
-    
+
     #arguments/parameters to control what model details to include
-    parser.add_argument('--calcium', type=parse_boolean, nargs='?',
+    parsermodel = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parsermodel.add_argument('--calcium', type=parse_boolean, nargs='?',
                         help='Implement Ca dynamics',
                         const=True, default=default_calcium)
-    parser.add_argument('--spines', type=parse_boolean, nargs='?',
+    parsermodel.add_argument('--spines', type=parse_boolean, nargs='?',
                         help='Implement spines',
                         const=True, default=default_spines)
-    parser.add_argument('--synapse', type=parse_boolean, nargs='?',
+    parsermodel.add_argument('--synapse', type=parse_boolean, nargs='?',
                         help='Implement synapses',
                         const=True, default=default_calcium)
-    
+
     #Argument/parameters to control model parameter overrides.
     #ONLY applies to subattritubes of model, anything accessible as model[dot]XX
     parser.add_argument('--modelParamOverrides', default=None, nargs='*',
                         metavar='PARAMS.PARAMNAME:PARAMVALUE',
                         help='One or more (space separated) param:value pairs (colon-designated) to override model params, e.g.: ParamSpine.SpineDensity:1e6 SYNAPSE_TYPES.ampa.Gbar:1e-9')
-    
+
     #arguments / parameters to control stimulation during simulation
     parser.add_argument('--injection-current', '-i', type=inclusive_range_from_string,
                         metavar='CURRENT',
@@ -131,7 +132,7 @@ def standard_options(parser=None,
                         const=True)
     parser.add_argument('--plot-netvm', type=parse_boolean, nargs='?', metavar='BOOL',
                         const=True)
-    return parser
+    return parser, parsermodel
 
 
 def parseModelParamOverrides(model, modelParamOverrides):
@@ -170,21 +171,21 @@ def parseModelParamOverrides(model, modelParamOverrides):
               ' from ' + str(originalvalue) + ' to ' + str(value))
 
 
-def overrides(param_sim, model, plotcomps):
+def overrides(param_sim, model_options, model, plotcomps):
     #These assignment statements are required because they are not part of param_sim namespace.
-    if param_sim.calcium is not None:
-        model.calYN = param_sim.calcium
-    if param_sim.synapse is not None:
-        model.synYN = param_sim.synapse
-    if param_sim.spines is not None:
-        model.spineYN = param_sim.spines
+    if model_options.calcium is not None:
+        model.calYN = model_options.calcium
+    if model_options.synapse is not None:
+        model.synYN = model_options.synapse
+    if model_options.spines is not None:
+        model.spineYN = model_options.spines
     if param_sim.stim_paradigm is not None:
         model.param_stim.Stimulation.Paradigm=model.param_stim.paradigm_dict[param_sim.stim_paradigm]
     if param_sim.stim_loc is not None:
         model.param_stim.Stimulation.StimLoc.stim_dendrites=[param_sim.stim_loc]
     if param_sim.modelParamOverrides is not None:
         parseModelParamOverrides(model,param_sim.modelParamOverrides)
-    #These assignments make assumptions about which parameters should be changed together   
+    #These assignments make assumptions about which parameters should be changed together
     if model.calYN and param_sim.plot_calcium is None:
         param_sim.plot_calcium = True
     if model.param_stim.Stimulation.Paradigm.name is not 'inject':

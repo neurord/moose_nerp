@@ -51,24 +51,15 @@ def setupOptions(model, **kwargs):
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
-    # Setup logging level if passed in kwargs, else set to a default level
-    if 'logging_level' in kwargs.keys():
-        log = setupLogging(model,level = kwargs.pop('logging_level'))
-    else: log = setupLogging(model)
-
-    # Assign plotcomps if in kwargs, else set to a default.
-    if "plotcomps" in kwargs.keys():
-        plotcomps = kwargs.pop("plotcomps")
-    else: plotcomps = [model.NAME_SOMA]
-
     # Get the option_parser
-    option_parser = standard_options.standard_options()
+    option_parser, model_parser = standard_options.standard_options()
 
     # First parse args with empty list to return param_sim defaults
     # to override below
     # Edit: don't have to do this with param_sim.py method.
     # param_sim, _ = option_parser.parse_known_args([])
     param_sim = model.param_sim
+
     ###### apply any kwargs that are param_sim overrides. #####
     # Find set of all kwargs that match param_sim variables
     param_sim_overrides = set(set(kwargs.keys()) & set(vars(param_sim).keys()))
@@ -88,19 +79,22 @@ def setupOptions(model, **kwargs):
     # OR yet another option: create sim_params within model directory; import
     # in __init__.py, then calling below command will use the existing namespace
     # and only change any specifically passed command line args
-    option_parser.parse_known_args(namespace = param_sim)
+    param_sim, extraArgs = option_parser.parse_known_args(namespace = param_sim)
     # Pass param_sim to overrides and return model, plotcomps, and param_sim
-    model, plotcomps, param_sim = standard_options.overrides(param_sim, model,
-                                                             plotcomps)
+    model_overrides, _ = model_parser.parse_known_args(extraArgs)
+
+    model, plotcomps, param_sim = standard_options.overrides(param_sim, model_overrides, model,
+                                                             param_sim.plotcomps)
 
     ######### Any additional kwarg handling for kwargs not in param_sim or
     ######### standard_options can be added here:
+    # Setup logging level
+    log = setupLogging(model, level = param_sim.logging_level)
+
     # Optionally pass 'fname' in kwargs, else set default:
-    if 'fname' in kwargs.keys():
-        fname = kwargs.pop('fname')
-    else:
-        fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
-                 model.param_stim.location.stim_dendrites[0])
+    if param_sim.fname is None:
+        param_sim.fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
+                           model.param_stim.location.stim_dendrites[0])
 
     ######### Add any new code here to parse additional possible kwargs.
     ######### Be sure to pop any parsed kwarg from kwargs dictionary.
@@ -113,9 +107,11 @@ def setupOptions(model, **kwargs):
     ######### passing and returning. No need to return anything because this
     ######### function takes model as pass by reference; and everything modified
     ######### and needed outside this function is done to model namespace.
-    model.plotcomps = plotcomps
+    # model.plotcomps = plotcomps # Now in param_sim
     model.param_sim = param_sim
-    model.fname = fname
+    # model.fname = fname # now in param_sim
+    import pdb
+    pdb.set_trace()
     return #model, plotcomps, param_sim, fname
 
 
@@ -123,9 +119,16 @@ def setupOptions(model, **kwargs):
 def setupNeurons(model, **kwargs):
     '''Creates neuron(s) defined by model. kwargs not yet implemented.'''
 
+    if hasattr(model,'neurons'):
+        model.log.warning('Neurons already setup. Returning.')
+        return
+
+    param_sim = model.param_sim
+    if param_sim.neuron_type is not None:
+        model.param_cond.neurontypes = util.neurontypes(model.param_cond,
+                                                    [param_sim.neuron_type])
     # build neurons and specify returns to model namespace
     model.syn, model.neurons = cell_proto.neuronclasses(model)
-    param_sim = model.param_sim
     # If calcium and synapses created, could test plasticity at a single synapse
     # in syncomp. Need to debug this since eliminated param_sim.stimtimes. See
     # what else needs to be changed in plasticity_test.
@@ -164,12 +167,12 @@ def setupOutput(model, **kwargs):
                                    model.param_sim.plot_current,
                                    model.param_sim.plot_current_message,
                                    model.plas,
-                                   model.plotcomps)
+                                   model.param_sim.plotcomps)
 
     if model.param_sim.save:
         writer=tables.setup_hdf5_output(model, model.neurons,
-                                        filename=model.fname,
-                                        compartments=model.plotcomps)
+                                        filename=model.param_sim.fname,
+                                        compartments=model.param_sim.plotcomps)
     else:
         writer=None
     model.writer = writer
@@ -195,7 +198,7 @@ def setupOutput(model, **kwargs):
     if model.spineYN:
         model.spinecatab, model.spinevmtab = tables.spinetabs(model,
                                                               model.neurons,
-                                                              model.plotcomps)
+                                                              model.param_sim.plotcomps)
     else:
         model.spinevmtab = []
     return
@@ -236,17 +239,17 @@ def runAll(model, plotIndividualInjections = False):
         #save output - expand this to optionally save current data
         if model.param_sim.save: #TODO: separate hdf5 from save text and make savetext separate function
             inj_nA=inj*1e9
-            tables.write_textfile(model.vmtab, 'Vm', model.fname, inj_nA,
+            tables.write_textfile(model.vmtab, 'Vm', model.param_sim.fname, inj_nA,
                                   model.param_sim.simtime)
             if model.calYN:
-                tables.write_textfile(model.catab, 'Ca', model.fname, inj_nA,
+                tables.write_textfile(model.catab, 'Ca', model.param_sim.fname, inj_nA,
                                       model.param_sim.simtime)
             if model.spineYN and len(model.spinevmtab):
                 tables.write_textfile(list(model.spinevmtab.values()), 'SpVm',
-                                      model.fname, inj_nA, model.param_sim.simtime)
+                                      model.param_sim.fname, inj_nA, model.param_sim.simtime)
             if model.spineYN and len(model.spinecatab):
                 tables.write_textfile(list(model.spinecatab.values()), 'SpCa',
-                                      model.fname, inj_nA, model.param_sim.simtime)
+                                      model.param_sim.fname, inj_nA, model.param_sim.simtime)
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:

@@ -58,24 +58,24 @@ from moose_nerp import d1d2 as model
 # Options dictionary to be passed as **kwargs for main simulation function.
 # Any parameter name listed above can be optionally overriden by including in
 # this dictionary
-options = {}
+#options = {}
 
 # Optionally set logging level; default is INFO
-options['logging_level'] = model.logging.WARNING #DEBUG
+#options['logging_level'] = model.logging.WARNING #DEBUG
 
-options['injection_current'] = [-0.2e-9, 0.26e-9]
-options['stim_paradigm'] = 'inject'
-options['stim_loc'] = model.NAME_SOMA
+#options['injection_current'] = [-0.2e-9, 0.26e-9]
+#options['stim_paradigm'] = 'inject'
+#options['stim_loc'] = model.NAME_SOMA
 
-options['save'] = 0
-options['plot_channels'] = 0
+#options['save'] = 0
+#options['plot_channels'] = 0
 
 # Other possible options:
 # options['plot_comps'] # Defaults to model.NAME_SOMA;
 # options['fname'] # Set by default from model.param_stim
 
 # Main
-model.create_model_sim.setupAll(model, **options)
+model.create_model_sim.setupAll(model)
 model.create_model_sim.runAll(model)
 '''
 Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
