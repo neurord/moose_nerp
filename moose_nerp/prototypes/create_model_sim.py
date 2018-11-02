@@ -120,7 +120,10 @@ def setupNeurons(model, **kwargs):
         model.log.warning('Neurons already setup. Returning.')
         return
 
-    param_sim = model.param_sim
+    if 'param_sim' in kwargs:
+        param_sim = kwargs['param_sim']
+    else:
+        param_sim = model.param_sim
     if param_sim.neuron_type is not None:
         model.param_cond.neurontypes = util.neurontypes(model.param_cond,
                                                     [param_sim.neuron_type])
