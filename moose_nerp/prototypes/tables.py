@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import moose
 import numpy as np
+import h5py as h5
 
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
@@ -46,6 +47,24 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
                         cal = moose.element(comp.path+'/'+child.name)
                         moose.connect(writer, 'requestOut', cal, 'getC')
     return writer
+
+def wrap_hdf5(model, iterationName):
+    f = h5.File(model.param_sim.fname, 'r+')
+    # Moose creates hdf5 groups at root level, corresponding to moose path.
+    # Get the root level keys that are moose elements, move them under current
+    # iteration level.
+    f.create_group(iterationName)
+    for k in f.keys():
+        if moose.exists(k):
+            f.move(k,iterationName+'/'+k)
+    f.close()
+
+def save_hdf5_attributes(model):
+    f = h5.File(model.param_sim.fname, 'r+')
+    for k, v in vars(model.param_sim).items():
+        f.attrs[k] = str(v)
+    f.close()
+
 
 def write_textfile(tabset, tabname, fname, inj, simtime):
     time=np.linspace(0, simtime, len(tabset[0][0].vector))

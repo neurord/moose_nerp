@@ -273,11 +273,16 @@ def runAll(model, plotIndividualInjections = False):
             if model.spineYN and len(model.spinecatab):
                 tables.write_textfile(list(model.spinecatab.values()), 'SpCa',
                                       model.param_sim.fname, inj_nA, model.param_sim.simtime)
+        model.writer.mode=1
+        model.writer.close()
+        tables.wrap_hdf5(model,'injection_{}'.format(inj))
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
     model.traces = traces
+    tables.save_hdf5_attributes(model)
+    #model.writer.close()
     util.block_if_noninteractive()
 
 def setupAll(model,**kwargs):
