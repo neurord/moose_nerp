@@ -16,10 +16,10 @@ from .param_syn import (SYNAPSE_TYPES,
 
 from . import param_ca_plas as CaPlasticityParams
 from .param_stim import Stimulation
+
+
 from .param_sim import param_sim
-import logging
 
-from moose_nerp.prototypes import (create_model_sim,
-                                   constants)
+from moose_nerp.prototypes import constants
 
-from .model_defaults import * # calYN, spineYN, etc.
+from .param_model_defaults import * # calYN, spineYN, etc.

@@ -53,7 +53,7 @@ the listed values (which correspond to moose_nerp.prototypes.standard_options).
 from __future__ import print_function, division
 
 from moose_nerp import d1d2 as model
-
+from moose_nerp.prototypes import create_model_sim
 
 # Options dictionary to be passed as **kwargs for main simulation function.
 # Any parameter name listed above can be optionally overriden by including in
@@ -75,8 +75,10 @@ from moose_nerp import d1d2 as model
 # options['fname'] # Set by default from model.param_stim
 
 # Main
-model.create_model_sim.setupAll(model)
-model.create_model_sim.runAll(model)
+model.spineYN=False
+create_model_sim.setupAll(model)
+create_model_sim.runAll(model)
+#create_model_sim.stepRunPlot(model)
 '''
 Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
 4 other functions in create_model_sim:

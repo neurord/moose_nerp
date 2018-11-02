@@ -1,5 +1,4 @@
 from argparse import Namespace
-from .model_defaults import plasYN, desenYN, ghkYN, spineYN, synYN, calYN
 from .param_cond import NAME_SOMA
 import logging
 
@@ -16,7 +15,7 @@ param_sim.simtime = 0.35
 param_sim.neuron_type = None # 'D1' or 'D2', or None for both
 
 param_sim.logging_level = logging.WARNING
-param_sim.save = 0
+param_sim.save = True
 
 param_sim.simdt = 1e-05
 param_sim.hsolve = True
@@ -39,8 +38,3 @@ param_sim.plot_network = None
 param_sim.plot_synapse = None
 param_sim.plot_synapse_label = 'Cond, nS'
 param_sim.plot_synapse_message = 'getGk'
-
-#param_sim.calcium = calYN
-#param_sim.spines = spineYN
-#param_sim.synapse = synYN
-#param_sim.modelParamOverrides = None

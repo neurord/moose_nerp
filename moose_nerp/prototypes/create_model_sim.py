@@ -52,7 +52,7 @@ def setupOptions(model, **kwargs):
                           prior call with new options''')
 
     # Get the option_parser
-    option_parser, model_parser = standard_options.standard_options()
+    param_sim_parser, model_parser = standard_options.standard_options()
 
     # First parse args with empty list to return param_sim defaults
     # to override below
@@ -79,12 +79,11 @@ def setupOptions(model, **kwargs):
     # OR yet another option: create sim_params within model directory; import
     # in __init__.py, then calling below command will use the existing namespace
     # and only change any specifically passed command line args
-    param_sim, extraArgs = option_parser.parse_known_args(namespace = param_sim)
+    param_sim, unknown_args = param_sim_parser.parse_known_args(namespace = param_sim)
     # Pass param_sim to overrides and return model, plotcomps, and param_sim
-    model_overrides, _ = model_parser.parse_known_args(extraArgs)
-
-    model, plotcomps, param_sim = standard_options.overrides(param_sim, model_overrides, model,
-                                                             param_sim.plotcomps)
+    model, _ = model_parser.parse_known_args(unknown_args, namespace = model)
+    # TODO: directly overide model overides in model namespace above
+    model, param_sim = standard_options.overrides(param_sim, model)
 
     ######### Any additional kwarg handling for kwargs not in param_sim or
     ######### standard_options can be added here:
@@ -110,8 +109,6 @@ def setupOptions(model, **kwargs):
     # model.plotcomps = plotcomps # Now in param_sim
     model.param_sim = param_sim
     # model.fname = fname # now in param_sim
-    import pdb
-    pdb.set_trace()
     return #model, plotcomps, param_sim, fname
 
 
