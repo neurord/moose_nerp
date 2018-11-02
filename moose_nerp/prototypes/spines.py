@@ -21,12 +21,12 @@ explicit spines are to be included, reverse compensation is performed.
 '''
 
 def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
-    
+
     comp.diameter = compdia
     comp.length = complen
-    
+
     XArea = np.pi*comp.diameter*comp.diameter/4
-    
+
     circumf = np.pi*compdia
     log.debug('Xarea,circumf of {}, {}, {} CM {} {}',
               comp.path, XArea, circumf,
@@ -39,7 +39,7 @@ def setSpineCompParams(model, comp,compdia,complen,RA,RM,CM):
     comp.Cm = cm
     comp.Em = model.SpineParams.spineELEAK
     comp.initVm = model.SpineParams.spineEREST
-    
+
 
 def setPassiveSpineParams(model,container,name_soma):
     '''Sets the Spine Params for RM, CM, RA, from global values if NONE '''
@@ -48,7 +48,7 @@ def setPassiveSpineParams(model,container,name_soma):
          SA = np.pi*soma.diameter**2
          len_by_XA=1/(np.pi * soma.diameter/8) #eqn from Hendrickson & Jaeger 2010
     else:
-        SA =np.pi * soma.diameter * soma.length 
+        SA =np.pi * soma.diameter * soma.length
         len_by_XA=soma.length / (np.pi * soma.diameter * soma.diameter/4) #4 converts dia to radius
     globalRM = soma.Rm * SA
     globalCM = soma.Cm / SA
@@ -74,7 +74,7 @@ def setPassiveSpineParams(model,container,name_soma):
         model.SpineParams.spineEREST = globalEREST
         log.debug('Setting spineEREST to globalEREST = {}', globalEREST)
 
-def makeSpine(model, parentComp, compName,index,frac,SpineParams):
+def makeSpine(model, parentComp, compName,index,frac,SpineParams,randomAngles=True):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
     neck_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_NECK)
@@ -86,15 +86,35 @@ def makeSpine(model, parentComp, compName,index,frac,SpineParams):
     y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
     z=parentComp.z0+ frac * (parentComp.z - parentComp.z0)
     neck.x0, neck.y0, neck.z0 = x, y, z
-    #could pass in an angle and use cos and sin to set y and z
-    neck.x, neck.y, neck.z = x, y + SpineParams.necklen, z
+    from scipy.linalg import norm
+
+    if randomAngles:
+        # random angles for visualization
+        dendvect = np.array([parentComp.x, parentComp.y, parentComp.z]) - np.array([parentComp.x0, parentComp.y0, parentComp.z0])
+        dendvmag = norm(dendvect)
+        dendunitvec = dendvect/dendvmag
+        not_v = np.random.random(3)
+        not_v /= norm(not_v)
+        while (dendunitvec == not_v).all():
+            not_v = np.random.random(3)
+            not_v /= norm(not_v)
+        #make vector perpendicular to v
+        n1 = np.cross(dendunitvec, not_v)
+        #normalize n1
+        n1 /= norm(n1)
+        neck.x, neck.y, neck.z = SpineParams.necklen*n1
+        #print(neck.x, neck.y, neck.z)
+    else:
+        #could pass in an angle and use cos and sin to set y and z
+        neck.x, neck.y, neck.z = x, y + SpineParams.necklen, z
     setSpineCompParams(model, neck,SpineParams.neckdia,SpineParams.necklen,SpineParams.neckRA,SpineParams.spineRM,SpineParams.spineCM)
 
     head_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_HEAD)
     head = moose.Compartment(head_path)
     moose.connect(neck, 'raxial', head, 'axial', 'Single')
     head.x0, head.y0, head.z0 = neck.x, neck.y, neck.z
-    head.x, head.y, head.z = head.x0, head.y0 + SpineParams.headlen, head.z0
+    head.x, head.y, head.z = SpineParams.headlen*np.array([head.x0, head.y0, head.z0])/norm(np.array([head.x0, head.y0, head.z0]))
+    #head.x0, head.y0 + SpineParams.headlen, head.z0
 
     setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
     return head, neck
@@ -107,8 +127,8 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
     if SpineParams.spineDensity == 0:
         return
     if not compensate_for_spines.has_been_called:
-        print('Compensating for spines using SpineParams.spineDensity = ' + 
-              str(SpineParams.spineDensity) + 
+        print('Compensating for spines using SpineParams.spineDensity = ' +
+              str(SpineParams.spineDensity) +
               ' ; Set to zero skip spine compensation.' )
         compensate_for_spines.has_been_called = True
     dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
@@ -134,10 +154,10 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
         old_Cm = comp.Cm
         old_Rm = comp.Rm
         scaling_factor = (surface_area+total_spine_surface)/surface_area
-    
+
         comp.Cm = old_Cm * scaling_factor
         comp.Rm = old_Rm / scaling_factor
-        
+
         ## Additionally, compensate for ion channels in spines
         # Flatten the nested chan list:
         chan_list = []
@@ -147,7 +167,7 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
         for chanpath in chan_list:
             if moose.exists(comp.path+'/'+chanpath):
                 chan = moose.element(comp.path+'/'+chanpath)
-                old_gbar = chan.Gbar/surface_area                    
+                old_gbar = chan.Gbar/surface_area
                 spine_dend_gbar_ratio = 1.0 #TODO: Change if spine has different gbar than dendrite
                 gbar_factor = (surface_area + spine_dend_gbar_ratio*total_spine_surface)/surface_area
                 new_gbar = old_gbar*gbar_factor
@@ -161,7 +181,7 @@ def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,sur
     old_Cm = comp.Cm
     old_Rm = comp.Rm
     scaling_factor = (surface_area+explicit_spine_surface)/surface_area
-    
+
     comp.Cm = old_Cm / scaling_factor # Note, opposite signs from spine compensation
     comp.Rm = old_Rm * scaling_factor
     ## Additionally, reverse compensate for ion channels in spines
@@ -174,7 +194,7 @@ def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,sur
     for chanpath in chan_list:
         if moose.exists(comp.path+'/'+chanpath):
             chan = moose.element(comp.path+'/'+chanpath)
-            old_gbar = chan.Gbar/surface_area                  
+            old_gbar = chan.Gbar/surface_area
             spine_dend_gbar_ratio = 1.0 #TODO: Change if spine has different gbar than dendrite
             gbar_factor = (surface_area + spine_dend_gbar_ratio*explicit_spine_surface)/surface_area
             new_gbar = old_gbar/gbar_factor
@@ -193,7 +213,7 @@ def spine_surface(SpineParams):
     return surface*np.pi
 
 def getChildren(parentname,childrenlist):
-    
+
     children = moose.element(parentname).neighbors['axialOut']
     if len(children):
         for child in children:
@@ -210,7 +230,7 @@ def addSpines(model, container,ghkYN,name_soma):
 
     modelcond = model.Condset[container]
     single_spine_surface = spine_surface(SpineParams)
-     
+
     parentComp = container+'/'+SpineParams.spineParent
     print('Adding spines to parent: ' + parentComp)
     if not moose.exists(parentComp):
@@ -239,14 +259,14 @@ def addSpines(model, container,ghkYN,name_soma):
             #calculate total surface area of the added spines
             total_spine_surface = numSpines*single_spine_surface
             surface_area = comp.diameter*comp.length*np.pi
-            
+
             # if SpineParams.compensationSpineDensity:
             #     compensation_spine_surface = int(np.round(SpineParams.compensationSpineDensity*comp.length))*single_spine_surface
             #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
             # else:
             #increase resistance according to the spines that should be there but aren't
             reverse_compensate_for_explicit_spines(model,comp,total_spine_surface,surface_area)
-     
+
             #spineSpace = comp.length/(numSpines+1)
             #for each spine, make a spine and possibly compensate for its surface area
             for index in range(numSpines):
@@ -270,6 +290,6 @@ def addSpines(model, container,ghkYN,name_soma):
                             addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
             #end for index
     #end for comp
-    
+
     log.info('{} spines created in {}', len(headarray), container)
     return headarray

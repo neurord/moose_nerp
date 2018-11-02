@@ -209,6 +209,32 @@ def runOneSim(model, simtime=None, injection_current=None):
     moose.reinit()
     moose.start(simtime)
 
+def stepRunPlot(model, **kwargs):
+    if 'neuron' in kwargs:
+        mod = kwargs['neuron']
+    else:
+        mod = list(model.neurons.values())[0][0]
+    mod.buildSegmentTree()
+    import moogul
+    mv = moogul.MooView()
+    #mv.ax.set_proj_type('ortho')
+
+    # [baseclass, fieldGetFunc, scale, axisText, min, max]
+    fieldinfo = ['Compartment', 'getVm', 1, 'Vm', 0, 1]
+    m = moogul.MooNeuron(mod,fieldinfo, maxLineWidth = 10, diaScale = 10e6, colormap = 'viridis')
+    mv.addDrawable(m)
+    mv.firstDraw()
+    #mv.ax.set_proj_type('ortho')
+
+    plt.pause(1)
+    mv.updateValues()
+    plt.pause(60)
+
+    #steps = int(np.round(model.param_sim.simtime/(model.param_sim.plotdt)))
+    #for i in range(steps):
+    #    moose.start(model.param_sim.plotdt)
+    #    mv.updateValues()
+    #    plt.pause(.01)
 
 def runAll(model, plotIndividualInjections = False):
     plt.ion()
