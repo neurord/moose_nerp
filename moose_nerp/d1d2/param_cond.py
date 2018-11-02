@@ -30,7 +30,7 @@ dist = (50e-6, 1000e-6)
 #e.g. med=(26.1e-6, 50e-6,'_2')
 #_1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
 #Parameters used by optimization from here down
-morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'}
+morph_file = {'D1':'MScelltaperspinesAngled.p', 'D2': 'MScelltaperspinesAngled.p'}
 
 #CONDUCTANCES - UNITS of Siemens/meter squared
 _D1 = _util.NamedDict(
