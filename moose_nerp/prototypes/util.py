@@ -236,7 +236,7 @@ class NamedDict(dict):
 
 
 def block_if_noninteractive():
-    if not hasattr(_sys, 'ps1'):
+    if not any([hasattr(_sys, 'ps1'), _sys.flags.interactive]):
         print('Simulation finished. Close all windows or press ^C to exit.')
         import matplotlib.pyplot as plt
         try:
@@ -295,4 +295,8 @@ def gitlog(model):
     gitStagedDiff = check_output(['git', '-C', gitRepoPath, 'diff-index', '-p',
                                   '--cached', 'HEAD', '--']).decode(enc)
 
-    print(gitRepoPath, gitCurrentCommitHash, gitUnstagedDiff, gitStagedDiff)
+    #print(gitRepoPath, gitCurrentCommitHash, gitUnstagedDiff, gitStagedDiff)
+    return '\n'.join(['Git Repo Path of model: '+gitRepoPath + '\n',
+                      'Curret Git Commit Hash: '+gitCurrentCommitHash + '\n',
+                      'Unstaged Git Differences: \n' + gitUnstagedDiff +'\n',
+                      'Staged Git Differences: \n' + gitStagedDiff])

@@ -30,18 +30,14 @@ def setupLogging(model, level = logging.INFO):
 @util.call_counter
 def setupOptions(model, **kwargs):
     '''Can be called with no arguments except model. This will use the defaults
-    in standard_options.standard_options() and apply no param_sim overrides.
-    Can pass any keyword arguments that specify fname, plotcomps, logging_level,
-    defaults for standard_options.standard_options(), and param_sim overrides.
+    in param_sim.py param_model_defaults.py and apply no overrides.
 
-    Automatically detects possible kwargs in standard_options, so any default
-    added to standard_options or any argument added to standard_options can be
-    used without modifying this function.
+    Optionally, can pass any keyword arguments that are parameter names in
+    param_sim (e.g. fname, plotcomps, logging_level, etc.) to override them.
 
-    Function logic: This function handles kwargs successively; when a kwarg
-    meets a criteria, it is popped from kwargs. At the end of the function,
-    kwargs should be empy; if anything is left in kwargs, then a meaningless
-    kwarg was passed and a warning is raised.
+    This function also handles any command line arguments. When run from command
+    line, any command line options will take precedence over param_sim and
+    param_model_defaults.
 
     Function is wrapped with a function that counts calls to enable checking if
     options have already been set up.
@@ -51,13 +47,9 @@ def setupOptions(model, **kwargs):
         model.log.warning('''setupOptions has already been called. Overwriting
                           prior call with new options''')
 
-    # Get the option_parser
+    # Get the option_parsers
     param_sim_parser, model_parser = standard_options.standard_options()
 
-    # First parse args with empty list to return param_sim defaults
-    # to override below
-    # Edit: don't have to do this with param_sim.py method.
-    # param_sim, _ = option_parser.parse_known_args([])
     param_sim = model.param_sim
 
     ###### apply any kwargs that are param_sim overrides. #####
@@ -67,30 +59,22 @@ def setupOptions(model, **kwargs):
     for k in param_sim_overrides:
         setattr(param_sim, k, kwargs.pop(k))
 
-    # Precedence order: Command Line > python module passed kwargs >
-    #   model specific defaults > prototype defaults
-
     # Command line args should have precedence--call here to update param_sim
     # with any command line options after applying param_sim_overrides above
-    # TODO: This seems to work but it is not obvious that param_sim attributes
-    # are not overridden except only by explicitly passed command line args.
-    # Another option: use option_parser.set_defaults(**param_sim_kwargs) to set
-    # the param_sim overrides and then call option_parser.parse_known_args.
-    # OR yet another option: create sim_params within model directory; import
-    # in __init__.py, then calling below command will use the existing namespace
-    # and only change any specifically passed command line args
+    # Passing existing namespace into parse_known_args will only set attributes
+    # for command line arguments that are explicitly passed; no defaults are set
     param_sim, unknown_args = param_sim_parser.parse_known_args(namespace = param_sim)
-    # Pass param_sim to overrides and return model, plotcomps, and param_sim
+    # parsing model params separately for setting spineYN, calYN, etc. from command line
     model, _ = model_parser.parse_known_args(unknown_args, namespace = model)
-    # TODO: directly overide model overides in model namespace above
+
+    # Pass param_sim to overrides and return model, plotcomps, and param_sim
     model, param_sim = standard_options.overrides(param_sim, model)
 
-    ######### Any additional kwarg handling for kwargs not in param_sim or
-    ######### standard_options can be added here:
+    # Any additional kwarg handling for kwargs not in param_sim can be added here:
     # Setup logging level
     log = setupLogging(model, level = param_sim.logging_level)
 
-    # Optionally pass 'fname' in kwargs, else set default:
+    # Set fname to default if is None in param_sim:
     if param_sim.fname is None:
         param_sim.fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
                            model.param_stim.location.stim_dendrites[0])
@@ -102,19 +86,16 @@ def setupOptions(model, **kwargs):
     if len(kwargs) > 0:
         log.warning("Passed invalid keyword arguments {} to setupOptions",
                     kwargs)
-    ######### Append these variables as fields to model namespace to simplify
-    ######### passing and returning. No need to return anything because this
-    ######### function takes model as pass by reference; and everything modified
-    ######### and needed outside this function is done to model namespace.
-    # model.plotcomps = plotcomps # Now in param_sim
-    model.param_sim = param_sim
-    # model.fname = fname # now in param_sim
-    return #model, plotcomps, param_sim, fname
+    return model # Not necessary to return
 
 
 @util.call_counter
 def setupNeurons(model, **kwargs):
-    '''Creates neuron(s) defined by model. kwargs not yet implemented.'''
+    '''Creates neuron(s) defined by model.
+
+    By default, uses param_sim imported with model (model.param_sim), but
+    passing 'param_sim=param_sim' in as a kwarg allows overriding; when called
+    in ajustador, the param_sim defined by ajustador is explicitly passed in.'''
 
     if hasattr(model,'neurons'):
         model.log.warning('Neurons already setup. Returning.')
@@ -124,7 +105,7 @@ def setupNeurons(model, **kwargs):
         param_sim = kwargs['param_sim']
     else:
         param_sim = model.param_sim
-    if param_sim.neuron_type is not None:
+    if getattr(param_sim, 'neuron_type', None) is not None:
         model.param_cond.neurontypes = util.neurontypes(model.param_cond,
                                                     [param_sim.neuron_type])
     # build neurons and specify returns to model namespace
@@ -262,30 +243,26 @@ def runAll(model, plotIndividualInjections = False):
         if len(model.spinevmtab) and model.param_sim.plot_vm:
             spine_graph.spineFig(model, model.spinecatab, model.spinevmtab,
                                  model.param_sim.simtime)
-        #save output - expand this to optionally save current data
-        if model.param_sim.save: #TODO: separate hdf5 from save text and make savetext separate function
-            inj_nA=inj*1e9
-            tables.write_textfile(model.vmtab, 'Vm', model.param_sim.fname, inj_nA,
-                                  model.param_sim.simtime)
-            if model.calYN:
-                tables.write_textfile(model.catab, 'Ca', model.param_sim.fname, inj_nA,
-                                      model.param_sim.simtime)
-            if model.spineYN and len(model.spinevmtab):
-                tables.write_textfile(list(model.spinevmtab.values()), 'SpVm',
-                                      model.param_sim.fname, inj_nA, model.param_sim.simtime)
-            if model.spineYN and len(model.spinecatab):
-                tables.write_textfile(list(model.spinecatab.values()), 'SpCa',
-                                      model.param_sim.fname, inj_nA, model.param_sim.simtime)
+        #save plain text output - expand this to optionally save current data
+        if model.param_sim.save_txt:
+            tables.write_textfiles(model, inj)
+
+        # Switch hdf5writer mode from 2 (overwrite) to 1 (append)
+        # Note that hdf5writer is initialized in mode 2, overwriting prior simulations,
+        # But within one simulation at multiple current injections setting mode to 1
+        # allows appending the file with each current injection iteration,
+        # and calling "wrap_hdf5" modifies the hdf5 file for each injection
         model.writer.mode=1
         model.writer.close()
         tables.wrap_hdf5(model,'injection_{}'.format(inj))
+
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
     model.traces = traces
     tables.save_hdf5_attributes(model)
-    #model.writer.close()
+    model.writer.close()
     util.block_if_noninteractive()
 
 def setupAll(model,**kwargs):

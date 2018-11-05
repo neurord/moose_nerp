@@ -15,7 +15,9 @@ param_sim.simtime = 0.35
 param_sim.neuron_type = None # 'D1' or 'D2', or None for both
 
 param_sim.logging_level = logging.WARNING
-param_sim.save = True
+
+param_sim.save = True # save to hdf5
+param_sim.save_txt = False # Save text files
 
 param_sim.simdt = 1e-05
 param_sim.hsolve = True

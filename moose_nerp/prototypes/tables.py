@@ -6,7 +6,7 @@ import h5py as h5
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
-
+from . import util
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
@@ -63,6 +63,9 @@ def save_hdf5_attributes(model):
     f = h5.File(model.param_sim.fname, 'r+')
     for k, v in vars(model.param_sim).items():
         f.attrs[k] = str(v)
+    gitlog = util.gitlog(model)
+    f.attrs['gitlog'] = gitlog
+    f.attrs['Moose Version'] = moose.__version__
     f.close()
 
 
@@ -70,10 +73,27 @@ def write_textfile(tabset, tabname, fname, inj, simtime):
     time=np.linspace(0, simtime, len(tabset[0][0].vector))
     header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tab])
     outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tab])))
-    new_fname=fname+str(inj)+tabname+'.txt'
+    new_fname=fname+'{0:.4g}'.format(inj)+tabname+'.txt'
     #f.write(header+'\n')
     np.savetxt(new_fname,outputdata,fmt='%.6f',header=header)
     return new_fname
+
+
+def write_textfiles(model, inj):
+        inj_nA=inj*1e9
+        write_textfile(model.vmtab, 'Vm', model.param_sim.fname, inj_nA,
+                              model.param_sim.simtime)
+        if model.calYN:
+            write_textfile(model.catab, 'Ca', model.param_sim.fname, inj_nA,
+                                  model.param_sim.simtime)
+        if model.spineYN and len(model.spinevmtab):
+            write_textfile(list(model.spinevmtab.values()), 'SpVm',
+                                  model.param_sim.fname, inj_nA, model.param_sim.simtime)
+        if model.spineYN and len(model.spinecatab):
+            write_textfile(list(model.spinecatab.values()), 'SpCa',
+                                  model.param_sim.fname, inj_nA, model.param_sim.simtime)
+
+
 
 def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
