@@ -297,6 +297,6 @@ def gitlog(model):
 
     #print(gitRepoPath, gitCurrentCommitHash, gitUnstagedDiff, gitStagedDiff)
     return '\n'.join(['Git Repo Path of model: '+gitRepoPath + '\n',
-                      'Curret Git Commit Hash: '+gitCurrentCommitHash + '\n',
+                      'Current Git Commit Hash: '+gitCurrentCommitHash + '\n',
                       'Unstaged Git Differences: \n' + gitUnstagedDiff +'\n',
                       'Staged Git Differences: \n' + gitStagedDiff])
