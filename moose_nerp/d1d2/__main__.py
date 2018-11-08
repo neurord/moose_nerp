@@ -75,7 +75,8 @@ from moose_nerp.prototypes import create_model_sim
 # options['fname'] # Set by default from model.param_stim
 
 # Main
-model.spineYN=False
+model.spineYN=True
+model.calYN=True
 create_model_sim.setupAll(model)
 create_model_sim.runAll(model)
 #create_model_sim.stepRunPlot(model)
