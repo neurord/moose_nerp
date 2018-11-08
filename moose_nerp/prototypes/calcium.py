@@ -320,7 +320,8 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
     capool.diameter = comp.diameter
     capool.length = comp.length
     radius = comp.diameter/2.
-
+    if capool.thick > radius:
+        capool.thick = radius
     if capool.length:
         vol = np.pi * comp.length * (radius**2 - (radius-capool.thick)**2)
     else:
@@ -440,8 +441,10 @@ def fix_calcium(neurontypes, model):
             for cacomp in cacomps:
 
                 buf_capacity = distance_mapping(buffer_capacity_density, comp)
+                radius = cacomp.diameter/2.
+                if cacomp.thick > radius:
+                    cacomp.thick = radius
                 if cacomp.length:
-                    radius = cacomp.diameter/2.
                     vol = np.pi * cacomp.length * (radius**2 - (radius-cacomp.thick)**2)
 
                 else:
