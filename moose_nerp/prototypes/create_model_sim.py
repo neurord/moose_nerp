@@ -252,17 +252,19 @@ def runAll(model, plotIndividualInjections = False):
         # But within one simulation at multiple current injections setting mode to 1
         # allows appending the file with each current injection iteration,
         # and calling "wrap_hdf5" modifies the hdf5 file for each injection
-        model.writer.mode=1
-        model.writer.close()
-        tables.wrap_hdf5(model,'injection_{}'.format(inj))
+        if model.param_sim.save:
+            model.writer.mode=1
+            model.writer.close()
+            tables.wrap_hdf5(model,'injection_{}'.format(inj))
 
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
     model.traces = traces
-    tables.save_hdf5_attributes(model)
-    model.writer.close()
+    if model.param_sim.save:
+        tables.save_hdf5_attributes(model)
+        model.writer.close()
     util.block_if_noninteractive()
 
 def setupAll(model,**kwargs):
