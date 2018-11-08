@@ -49,24 +49,24 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
     return writer
 
 def wrap_hdf5(model, iterationName):
-    f = h5.File(model.param_sim.fname, 'r+')
-    # Moose creates hdf5 groups at root level, corresponding to moose path.
-    # Get the root level keys that are moose elements, move them under current
-    # iteration level.
-    f.create_group(iterationName)
-    for k in f.keys():
-        if moose.exists(k):
-            f.move(k,iterationName+'/'+k)
-    f.close()
+    with h5.File(model.param_sim.fname, 'r+') as f:
+        # Moose creates hdf5 groups at root level, corresponding to moose path.
+        # Get the root level keys that are moose elements, move them under current
+        # iteration level.
+        f.create_group(iterationName)
+        for k in f.keys():
+            if moose.exists(k):
+                f.move(k,iterationName+'/'+k)
+        f.close()
 
 def save_hdf5_attributes(model):
-    f = h5.File(model.param_sim.fname, 'r+')
-    for k, v in vars(model.param_sim).items():
-        f.attrs[k] = str(v)
-    gitlog = util.gitlog(model)
-    f.attrs['gitlog'] = gitlog
-    f.attrs['Moose Version'] = moose.__version__
-    f.close()
+    with h5.File(model.param_sim.fname, 'r+') as f:
+        for k, v in vars(model.param_sim).items():
+            f.attrs[k] = str(v)
+        gitlog = util.gitlog(model)
+        f.attrs['gitlog'] = gitlog
+        f.attrs['Moose Version'] = moose.__version__
+        f.close()
 
 
 def write_textfile(tabset, tabname, fname, inj, simtime):
