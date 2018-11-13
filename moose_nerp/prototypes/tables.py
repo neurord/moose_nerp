@@ -25,6 +25,7 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
     if not moose.exists(HDF5WRITER_NAME):
         print('creating', HDF5WRITER_NAME)
         writer = moose.HDF5DataWriter(HDF5WRITER_NAME)
+        #writer = moose.NSDFWriter(HDF5WRITER_NAME)
         writer.mode = 2 # Truncate existing file
         if filename is not None:
             writer.filename = filename
@@ -38,7 +39,10 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
             comp=moose.element(neur_type+'/'+compname)
             moose.connect(writer, 'requestOut', comp, 'getVm')
 
-            if model.calYN:
+    if model.calYN:
+        for typenum,neur_type in enumerate(neuron.keys()):
+            for ii,compname in enumerate(compartments):  #neur_comps):
+                comp=moose.element(neur_type+'/'+compname)
                 for child in comp.children:
                     if child.className in {"CaConc", "ZombieCaConc"}:
                         cal = moose.element(comp.path+'/'+child.name)
