@@ -230,13 +230,13 @@ def runAll(model, plotIndividualInjections = False):
                                 model.param_sim.simtime, model.currtab,
                                 model.param_sim.plot_current_label,
                                 model.catab, model.plastab)
-
         #set up tables that accumulate soma traces for multiple simulations
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-            traces.append(model.vmtab[neurnum][0].vector)
-            if model.calYN and model.param_sim.plot_calcium:
-                catraces.append(model.catab[neurnum][0].vector)
-            names.append('{} @ {}'.format(neurtype, inj))
+            for plotcompnum, plotcomp in enumerate(model.param_sim.plotcomps):
+                traces.append(model.vmtab[neurnum][plotcompnum].vector)
+                if model.calYN and model.param_sim.plot_calcium:
+                    catraces.append(model.catab[neurnum][plotcompnum].vector)
+                names.append('{} {} @ {}'.format(plotcomp, neurtype, inj))
             # In Python3.6, the following syntax works:
             #names.append(f'{neurtype} @ {inj}')
         #plot spines
@@ -261,11 +261,12 @@ def runAll(model, plotIndividualInjections = False):
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
-    model.traces = traces
+        util.block_if_noninteractive()
+
+    model.traces, model.catraces = traces, catraces
     if model.param_sim.save:
         tables.save_hdf5_attributes(model)
         model.writer.close()
-    util.block_if_noninteractive()
 
 def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)
