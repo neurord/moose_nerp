@@ -64,13 +64,13 @@ def standard_options(parser=None,
     model_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=True)
     model_parser.add_argument('--calcium', type=parse_boolean, nargs='?',
                         help='Implement Ca dynamics',
-                        const=True, default=default_calcium)
+                        const=True, default=default_calcium, dest = 'calYN')
     model_parser.add_argument('--spines', type=parse_boolean, nargs='?',
                         help='Implement spines',
-                        const=True, default=default_spines)
+                        const=True, default=default_spines, dest = 'spineYN')
     model_parser.add_argument('--synapse', type=parse_boolean, nargs='?',
                         help='Implement synapses',
-                        const=True, default=default_calcium)
+                        const=True, default=default_calcium, dest = 'synYN')
 
     #Argument/parameters to control model parameter overrides.
     #ONLY applies to subattritubes of model, anything accessible as model[dot]XX
