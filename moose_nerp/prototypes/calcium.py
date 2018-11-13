@@ -312,10 +312,11 @@ def addPumps(dShell,PumpParams,Pumps,surface):
 
     dShell.leak = leak
 
-def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
+def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,tau=None):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
-
+    if tau is not None:
+        capool.tau = tau#*np.pi*comp.diameter*comp.length *0.125e10 #/(np.pi*comp.length*(comp.diameter/2)**2) #
     capool.thick = OutershellThickness
     capool.diameter = comp.diameter
     capool.length = comp.length
@@ -339,8 +340,8 @@ def extract_and_add_capool(model,comp,pools):
     shape = distance_mapping(params.ShapeConfig,comp)
     OuterShellThick = shape.OutershellThickness
     BufCapacity = distance_mapping(params.BufferCapacityDensity,comp)
-
-    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools)
+    tau = distance_mapping(params.Taus,comp)
+    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau)
 
     return pool
 

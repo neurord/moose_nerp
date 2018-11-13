@@ -36,7 +36,7 @@ LINEAR = 0
 
 #SPECIFY TYPE OF CALCIUM DYNAMICS HERE
 #CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
-CaShellModeDensity = {soma:CAPOOL, dend:SHELL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included 
+CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included
 
 ############################################
 #intrinsic calcium params
@@ -76,12 +76,12 @@ which_dye = "no_dye"
 #Quantities of calcium indicators taken directly from experimental papers
 
 #possible dye sets used in experiments
-BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':1}, #endogenous immobile low affinity buffer (e.g. see Matthews, Scoch, & Dietrich, J. Neuro, 2013 (hippocampus))
-               "Fura_2":{'Fura2':100e-3,'FixedBuffer':1}, #Kerr
-               "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':1},
-               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':1}, #Plotkin use 100uM or 200
-               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':1}, #500 uM used by Plotkin
-               "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':1},
+BufferTotals ={"no_dye":{'Calbindin':80e-3,'CaMC':15e-3,'CaMN':15e-3,'FixedBuffer':3.5}, #endogenous immobile low affinity buffer (e.g. see Matthews, Scoch, & Dietrich, J. Neuro, 2013 (hippocampus))
+               "Fura_2":{'Fura2':100e-3,'FixedBuffer':3.5}, #Kerr
+               "Fluo5F Shindou":{'Fluo5F':300.0e-3,'FixedBuffer':3.5},
+               "Fluo4":{'Fluo4':100.e-3,'FixedBuffer':3.5}, #Plotkin use 100uM or 200
+               "Fluo4FF":{'Fluo4FF':500e-3,'FixedBuffer':3.5}, #500 uM used by Plotkin
+               "Fluo5F Lovinger and Sabatini":{'Fluo5F':100e-3,'FixedBuffer':3.5},
                "no_buffers":{}
     }
 
@@ -94,7 +94,7 @@ PumpVmaxDensities.NCX = {soma:0, dend:0, spines:8.e-8}
 BufferDensity = {everything:BufferTotals[which_dye]}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:20.,dend:20.}
-
+Taus = {soma:20e-3, dend: 5e-3, spines: 10e-3}
 #Specificy the size of the smaller calcium compartments
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
