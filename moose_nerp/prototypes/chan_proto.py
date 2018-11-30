@@ -167,6 +167,7 @@ def chan_proto(model, chanpath, params):
             make_gate(params.Z,model,zGate)
 
     chan.Ek = params.channel.Erev
+    chan.tick=-1
     return chan
 
 def BKchan_proto(model, chanpath, params):
@@ -208,6 +209,7 @@ def BKchan_proto(model, chanpath, params):
                 log.info("    Ca={} A,B={},{}",
                          model.CAMIN+jj*(model.CAMAX-model.CAMIN)/(model.CADIVS-1),
                          xGate.tableA[ii][jj], xGate.tableB[ii][jj])
+    chan.tick=-1
     return chan
 #Channels (model.py) includes channel function name in the dictionary
 
