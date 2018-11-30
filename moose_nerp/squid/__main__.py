@@ -32,13 +32,8 @@ from moose_nerp.prototypes import (create_model_sim,
 from moose_nerp import squid as model
 from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
 from moose_nerp.prototypes.tables import write_textfile
-from ajustador.helpers.loggingsystem import getlogger
 from moose_nerp.prototypes import print_params
-logger = getlogger(__name__)
-logger.setLevel(logging.DEBUG)
-#handle = logging.StreamHandler()
-#handle.setLevel(logging.DEBUG)
-#logger.addHandler(handle)
+
 logging.basicConfig(level=logging.DEBUG)
 log = logutil.Logger()
 
@@ -54,10 +49,7 @@ option_parser = standard_options.standard_options(
 
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
-#param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace.npy'
-#param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau.npy'
-#param_sim.save_vm='/home/Sriramsagar/neural_prj/waves/squid-experimental/squid_trace_tau_z.npy'
-param_sim.save='../squid.npz'
+param_sim.save=0
 param_sim.plot_channels = 0
 plotcomps=[model.param_cond.NAME_SOMA]
 
@@ -134,20 +126,6 @@ if param_sim.plot_vm:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if model.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
-
-import numpy as np
-opt_data_seed = np.load('/tmp/Sriramsagarsquid-squid-squid_experimentaltau_z/tmpuc_n6nhc/ivdata-1e-09.npy') #with seed
-opt_data_without_seed =np.load('/tmp/Sriramsagarsquid-squid-squid_experimentaltau_z_ns/tmpidjzl3x2/ivdata-1e-09.npy') #without seed
-
-f_dt = 20E-5
-#x = np.arange(0+30E-6, 200E-3+30E-6, f_dt) #proto
-x_seed = np.linspace(param_sim.plotdt, param_sim.simtime + param_sim.plotdt, len(opt_data_seed))
-x_no_seed = np.linspace(param_sim.plotdt, param_sim.simtime + param_sim.plotdt, len(opt_data_seed))
-
-plt.plot(x_seed, opt_data_seed, x_no_seed, opt_data_without_seed)
-plt.legend(['sim', 'seed', 'no_seed'])
-plt.grid(True)
-plt.show()
 
 # Write simulation output to a numpy file.
 

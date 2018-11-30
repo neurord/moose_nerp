@@ -26,19 +26,3 @@ synYN = False #Flag to set for simulation of synapses.
 #note that if ghkYN=0, make sure that ghKluge = 1
 
 
-##### To Do (Monday):
-#Part 1 create a model of 10 compartments with.
-#Ra = 0.1Kohm-cm (add it to .p with SI units)(Imperial units)
-#Ra = 1.0ohm-m (SI units)
-#Rm = 10Kohm-cm** 2 add it to .p with SI units)
-#Rm = 1.0ohm-m**2 (SI units)
-
-#Part 2 write simulated table into a csv using code.
-
-# (Next 2 weeks)
-## Write- up pre-reqs (NEXT STEP)
-## paper for publication baseline schematics.
-## Fix deadlines with professor for research project sections.
-
-##***** paperwork submission and deadline for review committe and department.
-#form for a research work.
