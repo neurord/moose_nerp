@@ -190,6 +190,7 @@ def CaProto(model):
         concproto.CaBasal = capar.Ceq
         concproto.ceiling = 1.
         concproto.floor = 0.0
+        concproto.tick=-1
 
     return moose.element('/library/'+capar.CaName)
 
@@ -205,7 +206,7 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage,check_list=[])
         #connect them to the channels
 
     chan_list = [c for c in comp.neighbors['VmOut'] if c.className == 'HHChannel' or c.className == 'HHChannel2D']
-
+    
     if not check_list:
         check_list=chan_list
 
@@ -217,11 +218,9 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage,check_list=[])
                     m = moose.connect(chan, 'IkOut', capool, CurrentMessage)
                     log.debug('channel {.path} to Ca {.path}',chan, capool)
 
-
-        if model.Channels[chan.name].calciumDependent or  model.Channels[chan.name].channel.Zpow:
+        if model.Channels[chan.name].calciumDependent:
             if chan in check_list or chan.name in check_list:
                 m = moose.connect(capool,CaOutMessage, chan, 'concen')
-
                 log.debug('channel message {} {} {}', chan.path, comp.path, m)
 
 def connectNMDA(comp,capool,CurrentMessage,CaOutMessage):
@@ -328,6 +327,7 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
 
 
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
+
     connectVDCC_KCa(model,comp,capool,'current','concOut')
     connectNMDA(comp,capool,'current','concOut')
     #print('Adding CaConc to '+capool.path)
