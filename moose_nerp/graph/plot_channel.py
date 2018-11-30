@@ -7,15 +7,17 @@ def plot_gate_params(chan,plotpow, VMIN=-0.1, VMAX=0.05, CAMIN=0, CAMAX=1):
     """Plot the gate parameters like m and h of the channel."""
     if chan.className == 'HHChannel':
         cols=1
-        #n=range(0,2,1)
-        if chan.Zpower!=0 and (chan.Xpower!=0 or chan.Ypower!=0) and chan.useConcentration == True:
-            fig,axes=plt.subplots(3,cols,sharex=False)
-            axes[1].set_xlabel('voltage')
-            axes[2].set_xlabel('Calcium')
+        if (chan.Xpower==0 and chan.Ypower==0) or chan.useConcentration == False:
+            rows=2
+            xlabel='voltage'
+            sharex=True
         else:
-            fig,axes=plt.subplots(2,cols,sharex=True)
-            axes[1].set_xlabel('voltage')
+            rows=3
+            xlabel='calcium'
+            sharex=False
+        fig,axes=plt.subplots(rows,cols,sharex=sharex)
         plt.suptitle(chan.name)
+        axes[1].set_xlabel('voltage')
         if chan.Xpower > 0:
             gate=moose.element(chan.path + '/gateX')
             ma = gate.tableA
@@ -43,13 +45,16 @@ def plot_gate_params(chan,plotpow, VMIN=-0.1, VMAX=0.05, CAMIN=0, CAMAX=1):
             za = gate.tableA
             zb = gate.tableB
             xarray=np.linspace(gate.min,gate.max,len(za))
+            #1st condition: only SK channel, useConc==True put tau and inf in panels 0&1;
+            #2nd condition: x, y and z vdep gates, put tau and inf in panels 0&1
             if (chan.Xpower==0 and chan.Ypower==0) or chan.useConcentration == False:
                 axes[0].plot(xarray,1e3/zb,label='ztau ' + chan.name)
                 axes[1].plot(xarray, za / zb, label='zinf' + chan.name)
                 if chan.useConcentration == True:
                     axes[1].set_xlabel('Calcium')
-            else:
+            else: #CDI: chan.useConc == True and there are x and Y gates, put tau and inf in panel 2
                 axes[2].set_xscale("log")
+                axes[2].set_xlabel('Calcium')
                 axes[2].set_ylabel('ss, tau (s)')
                 axes[2].plot(xarray,1/zb,label='ztau ' + chan.name)
                 axes[2].plot(xarray, za / zb, label='zinf ' + chan.name)
