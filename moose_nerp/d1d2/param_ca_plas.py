@@ -93,8 +93,9 @@ PumpVmaxDensities.NCX = {soma:0, dend:0, spines:8.e-8}
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
-BufferCapacityDensity = {soma:20.,dend:20.}
-Taus = {soma:20e-3, dend: 5e-3, spines: 10e-3}
+BufferCapacityDensity = {soma:199.6, dend:78.1}
+Taus = {soma:0.032185, dend: 0.1107359, spines: 0.1107359}
+tauScale='SurfaceArea'
 #Specificy the size of the smaller calcium compartments
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
