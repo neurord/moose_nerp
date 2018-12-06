@@ -36,17 +36,17 @@ logging.basicConfig(level=logging.INFO)
 log = logutil.Logger()
 
 option_parser = standard_options.standard_options(
-    default_injection_current=[-200e-12, -100e-12, 0, 100e-12],
-    default_simulation_time=0.5,
+    default_injection_current=[100e-12],
+    default_simulation_time=0.55,
     default_injection_width=0.3,
-    default_injection_delay=0.1,
+    default_injection_delay=0.15,
     default_plotdt=0.0001)
 
 param_sim = option_parser.parse_args()
 param_sim.hsolve=1
 param_sim.plot_channels=1
 param_sim.plot_current=1
-
+plotgate='NaS' #plot X, Y, Z values vs time for this channel
 plotcomps=[model.param_cond.NAME_SOMA]
 
 ####### required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
@@ -66,13 +66,9 @@ neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
 pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
 
 ############# Optionally, some additional output ##############
-########### plot zgate
-ztab=moose.Table('data/zgate')
-naf_chan=moose.element('/ep/soma/NaF')
-moose.connect(ztab,'requestOut', naf_chan,'getZ')
 
 if param_sim.plot_channels:
-    for chan in ['NaF']:#model.Channels.keys():
+    for chan in ['NaS','NaF']:#model.Channels.keys():
         libchan=moose.element('/library/'+chan)
         plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
                                       model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
@@ -84,6 +80,14 @@ if model.spineYN:
     spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
 else:
     spinevmtab=[]
+
+gatextab=moose.Table('/data/gatex')
+moose.connect(gatextab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getX')
+gateytab=moose.Table('/data/gatey')
+moose.connect(gateytab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getY')
+if model.Channels[plotgate][0][2]==1:
+    gateztab=moose.Table('/data/gatez')
+    moose.connect(gateztab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getZ')
 
 ###########Actually run the simulation
 def run_simulation( simtime,injection_current=None):
@@ -121,10 +125,13 @@ if param_sim.plot_vm:
         num_currents=np.shape(current_traces)[0]//len(param_sim.injection_current)
         neuron_graph.SingleGraphSet(current_traces[-num_currents:], curr_names,param_sim.simtime)
         plt.figure()
-        ts = np.linspace(0, param_sim.simtime, len(ztab.vector))
-        plt.plot(ts,ztab.vector,label='NaF, Z value')
+        ts = np.linspace(0, param_sim.simtime, len(gatextab.vector))
+        plt.suptitle('X,Y,Z gates; hsolve='+str(param_sim.hsolve)+' calYN='+str(model.calYN)+' Zgate='+str(model.Channels[plotgate][0][2]))
+        plt.plot(ts,gatextab.vector,label='X')
+        plt.plot(ts,gateytab.vector,label='Y')
+        if model.Channels[plotgate][0][2]==1:
+            plt.plot(ts,gateztab.vector,label='Z')
         plt.legend()
-        plt.show()
 
 # block in non-interactive mode
 util.block_if_noninteractive()
@@ -132,4 +139,5 @@ util.block_if_noninteractive()
 for st in spiketab:
       print("number of spikes", st.path, ' = ',len(st.vector))
 
-moose.showfield('/ep/soma/NaF')
+from moose_nerp.prototypes import print_params
+#print_params.print_elem_params(model,'ep',param_sim)

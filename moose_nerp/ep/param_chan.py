@@ -85,13 +85,13 @@ Na_s_params= TauInfMinChannelParams(SS_min=0.15,
                                     SS_vdep=0.85,
                                     SS_vhalf=-0.045,
                                     SS_vslope=0.0054,
-                                    T_min = 0.01,
+                                    T_min = 0.5,
                                     T_vdep = 2.2,
                                     T_vhalf = -0.032,
                                     T_vslope = 0.012,
-                                    T_power=2)
+                                    T_power=1)
 
-NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
+NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaF')
 
 
 #persistent Na_channel.  Slow down from Dieter Jaeger
@@ -150,7 +150,7 @@ NaS_s_params = TauInfMinChannelParams(SS_min = 0,
                                          T_vslope = -0.016,
                                          T_power=2)
 '''
-NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
+NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
 
 #KDrparam -Kv2
 KDrparam = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='KDr')
@@ -311,6 +311,7 @@ BKparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='BKCa')
 
 BK_X_params=[BKChannelParams(alphabeta=480, K=0.18, delta=-0.84),
 BKChannelParams(alphabeta=280, K=0.011, delta=-1.0)]
+
 Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneD(KDrparam, KDr_X_params, KDr_Y_params),
@@ -325,4 +326,4 @@ Channels = NamedDict(
     SKCa=  TypicalOneD(SKparam, [], [], SK_Z_params , calciumDependent=True),
     BKCa=TwoD(BKparam, BK_X_params, calciumDependent=True),
 )
-# have to add NaP and calcium channels
+

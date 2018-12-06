@@ -46,7 +46,7 @@ option_parser = standard_options.standard_options(
       default_simulation_time= 2.0, #1.01,
       default_injection_width=1.0,
       default_injection_delay=0.047,
-      default_plotdt=0.00019998000199980003)
+      default_plotdt=0.0002)
 param_sim = option_parser.parse_args()
 
 #additional, optional parameter overrides specified from with python terminal
@@ -128,15 +128,9 @@ for inj in param_sim.injection_current:
         spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
 
 if param_sim.plot_vm:
-    neuron_graph.SingleGraphSet([traces[1]], [names[1]], param_sim.simtime)
-    import numpy as np
-    opt_data = np.load('/tmp/Sriramsagargp-proto-proto079-2sproto079/tmpmnykb7p0/ivdata--1e-10.npy')
-    x = np.linspace(0, param_sim.simtime, len(opt_data)) #proto
-    plt.plot(x, opt_data)
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     if model.calYN and param_sim.plot_calcium:
         neuron_graph.SingleGraphSet(calcium_traces,names,param_sim.simtime, title='Ca')
-
-plt.show()
 
 '''
 from moose_nerp.prototypes.tables import write_textfile
