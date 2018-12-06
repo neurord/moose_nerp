@@ -1,141 +1,103 @@
 # -*- coding:utf-8 -*-
+'''
+Main script to create and simulate two SP neuron classes from the package
+moose_nerp.d1d2 when run as module (python -m moose_nerp.d1d2)
 
-######## SPneuronSim.py ############
-## Code to create two SP neuron classes
-##      using dictionaries for channels and synapses
-##      calcium based learning rule/plasticity function, optional
-##      spines, optionally with ion channels and synpases
-##      Synapses to test the plasticity function, optional
-##      used to tune parameters and channel kinetics (but using larger morphology)
+  -using dictionaries for channels and synapses
+  -calcium based learning rule/plasticity function, optional
+  -spines, optionally with ion channels and synpases
+  -Synapses to test the plasticity function, optional
+  -used to tune parameters and channel kinetics (but using larger morphology)
+
+Any of the following parameters can be overridden below; otherwise defaults to
+the listed values (which correspond to moose_nerp.prototypes.standard_options).
+
+    (Note that any change/update to standard_options will automatically be
+    detected when parsing options, so this static list may not represent the
+    full current state of possible valid options).
+
+        simtime = 0.35
+        simdt = 1e-05
+        plotdt = 0.0002
+        hsolve = True
+        save = None
+        calcium = None
+        spines = None
+        synapse = None
+        modelParamOverrides = None
+        injection_current = None
+        injection_delay = 0.1
+        injection_width = 0.4
+        stim_paradigm = None
+        stim_loc = None
+        plot_vm = True
+        plot_current = None
+        plot_calcium = None
+        plot_current_message = 'getGk'
+        plot_current_label = 'Cond, S'
+        plot_synapse = None
+        plot_synapse_message = 'getGk'
+        plot_synapse_label = 'Cond, nS'
+        plot_channels = None
+        plot_activation = None
+        plot_network = None
+        plot_netvm = None
+
+    Additional defaults that can be overriden by kwargs:
+        logging_level = model.logging.INFO
+        fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
+                 model.param_stim.location.stim_dendrites[0])
+         plotcomps = model.NAME_SOMA
+'''
 
 from __future__ import print_function, division
-import logging
 
-import numpy as np
-import matplotlib.pyplot as plt
-plt.ion()
-
-from pprint import pprint
-import moose
-
-from moose_nerp.prototypes import (create_model_sim,
-                                   cell_proto,
-                                   calcium,
-                                   clocks,
-                                   inject_func,
-                                   tables,
-                                   plasticity_test,
-                                   logutil,
-                                   util,
-                                   standard_options,
-                                   constants,
-                                   print_params)
 from moose_nerp import d1d2 as model
-from moose_nerp.graph import plot_channel, neuron_graph, spine_graph
+from moose_nerp.prototypes import create_model_sim
 
-level = logging.WARNING # DEBUG
-logging.basicConfig(level=level)
-log = logutil.Logger()
+# Options dictionary to be passed as **kwargs for main simulation function.
+# Any parameter name listed above can be optionally overriden by including in
+# this dictionary
+#options = {}
 
-#two examples of calling option_parser - one overrides the defaults and is useful when running from python window
-#option_parser = standard_options.standard_options()
-option_parser = standard_options.standard_options(
-      default_injection_current=[-0.2e-9,0.26e-9],
-      default_stim='inject',
-      default_stim_loc='soma')
-param_sim = option_parser.parse_args()
+# Optionally set logging level; default is INFO
+#options['logging_level'] = model.logging.WARNING #DEBUG
 
-#additional, optional parameter overrides specified from with python terminal
-param_sim.save=0
-param_sim.plot_channels=0
+#options['injection_current'] = [-0.2e-9, 0.26e-9]
+#options['stim_paradigm'] = 'inject'
+#options['stim_loc'] = model.NAME_SOMA
 
-#list of size >=1 is required for plotcomps
-# TODO: Change if desired; also change in standard options if i do
-plotcomps=[model.param_cond.NAME_SOMA]
+#options['save'] = 0
+#options['plot_channels'] = 0
 
-######## required for all simulations: adjust the model settings if specified by command-line options and retain model defaults otherwise
-model,plotcomps,param_sim=standard_options.overrides(param_sim,model,plotcomps)
+# Other possible options:
+# options['plot_comps'] # Defaults to model.NAME_SOMA;
+# options['fname'] # Set by default from model.param_stim
 
-#default file name is obtained from stimulation parameters
-fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]
+# Main
+model.spineYN=False
+model.calYN=True
+model.param_sim.plotcomps = ['tertdend1_6']
+create_model_sim.setupAll(model)
+create_model_sim.runAll(model)
 
-# Optionally include this line to only model D1; change to "D2" if desired;
-# Remove line/comment out or change condSubset to 'all' to not limit it.
-#create_model_sim.limit_Condset(model, condSubset='D1')
-# TODO: use same function as ajustador
-# Option parser can use
-
-############## required for all simulations: create the model, set up stimulation and basic output
-syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
-vmtab, catab, plastab, currtab = outtables
-
-####### Set up stimulation - could be current injection or synaptic
-neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-
-pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
-
-############# Optionally, some additional output ##############
-if level == logging.DEBUG:
-    for neur in neuron.keys():
-        print_params.print_elem_params(model,neur,param_sim)
-
-if param_sim.plot_channels:
-    for chan in model.Channels.keys():
-        libchan=moose.element('/library/'+chan)
-        plot_channel.plot_gate_params(libchan,param_sim.plot_activation,
-                                      model.VMIN, model.VMAX, model.CAMIN, model.CAMAX)
-
-if model.spineYN:
-    spinecatab,spinevmtab=tables.spinetabs(model,neuron,plotcomps)
-else:
-    spinevmtab=[]
-
-###########Actually run the simulation
-def run_simulation( simtime,injection_current=None):
-    if model.param_stim.Stimulation.Paradigm.name == 'inject':
-        print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-        pg.firstLevel = injection_current
-    moose.reinit()
-    moose.start(simtime)
-
-traces, names, catraces = [], [], []
-for inj in param_sim.injection_current:
-    run_simulation(simtime=param_sim.simtime,injection_current=inj)
-    if param_sim.plot_vm:
-        neuron_graph.graphs(model, vmtab, param_sim.plot_current, param_sim.simtime,
-                        currtab, param_sim.plot_current_label,
-                        catab, plastab)
-    #set up tables that accumulate soma traces for multiple simulations
-    for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-        traces.append(vmtab[neurnum][0].vector)
-        if model.calYN and param_sim.plot_calcium:
-            catraces.append(catab[neurnum][0].vector)
-        names.append('{} @ {}'.format(neurtype, inj))
-        # In Python3.6, the following syntax works:
-        #names.append(f'{neurtype} @ {inj}')
-    #plot spines
-    if len(spinevmtab) and param_sim.plot_vm:
-        spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
-    #save output - expand this to optionally save current data
-    if param_sim.save:
-        inj_nA=inj*1e9
-        tables.write_textfile(vmtab,'Vm', fname,inj_nA,param_sim.simtime)
-        if model.calYN:
-            tables.write_textfile(catab,'Ca', fname,inj_nA,param_sim.simtime)
-        if model.spineYN and len(spinevmtab):
-            tables.write_textfile(list(spinevmtab.values()),'SpVm', fname,inj_nA,param_sim.simtime)
-            if model.spineYN and len(spinecatab):
-                tables.write_textfile(list(spinecatab.values()),'SpCa', fname,inj_nA,param_sim.simtime)
-if param_sim.plot_vm:
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    if model.calYN and param_sim.plot_calcium:
-        neuron_graph.SingleGraphSet(catraces, names, param_sim.simtime)
-
-'''dat=np.load('/tmp/fitd1d2-D1-tmp_non05Jan2015_SLH00462938/tmpu3y709a8/ivdata-2.6e-10.npy','r')
-ts=np.arange(0,0.8,0.0002)
-plt.plot(ts[0:3500],dat[500:4000])
+#create_model_sim.stepRunPlot(model)
 '''
-# block in non-interactive mode
-util.block_if_noninteractive()
+Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
+4 other functions in create_model_sim:
+    1. setupOptions(model,**kwargs) where all the **kwargs to main get passed
+    2. setupNeurons(model)
+    3. setupOutput(model)
+    4. setupStim(model)
+These functions can be called individually if desired to inspect and or modify
+their outcome. E.g. to just inspect the moose model without simulating,
+model.create_model_sim.setupNeurons(model) could be called.
 
-#may need to eliminate parameter_overrides for Cal, Syn, etc - to prevent ajustador - moose_nerp differences
+Also note: model is passed to all these functions as a reference to the module,
+and rather than having to return multiple variables, the functions simply add
+variables to the model namespace. For instance, rather than having to return
+param_sim, the function setupOptions adds param_sim to model namespace as
+model.param_sim. After calling setupOptions, model.param_sim is available and
+does not require a return.
+
+'''

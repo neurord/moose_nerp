@@ -311,19 +311,28 @@ def addPumps(dShell,PumpParams,Pumps,surface):
 
     dShell.leak = leak
 
-def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto):
+def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,tau=None,tauScale=None):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
-
     capool.thick = OutershellThickness
     capool.diameter = comp.diameter
     capool.length = comp.length
     radius = comp.diameter/2.
-
+    if capool.thick > radius:
+        capool.thick = radius
     if capool.length:
-        vol = np.pi*comp.length*comp.diameter*capool.thick
+        vol = np.pi * comp.length * (radius**2 - (radius-capool.thick)**2)
     else:
         vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
+    if tau is not None:
+        capool.tau = tau#*np.pi*comp.diameter*comp.length *0.125e10 #/(np.pi*comp.length*(comp.diameter/2)**2) #
+        if tauScale is not None:
+            if tauScale == 'SurfaceArea':
+                capool.tau = tau * (np.pi * comp.diameter * comp.length) / 8.478e-11 # normalize to primdend surface area
+            elif tauScale == 'Volume':
+                capool.tau = tau / vol
+            elif tauScale == 'SVR': #surface to volume ratio
+                capool.tau = tau / (np.pi * comp.diameter * comp.length)/vol
 
 
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
@@ -338,8 +347,8 @@ def extract_and_add_capool(model,comp,pools):
     shape = distance_mapping(params.ShapeConfig,comp)
     OuterShellThick = shape.OutershellThickness
     BufCapacity = distance_mapping(params.BufferCapacityDensity,comp)
-
-    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools)
+    tau = distance_mapping(params.Taus,comp)
+    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau,tauScale=params.tauScale)
 
     return pool
 
@@ -440,8 +449,12 @@ def fix_calcium(neurontypes, model):
             for cacomp in cacomps:
 
                 buf_capacity = distance_mapping(buffer_capacity_density, comp)
+                radius = cacomp.diameter/2.
+                if cacomp.thick > radius:
+                    cacomp.thick = radius
                 if cacomp.length:
-                    vol = np.pi * cacomp.diameter * cacomp.thick * cacomp.length
+                    vol = np.pi * cacomp.length * (radius**2 - (radius-cacomp.thick)**2)
+
                 else:
                     vol = 4. / 3. * np.pi * ((cacomp.diameter / 2) ** 3 - (cacomp.diameter / 2 - cacomp.thick) ** 3)
                 cacomp.B = 1. / (constants.Faraday * vol * 2) / buf_capacity # volume correction
