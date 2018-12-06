@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import moose 
+import moose
 from matplotlib import pyplot
 import numpy as np
 
@@ -26,7 +26,7 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plast
     for typenum,neurtype in enumerate(neurontypes(model.param_cond)):
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
         axes = f.add_subplot(211) if len(catab) else f.gca()
-        for oid in vmtab[typenum]:#tables.find_tables(neurtype,'Vm'):
+        for oid in vmtab[neurtype]:#tables.find_tables(neurtype,'Vm'):
             compnum = oid.msgOut[0].e2.name
             print('in graphs', compnum)
             if compartments is None or int(compnum) in compartments:
@@ -38,7 +38,7 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plast
         if len(catab):
             axes = f.add_subplot(212)
             if len(catab) > typenum:
-                for oid in catab[typenum]:
+                for oid in catab[neurtype]:
                     neurnum=oid.name.split('_')[-1].split('[')[0]
                     t = np.linspace(0, simtime, len(oid.vector))
                     axes.plot(t, oid.vector*1e3, label=neurnum)
@@ -49,10 +49,11 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plast
         f.tight_layout()
         f.canvas.draw()
 
-    if len(plastab):
+    if model.plasYN:
         fig,axes =pyplot.subplots(len(plastab)+1, 1,sharex=True)
         fig.suptitle('Plasticity')
-        for item_num,item in enumerate(plastab):
+        for item_num,key in enumerate(plastab.keys()):
+          item = plastab[key]
           for plasnum,plastype in enumerate(['plas','cum','syn']):
             if plastype=='plas':
                 title='wt change'
