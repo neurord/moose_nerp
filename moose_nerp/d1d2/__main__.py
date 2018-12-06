@@ -9,95 +9,58 @@ moose_nerp.d1d2 when run as module (python -m moose_nerp.d1d2)
   -Synapses to test the plasticity function, optional
   -used to tune parameters and channel kinetics (but using larger morphology)
 
-Any of the following parameters can be overridden below; otherwise defaults to
-the listed values (which correspond to moose_nerp.prototypes.standard_options).
-
-    (Note that any change/update to standard_options will automatically be
-    detected when parsing options, so this static list may not represent the
-    full current state of possible valid options).
-
-        simtime = 0.35
-        simdt = 1e-05
-        plotdt = 0.0002
-        hsolve = True
-        save = None
-        calcium = None
-        spines = None
-        synapse = None
-        modelParamOverrides = None
-        injection_current = None
-        injection_delay = 0.1
-        injection_width = 0.4
-        stim_paradigm = None
-        stim_loc = None
-        plot_vm = True
-        plot_current = None
-        plot_calcium = None
-        plot_current_message = 'getGk'
-        plot_current_label = 'Cond, S'
-        plot_synapse = None
-        plot_synapse_message = 'getGk'
-        plot_synapse_label = 'Cond, nS'
-        plot_channels = None
-        plot_activation = None
-        plot_network = None
-        plot_netvm = None
-
-    Additional defaults that can be overriden by kwargs:
-        logging_level = model.logging.INFO
-        fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
-                 model.param_stim.location.stim_dendrites[0])
-         plotcomps = model.NAME_SOMA
+Any of the parameters in param_sim, param_model_defaults, param_chan,
+param_cond, etc. can be overriden here. For example, to override simtime (set
+in parm_sim), do: model.param_sim.simtime = NEW_VALUE. Or to override spinesYN,
+do: model.spinesYN = True (Default is set in param_model_defaults).
 '''
 
 from __future__ import print_function, division
 
 from moose_nerp import d1d2 as model
+'''Evaluates moose_nerp/d1d2/__init__.py to load all the parameters, e.g.
+param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
+into the model namespace. These parameters are then accessible by, e.g.,
+`model.param_sim.fname`.
+'''
+
 from moose_nerp.prototypes import create_model_sim
+'''Imports functions for setting up and simulating model. These take the `model`
+namespace as argument, and append variables to this namespace. Thus, after
+running a simulation, the output tables would be accessible as model.vmtab,
+model.catab, etc.'''
 
-# Options dictionary to be passed as **kwargs for main simulation function.
-# Any parameter name listed above can be optionally overriden by including in
-# this dictionary
-#options = {}
-
-# Optionally set logging level; default is INFO
-#options['logging_level'] = model.logging.WARNING #DEBUG
-
-#options['injection_current'] = [-0.2e-9, 0.26e-9]
-#options['stim_paradigm'] = 'inject'
-#options['stim_loc'] = model.NAME_SOMA
-
-#options['save'] = 0
-#options['plot_channels'] = 0
-
-# Other possible options:
-# options['plot_comps'] # Defaults to model.NAME_SOMA;
-# options['fname'] # Set by default from model.param_stim
-
-# Main
+# Parameter overrides can be specified:
 model.spineYN=False
 model.calYN=True
-model.param_sim.plotcomps = ['tertdend1_6']
-create_model_sim.setupAll(model)
+
+# This function sets up the options specified in param_sim or passed from
+# command line:
+create_model_sim.setupOptions(model)
+
+# This function creates the neuron(s) in Moose:
+create_model_sim.setupNeurons(model)
+
+# This function sets up the Output options, e.g. saving, graph tables, etc.
+create_model_sim.setupOutput(model)
+
+# This function sets up the stimulation in Moose, e.g. pulsegen for current
+# injection or synaptic stimulation:
+create_model_sim.setupStim(model)
+
+# There is also a convenience function, `create_model_sim.setupAll(model)` that
+# would sequentially call the above four functions: setupOptions, setupNeurons,
+# setupOutput, and setupStim
+
+# This function runs all the specified simulations, plotting and saving them
+# as specified:
 create_model_sim.runAll(model)
 
-#create_model_sim.stepRunPlot(model)
-'''
-Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
-4 other functions in create_model_sim:
-    1. setupOptions(model,**kwargs) where all the **kwargs to main get passed
-    2. setupNeurons(model)
-    3. setupOutput(model)
-    4. setupStim(model)
-These functions can be called individually if desired to inspect and or modify
-their outcome. E.g. to just inspect the moose model without simulating,
-model.create_model_sim.setupNeurons(model) could be called.
-
-Also note: model is passed to all these functions as a reference to the module,
-and rather than having to return multiple variables, the functions simply add
-variables to the model namespace. For instance, rather than having to return
-param_sim, the function setupOptions adds param_sim to model namespace as
-model.param_sim. After calling setupOptions, model.param_sim is available and
-does not require a return.
-
-'''
+# Alternative function to create_model_sim.runAll, that runs a simulation a few
+# steps at a time and then updates a plot, to show the live simulation results.
+# This is an example of modifying, expanding, or customizing code:
+#   `create_model_sim.stepRunPlot(model)`
+# Note that customizations should be added to 'create_model_sim' to make them
+# available to any model, by adding new functions or expanding existing functions
+# with new options that do not alter the current state of the functions unless
+# the new options are explicitly called.
