@@ -312,11 +312,9 @@ def addPumps(dShell,PumpParams,Pumps,surface):
 
     dShell.leak = leak
 
-def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,tau=None):
+def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,tau=None,tauScale=None):
     #create the calcium pools in each compartment
     capool = moose.copy(caproto, comp, caproto.name)[0]
-    if tau is not None:
-        capool.tau = tau#*np.pi*comp.diameter*comp.length *0.125e10 #/(np.pi*comp.length*(comp.diameter/2)**2) #
     capool.thick = OutershellThickness
     capool.diameter = comp.diameter
     capool.length = comp.length
@@ -327,6 +325,15 @@ def addCaPool(model,OutershellThickness,BufCapacity,comp,caproto,tau=None):
         vol = np.pi * comp.length * (radius**2 - (radius-capool.thick)**2)
     else:
         vol = 4./3.*np.pi*(radius**3-(radius-capool.thick)**3)
+    if tau is not None:
+        capool.tau = tau#*np.pi*comp.diameter*comp.length *0.125e10 #/(np.pi*comp.length*(comp.diameter/2)**2) #
+        if tauScale is not None:
+            if tauScale == 'SurfaceArea':
+                capool.tau = tau * (np.pi * comp.diameter * comp.length) / 8.478e-11 # normalize to primdend surface area
+            elif tauScale == 'Volume':
+                capool.tau = tau / vol
+            elif tauScale == 'SVR': #surface to volume ratio
+                capool.tau = tau / (np.pi * comp.diameter * comp.length)/vol
 
 
     capool.B = 1. / (constants.Faraday*vol*2) / BufCapacity #volume correction
@@ -341,7 +348,7 @@ def extract_and_add_capool(model,comp,pools):
     OuterShellThick = shape.OutershellThickness
     BufCapacity = distance_mapping(params.BufferCapacityDensity,comp)
     tau = distance_mapping(params.Taus,comp)
-    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau)
+    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau,tauScale=params.tauScale)
 
     return pool
 

@@ -220,7 +220,7 @@ def stepRunPlot(model, **kwargs):
     #    mv.updateValues()
     #    plt.pause(.01)
 
-def runAll(model, plotIndividualInjections = False):
+def runAll(model, plotIndividualInjections=False, writeWavesCSV=False):
     plt.ion()
     traces, names, catraces = [], [], []
     for inj in model.param_sim.injection_current:
@@ -231,11 +231,11 @@ def runAll(model, plotIndividualInjections = False):
                                 model.param_sim.plot_current_label,
                                 model.catab, model.plastab)
         #set up tables that accumulate soma traces for multiple simulations
-        for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
+        for neurnum,neurtype in enumerate(model.neurons.keys()):
             for plotcompnum, plotcomp in enumerate(model.param_sim.plotcomps):
-                traces.append(model.vmtab[neurnum][plotcompnum].vector)
+                traces.append(model.vmtab[neurtype][plotcompnum].vector)
                 if model.calYN and model.param_sim.plot_calcium:
-                    catraces.append(model.catab[neurnum][plotcompnum].vector)
+                    catraces.append(model.catab[neurtype][plotcompnum].vector)
                 names.append('{} {} @ {}'.format(plotcomp, neurtype, inj))
             # In Python3.6, the following syntax works:
             #names.append(f'{neurtype} @ {inj}')
@@ -267,6 +267,13 @@ def runAll(model, plotIndividualInjections = False):
     if model.param_sim.save:
         tables.save_hdf5_attributes(model)
         model.writer.close()
+    if writeWavesCSV:
+        import numpy as np
+        timeCol = np.linspace(0, model.param_sim.simtime, len(model.traces[0]))*1e3 #ms
+        vCol = model.traces[0] *1e3 #mV
+        inj = model.param_sim.injection_current[0]
+        header = 'Time (ms),{} pA'.format(inj*1e12)
+        np.savetxt(model.param_sim.fname+'difshellwaves.csv', np.column_stack((timeCol,vCol)), delimiter=',', header = header, comments='' )
 
 def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)
