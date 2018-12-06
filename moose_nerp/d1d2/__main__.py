@@ -75,10 +75,12 @@ from moose_nerp.prototypes import create_model_sim
 # options['fname'] # Set by default from model.param_stim
 
 # Main
-model.spineYN=True
+model.spineYN=False
 model.calYN=True
+model.param_sim.plotcomps = ['tertdend1_6']
 create_model_sim.setupAll(model)
 create_model_sim.runAll(model)
+
 #create_model_sim.stepRunPlot(model)
 '''
 Note: create_model_sim.setupAll is a simple wrapper function that sequentially calls
