@@ -206,7 +206,7 @@ def connectVDCC_KCa(model,comp,capool,CurrentMessage,CaOutMessage,check_list=[])
         #connect them to the channels
 
     chan_list = [c for c in comp.neighbors['VmOut'] if c.className == 'HHChannel' or c.className == 'HHChannel2D']
-    
+
     if not check_list:
         check_list=chan_list
 
@@ -347,8 +347,13 @@ def extract_and_add_capool(model,comp,pools):
     shape = distance_mapping(params.ShapeConfig,comp)
     OuterShellThick = shape.OutershellThickness
     BufCapacity = distance_mapping(params.BufferCapacityDensity,comp)
-    tau = distance_mapping(params.Taus,comp)
-    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau,tauScale=params.tauScale)
+    if hasattr(params,'Taus'):
+        tau = distance_mapping(params.Taus,comp)
+        tauScale = params.tauScale
+    else:
+        tau = params.CalciumParams.tau
+        tauScale = None
+    pool = addCaPool(model,OuterShellThick,BufCapacity,comp, pools,tau=tau,tauScale=tauScale)
 
     return pool
 

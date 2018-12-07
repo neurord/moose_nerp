@@ -169,7 +169,13 @@ def setupOutput(model, **kwargs):
 
     if model.param_sim.plot_channels:
         plt.ion()
-        for chan in model.Channels.keys():
+        if type(model.param_sim.plot_channels) is str:
+            useChans = [model.param_sim.plot_channels] #Convert to list of len 1
+        elif type(model.param_sim.plot_channels) is list:
+            useChans = model.param_sim.plot_channels # Use the list of channel name strings
+        else:
+            useChans = model.Channels.keys() # Use all channels
+        for chan in useChans:
             libchan = moose.element('/library/'+chan)
             plot_channel.plot_gate_params(libchan,
                                           model.param_sim.plot_activation,
@@ -182,6 +188,22 @@ def setupOutput(model, **kwargs):
                                                               model.param_sim.plotcomps)
     else:
         model.spinevmtab = []
+
+    model.spiketab=tables.spiketables(model.neurons, model.param_cond)
+
+    if model.param_sim.plotgate:
+        plotgate = model.param_sim.plotgate
+        model.gatetables = {}
+        gatextab=moose.Table('/data/gatex')
+        moose.connect(gatextab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getX')
+        model.gatetables['gatextab']=gatextab
+        gateytab=moose.Table('/data/gatey')
+        moose.connect(gateytab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getY')
+        model.gatetables['gateytab']=gateytab
+        if model.Channels[plotgate][0][2]==1:
+            gateztab=moose.Table('/data/gatez')
+            moose.connect(gateztab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getZ')
+            model.gatetables['gateztab']=gateztab
     return
 
 
@@ -220,9 +242,9 @@ def stepRunPlot(model, **kwargs):
     #    mv.updateValues()
     #    plt.pause(.01)
 
-def runAll(model, plotIndividualInjections=False, writeWavesCSV=False):
+def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printParams = False):
     plt.ion()
-    traces, names, catraces = [], [], []
+    traces, names, catraces, current_traces, curr_names = [], [], [], [], []
     for inj in model.param_sim.injection_current:
         runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
         if model.param_sim.plot_vm and plotIndividualInjections:
@@ -237,8 +259,13 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False):
                 if model.calYN and model.param_sim.plot_calcium:
                     catraces.append(model.catab[neurtype][plotcompnum].vector)
                 names.append('{} {} @ {}'.format(plotcomp, neurtype, inj))
-            # In Python3.6, the following syntax works:
-            #names.append(f'{neurtype} @ {inj}')
+                # In Python3.6, the following syntax works:
+                #names.append(f'{neurtype} @ {inj}')
+        if model.param_sim.plot_current:
+            for channame in model.Channels.keys():
+                current_traces.append(model.currtab[neurtype][channame][0].vector)
+                curr_names.append('{}: {} @ {}'.format(neurtype, channame,inj))
+
         #plot spines
         if len(model.spinevmtab) and model.param_sim.plot_vm:
             spine_graph.spineFig(model, model.spinecatab, model.spinevmtab,
@@ -261,19 +288,38 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False):
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
             neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
-        util.block_if_noninteractive()
+
+    if model.param_sim.plot_current:
+        num_currents=np.shape(current_traces)[0]//len(model.param_sim.injection_current)
+        neuron_graph.SingleGraphSet(current_traces[-num_currents:], curr_names,model.param_sim.simtime)
+        if model.param_sim.plotgate:
+            plt.figure()
+            ts = np.linspace(0, model.param_sim.simtime, len(model.gatetables['gatextab'].vector))
+            plt.suptitle('X,Y,Z gates; hsolve='+str(model.param_sim.hsolve)+' calYN='+str(model.calYN)+' Zgate='+str(model.Channels[model.param_sim.plotgate][0][2]))
+            plt.plot(ts,model.gatetables['gatextab'].vector,label='X')
+            plt.plot(ts,model.gatetables['gateytab'].vector,label='Y')
+            if model.Channels[model.param_sim.plotgate][0][2]==1:
+                plt.plot(ts,model.gatetables['gateztab'].vector,label='Z')
+            plt.legend()
+
+    util.block_if_noninteractive()
+    for st in model.spiketab:
+          print("number of spikes", st.path, ' = ',len(st.vector))
 
     model.traces, model.catraces = traces, catraces
     if model.param_sim.save:
         tables.save_hdf5_attributes(model)
         model.writer.close()
     if writeWavesCSV:
-        import numpy as np
         timeCol = np.linspace(0, model.param_sim.simtime, len(model.traces[0]))*1e3 #ms
         vCol = model.traces[0] *1e3 #mV
         inj = model.param_sim.injection_current[0]
         header = 'Time (ms),{} pA'.format(inj*1e12)
         np.savetxt(model.param_sim.fname+'difshellwaves.csv', np.column_stack((timeCol,vCol)), delimiter=',', header = header, comments='' )
+
+    if printParams:
+        from moose_nerp.prototypes import print_params
+        print_params.print_elem_params(model,'ep',param_sim)
 
 def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)

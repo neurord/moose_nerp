@@ -60,6 +60,7 @@ create_model_sim.runAll(model)
 # steps at a time and then updates a plot, to show the live simulation results.
 # This is an example of modifying, expanding, or customizing code:
 #   `create_model_sim.stepRunPlot(model)`
+
 # Note that customizations should be added to 'create_model_sim' to make them
 # available to any model, by adding new functions or expanding existing functions
 # with new options that do not alter the current state of the functions unless
