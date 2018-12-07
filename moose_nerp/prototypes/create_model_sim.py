@@ -193,16 +193,18 @@ def setupOutput(model, **kwargs):
 
     if getattr(model.param_sim,'plotgate',None):
         plotgate = model.param_sim.plotgate
+        gatepath = list(model.neurons.values())[0].path+'/'+model.NAME_SOMA+'/'+plotgate
+        gate = moose.element(gatepath)
         model.gatetables = {}
         gatextab=moose.Table('/data/gatex')
-        moose.connect(gatextab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getX')
+        moose.connect(gatextab, 'requestOut', gate, 'getX')
         model.gatetables['gatextab']=gatextab
         gateytab=moose.Table('/data/gatey')
-        moose.connect(gateytab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getY')
+        moose.connect(gateytab, 'requestOut', gate, 'getY')
         model.gatetables['gateytab']=gateytab
         if model.Channels[plotgate][0][2]==1:
             gateztab=moose.Table('/data/gatez')
-            moose.connect(gateztab, 'requestOut', moose.element('/ep/soma/'+plotgate), 'getZ')
+            moose.connect(gateztab, 'requestOut', gate, 'getZ')
             model.gatetables['gateztab']=gateztab
     return
 
@@ -292,7 +294,7 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
     if model.param_sim.plot_current:
         num_currents=np.shape(current_traces)[0]//len(model.param_sim.injection_current)
         neuron_graph.SingleGraphSet(current_traces[-num_currents:], curr_names,model.param_sim.simtime)
-        if model.param_sim.plotgate:
+        if getattr(model.param_sim,'plotgate',None):
             plt.figure()
             ts = np.linspace(0, model.param_sim.simtime, len(model.gatetables['gatextab'].vector))
             plt.suptitle('X,Y,Z gates; hsolve='+str(model.param_sim.hsolve)+' calYN='+str(model.calYN)+' Zgate='+str(model.Channels[model.param_sim.plotgate][0][2]))
@@ -317,10 +319,7 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
         header = 'Time (ms),{} pA'.format(inj*1e12)
         np.savetxt(model.param_sim.fname+'difshellwaves.csv', np.column_stack((timeCol,vCol)), delimiter=',', header = header, comments='' )
 
-    if printParams:
-        from moose_nerp.prototypes import print_params
-        print_params.print_elem_params(model,'ep',param_sim)
-
+    
 def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)
     setupNeurons(model)
