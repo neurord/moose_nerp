@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-import moose 
+import moose
 
 from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
@@ -29,42 +29,43 @@ from moose_nerp.prototypes import (create_model_sim,
                                    net_output,
                                    logutil,
                                    util,
-                                   standard_options)
+                                   standard_options,
+                                   create_model_sim)
 from moose_nerp import gp as model
 from moose_nerp import gp_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
-logging.basicConfig(level=logging.INFO)
-log = logutil.Logger()
-
-#set-up option parser with overrides specified from with python terminal
-#no default_x specs are needed if running from unix terminal
-option_parser = standard_options.standard_options(default_injection_current=[0e-12])#, 100e-12]
-param_sim = option_parser.parse_args()
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.plasYN = False
 net.single=False
+
+create_model_sim.setupOptions(model)
+param_sim = model.param_sim
+
 ###alcohol injection--> Bk channel constant multiplier
 alcohol = 1
 for neurtype in model.param_cond.Condset:
-        for key in model.param_cond.Condset[neurtype]['BKCa']:
-		model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
+    for key in model.param_cond.Condset[neurtype]['BKCa']:
+        model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
 if alcohol > 1:
-        net.outfile = 'alcohol'+str(alcohol)
+    net.outfile = 'alcohol'+str(alcohol)
 
 #list of size >=1 is required for plotcomps
 plotcomps=[model.param_cond.NAME_SOMA]
 
 #################################-----------create the model and stimulation
 if net.single:
-        fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
-        syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+        #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
+        #syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
+        create_model_sim.setupNeurons(model)
+
         ####### Set up stimulation - could be current injection or synaptic
-        neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
-        pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
-        
+        #neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
+        #pg,param_sim=inject_func.setup_stim(model,param_sim,neuron_paths)
+        create_model_sim.setupStim(model)
+
 else:   #population of neurons
         ##1st create neuron prototypes
         syn,neuron = cell_proto.neuronclasses(model)
@@ -88,12 +89,7 @@ else:   #population of neurons
 
 ##############--------------output elements
 if net.single:
-        vmtab, catab, plastab, currtab=outtables
-        if model.synYN:
-                #overwrite plastab above, since it is empty
-                syntab, plastab=tables.syn_plastabs(connections,plas)
-        if model.spineYN:
-                spinecatab,spinevmtab=tables.spinetabs(model,neuron)
+        create_model_sim.setupOutput(model)
 else:
         spiketab, vmtab, plastab, catab = net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
 
@@ -112,10 +108,10 @@ for inj in param_sim.injection_current:
             traces.append(vmtab[neurnum][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, syntab, param_sim.simtime)
+            net_graph.syn_graph(connections, model.syntab, param_sim.simtime)
         if model.spineYN:
-            spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
-    else: 
+            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
+    else:
         if net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)

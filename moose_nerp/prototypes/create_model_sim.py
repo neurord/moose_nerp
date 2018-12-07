@@ -191,7 +191,7 @@ def setupOutput(model, **kwargs):
 
     model.spiketab=tables.spiketables(model.neurons, model.param_cond)
 
-    if model.param_sim.plotgate:
+    if getattr(model.param_sim,'plotgate',None):
         plotgate = model.param_sim.plotgate
         model.gatetables = {}
         gatextab=moose.Table('/data/gatex')
