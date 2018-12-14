@@ -29,6 +29,7 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 5. `param_ca_plas.py`: calcium and plasticity parameters.  Calcium can be either single time constant of decay, or can have multiple pumps and buffers.  Plasticity parameters implement calcium dependent synaptic plasticity, with both amplitude and duration thresholds
 6. `*.p`: morphology file
 7. `param_sim.py`: default simulation parameter options such as plotting, saving, simtime, etc. New options can be added.
+  - **Note**: Some versions of Moose may not have HDF5DataWriter installed; in that case make sure `param_sim.save=False` (and use param_sim.save_txt instead) 
 8. `param_model_defaults.py`: binary variables indicating whether to add spines, synapses, calcium, plasticity
 7. `__init__.py`: specifies all the parameter files that are imported when the module is imported.
 
@@ -64,7 +65,7 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 8. make sure the .p file for your neuron is in the package
 9. Edit `param_sim.py` and `param_model_defaults.py` to set your default model and simulation options
 9. edit `__main__.py`:  replace d1d2 in this line "from moose import d1d2 as model" with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
-11. The functions in `__main__.py` are imported from moose_nerp/prototypes/create_model_sim. This module contains standard functions for setting up and running a model/simulation. It is recommended that this module be extended for customizing simulations, so any customization is available to any model. However, care should be made to not break/alter existing functionality since other simulations depend on this code. 
+11. The functions in `__main__.py` are imported from moose_nerp/prototypes/create_model_sim. This module contains standard functions for setting up and running a model/simulation. It is recommended that this module be extended for customizing simulations, so any customization is available to any model. However, care should be made to not break/alter existing functionality since other simulations depend on this code.
 
 **Networks**
 1. clone othe package, str_net, and edit param_net.py.  Note there are three neuron types specified in this network: D1, D2 and FSI.  Delete all lines with FSI in you only want two neuron types, and delete all the lines with FSI or D2 if you want only one neuron type in your network.
