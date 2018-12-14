@@ -16,8 +16,8 @@ param_sim.neuron_type = 'D1' # 'D1' or 'D2', or None for both
 
 param_sim.logging_level = logging.WARNING
 
-param_sim.save = True #True # save to hdf5
-param_sim.save_txt = False # True # Save text files
+param_sim.save = False # save to hdf5 -- Requires Moose installed with HDF5DataWriter
+param_sim.save_txt = True # True # Save text files
 
 param_sim.simdt = 1e-05
 param_sim.hsolve = True
