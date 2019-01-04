@@ -91,7 +91,7 @@ Na_s_params= TauInfMinChannelParams(SS_min=0.15,
                                     T_vslope = 0.012,
                                     T_power=1)
 
-NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaF')
+NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 
 #persistent Na_channel.  Slow down from Dieter Jaeger
@@ -150,10 +150,10 @@ NaS_s_params = TauInfMinChannelParams(SS_min = 0,
                                          T_vslope = -0.016,
                                          T_power=2)
 '''
-NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=1, Erev=narev, name='NaP')
+NaSparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaP')
 
 #KDrparam -Kv2
-KDrparam = ChannelSettings(Xpow=4, Ypow=1, Zpow=0, Erev=krev, name='KDr')
+KDrparam = ChannelSettings(Xpow=4, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 
 KDr_X_params = AlphaBetaChannelParams(A_rate = 5.4e3,
                                       A_B = 0,
@@ -316,7 +316,7 @@ Channels = NamedDict(
     'Channels',
     KDr =   TypicalOneD(KDrparam, KDr_X_params, KDr_Y_params),
     Kv3 =   TypicalOneD(Kv3param, Kv3_X_params, Kv3_Y_params),
-    #KvF =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
+    KvF =   TypicalOneD(KvFparam, KvF_X_params, KvF_Y_params),
     KvS =   TypicalOneD(KvSparam, KvS_X_params, KvS_Y_params),
     HCN1 =  TypicalOneD(HCN1param,HCN1_X_params, []),
     HCN2 =  TypicalOneD(HCN2param,HCN2_X_params, []),

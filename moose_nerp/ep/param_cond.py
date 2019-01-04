@@ -38,6 +38,7 @@ _ep = _util.NamedDict(
     KDr={prox: 3.44, dist: 9.21, axon: 218.8}, #KDr is Kv2
     Kv3={prox: 1982.9, dist: 1622.5, axon: 1012.31},  
     KvS={prox: 1.62, dist: 16.98, axon: 0.025},  
+    KvF={prox: 1.62, dist: 16.98, axon: 0.025},  
     NaF={prox: 225, dist: 141.8, axon: 69.8}, 
     NaS={prox: 3.50, dist: 4.06, axon: 0.0},
     Ca={prox: 0.036, dist: 0.073, axon: 0},  
