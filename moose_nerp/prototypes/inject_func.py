@@ -2,45 +2,45 @@
 
 from __future__ import print_function, division
 import numpy as np
-import moose 
+import moose
 import random
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.util import NamedDict
 from moose_nerp.prototypes import connect, plasticity, util, spines
 
 
-ParadigmParams = NamedList('ParadigmParams','''               
-f_pulse 
-n_pulse      
-A_inject   
-f_burst   
-n_burst   
-f_train    
-n_train   
-width_AP    
-AP_interval  
-n_AP         
-ISI  
+ParadigmParams = NamedList('ParadigmParams','''
+f_pulse
+n_pulse
+A_inject
+f_burst
+n_burst
+f_train
+n_train
+width_AP
+AP_interval
+n_AP
+ISI
 name''')
 
 
-'''                 
-which_spines -- which spines get stimulated.    
+'''
+which_spines -- which spines get stimulated.
 If 'all' -- spines are randomly chosen with a probability of spine_density
 if a sequencea list -- stimulated spines are randomly chosen from the list
-stim_delay -- delay of the stimulation onset 
-pulse_sequence -- which spine gets which pulses 
+stim_delay -- delay of the stimulation onset
+pulse_sequence -- which spine gets which pulses
 '''
 
-StimLocParams = NamedList('PresynapticLocation','''          
-which_spines                                                  
-spine_density                                                   
-pulse_sequence                                                 
-stim_dendrites                                                  
+StimLocParams = NamedList('PresynapticLocation','''
+which_spines
+spine_density
+pulse_sequence
+stim_dendrites
 ''')
 
-StimParams = NamedList('PresynapticStimulation','''                
-Paradigm                             
+StimParams = NamedList('PresynapticStimulation','''
+Paradigm
 StimLoc
 stim_delay''')
 
@@ -87,16 +87,16 @@ def MakeGenerators(container,Stimulation):
 
     moose.connect(experiment_gate,'output',train_gate,'input')
 
-# data = moose.Neutral('/data')                                                                                        
-    # pulse0_tab = moose.Table('/data/pulse0_tab')                                                                         
-    # burst_gate_tab = moose.Table('/data/burst_gate_tab')                                                                 
-    # train_gate_tab = moose.Table('/data/train_gate_tab')                                                                 
-    # experiment_gate_tab = moose.Table('/data/experiment_gate_tab')                                                       
+# data = moose.Neutral('/data')
+    # pulse0_tab = moose.Table('/data/pulse0_tab')
+    # burst_gate_tab = moose.Table('/data/burst_gate_tab')
+    # train_gate_tab = moose.Table('/data/train_gate_tab')
+    # experiment_gate_tab = moose.Table('/data/experiment_gate_tab')
 
-    # moose.connect(pulse0_tab,'requestOut',pulse0,'getOutputValue')                                                       
-    # moose.connect(burst_gate_tab,'requestOut',burst_gate,'getOutputValue')                                               
-    # moose.connect(train_gate_tab,'requestOut',train_gate,'getOutputValue')                                               
-    # moose.connect(experiment_gate_tab,'requestOut',experiment_gate,'getOutputValue')                                     
+    # moose.connect(pulse0_tab,'requestOut',pulse0,'getOutputValue')
+    # moose.connect(burst_gate_tab,'requestOut',burst_gate,'getOutputValue')
+    # moose.connect(train_gate_tab,'requestOut',train_gate,'getOutputValue')
+    # moose.connect(experiment_gate_tab,'requestOut',experiment_gate,'getOutputValue')
 
     return [pulse0,burst_gate,train_gate,experiment_gate]
 
@@ -159,10 +159,10 @@ def MakeTimeTables(Stimulation,spine_no):
 
 def HookUpDend(model,dendrite,container):
 
-    #for dend in model.Stimulation.StimParams.which_dendrites:                                                            
+    #for dend in model.Stimulation.StimParams.which_dendrites:
     my_spines = list(set(moose.element(dendrite).neighbors['handleAxial']).intersection(set(moose.element(dendrite).children)))
     num_spines = len(my_spines)
-    
+
     if not num_spines:
         return
 
@@ -194,7 +194,7 @@ def HookUpDend(model,dendrite,container):
             print(synapse.path,time_tables[spine])
             connect.plain_synconn(synchan,stimtab[spine],0)
             synname = util.syn_name(synchan.path, spines.NAME_HEAD)
-            
+
             if model.desenYN and model.DesensitizationParams[synchan.name]:
                 dep,weight = plasticity.desensitization(synchan, model.DesensitizationParams[synchan.name])
 
@@ -292,12 +292,12 @@ def setup_stim(model,param_sim,neuron_paths):
     if model.param_stim.Stimulation.Paradigm.name is not 'inject':
         ### plasticity paradigms combining synaptic stimulation with optional current injection
         sim_time = []
-        for ntype in neuron.keys():
+        for ntype in neuron_paths.keys():
             #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
             st, spines, pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
             sim_time.append( st)
             plas[ntype] = spines
-        param_sim.simtime = max(sim_time)
+        param_sim.simtime = max(sim_time) + model.param_stim.Stimulation.stim_delay
         param_sim.injection_current = [0]
     else:
         ### Current Injection alone, either use values from Paradigm or from command-line options
@@ -310,4 +310,3 @@ def setup_stim(model,param_sim,neuron_paths):
         #    all_neurons[ntype]=list([neuron[ntype].path])
         pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,neuron_paths)
     return pg,param_sim
-

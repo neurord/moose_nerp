@@ -1,11 +1,12 @@
 from __future__ import print_function, division
 import moose
 import numpy as np
+import h5py as h5
 
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
-
+from . import util
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
 DEFAULT_HDF5_COMPARTMENTS = 'soma',
@@ -24,6 +25,7 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
     if not moose.exists(HDF5WRITER_NAME):
         print('creating', HDF5WRITER_NAME)
         writer = moose.HDF5DataWriter(HDF5WRITER_NAME)
+        #writer = moose.NSDFWriter(HDF5WRITER_NAME)
         writer.mode = 2 # Truncate existing file
         if filename is not None:
             writer.filename = filename
@@ -37,7 +39,10 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
             comp=moose.element(neur_type+'/'+compname)
             moose.connect(writer, 'requestOut', comp, 'getVm')
 
-            if model.calYN:
+    if model.calYN:
+        for typenum,neur_type in enumerate(neuron.keys()):
+            for ii,compname in enumerate(compartments):  #neur_comps):
+                comp=moose.element(neur_type+'/'+compname)
                 for child in comp.children:
                     if child.className in {"CaConc", "ZombieCaConc"}:
                         cal = moose.element(comp.path+'/'+child.name)
@@ -47,20 +52,58 @@ def setup_hdf5_output(model, neuron, filename=None, compartments=DEFAULT_HDF5_CO
                         moose.connect(writer, 'requestOut', cal, 'getC')
     return writer
 
+def wrap_hdf5(model, iterationName):
+    with h5.File(model.param_sim.fname, 'r+') as f:
+        # Moose creates hdf5 groups at root level, corresponding to moose path.
+        # Get the root level keys that are moose elements, move them under current
+        # iteration level.
+        f.create_group(iterationName)
+        for k in f.keys():
+            if moose.exists(k):
+                f.move(k,iterationName+'/'+k)
+        f.close()
+
+def save_hdf5_attributes(model):
+    with h5.File(model.param_sim.fname, 'r+') as f:
+        for k, v in vars(model.param_sim).items():
+            f.attrs[k] = str(v)
+        gitlog = util.gitlog(model)
+        f.attrs['gitlog'] = gitlog
+        f.attrs['Moose Version'] = moose.__version__
+        f.close()
+
+
 def write_textfile(tabset, tabname, fname, inj, simtime):
-    time=np.linspace(0, simtime, len(tabset[0][0].vector))
-    header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tab])
-    outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tab])))
-    new_fname=fname+str(inj)+tabname+'.txt'
+    time=np.linspace(0, simtime, len(tabset[list(tabset.keys())[0]][0].vector))
+    header='time    '+'   '.join([t.neighbors['requestOut'][0].path for tab in tabset for t in tabset[tab]])
+    outputdata=np.column_stack((time,np.column_stack([t.vector for tab in tabset for t in tabset[tab]])))
+    new_fname=fname+'{0:.4g}'.format(inj)+tabname+'.txt'
     #f.write(header+'\n')
     np.savetxt(new_fname,outputdata,fmt='%.6f',header=header)
     return new_fname
 
+
+def write_textfiles(model, inj):
+        inj_nA=inj*1e9
+        write_textfile(model.vmtab, 'Vm', model.param_sim.fname, inj_nA,
+                              model.param_sim.simtime)
+        if model.calYN:
+            write_textfile(model.catab, 'Ca', model.param_sim.fname, inj_nA,
+                                  model.param_sim.simtime)
+        if model.spineYN and len(model.spinevmtab):
+            write_textfile(list(model.spinevmtab.values()), 'SpVm',
+                                  model.param_sim.fname, inj_nA, model.param_sim.simtime)
+        if model.spineYN and len(model.spinecatab):
+            write_textfile(list(model.spinecatab.values()), 'SpCa',
+                                  model.param_sim.fname, inj_nA, model.param_sim.simtime)
+
+
+
 def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
     print("GRAPH TABLES, of ", neuron.keys(), "plas=",len(plas),"curr=",pltcurr)
     #tables for Vm and calcium in each compartment
-    vmtab=[]
-    catab=[[] for neur in range(len(neuron.keys()))]
+    vmtab={}
+    catab={key:[] for key in neuron.keys()}
     currtab={}
 
     # Make sure /data exists
@@ -72,22 +115,22 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
                 neur_comps = moose.wildcardFind(neur_type + '/#[TYPE=Compartment]')
         else:
             neur_comps=[moose.element(neur_type+'/'+comp) for comp in compartments]
-        vmtab.append([moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))])
+        vmtab[neur_type] = [moose.Table(vm_table_path(neur_type, comp=ii)) for ii in range(len(neur_comps))]
 
         for ii,comp in enumerate(neur_comps):
-            moose.connect(vmtab[typenum][ii], 'requestOut', comp, 'getVm')
+            moose.connect(vmtab[neur_type][ii], 'requestOut', comp, 'getVm')
 
         if model.calYN:
             for ii,comp in enumerate(neur_comps):
                 for child in comp.children:
                     if child.className in {"CaConc", "ZombieCaConc"}:
-                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
+                        catab[neur_type].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
                         cal = moose.element(comp.path+'/'+child.name)
-                        moose.connect(catab[typenum][-1], 'requestOut', cal, 'getCa')
+                        moose.connect(catab[neur_type][-1], 'requestOut', cal, 'getCa')
                     elif  child.className == 'DifShell':
-                        catab[typenum].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
+                        catab[neur_type].append(moose.Table(DATA_NAME+'/%s_%d_' % (neur_type,ii)+child.name))
                         cal = moose.element(comp.path+'/'+child.name)
-                        moose.connect(catab[typenum][-1], 'requestOut', cal, 'getC')
+                        moose.connect(catab[neur_type][-1], 'requestOut', cal, 'getC')
 
         if pltcurr:
             currtab[neur_type]={}
@@ -105,12 +148,12 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
                         log.debug('no channel {}', path)
     #
     # synaptic weight and plasticity (Optional) for one synapse per neuron
-    plastab=[]
+    plastab={key:[] for key in neuron.keys()}
     if len(plas):
         for num,neur_type in enumerate(plas.keys()):
             if len(plas[neur_type]):
                 for comp_name in plas[neur_type]:
-                    plastab.append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
+                    plastab[neur_type].append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
     return vmtab,catab,plastab,currtab
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):

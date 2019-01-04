@@ -28,7 +28,10 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 4. `param_spine.py`: morphology and electrical parameters describing spines, also spine density.
 5. `param_ca_plas.py`: calcium and plasticity parameters.  Calcium can be either single time constant of decay, or can have multiple pumps and buffers.  Plasticity parameters implement calcium dependent synaptic plasticity, with both amplitude and duration thresholds
 6. `*.p`: morphology file
-7. `__init__.py`: specifies all the parameter files, and also some binary variables indicating whether to add spines, synapses, calcium, plasticity
+7. `param_sim.py`: default simulation parameter options such as plotting, saving, simtime, etc. New options can be added.
+  - **Note**: Some versions of Moose may not have HDF5DataWriter installed; in that case make sure `param_sim.save=False` (and use param_sim.save_txt instead) 
+8. `param_model_defaults.py`: binary variables indicating whether to add spines, synapses, calcium, plasticity
+7. `__init__.py`: specifies all the parameter files that are imported when the module is imported.
 
 **To create a new neuron type**
 
@@ -53,14 +56,16 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
    + can add structure type to helper variable, e.g. axon=(0,1000e-6,'axon')
    + If using swc files, use these structure names: _1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon, e.g. axon=(0,100e-6,'_4')
 4. edit param_spine for your neuron type.  
-    - Note that the model performs spine compensation using the spinedensity parameter in param_spine; this should be the actual/estimated density of the neuron type. If you don't want spine compensation then set this spine density to zero. 
-    - Note that if you don't want spines, set spineYN=0 in `__init__.py`. 
+    - Note that the model performs spine compensation using the spinedensity parameter in param_spine; this should be the actual/estimated density of the neuron type. If you don't want spine compensation then set this spine density to zero.
+    - Note that if you don't want spines, set spineYN=0 in `__init__.py`.
     - Any number of spines can also be explicitly modeled by setting the explicitSpineDensity parameter (less than or equal to the actual spineDensity). The spineParent compartment allows explicitly including spines only on specific branches--make sure to use a compartment name from your pfile. Using the soma name includes all branches.
 5. edit param_ca_plas for your neuron type.  Note that if you don't want calcium, no need to edit this, just make calYN=0 in `__init__.py`.  If you want calcium but not plasticity, make calYN=1 and plasYN=0
 6. edit param_syn for your neuron type.  Note that if you don't want synapses, no need to edit this, just make synYN=0 in `__init__.py`
 7. Note that if calYN=0 or synYN=0, no plasticity will be created, even if plasYN=1
 8. make sure the .p file for your neuron is in the package
+9. Edit `param_sim.py` and `param_model_defaults.py` to set your default model and simulation options
 9. edit `__main__.py`:  replace d1d2 in this line "from moose import d1d2 as model" with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
+11. The functions in `__main__.py` are imported from moose_nerp/prototypes/create_model_sim. This module contains standard functions for setting up and running a model/simulation. It is recommended that this module be extended for customizing simulations, so any customization is available to any model. However, care should be made to not break/alter existing functionality since other simulations depend on this code.
 
 **Networks**
 1. clone othe package, str_net, and edit param_net.py.  Note there are three neuron types specified in this network: D1, D2 and FSI.  Delete all lines with FSI in you only want two neuron types, and delete all the lines with FSI or D2 if you want only one neuron type in your network.
@@ -68,7 +73,7 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 3. replace "D1", and optionally "D2" and "FSI" with the names of your neuron types (from the single neuron package your created)
 4. Edit grid, which specifies the size of the network (in meters, from xyzmin to xyzmax in each of three dimensions) and the distance between neuron types in each dimension (in meters, inc=).
 5. For each population, specify the percent of total neurons.  The percents summed over neuron types should equal 1
-6. Specify connections. 
+6. Specify connections.
  - Each intrinsic connection uses the NamedList 'connect', and specifies synapse type (e.g. GABA), neuron class of pre-synaptic neuron, neuron class of post-synaptic neuron, and a connection rule: either a probability (not distance dependent), or a distance dependence give by the space_const.
  - Each extrinsic connection uses the NamedList 'ext_connect', and specifies synapse type (e.g. AMPA), name of the TableSet that specifies the list of spike times, neuron class of post-synaptic neuron, and what fraction of the synapses should be filled with those time tables (e.g. 1.0 if only a single TableSet specified, 0.5 if two TableSets specified).
   - After specifying each connection, collect all connections for each post-synaptic neuron type into a dictionary, e.g. D1['gaba']={'D1': D1pre_D1post, 'D2': D2pre_D1post}; D1['ampa']={'extern1': ctx_D1post, 'extern2': thal_D1post}

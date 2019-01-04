@@ -1,16 +1,24 @@
 # -*- coding:utf-8 -*-
+'''
+Main script to create and simulate two SP neuron classes from the package
+moose_nerp.d1d2 when run as module (python -m moose_nerp.d1d2)
 
-######## Squid.py ############
-## Code to create squid neurons with 2 compartments (SOMA and Dendrite).
-##      using dictionaries for channels and synapses
-##      calcium based learning rule/plasticity function, optional
-##      spines, optionally with ion channels and synpases
-##      Synapses to test the plasticity function, optional
-##      used to tune parameters and channel kinetics (but using larger morphology)
+  -using dictionaries for channels and synapses
+  -calcium based learning rule/plasticity function, optional
+  -spines, optionally with ion channels and synpases
+  -Synapses to test the plasticity function, optional
+  -used to tune parameters and channel kinetics (but using larger morphology)
+
+Any of the parameters in param_sim, param_model_defaults, param_chan,
+param_cond, etc. can be overriden here. For example, to override simtime (set
+in parm_sim), do: model.param_sim.simtime = NEW_VALUE. Or to override spinesYN,
+do: model.spinesYN = True (Default is set in param_model_defaults).
+'''
 
 from __future__ import print_function, division
-from moose_nerp import squid as model
-'''Evaluates moose_nerp/squid/__init__.py to load all the parameters, e.g.
+
+from moose_nerp import d1d2_nml2_compare as model
+'''Evaluates moose_nerp/d1d2/__init__.py to load all the parameters, e.g.
 param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,
 `model.param_sim.fname`.
@@ -23,7 +31,8 @@ running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
 
 # Parameter overrides can be specified:
-
+model.spineYN=False
+model.calYN=True
 
 # This function sets up the options specified in param_sim or passed from
 # command line:

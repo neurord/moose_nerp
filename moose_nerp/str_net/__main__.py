@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from pprint import pprint
-import moose 
+import moose
 
 from moose_nerp.prototypes import (cell_proto,
                      clocks,
@@ -28,16 +28,11 @@ from moose_nerp.prototypes import (cell_proto,
                      net_output,
                      logutil,
                      util,
-                     standard_options)
+                     standard_options,
+                     create_model_sim)
 from moose_nerp import d1d2 as model
 from moose_nerp import str_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
-
-option_parser = standard_options.standard_options(default_injection_current=[100e-12])
-param_sim = option_parser.parse_args()
-
-logging.basicConfig(level=logging.INFO)
-log = logutil.Logger()
 
 #################################-----------create the model
 #overrides:
@@ -45,6 +40,9 @@ model.synYN = True
 model.plasYN = False
 
 ##create neuron prototypes with synapses and calcium
+create_model_sim.setupOptions(model)
+param_sim = model.param_sim
+
 syn,neuron = cell_proto.neuronclasses(model)
 
 all_neur_types=neuron
@@ -97,13 +95,13 @@ for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
     if net.single and len(vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-            traces.append(vmtab[neurnum][0].vector)
+            traces.append(vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
             net_graph.syn_graph(connections, syntab, param_sim.simtime)
         if model.spineYN:
             spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
-    else: 
+    else:
         if net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)

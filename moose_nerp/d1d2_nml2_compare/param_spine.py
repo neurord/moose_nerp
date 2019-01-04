@@ -49,7 +49,8 @@ SpineParams = _util.NamedDict(
     # compensate for spines when spines not explicitly modeled; can be a value
     # or a distance dependent function
     #spineDensity = 1.01e6,  # spineDensity as a value
-    spineDensity = _callableSpineDensity,  # spineDensity as a callable
+    #spineDensity = _callableSpineDensity,  # spineDensity as a callable
+    spineDensity = 0,  # spineDensity as a callable
     necklen = 0.5e-6,
     neckdia = 0.12e-6,
     headdia = 0.5e-6,

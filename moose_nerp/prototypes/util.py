@@ -7,6 +7,7 @@ from operator import itemgetter as _itemgetter, eq as _eq
 import numpy as _np
 import functools
 import moose
+from subprocess import check_output
 
 def syn_name(synpath,headname):
     if headname in synpath:
@@ -98,7 +99,7 @@ def distance_mapping(mapping, where):
         return result
     elif isinstance(result, dict): #Used for calcium buffer and pump dictionaries
         return result
-    #otherwise, calculate distance dependent function.  
+    #otherwise, calculate distance dependent function.
     return result(dist)
 
 try:
@@ -180,28 +181,28 @@ def NamedList(typename, field_names, verbose=False):
 
 class NamedDict(dict):
     """Creates a python dict with a name and attribute access of keys.
-    
+
     Usage: mydict = NamedDict(name,**kwargs)
     where **kwargs are used to create dictionary key/value pairs.
     e.g.: params = NamedDict('modelParams',x=15,y=0)
-    
+
     dict keys can be accessed and written as keys or attributes:
         myNamedDict['k'] is equivalent to myNamedDict.k, and
         myNamedDict['k'] = newvalue is equivalent to myNamedDict.k=newvalue.
-    
+
     New entries/attributes can be created:
         myNamedDict.newkey = newvalue OR myNamedDict['newkey']= newvalue.
-    
-    Note: Dict ignores attributes beginning with underscore, so 
+
+    Note: Dict ignores attributes beginning with underscore, so
     myNamedDict.__name__ returns the NamedDict name, but there is no dict key
     == "__name__"
-    
-    Note: all dict keys must be valid attribute names: that is, strings with 
+
+    Note: all dict keys must be valid attribute names: that is, strings with
     first character in a-z/A-Z. This could be changed to allow all valid python
     dict keys as keys, but these keys would not have attribute access.
-    
+
     """
-    
+
     def __init__(self, name, **kwargs):
         super(NamedDict, self).__init__(**kwargs)
         self.__dict__ = dict(**kwargs)
@@ -233,9 +234,9 @@ class NamedDict(dict):
         dirlist = super(NamedDict, self).__dir__()
         return dirlist
 
-    
+
 def block_if_noninteractive():
-    if not hasattr(_sys, 'ps1'):
+    if not any([hasattr(_sys, 'ps1'), _sys.flags.interactive]):
         print('Simulation finished. Close all windows or press ^C to exit.')
         import matplotlib.pyplot as plt
         try:
@@ -258,3 +259,44 @@ def listize(func):
     def wrapper(*args, **kwargs):
         return list(func(*args, **kwargs))
     return functools.update_wrapper(wrapper, func)
+
+
+def call_counter(func):
+    '''Decorator to count number of times a function has been called'''
+    def wrapper(*args,**kwargs):
+        try:
+            wrapper.calls += 1
+            return func(*args,**kwargs)
+        except: # Fixes count if there's an exception
+            wrapper.calls += -1
+            return func(*args,**kwargs)
+    wrapper.calls = 0
+    return functools.update_wrapper(wrapper, func)
+
+
+def gitlog(model):
+    '''Log current git commit hash and any uncommitted differences of model
+
+    For computational reproducibility, logging the git commit hash plus any
+    uncomitted changes of currently checked out branch almost allows reproducing
+    any result.
+
+    Need to also know any command line arguments or optional kwargs passed to
+    model at setup.
+    '''
+    enc = _sys.stdout.encoding
+    modelpath = model.__path__[0]
+    gitRepoPath = check_output(['git', '-C', modelpath, 'rev-parse',
+                                '--show-toplevel']).decode(enc).rstrip()
+    gitCurrentCommitHash = check_output(['git', '-C', gitRepoPath, 'rev-parse',
+                                         'HEAD']).decode(enc).rstrip()
+    gitUnstagedDiff = check_output(['git', '-C', gitRepoPath, 'diff-index',
+                                    '-p', 'HEAD', '--']).decode(enc)
+    gitStagedDiff = check_output(['git', '-C', gitRepoPath, 'diff-index', '-p',
+                                  '--cached', 'HEAD', '--']).decode(enc)
+
+    #print(gitRepoPath, gitCurrentCommitHash, gitUnstagedDiff, gitStagedDiff)
+    return '\n'.join(['Git Repo Path of model: '+gitRepoPath + '\n',
+                      'Current Git Commit Hash: '+gitCurrentCommitHash + '\n',
+                      'Unstaged Git Differences: \n' + gitUnstagedDiff +'\n',
+                      'Staged Git Differences: \n' + gitStagedDiff])

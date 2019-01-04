@@ -61,7 +61,7 @@ def syn_graph(connections, syntabs, simtime):
     fig,axes =pyplot.subplots(numrows, 1,sharex=True)
     fig.canvas.set_window_title('Syn Chans')
     for oid in syntabs:
-        typenum=connections.keys().index(oid.name.partition('_')[0])
+        typenum=list(connections.keys()).index(oid.name.partition('_')[0])
         t = np.linspace(0, simtime, len(oid.vector))
         axes.plot(t, oid.vector*1e9, label=oid.path.partition('_')[2])
     axes.set_ylabel('I (nA), {}'.format(oid.path.rpartition('_')[2]))
