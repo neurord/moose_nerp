@@ -1,0 +1,41 @@
+EP project:
+2. create 3 different time tables - Str,GPe, STN
+3. edit connect.py to allow specification of spatial location - see how NetPynne does it, update dictionary keys?
+   a. create_synpath_array: add another entry - distance to soma
+   syncomps.append([syncomp.path,NumSyn,dist])
+   sort syncomps by distance
+   b. update ext_connect to use
+   #postsyn_fraction=None, half_dist=None, steep=none,mindist=0,maxdist=1 (units are meters)
+   #require either fraction or half_dist, default steep=1 if half_dist defined
+
+   c. update select_entry and connect_timetable to use choice and probability and distance_range
+   i.e., eliminate select_entry!
+     replicate entries according to NumSyn
+     calculate probability at each location/branch
+       prob=0 if dist<mindist
+       prob=1 if dist>maxdist
+       if half_dist defined:
+       	  prob=dist^steep/(dist^steep+half_dist^steep), make steep<0 to switch slope
+       	  recalc probabilities as choice_prob=prob/sum(prob)
+	if postsyn_fraction:
+	      choice_prob=1/total_syn) inside range
+      num_choices=np.int(np.round(totalsyn*postsyn_fraction))
+      tt_choices=np.random.choice(tt_list,size=num_choices,replace=false)
+      syn_choices=np.random.choice(syncomp_subset,size=num_choices,replace=false)
+      for tt,syn in zip(tt_choices,syn_choices)
+      	synconn(synpath,dist,presyn_tt,syn_params,netparams.mindelay)
+
+modify create_synpath_array:
+	prior to each set of connections (after :  for pretype in post_connections[syntype].keys():), generate list from available connections
+	name is full path to synhandler, cross-reference with number of allowed synapses vs distance
+	i.e., SynPerComp = (distance_mapping - sh.synapse.num)
+	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
+
+intrinsic will be similarly modified to use np.random.choice
+   store list of pre-cells (spikegens) where connect<prob, length=
+   can use same logic above for syncomp_array
+   syn_choices=np.random.choice(syncomp_subset,size=min(num_pre_cell_spikegens,length(syncomps)),replace=false)
+   
+     
+
+     
