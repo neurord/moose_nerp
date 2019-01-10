@@ -82,6 +82,10 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar):
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
     #bidirectional connection from synchan to compartment when not NMDA:
     m = moose.connect(syncomp, 'channel', synchan, 'channel')
+    #create and connect synhandler
+    shname=synchan.path+'/SH'
+    sh=moose.SimpleSynHandler(shname)
+    moose.connect(sh, 'activationOut', synchan, 'activation')
     return synchan
 
 def add_synchans(model, container):
