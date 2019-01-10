@@ -1,41 +1,54 @@
 EP project:
+2a. try another opt with smaller window for AHP (after GP opt finished)
 2. create 3 different time tables - Str,GPe, STN
 3. edit connect.py to allow specification of spatial location - see how NetPynne does it, update dictionary keys?
-   a. create_synpath_array: add another entry - distance to soma
-   syncomps.append([syncomp.path,NumSyn,dist])
-   sort syncomps by distance
-   b. update ext_connect to use
+DONE   a. create_synpath_array: add another entry - distance to soma
+       add one entry per SynPerComp - which is now difference between NumSyn and existing synapses
+          syncomps.append([syncomp.path,dist])
+NEEDED: do not add synapses to axon, or add them but somehow indicate they are axon?
+DONE   b. update ext_connect to use
    #postsyn_fraction=None, half_dist=None, steep=none,mindist=0,maxdist=1 (units are meters)
    #require either fraction or half_dist, default steep=1 if half_dist defined
 
    c. update select_entry and connect_timetable to use choice and probability and distance_range
    i.e., eliminate select_entry!
-     replicate entries according to NumSyn
-     calculate probability at each location/branch
+DONE     replicate entries according to NumSyn
+DONE     calculate probability at each location/branch
        prob=0 if dist<mindist
        prob=1 if dist>maxdist
        if half_dist defined:
        	  prob=dist^steep/(dist^steep+half_dist^steep), make steep<0 to switch slope
-       	  recalc probabilities as choice_prob=prob/sum(prob)
+DONE       	  recalc probabilities as choice_prob=prob/sum(prob)
 	if postsyn_fraction:
 	      choice_prob=1/total_syn) inside range
-      num_choices=np.int(np.round(totalsyn*postsyn_fraction))
-      tt_choices=np.random.choice(tt_list,size=num_choices,replace=false)
-      syn_choices=np.random.choice(syncomp_subset,size=num_choices,replace=false)
+DONE      num_choices=np.int(np.round(totalsyn*postsyn_fraction))
+DONE      syn_choices=np.random.choice(syncomp_subset,size=num_choices,replace=false)
+
+################## STILL TO DO:
+update ttable to work without select_entry (i.e., if tt can be used twice, and perhaps create new list for each postsyn)
+     tt_choices=np.random.choice(tt_list,size=num_choices,replace=false)
+Unclear how to do the above and keep track of which tts have been used without using select_entry
+After tt_choices fixed:
       for tt,syn in zip(tt_choices,syn_choices)
-      	synconn(synpath,dist,presyn_tt,syn_params,netparams.mindelay)
+      	  synconn(synpath,dist,presyn_tt,syn_params,netparams.mindelay)
+##################
 
 modify create_synpath_array:
-	prior to each set of connections (after :  for pretype in post_connections[syntype].keys():), generate list from available connections
-	name is full path to synhandler, cross-reference with number of allowed synapses vs distance
-	i.e., SynPerComp = (distance_mapping - sh.synapse.num)
-	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
+DONE	prior to each set of connections (after :  for pretype in post_connections[syntype].keys():), generate list from available connections
+DONE	name is full path to synhandler, cross-reference with number of allowed synapses vs distance
+DONE	i.e., SynPerComp = (distance_mapping - sh.synapse.num)
+DONE:	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
 
+################## STILL TO DO:
 intrinsic will be similarly modified to use np.random.choice
    store list of pre-cells (spikegens) where connect<prob, length=
    can use same logic above for syncomp_array
    syn_choices=np.random.choice(syncomp_subset,size=min(num_pre_cell_spikegens,length(syncomps)),replace=false)
-   
-     
 
-     
+##################
+ISSUES:
+new create_model_sim functions do put EVERYTHING under model.  It does simplify returns, but makes code less clear.
+We do not want user to have to read the create_model_sim code to see how things are working.  By returning a few things, it is more clear
+I would prefer to return tables from setupOutput, possible collected under Output variable to simplify
+I would prefer to return the pulsegenerator as pg
+And, I would prefer to keep param_sim not under model
