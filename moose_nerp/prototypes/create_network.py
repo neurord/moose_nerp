@@ -26,8 +26,10 @@ def create_network(model, param_net,neur_protos={}):
         for ntype in neur_protos.keys():
             network_pop['pop'][ntype]=list([neur_protos[ntype].path])
         #subset of check_param_net
-        num_postsyn,num_postcells=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,network_pop['pop'])
-        tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells)
+        num_postsyn,num_postcells,allsyncomp_list=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,network_pop['pop'])
+        print("num synapses {} cells {}".format(num_postsyn, num_postcells))
+        tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells,allsyncomp_list,model.param_syn.NumSyn)
+        print("num time tables needed: per synapse {} per ttfile {}".format(tt_per_syn, tt_per_ttfile))
         #
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.timetable_input(network_pop['pop'], param_net, ntype, model )
