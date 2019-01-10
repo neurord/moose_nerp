@@ -301,7 +301,7 @@ def setup_stim(model,param_sim,neuron_paths):
         param_sim.injection_current = [0]
     else:
         ### Current Injection alone, either use values from Paradigm or from command-line options
-        if not np.any(param_sim.injection_current):
+        if not len(param_sim.injection_current):
             param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
             param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
             param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP

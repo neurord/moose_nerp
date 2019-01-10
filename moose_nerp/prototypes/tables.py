@@ -178,8 +178,9 @@ def syn_plastabs(connections, plas=[]):
     plas_tabs=[]
     for neur_type in connections.keys():
         for syntype in connections[neur_type].keys():
-            for compname in connections[neur_type][syntype].keys():
-                tt = moose.element(connections[neur_type][syntype][compname])
+          for pretype in connections[neur_type][syntype].keys():
+            for compname in connections[neur_type][syntype][pretype].keys():
+                tt = moose.element(connections[neur_type][syntype][pretype][compname])
                 synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
                 log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
                 synchan=synapse.parent.parent
