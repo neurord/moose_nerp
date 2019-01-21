@@ -16,8 +16,6 @@
    Fix: only plotting one synapse connected to each timetable -sh.synapse[0] in add_one_table in tables.py.
 
 5. Code Refinements
-   A. refine NamedLists for connections to specify post-syn location dependence (optional)
-   B. refine select_branch to make use of location dependence 
    C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
                                          b. 3D arrays of elements
    D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
