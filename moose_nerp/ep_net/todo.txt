@@ -1,6 +1,6 @@
 EP project:
-2a. try another opt with smaller window for AHP (after GP opt finished)
-2. create 3 different time tables - Str,GPe, STN
+NOT NEEDED 1. try another opt with smaller window for AHP (after GP opt finished)
+2. create 3 different time tables - Str,GPe, STN, and update  connection probability to be realistic
 3. edit connect.py to allow specification of spatial location - see how NetPynne does it, update dictionary keys?
 DONE   a. create_synpath_array: add another entry - distance to soma
        add one entry per SynPerComp - which is now difference between NumSyn and existing synapses
@@ -24,15 +24,9 @@ DONE       	  recalc probabilities as choice_prob=prob/sum(prob)
 DONE      num_choices=np.int(np.round(totalsyn*postsyn_fraction))
 DONE      syn_choices=np.random.choice(syncomp_subset,size=num_choices,replace=false)
 
-################## STILL TO DO:
-update ttable to work without select_entry (i.e., if tt can be used twice, and perhaps create new list for each postsyn)
-     tt_choices=np.random.choice(tt_list,size=num_choices,replace=false)
-Unclear how to do the above and keep track of which tts have been used without using select_entry
-After tt_choices fixed:
-      for tt,syn in zip(tt_choices,syn_choices)
-      	  synconn(synpath,dist,presyn_tt,syn_params,netparams.mindelay)
-##################
-
+DONE selection of timetable still uses select_entry because
+     the table of tt entries with number of times to be used is the only place that keeps track of which tts have been used,
+     because the set of time tables is for the entire network
 modify create_synpath_array:
 DONE	prior to each set of connections (after :  for pretype in post_connections[syntype].keys():), generate list from available connections
 DONE	name is full path to synhandler, cross-reference with number of allowed synapses vs distance
@@ -41,9 +35,10 @@ DONE:	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
 
 ################## STILL TO DO:
 intrinsic will be similarly modified to use np.random.choice
-   store list of pre-cells (spikegens) where connect<prob, length=
-   can use same logic above for syncomp_array
-   syn_choices=np.random.choice(syncomp_subset,size=min(num_pre_cell_spikegens,length(syncomps)),replace=false)
+DONE   store list of pre-cells (spikegens) where connect<prob, length=
+DONE   syn_choices=np.random.choice(syncomp_subset,size=min(num_pre_cell_spikegens,length(syncomps)),replace=false)
+NEEDED: test dend_loc=something for intrinsic connections
+NEEDED: test allow multiple connections between a pair of pre and post-syn neurons
 
 ##################
 ISSUES:
@@ -52,3 +47,9 @@ We do not want user to have to read the create_model_sim code to see how things 
 I would prefer to return tables from setupOutput, possible collected under Output variable to simplify
 I would prefer to return the pulsegenerator as pg
 And, I would prefer to keep param_sim not under model
+
+Bigger issue: need for net.num_inject to override current injection specification in param_sim.py
+even bigger issue: by setting up hsolve in setupNeurons, network creation (varying channel conductance) fails
+
+####################
+Then, update __main__.py in network simulations to use create_model_sim as much as possible

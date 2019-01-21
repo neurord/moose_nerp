@@ -54,7 +54,7 @@ def create_population(container, netparams, name_soma):
                 tag = '{}_{}'.format(typename, neurnumber)
                 new_neuron=moose.copy(proto[neurtypenum],netpath, tag)
                 neurXclass[typename].append(container.path + '/' + tag)
-                comp=moose.Compartment(new_neuron.path + '/'+name_soma)
+                comp=moose.element(new_neuron.path + '/'+name_soma)
                 comp.x=i*xloc
                 comp.y=j*yloc
                 comp.z=k*zloc
