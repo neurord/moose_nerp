@@ -1,17 +1,17 @@
 EP project:
 NOT NEEDED 1. try another opt with smaller window for AHP (after GP opt finished)
 2. create 3 different time tables - Str,GPe, STN, and update  connection probability to be realistic
-3. edit connect.py to allow specification of spatial location - see how NetPynne does it, update dictionary keys?
+DONE 3. edit connect.py to allow specification of spatial location
 DONE   a. create_synpath_array: add another entry - distance to soma
        add one entry per SynPerComp - which is now difference between NumSyn and existing synapses
           syncomps.append([syncomp.path,dist])
-NEEDED: do not add synapses to axon, or add them but somehow indicate they are axon?
+****NEEDED: do not add synapses to axon, or add them but somehow indicate they are axon?
 DONE   b. update ext_connect to use
    #postsyn_fraction=None, half_dist=None, steep=none,mindist=0,maxdist=1 (units are meters)
    #require either fraction or half_dist, default steep=1 if half_dist defined
 
-   c. update select_entry and connect_timetable to use choice and probability and distance_range
-   i.e., eliminate select_entry!
+DONE   c. update select_entry and connect_timetable to use choice and probability and distance_range
+NOT POSSIBLE   i.e., eliminate select_entry!
 DONE     replicate entries according to NumSyn
 DONE     calculate probability at each location/branch
        prob=0 if dist<mindist
@@ -31,14 +31,13 @@ modify create_synpath_array:
 DONE	prior to each set of connections (after :  for pretype in post_connections[syntype].keys():), generate list from available connections
 DONE	name is full path to synhandler, cross-reference with number of allowed synapses vs distance
 DONE	i.e., SynPerComp = (distance_mapping - sh.synapse.num)
-DONE:	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
+DONE	need to create sh when creating synchan, in addoneSynChan in syn_proto.py
 
-################## STILL TO DO:
-intrinsic will be similarly modified to use np.random.choice
+DONE intrinsic will be similarly modified to use np.random.choice
 DONE   store list of pre-cells (spikegens) where connect<prob, length=
 DONE   syn_choices=np.random.choice(syncomp_subset,size=min(num_pre_cell_spikegens,length(syncomps)),replace=false)
-NEEDED: test dend_loc=something for intrinsic connections
-NEEDED: test allow multiple connections between a pair of pre and post-syn neurons
+DONE test dend_loc=something for intrinsic connections
+DONE allow multiple connections between a pair of pre and post-syn neurons
 
 ##################
 ISSUES:

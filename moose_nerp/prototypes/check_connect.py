@@ -48,18 +48,25 @@ def count_presyn(netparams,num_cells,volume):
             presyn_cells[ntype][syntype]=0
             intern_keys=[key for key in syn_connects.keys() if 'extern' not in key]
             for presyn_type in intern_keys:
-                predict_cells=0
-                space_const=netparams.connect_dict[ntype][syntype][presyn_type].space_const
-                density=num_cells[presyn_type]/volume
-                max_cells=num_cells[presyn_type]
-                inner_area=0
-                for dist in np.arange(min_dist*space_const,max_dist*space_const,dist_incr*space_const):
-                    outer_area=np.pi*dist*dist
-                    predict_cells+=np.int(density*(outer_area-inner_area)*np.exp(-dist/space_const))
-                    log.debug("dist {} outer_area {} predict_cells {} ",  dist, outer_area, predict_cells)
-                    inner_area=outer_area
-                presyn_cells[ntype][syntype]+=min(max_cells,predict_cells)
-                log.debug ("vol {} max_cells {} num_presyn {}",volume, max_cells, presyn_cells[ntype][syntype])
+                if netparams.connect_dict[ntype][syntype][presyn_type].probability:
+                    print ('intrinsic connection, probability spec for',presyn_type,netparams.connect_dict[ntype][syntype][presyn_type].probability)
+                    presyn_cells[ntype][syntype]+=num_cells[presyn_type]*netparams.connect_dict[ntype][syntype][presyn_type].probability/netparams.connect_dict[ntype][syntype][presyn_type].num_conns
+                elif netparams.connect_dict[ntype][syntype][presyn_type].space_const:
+                    space_const=netparams.connect_dict[ntype][syntype][presyn_type].space_const
+                    print ('intrinsic connection, space const spec for',presyn_type,space_const)
+                    density=num_cells[presyn_type]/volume
+                    max_cells=num_cells[presyn_type]
+                    inner_area=0
+                    predict_cells=0
+                    for dist in np.arange(min_dist*space_const,max_dist*space_const,dist_incr*space_const):
+                        outer_area=np.pi*dist*dist
+                        predict_cells+=np.int(density*(outer_area-inner_area)*np.exp(-dist/space_const))
+                        log.debug("dist {} outer_area {} predict_cells {} ",  dist, outer_area, predict_cells)
+                        inner_area=outer_area
+                    presyn_cells[ntype][syntype]+=min(max_cells,predict_cells)/netparams.connect_dict[ntype][syntype][presyn_type].num_conns
+                    log.debug ("vol {} max_cells {} num_presyn {}",volume, max_cells, presyn_cells[ntype][syntype])
+                else:
+                    print('need to specify either probability or space constant in param_net for', presyn_type)
     return presyn_cells
 
 def count_total_tt(netparams,num_postsyn,num_postcells,allsyncomp_list,NumSyn):

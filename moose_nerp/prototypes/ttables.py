@@ -26,9 +26,11 @@ class TableSet(object):
         for ii,stimtimes in enumerate(spike_times):
             self.stimtab.append([moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)),self.syn_per_tt])
             self.stimtab[ii][0].vector=stimtimes
+        print(self.tablename, 'complete')
 
     @classmethod
     def create_all(cls):
         for obj in cls.ALL:
             obj.create()
+        print('tables created')
 
