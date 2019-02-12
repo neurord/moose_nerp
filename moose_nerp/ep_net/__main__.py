@@ -59,7 +59,7 @@ else:
 plotcomps=[model.param_cond.NAME_SOMA]
 
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model)
+model=create_model_sim.setupNeurons(model,network=True)
 all_neur_types = model.neurons
 population,connections,plas=create_network.create_network(model, net, all_neur_types)
 

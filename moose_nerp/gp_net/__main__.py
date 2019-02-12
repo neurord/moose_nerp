@@ -59,7 +59,7 @@ plotcomps=[model.param_cond.NAME_SOMA]
 if net.single:
         #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
         #syn,neuron,writer,outtables=create_model_sim.create_model_sim(model,fname,param_sim,plotcomps)
-        create_model_sim.setupNeurons(model)
+        create_model_sim.setupNeurons(model,network=True)
 
         ####### Set up stimulation - could be current injection or synaptic
         #neuron_paths = {ntype:[neur.path] for ntype, neur in neuron.items()}
