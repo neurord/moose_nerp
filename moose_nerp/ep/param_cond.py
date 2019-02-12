@@ -1,3 +1,4 @@
+# Generated from npzfile: fitep-ep-pchan_032717_162938.npz of fit number: 5722
 #Do not define EREST_ACT or ELEAK here - they are in the .p file
 # Contains maximal conductances, name of .p file, and some other parameters
 # such as whether to use GHK, or whether to have real spines
@@ -18,7 +19,7 @@ ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
-morph_file = {'ep':'EP_41compB.p'}
+morph_file = {'ep':'EP_41compB_162938_ep_5722.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -35,17 +36,17 @@ axon = (0.,1., 'axon')
 #CONDUCTANCE VALUES - UNITS of Siemens/meter squared
 _ep = _util.NamedDict(
     'ep',
-    KDr={prox: 3.44, dist: 9.21, axon: 218.8}, #KDr is Kv2
-    Kv3={prox: 1982.9, dist: 1622.5, axon: 1012.31},  
-    KvS={prox: 1.62, dist: 16.98, axon: 0.025},  
-    KvF={prox: 1.62, dist: 16.98, axon: 0.025},  
-    NaF={prox: 225, dist: 141.8, axon: 69.8}, 
-    NaS={prox: 3.50, dist: 4.06, axon: 0.0},
-    Ca={prox: 0.036, dist: 0.073, axon: 0},  
-    HCN1={prox: 0.10, dist: 0.69, axon: 0}, 
-    HCN2={prox: 0.85, dist: 1.10, axon: 0}, 
-    SKCa={prox: 10.980, dist: 2.86, axon: 0},  
-    BKCa={prox: 0.92, dist: 0.698, axon: 0}, 
+    KDr={prox: 87.20822921957834, dist: 7.003738121181193, axon: 222.9499419622778}, #KDr is Kv2
+    Kv3={prox: 822.9783849138091, dist: 221.47346536550566, axon: 571.7413459607062},  
+    KvS={prox: 1.2607614689487021, dist: 7.293988599249282, axon: 11.588543676550637},  
+    KvF={prox: 17.105185611864304, dist: 17.275681005861088, axon: 6.439718525745909},  
+    NaF={prox: 160.5098624216612, dist: 48.689751257426, axon: 3661.324423541809}, 
+    NaS={prox: 5.899554971319288, dist: 9.924256975928728, axon: 4.446831864899851},
+    Ca={prox: 0.8198658465772009, dist: 0.0013341233044197568, axon: 0},  
+    HCN1={prox: 4.194450733328087, dist: 4.025948508906228, axon: 0}, 
+    HCN2={prox: 2.7286797690191666, dist: 4.550548190296555, axon: 0}, 
+    SKCa={prox: 2.00460422036248, dist: 0.36314594357834923, axon: 0},  
+    BKCa={prox: 11.64588674353397, dist: 2.29946179927898, axon: 0}, 
 )
 
 Condset  = _util.NamedDict(

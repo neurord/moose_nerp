@@ -7,8 +7,8 @@ param_sim = Namespace()
 # Options for setting up stim paradigm
 param_sim.stim_loc = NAME_SOMA
 param_sim.stim_paradigm = 'inject'
-param_sim.injection_current = [100e-12]
-param_sim.injection_delay = 0.15
+param_sim.injection_current = [-200e-12,-100e-12, 50e-12,150e-12]
+param_sim.injection_delay = 0.1
 param_sim.injection_width = 0.3
 param_sim.simtime = 0.55
 
@@ -31,9 +31,9 @@ param_sim.plotdt = 0.0001
 
 param_sim.plot_activation = False #None
 param_sim.plot_calcium = False#True #True
-param_sim.plot_channels = ['NaS','NaF'] # True for all channels, or name of channel or list of names of channels for individual
+param_sim.plot_channels = False #['NaS','NaF'] # True for all channels, or name of channel or list of names of channels for individual
 param_sim.plotgate = 'NaS' #TODO: Use this
-param_sim.plot_current = True #None
+param_sim.plot_current = False #True #None
 param_sim.plot_current_label = 'Cond, S'
 param_sim.plot_current_message = 'getGk'
 param_sim.plot_netvm = False #None

@@ -43,6 +43,8 @@ net.single=True
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
+if net.num_inject==0:
+    param_sim.injection_current=[0]
 
 ###alcohol injection--> Bk channel constant multiplier
 alcohol = 1
@@ -115,9 +117,9 @@ for inj in param_sim.injection_current:
             traces.append(vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, model.syntab, param_sim.simtime)
+            net_graph.syn_graph(connections, syntab, param_sim.simtime)
         if model.spineYN:
-            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
+            spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
     else:
         if net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
@@ -127,3 +129,15 @@ if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
 util.block_if_noninteractive()
+'''
+for neurtype,neurtype_dict in connections.items():
+    for neur,neur_dict in neurtype_dict.items():
+        for syn,syn_dict in neur_dict.items():
+            for pretype,pre_dict in syn_dict.items():
+                for branch,presyn in pre_dict.items():
+                    if 'TimTab' not in presyn:
+                        preflag='** Intrinsic **'
+                    else:
+                        preflag='ext'
+                    print(preflag,neurtype,neur,syn,pretype,branch,presyn)
+'''
