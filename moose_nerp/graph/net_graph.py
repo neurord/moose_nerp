@@ -60,13 +60,20 @@ def graphs(neurons, simtime, vmtab,catab=[],plastab=[]):
         fig.canvas.draw()
 
 def syn_graph(connections, syntabs, simtime):
-    numrows=int(np.size(syntabs)/np.shape(syntabs)[0])
-    fig,axes =pyplot.subplots(numrows, 1,sharex=True)
-    axis=fig.axes
+    numrows=len(syntabs.keys()) #how many neuron types
+    max_index=np.argmax([len(connections[k].keys()) for k in connections.keys()])
+    syntypes=[list(connections[k].keys()) for k in connections.keys()][max_index] #how many synapse types
+    numcols=len(syntypes)
+    fig,axes =pyplot.subplots(numrows, numcols,sharex=True)
+    axis=fig.axes #convert to 1D list in case numrows or numcols=1
     fig.canvas.set_window_title('Syn Chans')
-    for oid in syntabs:
-        typenum=list(connections.keys()).index(oid.name.partition('_')[0])
-        t = np.linspace(0, simtime, len(oid.vector))
-        axis[typenum].plot(t, oid.vector*1e9, label=oid.path.partition('_')[2])
-    axis[typenum].set_ylabel('I (nA), {}'.format(oid.path.rpartition('_')[2]))
-    axis[typenum].legend(fontsize=8,loc='upper left')
+    for typenum,neurtype in enumerate(syntabs.keys()):
+        for oid in syntabs[neurtype]:
+            synnum=syntypes.index(oid.path.rpartition('_')[2].split('[')[0]) #extract synapse type from table name
+            axisnum=typenum*len(syntypes)+synnum
+            t = np.linspace(0, simtime, len(oid.vector))
+            axis[axisnum].plot(t, oid.vector*1e9, label=oid.name.split('_')[1])
+        print(neurtype,axisnum,oid.path.rpartition('_')[2].split('[')[0])
+        axis[axisnum].set_ylabel('I (nA), {}'.format(oid.path.rpartition('_')[2]))
+    for ax in range(len(axis)):
+        axis[ax].legend(fontsize=8,loc='upper left') #add legend

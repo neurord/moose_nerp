@@ -175,8 +175,8 @@ def syn_plastabs(connections, plas=[]):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
     #tables with synaptic conductance for all synapses that receive input
-    syn_tabs=[]
-    plas_tabs=[]
+    syn_tabs={key:[] for key in connections.keys()}
+    plas_tabs={key:[] for key in connections.keys()}
     for neur_type in connections.keys():
         for syntype in connections[neur_type].keys():
           for pretype in connections[neur_type][syntype].keys():
@@ -185,9 +185,9 @@ def syn_plastabs(connections, plas=[]):
                 synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
                 log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
                 synchan=synapse.parent.parent
-                syn_tabs.append(moose.Table(DATA_NAME+'/'+neur_type+'_'+compname+synchan.name))
-                log.debug('{} {} ', syn_tabs[-1], synchan)
-                moose.connect(syn_tabs[-1], 'requestOut', synchan, 'getGk')
+                syn_tabs[neur_type].append(moose.Table(DATA_NAME+'/'+neur_type+'_'+compname+'_'+synchan.name))
+                log.debug('{} {} ', syn_tabs[neur_type][-1], synchan)
+                moose.connect(syn_tabs[neur_type][-1], 'requestOut', synchan, 'getGk')
     #tables of dictionaries with instantaneous plasticity (plas), cumulative plasticity (plasCum) and synaptic weight (syn)
     if len(plas):
         for neur_type in plas.keys():
