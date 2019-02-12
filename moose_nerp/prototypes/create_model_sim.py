@@ -101,6 +101,12 @@ def setupNeurons(model, **kwargs):
         model.log.warning('Neurons already setup. Returning.')
         return
 
+    # If network (expects Boolean) passed to setupNeurons, get the value. otherwise set to None
+    if 'network' in kwargs:
+        network = kwargs.pop('network')
+    else:
+        network = None
+
     if 'param_sim' in kwargs:
         param_sim = kwargs['param_sim']
     else:
@@ -121,12 +127,17 @@ def setupNeurons(model, **kwargs):
                                                     param_sim.stimtimes)
 
     ########## clocks are critical. assign_clocks also sets up the hsolver
-    simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
-    clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt,
-                         param_sim.hsolve, model.param_cond.NAME_SOMA)
-    # Fix calculation of B parameter in CaConc if using hsolve
-    if model.param_sim.hsolve and model.calYN:
-        calcium.fix_calcium(util.neurontypes(model.param_cond), model)
+
+    if not network:
+        print("Not simulating network; setting up simpaths and clocks in create_model_sim")
+        simpaths=['/'+neurotype for neurotype in util.neurontypes(model.param_cond)]
+        clocks.assign_clocks(simpaths, param_sim.simdt, param_sim.plotdt,
+                             param_sim.hsolve, model.param_cond.NAME_SOMA)
+        # Fix calculation of B parameter in CaConc if using hsolve
+        if model.param_sim.hsolve and model.calYN:
+            calcium.fix_calcium(util.neurontypes(model.param_cond), model)
+    else:
+        print("Simulating network; not setting up simpaths and clocks in create_model_sim")
 
     return model
 
