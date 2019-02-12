@@ -63,7 +63,7 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
 def writeOutput(model, outfilename,spiketab,vmtab,network_pop):
     outspiketab={}
     outVmtab={}
-    for typenum,neurtype in enumerate(util.neurontypes(model.param_cond)):
+    for typenum,neurtype in enumerate(network_pop['pop']):
         tmpspiketab={}
         tmpVmtab={}
         print(outspiketab.keys())
