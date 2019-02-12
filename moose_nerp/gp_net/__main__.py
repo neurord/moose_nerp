@@ -120,3 +120,28 @@ if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
 util.block_if_noninteractive()
+
+'''
+import numpy as np
+#plot data
+import matplotlib.pyplot as plt
+plt.ion()
+alldata=np.load('gp_out0.0.npz','r')
+vmdata=alldata['vm'][()] OR alldata['vm'].item()
+plt.figure()
+simtime=0.2
+numpoints=len(vmdata['proto']['0'])
+ts=np.linspace(0,simtime,numpoints)
+for cell,data in vmdata['proto'].items():
+  plt.plot(ts,data,label=cell)
+plt.legend()
+
+#examine connections
+import numpy as np
+data=np.load('gp_connect.npz')
+conns=data['conn'].item()
+for neurtype,neurdict in conns.items():
+  for cell in neurdict.keys():
+     for pre,post in neurdict[cell]['gaba'].items():
+        print(cell,pre,post)
+'''
