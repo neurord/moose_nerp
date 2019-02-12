@@ -120,7 +120,7 @@ def setupNeurons(model, **kwargs):
     # in syncomp. Need to debug this since eliminated param_sim.stimtimes. See
     # what else needs to be changed in plasticity_test.
     model.plas = {}
-    if model.plasYN:
+    if model.plasYN and model.calYN and not network:
         model.plas, model.stimtab = plasticity_test.plasticity_test(model,
                                                     param_sim.syncomp,
                                                     model.syn,
