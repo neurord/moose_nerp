@@ -61,8 +61,11 @@ create_model_sim.runAll(model)
 # the new options are explicitly called.
 
 #dat=pickle.load(open('params.pickle','rb'))
-'''dat=np.load('/tmp/fitgp-arky-tmp_arky1202938/tmpwp_8zpqg/ivdata--2e-10.npy','r')
-simtime=2.0
-ts=np.arange(0,simtime,simtime/(len(dat)-1))
-plt.plot(ts[0:6000],dat[0:6000])
+'''
+import numpy as np
+from matplotlib import pyplot as plt
+dat=np.load('/home/avrama/moose/opt_scripts/gp_opt/pfc_proto154_3297_8/tmpgifwnjwo/ivdata-0.0.npy','r')
+simtime=1.25
+ts=np.linspace(0,simtime,len(dat))
+plt.plot(ts[0:3000],dat[0:3000])
 '''
