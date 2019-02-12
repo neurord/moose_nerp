@@ -5,13 +5,11 @@
    d. when all is said and done, simplify specification to run nml model exactly, and then add spines and calcium
    e. Calcium has to be improved. - Define named dict 1st for pumps and buffers, create parameters for calcium diffusion, etc, re-order pump density spec.
    
-4. Fix: in connect.py, this is going to overwrite pretype1 dictionary with pretype2 dictionary
-                syncomps,connect_list[syntype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams)
-   Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
-   Fix: Need to plot synchan current or conductance of some compartments
-   	same as calcium comps if calYN (net_output and net_graph)
-	independent subset of synchans if network and no calcium
-	all connected synchans if single (possibly add NMDA also in tables.syn_plastabs)
+4. Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
+   Fix: NETWORK: net_output and net_graph
+   	plot calcium, synchan current and/or conductance of some compartments
+	e.g. select small subset of synchans for plotting synchan current and calcium if doing network simulations
+	e.g. plot synchan current of all (many?) synchans that have inputs if not simulating network (possibly add NMDA also in tables.syn_plastabs)
 	    fix syn_graph to plot multiple types of synchans, each in separate graph panel, and fix table name to facilitate extraction of syn type
    Fix: only plotting one synapse connected to each timetable -sh.synapse[0] in add_one_table in tables.py.
 
@@ -19,7 +17,8 @@
    C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
                                          b. 3D arrays of elements
    D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
-   E: Think about how to connect two different networks, e.g. striatum and GP
+   E. Wrap around network into torus to fix inputs at edges of network
+   F: Think about how to connect two different networks, e.g. striatum and GP
 
 6.Types of spike train correlations
   1. number of synaptic terminals between single axon and single neuron
