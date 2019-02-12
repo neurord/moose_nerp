@@ -158,6 +158,7 @@ def connect_neurons(cells, netparams, postype, model):
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
         zpost=moose.element(postsoma).z
+        connect_list[postcell]['postsoma_loc']=(xpost,ypost,zpost)
         #set-up array of post-synapse compartments/synchans
         for syntype in post_connections.keys():
             connect_list[postcell][syntype]={}
@@ -172,8 +173,8 @@ def connect_neurons(cells, netparams, postype, model):
                     ####### connect to time tables instead of other neurons in network
                     connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn)
                 else:
-                    connect_list[postcell][syntype][pretype]={}
-                    print('&& connect to neuron', postcell,syntype,pretype)
+                    #connect_list[postcell][syntype][pretype]={}
+                    print('&& connect to neuron', postcell,syntype,'from',pretype)
                     spikegen_conns=[]
                     fact=1;prob=0
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
@@ -208,7 +209,7 @@ def connect_neurons(cells, netparams, postype, model):
                     #connect the pre-synaptic spikegens to randomly chosen synapses
                     for i,syn in enumerate(syn_choices):
                             postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
-                            connect_list[postcell][syntype][pretype][postbranch]={'postloc':(xpost,ypost,zpost),'pre':precell,'preloc':spikegen_conns[i][1],'dist':spikegen_conns[i][2]}
+                            connect_list[postcell][syntype][precell+'/'+postbranch]={'presoma_loc':spikegen_conns[i][1],'dist':spikegen_conns[i][2]}
                             log.debug('{}',connect_list[postcell][syntype])
                             #connect the synapse
                             #print('** intrinsic synconn',i,syn,spikegen_conns[i][2],spikegen_conns[i][0].path)
