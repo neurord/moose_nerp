@@ -4,16 +4,18 @@
    c. synapses - these can be specified in nml, but they wouldn't be on spines
    d. when all is said and done, simplify specification to run nml model exactly, and then add spines and calcium
    e. Calcium has to be improved. - Define named dict 1st for pumps and buffers, create parameters for calcium diffusion, etc, re-order pump density spec.
-   
+
+3. ep_net - use setupOutput similar to gp_net
 4. Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
    Fix: NETWORK: net_output and net_graph
    	plot calcium, synchan current and/or conductance of some compartments
 	e.g. select small subset of synchans for plotting synchan current and calcium if doing network simulations
 	e.g. plot synchan current of all (many?) synchans that have inputs if not simulating network (possibly add NMDA also in tables.syn_plastabs)
-	    fix syn_graph to plot multiple types of synchans, each in separate graph panel, and fix table name to facilitate extraction of syn type
+	    fix syn_graph - properly label yaxis.  possibly make syn_tabs dict of dict
    Fix: only plotting one synapse connected to each timetable -sh.synapse[0] in add_one_table in tables.py.
 
 5. Code Refinements
+   A. Fix this:plastab created in tables.graphtables, but almost always empty (unless plasticity test); syntab can't be created without connections, so not being created in setupOutput
    C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
                                          b. 3D arrays of elements
    D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype
