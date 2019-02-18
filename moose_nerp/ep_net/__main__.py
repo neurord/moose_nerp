@@ -29,8 +29,7 @@ from moose_nerp.prototypes import (create_model_sim,
                                    net_output,
                                    logutil,
                                    util,
-                                   standard_options,
-                                   create_model_sim)
+                                   standard_options)
 from moose_nerp import ep as model
 from moose_nerp import ep_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
@@ -55,8 +54,6 @@ if alcohol > 1:
     net.outfile = 'alcohol'+str(alcohol)
 else:
     net.outfile='Ctrl'
-#list of size >=1 is required for plotcomps
-plotcomps=[model.param_cond.NAME_SOMA]
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=True)
@@ -74,32 +71,23 @@ else:
 pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
 moose.showmsg(pg)
 
+##############--------------output elements
 if net.single:
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
     #simpath used to set-up simulation dt and hsolver
     simpath=['/'+neurotype for neurotype in all_neur_types]
-    ##############--------------output elements
-    #create_model_sim.setupOutput(model)
-    vmtab, catab, plastab, currtab=tables.graphtables(model, model.neurons,
-                                   model.param_sim.plot_current,
-                                   model.param_sim.plot_current_message,
-                                   model.plas,
-                                   model.param_sim.plotcomps)
-    if model.synYN:
-        #overwrite plastab above, since it is empty
-        syntab, plastab=tables.syn_plastabs(connections,plas)
-    if model.spineYN:
-        spinecatab,spinevmtab=tables.spinetabs(model,neuron)
+    create_model_sim.setupOutput(model)
 else:   #population of neurons
-    ##############--------------output elements
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
+if model.synYN and param_sim.plot_synapse:
+    #overwrite plastab above, since it is empty
+    syntab, plastab=tables.syn_plastabs(connections,param_sim)
 
 ########## clocks are critical
 ## these function needs to be tailored for each simulation
 ## if things are not working, you've probably messed up here.
-#possibly need to setup an hsolver separately for each cell in the network
 clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 
 ################### Actually run the simulation
@@ -112,17 +100,19 @@ def run_simulation(injection_current, simtime):
 traces, names = [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime)
-    if net.single and len(vmtab):
+    if net.single and len(model.vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
-            traces.append(vmtab[neurtype][0].vector)
+            traces.append(model.vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, syntab, param_sim.simtime)
+            net_graph.syn_graph(connections, syntab, param_sim)
         if model.spineYN:
-            spine_graph.spineFig(model,spinecatab,spinevmtab, param_sim.simtime)
+            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
         if net.plot_netvm:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
+        if model.synYN and param_sim.plot_synapse:
+            net_graph.syn_graph(connections, syntab, param_sim)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
 
 if net.single:
