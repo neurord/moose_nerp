@@ -5,6 +5,7 @@ import numpy as np
 from collections import defaultdict, namedtuple
 #from moose_nerp.prototypes.calcium import NAME_CALCIUM
 from moose_nerp.prototypes.spines import NAME_HEAD
+from moose_nerp.prototypes.connect import CONNECT_SEPARATOR
 from . import util
 DATA_NAME='/data'
 HDF5WRITER_NAME='/hdf5'
@@ -171,23 +172,33 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
     moose.connect(syntab, 'requestOut',sh.synapse[0],'getWeight')
     return {'plas':plastab,'cum':plasCumtab,'syn':syntab}
 
-def syn_plastabs(connections, plas=[]):
+def syn_plastabs(connections, param_sim,plas=[]):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)
     #tables with synaptic conductance for all synapses that receive input
-    syn_tabs={key:[] for key in connections.keys()}
-    plas_tabs={key:[] for key in connections.keys()}
+    syn_tabs={key:{} for key in connections.keys()}
+    plas_tabs={key:{} for key in connections.keys()}
     for neur_type in connections.keys():
-        for syntype in connections[neur_type].keys():
-          for pretype in connections[neur_type][syntype].keys():
-            for compname in connections[neur_type][syntype][pretype].keys():
-                tt = moose.element(connections[neur_type][syntype][pretype][compname])
-                synapse=tt.msgOut[0].e2[0]  #msgOut[1] is the NMDA synapse if [0] is AMPA; tt could go to multiple synapses
-                log.debug('{} {} {} {}', neur_type,compname,tt.msgOut, synapse)
-                synchan=synapse.parent.parent
-                syn_tabs[neur_type].append(moose.Table(DATA_NAME+'/'+neur_type+'_'+compname+'_'+synchan.name))
-                log.debug('{} {} ', syn_tabs[neur_type][-1], synchan)
-                moose.connect(syn_tabs[neur_type][-1], 'requestOut', synchan, 'getGk')
+        for neur_name in connections[neur_type].keys():
+            if not len(syn_tabs[neur_type].keys()):
+                syn_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys())[1:]}
+            for syntype in list(connections[neur_type][neur_name].keys())[1:]:
+                for precomp in connections[neur_type][neur_name][syntype].keys():
+                    if 'extern' in precomp:
+                        for comp in connections[neur_type][neur_name][syntype][precomp].keys():
+                            synchan=moose.element(neur_name+'/'+comp+'/'+syntype)
+                            print ('###########',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
+                            log.debug('{} {} {} {}', neur_name,syntype, precomp,synchan.path)
+                            syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'%s' %('/'+neur_name.split('/')[-1]+'-'+precomp+CONNECT_SEPARATOR+comp)))
+                            log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
+                            moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, 'getGk')
+                    else:
+                        synchan=moose.element(neur_name+'/'+precomp.split(CONNECT_SEPARATOR)[-1]+'/'+syntype)
+                        #print ('###########',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp)
+                        log.debug('{} {} {} {}', neur_name,syntype, precomp,synchan.path)
+                        syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'%s' %('/'+neur_name.split('/')[-1]+'-'+precomp)))
+                        log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
+                        moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, param_sim.plot_synapse_message)
     #tables of dictionaries with instantaneous plasticity (plas), cumulative plasticity (plasCum) and synaptic weight (syn)
     if len(plas):
         for neur_type in plas.keys():

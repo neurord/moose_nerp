@@ -28,6 +28,7 @@ def SpikeTables(model, pop,plot_netvm, plas=[], plots_per_neur=[]):
             if plot_netvm:
                 moose.connect(vmtab[typenum][tabnum], 'requestOut', moose.element(soma_name), 'getVm')
     #now plot calcium and plasticity, if created, but only from a few compartments for each neuron
+    #first, check if calYN.  If so, randomly select compartments to plot.  Remember those.  THEN, if model.plasYN, plot those plasticity tables
     if model.plasYN:
         tabrow=0
         for neur_type in plas.keys():
