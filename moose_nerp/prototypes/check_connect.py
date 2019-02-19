@@ -109,7 +109,7 @@ def check_netparams(netparams,NumSyn,population=[]):
         population={}
         for ntype in netparams.connect_dict.keys():
             population[ntype]=np.arange(np.round(num_neurons*netparams.pop_dict[ntype].percent))
-    log.info("pop {}",population)
+    log.debug("pop {}",population)
     num_postsyn,num_postcells,allsyncomp_list=count_postsyn(netparams,NumSyn,population)
     log.info("num synapses {} cells {}", num_postsyn, num_postcells)
     tt_per_syn,tt_per_ttfile=count_total_tt(netparams,num_postsyn,num_postcells,allsyncomp_list,NumSyn)

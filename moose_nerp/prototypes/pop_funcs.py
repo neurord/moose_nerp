@@ -42,7 +42,8 @@ def create_population(container, netparams, name_soma):
     #array of random numbers that will be used to select neuron type
     rannum = np.random.uniform(0,choicearray[-1],numneurons)
     #Error check for last element in choicearray equal to 1.0
-    log.info("numneurons= {} {} choicarray={} rannum={}", size, numneurons, choicearray, rannum)
+    log.info("numneurons= {} {} choicarray={}", size, numneurons, choicearray)
+    log.debug("rannum={}", rannum)
     for i,xloc in enumerate(np.linspace(netparams.grid[0]['xyzmin'], netparams.grid[0]['xyzmax'], size[0])):
         for j,yloc in enumerate(np.linspace(netparams.grid[1]['xyzmin'], netparams.grid[1]['xyzmax'], size[1])):
             for k,zloc in enumerate(np.linspace(netparams.grid[2]['xyzmin'], netparams.grid[2]['xyzmax'], size[2])):

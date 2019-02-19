@@ -202,10 +202,9 @@ def BKchan_proto(model, chanpath, params):
     xGate.tableA=gatingMatrix[0]
     xGate.tableB=gatingMatrix[1]
     if log.isEnabledFor(logging.INFO):
-        log.info("{}", chan.path)
-        for ii in np.arange(0, model.VDIVS,1000):
-            log.info("V={}", model.VMIN+ii*(model.VMAX-model.VMIN)/(model.VDIVS-1))
-            for jj in np.arange(0,model.CADIVS,1000):
+        for ii in np.arange(0, model.VDIVS,1200):
+            log.info("{} V={}", chan.path,model.VMIN+ii*(model.VMAX-model.VMIN)/(model.VDIVS-1))
+            for jj in np.arange(0,model.CADIVS,2000):
                 log.info("    Ca={} A,B={},{}",
                          model.CAMIN+jj*(model.CAMAX-model.CAMIN)/(model.CADIVS-1),
                          xGate.tableA[ii][jj], xGate.tableB[ii][jj])

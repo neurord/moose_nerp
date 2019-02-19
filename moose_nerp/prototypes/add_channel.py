@@ -9,7 +9,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False):
     SA = np.pi*length*diam
     if length == 0:
          SA = np.pi*diam**2
-         log.info('Check RA for spherical compartment',comp.name)
+         log.info('Check RA for spherical compartment',comp.name,chanpath)
     proto = moose.element('/library/'+chanpath)
     chan = moose.copy(proto, comp, chanpath)[0]
     chan.Gbar = gbar * SA
