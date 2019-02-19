@@ -201,7 +201,7 @@ def connect_neurons(cells, netparams, postype, model):
                             spikegen_conns.append([moose.wildcardFind(presoma+'/#[TYPE=SpikeGen]')[0],(xpre,ypre,zpre),dist])
                     if len(spikegen_conns):
                         num_conn=[max(np.random.poisson(post_connections[syntype][pretype].num_conns),1) for n in spikegen_conns]
-                        print('&& connect to neuron', postcell,syntype,'from',pretype,'num conns',num_conn)
+                        print('>> connect to neuron', postcell,syntype,'from',pretype,'num conns',num_conn)
                         intra_conns[syntype].append(np.sum(num_conn))
                         #duplicate spikegens in list to match the length of the list syn_choices to be generated
                         for i in range(len(num_conn)-1,-1,-1):
@@ -209,10 +209,10 @@ def connect_neurons(cells, netparams, postype, model):
                                 spikegen_conns.insert(i,spikegen_conns[i])
                         num_choices=min(len(spikegen_conns),len(syncomps))
                         if len(spikegen_conns)>len(syncomps):
-                            print('>>>> uh oh, too few synapses on post-synaptic cell')
+                            print('&&&&&&&&&&&&&& uh oh, too few synapses: ',len(syncomps),' on ',postcell,len(spikegen_conns), 'needed')
                         #randomly select num_choices of synapses
                         if len(syncomps)==0:
-                            print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
+                            print('#################### uh oh, no available synapses on post-synaptic cell')
                             syn_choices=[]
                         else:
                             syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
