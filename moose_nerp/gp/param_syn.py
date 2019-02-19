@@ -18,10 +18,11 @@ _NMDA_MgParams = MgParams(A = 1/6.0,
                            C = 1.4)
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
+#Dieter Jaeger uses 0.25e-9 for gaba
 _SynGaba = SynChannelParams(Erev = -80e-3,
                              tau1 = 1e-3,
                              tau2 = 12e-3,
-                             Gbar = 0.25e-9,
+                             Gbar = 0.5e-9,
                              var=0.05)
 _SynAMPA = SynChannelParams(Erev = 0,
                              tau1 = 1e-3,

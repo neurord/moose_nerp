@@ -60,6 +60,7 @@ chanvar={'ep':chanSTD}
 
 #Intrinsic (within network) connections specified using NamedList('connect'
 #Extrinsic (external time table) connections specified using NamedList('ext_connect'
+#post syn fraction: what fraction of synapse is contacted by time tables specified in pre 
 
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
 
@@ -73,11 +74,11 @@ tt_STN = TableSet('tt_STN', 'STN_4x4',syn_per_tt=2)
 tt_STR = TableSet('tt_Str', 'Str_4x4',syn_per_tt=2)
 tt_GPe = TableSet('tt_GPe', 'GPe_4x4',syn_per_tt=2)
 
-ConnSpaceConst=125e-6
-
 #description of intrinsic inputs
+ConnSpaceConst=125e-6
 ep_distr=dend_location(mindist=30e-6,maxdist=100e-6,postsyn_fraction=1,half_dist=50e-6,steep=1)
 neur1pre_neur1post=connect(synapse='gaba', pre='ep', post='gaba', probability=0.5,dend_loc=ep_distr)#need reference for no internal connections
+
 #description of synapse and dendritic location of extrinsic inputs
 GPe_distr=dend_location(mindist=0,maxdist=60e-6,half_dist=30e-6,steep=-1)
 Str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=1,half_dist=100e-6,steep=1)

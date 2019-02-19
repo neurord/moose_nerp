@@ -8,14 +8,18 @@
 3. ep_net - use setupOutput similar to gp_net
 4. Fix: Note that only adding plasticity to synapse[0] (plasticity.py)
    Fix: NETWORK: net_output and net_graph
-   	plot calcium, synchan current and/or conductance of some compartments
-	e.g. select small subset of synchans for plotting synchan current and calcium if doing network simulations
-	e.g. plot synchan current of all (many?) synchans that have inputs if not simulating network (possibly add NMDA also in tables.syn_plastabs)
-	    fix syn_graph - properly label yaxis.  possibly make syn_tabs dict of dict
+	select small subset of synchans for plotting synchan current and calcium if doing large network simulations
+	  code for random selection is in net_output, but buggy.  Change so that:
+	       first, check if calYN.  If so, randomly select compartments to plot.  Remember those.
+	       THEN, if model.plasYN, plot plasticity tables for those same compartment
+ 	       might be better to create plastabs and catabs after syntabs - randomly select from among those compartments that have synaptic input
+	add NMDA also in tables.syn_plastabs
+	    fix syn_graph - properly label yaxis
    Fix: only plotting one synapse connected to each timetable -sh.synapse[0] in add_one_table in tables.py.
 
 5. Code Refinements
-   A. Fix this:plastab created in tables.graphtables, but almost always empty (unless plasticity test); syntab can't be created without connections, so not being created in setupOutput
+   A. Fix:plastab created in tables.graphtables, but almost always empty (unless plasticity test); syntab can't be created without connections, so not being created in setupOutput
+   B. Should we be using moose.vec object fully?
    C. refine count_presyn to account for a. non-dist dependence, and multiple connections per neuron with location dependence
                                          b. 3D arrays of elements
    D. test/debug case where neurons to have both intrinsic (pre-cell) and extern (timetable) inputs of same syntype

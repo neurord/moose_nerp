@@ -18,7 +18,6 @@ param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,
 `model.param_sim.fname`.
 '''
-
 from moose_nerp.prototypes import create_model_sim
 '''Imports functions for setting up and simulating model. These take the `model`
 namespace as argument, and append variables to this namespace. Thus, after
@@ -64,7 +63,8 @@ create_model_sim.runAll(model)
 '''
 import numpy as np
 from matplotlib import pyplot as plt
-dat=np.load('/home/avrama/moose/opt_scripts/gp_opt/pfc_proto154_3297_8/tmpgifwnjwo/ivdata-0.0.npy','r')
+fildir='pfc_arky120_3297_8/tmpwbtsanb3'
+dat=np.load('/home/avrama/moose/opt_scripts/gp_opt/'+fildir+'/ivdata-0.0.npy','r')
 simtime=1.25
 ts=np.linspace(0,simtime,len(dat))
 plt.plot(ts[0:3000],dat[0:3000])
