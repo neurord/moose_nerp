@@ -7,7 +7,8 @@ from moose_nerp.prototypes import syn_proto, logutil
 log = logutil.Logger()
 
 def graphs(neurons, simtime, vmtab,catab=[],plastab=[]):
-    t = np.linspace(0, simtime, len(vmtab[0][0].vector))
+    length_time=np.max([len(tab.vector) for tabset in vmtab for tab in tabset])
+    t = np.linspace(0, simtime, length_time)
     fig,axes =pyplot.subplots(len(vmtab), 1,sharex=True)
     axis=fig.axes
     fig.canvas.set_window_title('Population Vm')
