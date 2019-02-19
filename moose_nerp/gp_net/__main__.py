@@ -102,7 +102,18 @@ for inj in param_sim.injection_current:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         if model.synYN and param_sim.plot_synapse:
             net_graph.syn_graph(connections, syntab, param_sim)
-        net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
+        outfname=net.outfile+str(inj)+'gaba'+str(model.param_syn.SYNAPSE_TYPES.gaba.Gbar)    
+        net_output.writeOutput(model, outfname,spiketab,vmtab,population)
+
+import detect
+spike_time={key:[] for key in population['pop'].keys()}
+numspikes={key:[] for key in population['pop'].keys()}
+for tabset,neurtype in zip(vmtab,spike_time.keys()):
+    for tab in tabset:
+       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
+    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
+    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype])
+#spikes=[st.vector for tabset in spiketab for st in tabset]    
 
 if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
