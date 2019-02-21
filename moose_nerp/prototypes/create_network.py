@@ -29,15 +29,15 @@ def create_network(model, param_net,neur_protos={}):
         num_postsyn,num_postcells,allsyncomp_list=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,network_pop['pop'])
         print("num synapses {} cells {}".format(num_postsyn, num_postcells))
         tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells,allsyncomp_list,model.param_syn.NumSyn)
-        print("num time tables needed: per synapse {} per ttfile {}".format(tt_per_syn, tt_per_ttfile))
+        print("num time tables needed: per synapse type {} per ttfile {}".format(tt_per_syn, tt_per_ttfile))
         #
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.timetable_input(network_pop['pop'], param_net, ntype, model )
         #
     else:
-        #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
+        check_connect.check_netparams(param_net,model.param_syn.NumSyn)
         #
-        #May not need to return both cells and pop from create_population - just pop is fine?
+        #create population of neurons according to grid spacing and size using neuron prototypes
         network_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net, model.param_cond.NAME_SOMA)
         #
         #check_connect syntax after creating population
@@ -46,15 +46,13 @@ def create_network(model, param_net,neur_protos={}):
         #loop over all post-synaptic neuron types and create connections:
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
-
-        #save/write out the list of connections and location of each neuron
-        np.savez(param_net.confile,conn=connections,loc=network_pop['location'])
-
-
-        ##### add Synaptic Plasticity if specified, requires calcium
+        #
+    #save/write out the list of connections and location of each neuron
+    np.savez(param_net.confile,conn=connections,loc=network_pop['location'])
+    #
+    ##### add Synaptic Plasticity if specified, requires calcium
     plascum={}
     if model.calYN and model.plasYN:
-        
         for ntype in network_pop['pop'].keys():
             plascum[ntype]=plasticity.addPlasticity(network_pop['pop'][ntype],model.CaPlasticityParams)
     return network_pop, connections, plascum

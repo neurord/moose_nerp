@@ -90,17 +90,17 @@ def count_total_tt(netparams,num_postsyn,num_postcells,allsyncomp_list,NumSyn):
                     else:
                         dend_prob=None
                     syncomps,totalsyn=connect.create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=dend_prob)
-                    needed_trains+=np.int(np.ceil(totalsyn/dups))
-                    tt_per_ttfile[ttname.tablename][ntype]={'num': np.int(np.ceil(totalsyn/dups)), 'syn_per_tt': dups}
-                    log.debug('tt {} syn_per_tt {} postsyn_prob {} needed_trains {}',pretype, dups,dend_prob,needed_trains)
+                    needed_trains+=np.int(np.ceil(len(syncomps)/dups))
+                    tt_per_ttfile[ttname.tablename][ntype]={'num': np.int(np.ceil(totalsyn/dups))*num_postcells[ntype], 'syn_per_tt': dups}
+                    log.info('tt {} syn_per_tt {} postsyn_prob {} needed_trains {} per neuron',pretype, dups,dend_prob,needed_trains)
                 tt_needed_per_syntype[ntype][syntype]=needed_trains
     for each in ttables.TableSet.ALL:
         for ntype in tt_per_ttfile[each.tablename].keys():
             each.needed+=tt_per_ttfile[ttname.tablename][ntype]['num']
-            log.info('ttname {}, {} needed for neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype )
+            log.info('ttname {}, {} needed per neuron {}', each.tablename, tt_per_ttfile[ttname.tablename][ntype],ntype )
         log.info("{} tt needed for file {}", each.needed, each.filename)
     return tt_needed_per_syntype,tt_per_ttfile
-                     
+
 def check_netparams(netparams,NumSyn,population=[]):
     size,num_neurons,volume=pop_funcs.count_neurons(netparams)
     log.info("net size: {} {} tissue volume {}", size,num_neurons,volume)
@@ -113,7 +113,7 @@ def check_netparams(netparams,NumSyn,population=[]):
     num_postsyn,num_postcells,allsyncomp_list=count_postsyn(netparams,NumSyn,population)
     log.info("num synapses {} cells {}", num_postsyn, num_postcells)
     tt_per_syn,tt_per_ttfile=count_total_tt(netparams,num_postsyn,num_postcells,allsyncomp_list,NumSyn)
-    log.info("num time tables needed: per synapse {} per ttfile {}", tt_per_syn, tt_per_ttfile)
+    log.info("num time tables needed: per synapse type {} per ttfile {}", tt_per_syn, tt_per_ttfile)
     presyn_cells=count_presyn(netparams,num_postcells,volume)
     log.info("num presyn_cells {}", presyn_cells)
     for ntype in netparams.connect_dict.keys():
@@ -124,6 +124,6 @@ def check_netparams(netparams,NumSyn,population=[]):
                     avail=presyn_cells[ntype][syntype]
                 else:
                     avail=0
-                log.info("PRE: neurons available={} expected tt={}", avail, tt_per_syn[ntype][syntype])
+                log.info("PRE: neurons available={} expected tt={}", avail, tt_per_syn[ntype][syntype]*num_postcells[ntype])
     return 
         
