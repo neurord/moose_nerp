@@ -181,8 +181,8 @@ def syn_plastabs(connections, param_sim,plas=[]):
     for neur_type in connections.keys():
         for neur_name in connections[neur_type].keys():
             if not len(syn_tabs[neur_type].keys()):
-                syn_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys())[1:]}
-            for syntype in list(connections[neur_type][neur_name].keys())[1:]:
+                syn_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys()) if key != 'postsoma_loc'}
+            for syntype in list(syn_tabs[neur_type].keys()):
                 for precomp in connections[neur_type][neur_name][syntype].keys():
                     if 'extern' in precomp:
                         for comp in connections[neur_type][neur_name][syntype][precomp].keys():
