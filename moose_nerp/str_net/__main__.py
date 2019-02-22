@@ -42,7 +42,7 @@ create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=True)
+model=create_model_sim.setupNeurons(model,network=not net.single)
 all_neur_types=model.neurons
 #FSIsyn,neuron = cell_proto.neuronclasses(FSI)
 #all_neur_types.update(neuron)
@@ -66,14 +66,10 @@ else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
+    clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 if model.synYN and param_sim.plot_synapse:
     #overwrite plastab above, since it is empty
     syntab, plastab=tables.syn_plastabs(connections,param_sim)
-
-########## clocks are critical
-## these function needs to be tailored for each simulation
-## if things are not working, you've probably messed up here.
-clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):

@@ -45,18 +45,8 @@ param_sim = model.param_sim
 if net.num_inject==0:
     param_sim.injection_current=[0]
 
-###alcohol injection--> Bk channel constant multiplier
-alcohol = 1
-if alcohol > 1:
-    for neurtype in model.param_cond.Condset:
-        for key in model.param_cond.Condset[neurtype]['BKCa']:
-            model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
-    net.outfile = 'alcohol'+str(alcohol)
-else:
-    net.outfile='Ctrl'
-
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=True)
+model=create_model_sim.setupNeurons(model,network=not net.single)
 all_neur_types = model.neurons
 population,connections,plas=create_network.create_network(model, net, all_neur_types)
 
@@ -81,16 +71,12 @@ else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
-if model.synYN and param_sim.plot_synapse:
+    clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab=tables.syn_plastabs(connections,param_sim)
 
-########## clocks are critical
-## these function needs to be tailored for each simulation
-## if things are not working, you've probably messed up here.
-clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
-
-################### Actually run the simulation
+#################### Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
@@ -119,7 +105,25 @@ if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
 util.block_if_noninteractive()
+
+import detect
+if net.single:
+    vmtab=model.vmtab
+spike_time={key:[] for key in population['pop'].keys()}
+numspikes={key:[] for key in population['pop'].keys()}
+for neurtype, tabset in vmtab.items():
+    for tab in tabset:
+       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
+    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
+    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes')
+#spikes=[st.vector for tabset in spiketab for st in tabset]    
+
 '''
+ToDo:
+verify synaptic conductance and Erev for GABA
+Determine how much to change synapse strength with plasticity
+How to analyze results
+
 for neurtype,neurtype_dict in connections.items():
     for neur,neur_dict in neurtype_dict.items():
         for syn,syn_dict in neur_dict.items():
@@ -130,4 +134,12 @@ for neurtype,neurtype_dict in connections.items():
                     else:
                         preflag='ext'
                     print(preflag,neurtype,neur,syn,pretype,branch,presyn)
+
+import numpy as np
+data=np.load('gp_connect.npz')
+conns=data['conn'].item()
+for neurtype,neurdict in conns.items():
+  for cell in neurdict.keys():
+     for pre,post in neurdict[cell]['gaba'].items():
+        print(cell,pre,post)
 '''

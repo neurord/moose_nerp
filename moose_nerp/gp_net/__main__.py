@@ -45,7 +45,7 @@ if net.num_inject==0:
     param_sim.injection_current=[0]
 
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=True)
+model=create_model_sim.setupNeurons(model,network=not net.single)
 all_neur_types = model.neurons
 population,connections,plas=create_network.create_network(model, net, all_neur_types)
 
@@ -70,14 +70,10 @@ else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
-if model.synYN and param_sim.plot_synapse:
+    clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab=tables.syn_plastabs(connections,param_sim)
-
-########## clocks are critical
-## these function needs to be tailored for each simulation
-## if things are not working, you've probably messed up here.
-clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -105,22 +101,28 @@ for inj in param_sim.injection_current:
         outfname=net.outfile+str(inj)+'gaba'+str(model.param_syn.SYNAPSE_TYPES.gaba.Gbar)    
         net_output.writeOutput(model, outfname,spiketab,vmtab,population)
 
+if net.single:
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+    # block in non-interactive mode
+util.block_if_noninteractive()
+
 import detect
 spike_time={key:[] for key in population['pop'].keys()}
 numspikes={key:[] for key in population['pop'].keys()}
-for tabset,neurtype in zip(vmtab,spike_time.keys()):
+for neurtype, tabset in vmtab.items():
     for tab in tabset:
        spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
     numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
     print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype])
 #spikes=[st.vector for tabset in spiketab for st in tabset]    
 
-if net.single:
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    # block in non-interactive mode
-util.block_if_noninteractive()
 
 '''
+Fix netgraph to use dictionaries - similar to neuron graph
+check on ep synaptic strength - do simulations
+commit everything
+send summary to Alon
+
 #plot data
 import numpy as np
 import matplotlib.pyplot as plt
