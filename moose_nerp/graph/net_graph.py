@@ -6,35 +6,29 @@ import moose
 from moose_nerp.prototypes import syn_proto, logutil
 log = logutil.Logger()
 
-def graphs(neurons, simtime, vmtab,catab=[],plastab=[]):
-    length_time=np.max([len(tab.vector) for tabset in vmtab for tab in tabset])
+def graphs(neurons, simtime, vmtab,catab={},plastab={}):
+    length_time=np.max([len(tab.vector) for tabset in vmtab.values() for tab in tabset])
     t = np.linspace(0, simtime, length_time)
     fig,axes =pyplot.subplots(len(vmtab), 1,sharex=True)
     axis=fig.axes
     fig.canvas.set_window_title('Population Vm')
-    for typenum,neur in enumerate(neurons.keys()):
-        for vmoid in vmtab[typenum]:
+    for typenum,neur_type in enumerate(vmtab.keys()):
+        for vmoid in vmtab[neur_type]:
             neur_name=vmoid.msgOut[0].e2.path.split('/')[-2][0:-3]
             axis[typenum].plot(t, vmoid.vector, label=neur_name)
-        axis[typenum].set_ylabel(neur+' Vm, volts')
+        axis[typenum].set_ylabel(neur_type+' Vm, volts')
         axis[typenum].legend(fontsize=8,loc='upper left')
     axis[typenum].set_xlabel('Time, sec')
     #
-    if len(catab):
-        fig,axes =pyplot.subplots(len(vmtab), 1,sharex=True)
+    if len(catab.keys()):
+        fig,axes =pyplot.subplots(len(catab), 1,sharex=True)
         axis=fig.axes
         fig.canvas.set_window_title('Population Calcium')
-        for tabset in catab:
-            if len(tabset)==1:
-                caoid=tabset
+        for typenum,neur_type in enumerate(catab.keys()):
+            for caoid in catab[neur_type]:
                 typenum=neurons.keys().index(caoid.name.partition('_')[0][2:])
                 axis[typenum].plot(t, caoid.vector*1e3, label=caoid.name.partition('_')[2])
-            else:
-                for caoid in tabset:
-                    typenum=neurons.keys().index(caoid.name.partition('_')[0][2:])
-                    axis[typenum].plot(t, caoid.vector*1e3, label=caoid.name.partition('_')[2])
-        for typenum,neur in enumerate(neurons.keys()):
-            axis[typenum].set_ylabel(neur+' Calcium, uM')
+            axis[typenum].set_ylabel(neur_type+' Calcium, uM')
             axis[typenum].legend(fontsize=8,loc='upper left')
         axis[typenum].set_xlabel('Time, sec')
     #

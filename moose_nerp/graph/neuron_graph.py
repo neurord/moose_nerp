@@ -22,10 +22,10 @@ def _get_graph(name, figsize=None):
         f.canvas.draw() # this is here to make it easier to see what changed
     return f
 
-def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plastab=[], compartments=None):
-    for typenum,neurtype in enumerate(neurontypes(model.param_cond)):
+def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab={},plastab={}, compartments=None):
+    for neurtype in vmtab.keys():
         f = _get_graph('{} voltage&calcium'.format(neurtype), figsize=(6,6))
-        axes = f.add_subplot(211) if len(catab) else f.gca()
+        axes = f.add_subplot(211) if len(catab.keys()) else f.gca()
         for oid in vmtab[neurtype]:#tables.find_tables(neurtype,'Vm'):
             compnum = oid.msgOut[0].e2.name
             print('in graphs', compnum)
@@ -35,13 +35,12 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab=[],plast
         axes.set_ylabel('Vm {}'.format(neurtype))
         axes.legend(fontsize=8, loc='best')
         axes.set_title('voltage vs. time')
-        if len(catab):
+        if len(catab.keys()):
             axes = f.add_subplot(212)
-            if len(catab) > typenum:
-                for oid in catab[neurtype]:
-                    neurnum=oid.name.split('_')[-1].split('[')[0]
-                    t = np.linspace(0, simtime, len(oid.vector))
-                    axes.plot(t, oid.vector*1e3, label=neurnum)
+            for oid in catab[neurtype]:
+                neurnum=oid.name.split('_')[-1].split('[')[0]
+                t = np.linspace(0, simtime, len(oid.vector))
+                axes.plot(t, oid.vector*1e3, label=neurnum)
             axes.set_ylabel('calcium, uM')
             axes.set_xlabel('Time (sec)')
             axes.legend(fontsize=8, loc='best')
@@ -98,7 +97,11 @@ def SingleGraphSet(traces, currents, simtime, title='Voltage'):
     axes=f.add_subplot(1,1,1)
     for i in range(len(traces)):
         axes.plot(t,traces[i],label=currents[i])
-    axes.set_ylabel('Vm, volts') # FIXME
+    if title == 'Voltage':
+        yaxis='Vm, volts'
+    else:
+        yaxis='Ca, mM'
+    axes.set_ylabel(yaxis)
     axes.set_xlabel('Time, sec')
     axes.legend(fontsize=8,loc='best')
     f.canvas.draw()
