@@ -131,19 +131,19 @@ def timetable_input(cells, netparams, postype, model):
     #used for single neuron models only, since populations are connected in connect_neurons
     log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
-    connect_list = {}
+    connect_list = {pc:{} for pc in cells[postype]}
     postcell = cells[postype][0]
     for syntype in post_connections.keys():
-        connect_list[syntype]={}
+        connect_list[postcell][syntype]={}
         for pretype in post_connections[syntype].keys():
-            connect_list[syntype][pretype]={}
             dend_prob=post_connections[syntype][pretype].dend_loc
             print('################',postcell, syntype,pretype)
             allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
-            log.info('SYN TABLE for {} has {} compartments to make {} synapses', syntype, len(syncomps),totalsyn)
+            log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
-                connect_list[syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn)
+                print('## connect to tt',postcell,syntype,pretype)
+                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
