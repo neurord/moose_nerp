@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-simtime = 10.0 # sim duration in seconds
+simtime = 1.0 # sim duration in seconds
 dt =  10e-6 # simulation time step
 nsteps = int(simtime/dt+1) # number of sim steps
 
@@ -42,48 +42,36 @@ sh.synapse.num=1
 ################################################################################
 ###  Plasticity Function
 
-# First Function object: detect calcium level compared to amplitude thresholds.
-# if calcium meets LTD threshold, return -1; if it meets LTP threshold, return 1;
+# First Function object: detect calcium level/duration compared to amplitude thresholds.
+# if calcium meets LTD threshold, accumulate duration above LTD as negative value;
+# if it meets LTP threshold, accumulate duration above LTP as positive value;
 # else return 0
-NAME_AMP = 'CaAmpDetector'
-ampname = NAME_AMP #'comp.path+'/'+NAME_AMP
-amp=moose.Function(ampname)
 
-# Set function constants (Copied from Asia's paper)
-amp.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Change to a parameter
-amp.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Change to a parameter
-amp.x.num = 1 # Number of variables in expression. Not sure if required?
-
-#Expression: variable x0 is calcium concentration.
-amp.expr = '(x0 > LTP_amp_thresh) * (1) + (LTD_amp_thresh < x0 && x0 < LTP_amp_thresh) * (-1)'
-# Connect test calcium vector to expression input:
-moose.connect(cal,CaMSG,amp.x[0],'input')
-
-
-# Second Function object: Accumulate duration that calcium is above a LTD or LTP threshold.
-# Accumulates a negative value for LTD, a positive value for LTP, else resets to zero
-NAME_DUR = 'CaDurAccumulator'
+NAME_DUR = 'CaThreshDurAccumulator'
 durname = NAME_DUR#comp.path+'/'+NAME_DUR
 dur=moose.Function(durname)
+# Set expression constants
+dur.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Change to a parameter
+dur.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Change to a parameter
 dur.c['dt'] = dt # TODO: Put simdt variable here
 dur.x.num = 2 # Required?
 
-# Expression: x0 is input from amp (calcium amplitude detector); x1 is input from self
+# Expression: x0 is calcium input; x1 is input from self
 # Accumulates value by dt (positive for LTP, negative for LTD)
-dur.expr = '( (x0 >= 0) && (x1 >= 0) ) * (x1+dt) + ( (x0 <= 0) && (x1 <= 0) ) * (x1-dt)'
-# Connect amp function output to variable x0 of dur function
-moose.connect(amp,'valueOut',dur.x[0],'input')
+dur.expr = '( (x0 >= LTP_amp_thresh) && (x1 >= 0) ) * (x1+dt) + ( (x0 >= LTD_amp_thresh && x0 < LTP_amp_thresh) && (x1 <= 0) ) * (x1-dt)'
+# Connect calcium input to variable x0
+moose.connect(cal,CaMSG,dur.x[0],'input')
 # Connect dur value output to variable x1 of itself
 moose.connect(dur,'valueOut',dur.x[1],'input')
 
 
 #######################
-# Third Function object: Calculate plasticity. Uses equations from Asia's code/paper
+#Second Function object: Calculate plasticity. Uses equations from Asia's code/paper
 plasname='PLAS'#comp.path+'/'+NAME_PLAS
 plas=moose.Function(plasname)
 # Constants:
-plas.c['LTP_dur_thresh'] = 0.032 # TODO: Parameterize
-plas.c['LTD_dur_thresh'] = 0.002 # TODO: Parameterize
+plas.c['LTP_dur_thresh'] = 0.002 # TODO: Parameterize
+plas.c['LTD_dur_thresh'] = 0.032 # TODO: Parameterize
 plas.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Parameterize
 plas.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Parameterize
 plas.c['LTP_gain'] = 1100 # TODO: Parameterize
@@ -163,22 +151,22 @@ moose.connect(x_rec, 'requestOut', input_x, 'getOutputValue')
 weighttable = moose.Table('/weight')
 moose.connect(weighttable, 'requestOut', sh.synapse[0], 'getWeight')
 
-# Table for calcium amplitude detector (-1 for LTD thresh, 1 for LTP)
-amptable = moose.Table('/amp')
-moose.connect(amptable, 'requestOut', amp, 'getValue')
-
 # Table for duration accumulator Function:
 durtable = moose.Table('/dur')
 moose.connect(durtable, 'requestOut', dur, 'getValue')
 
 moose.reinit()
+
+# Alternative to setting intial value expression above; set synapse weight
+# to intial value after moose.reinit(), i.e.:
+# sh.synapse[0].weight = 1
+
 moose.start(simtime)
 
 plt.ion()
 plt.plot(time,x_rec.vector*1E3, label='calcium (microMolar)')
 plt.plot(time,result.vector, label='Plasticity Function Output')
 plt.plot(time,weighttable.vector, linestyle = '--', label='Synaptic Weight')
-plt.plot(time,amptable.vector, label='Amplitude Threshold Detector')
 plt.plot(time,durtable.vector, label='Duration Accumulator')
 
 plt.legend()
