@@ -120,9 +120,19 @@ for neurtype, tabset in vmtab.items():
 
 '''
 ToDo:
-verify synaptic conductance and Erev for GABA
-Determine how much to change synapse strength with plasticity
-How to analyze results
+1. short term plasticity - simplify and test Asia's desensitization code in plasticity.py
+facilitation: A <- A+f : create func that  calculates A+f where A is weight of synapse and f is from another func:
+df/dt=(1-f)/tauF
+euler:
+ df = (1-f)/tauF * dt
+ f = f + (1-f)/tauF*simdt
+ f=f*(1-simdt/tauF) + simdt/tauF
+connect one input to own output
+depression: A <- D*d: create func that  calculates A*d where A is weight of synapse and d is from func same as f
+
+2. long term plasticity: how much to change synaptic weights?
+
+3. How to analyze results
 
 for neurtype,neurtype_dict in connections.items():
     for neur,neur_dict in neurtype_dict.items():

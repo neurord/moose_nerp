@@ -31,12 +31,12 @@ chanSTD = {
     'KvS': 0.0743,
     'KvF': 0.0173,
     'BKCa': 0.0238,
-    'SKCa': 0.295,
-    'HCN1': 0.2454,
+    'SKCa': 0.145,
+    'HCN1': 0.1225,
     'HCN2': 0.253,
-    'Ca': 0.1671,
+    'Ca': 0.0836,
     'NaF': 0.0635,
-    'NaS': 0.215,
+    'NaS': 0.115,
 }
 chanvar={'ep':chanSTD}
 
@@ -70,9 +70,9 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None')
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'STN_4x4',syn_per_tt=2)
-tt_STR = TableSet('tt_Str', 'Str_4x4',syn_per_tt=2)
-tt_GPe = TableSet('tt_GPe', 'GPe_4x4',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'ep_net/STN_lognorm',syn_per_tt=2)
+tt_STR = TableSet('tt_Str', 'ep_net/SPN_lognorm',syn_per_tt=2)
+tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
 
 #description of intrinsic inputs
 ConnSpaceConst=125e-6
@@ -93,7 +93,7 @@ ext3_neur1post=ext_connect(synapse='gaba',pre=tt_STR,post='ep', dend_loc=Str_dis
 ep={}
 #connections further organized by synapse type
 #the dictionary key for tt must have 'extern' in it
-ep['gaba']={'extern2': ext2_neur1post, 'extern3': ext3_neur1post, 'ep':neur1pre_neur1post}
+ep['gaba']={'extern2': ext2_neur1post, 'extern3': ext3_neur1post}#, 'ep':neur1pre_neur1post}
 ep['ampa']={'extern1': ext1_neur1post}
 
 #Then, collect the post-synaptic dictionaries into a single dictionary.
