@@ -12,25 +12,37 @@ from moose_nerp.prototypes.spines import NAME_HEAD
 log = logutil.Logger()
 
 SynChannelParams = NamedList('SynChannelParams',
-                              '''Erev
-                                 tau1
-                                 tau2
-                                 Gbar
-                                 var
-                                 MgBlock=None
-                                 spinic=False
-                                 NMDA=False
-                                 nmdaCaFrac=None
-                              ''')
+                             '''Erev
+                             tau1
+                             tau2
+                             Gbar
+                             var
+                             MgBlock=None
+                             spinic=False
+                             NMDA=False
+                             nmdaCaFrac=None
+                             ''')
 MgParams = NamedList('MgParams',
                       '''A
                          B
                          C
                       ''')
 
-DesensitizationParams =  NamedList('DesensitizationParams',
+DesensitizationParams  =  NamedList('DesensitizationParams',
                                    ''' dep_per_spike
                                    dep_tau''')
+
+#can be used for facilitation or depression
+#change_operator is either multiply or add - specify * or +
+#to depress with additive, give negative change_per_spike
+#both desens and facil allowed in same synapse
+
+SpikePlasParams =  NamedList('SpikePlasParams',
+                             ''' change_per_spike
+                             change_tau
+                             change_operator''')
+
+ShortTermPlasParams=NamedList('ShortTermPlasParams','''depress=None facil=None''')
 
 def SpineSynChans(model):
     return sorted(key for key,val in model.SYNAPSE_TYPES.items()
