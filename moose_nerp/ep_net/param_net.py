@@ -3,6 +3,7 @@
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.ttables import TableSet
 from moose_nerp.prototypes import util as _util
+from moose_nerp.prototypes.syn_proto import ShortTermPlasParams,SpikePlasParams
 
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
@@ -60,13 +61,14 @@ chanvar={'ep':chanSTD}
 
 #Intrinsic (within network) connections specified using NamedList('connect'
 #Extrinsic (external time table) connections specified using NamedList('ext_connect'
-#post syn fraction: what fraction of synapse is contacted by time tables specified in pre 
+#post syn fraction: what fraction of synapse is contacted by time tables specified in pre
+#if using multiple sets of time tables, these values should sum to 1
 
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
 
 #probability for intrinsic is the probability of connecting pre and post.
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None')
-ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None')
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None')
+ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None')
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
@@ -83,10 +85,19 @@ neur1pre_neur1post=connect(synapse='gaba', pre='ep', post='gaba', probability=0.
 GPe_distr=dend_location(mindist=0,maxdist=60e-6,half_dist=30e-6,steep=-1)
 Str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=1,half_dist=100e-6,steep=1)
 STN_distr=dend_location(postsyn_fraction=0.25)
+STN_facil=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='+')
+STN_depress= SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='*')
+STN_plas=ShortTermPlasParams(depress=STN_depress,facil=STN_facil)
 
-ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr)# need reference
-ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr)
-ext3_neur1post=ext_connect(synapse='gaba',pre=tt_STR,post='ep', dend_loc=Str_distr)
+#short term plasticity
+GPe_depress=SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='*')
+GPe_plas=ShortTermPlasParams(depress=GPe_depress)
+str_facil=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='+')
+str_plas=ShortTermPlasParams(facil=str_facil)
+
+ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr,stp=STN_plas)# need reference
+ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr,stp=GPe_plas)
+ext3_neur1post=ext_connect(synapse='gaba',pre=tt_STR,post='ep', dend_loc=Str_distr,stp=str_plas)
 
 #Collect all connection information into dictionaries
 #1st create one dictionary for each post-synaptic neuron class
