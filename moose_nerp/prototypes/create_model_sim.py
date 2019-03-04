@@ -51,7 +51,6 @@ def setupOptions(model, **kwargs):
     param_sim_parser, model_parser = standard_options.standard_options()
 
     param_sim = model.param_sim
-
     ###### apply any kwargs that are param_sim overrides. #####
     # Find set of all kwargs that match param_sim variables
     param_sim_overrides = set(set(kwargs.keys()) & set(vars(param_sim).keys()))
@@ -89,7 +88,7 @@ def setupOptions(model, **kwargs):
     return model # Not necessary to return
 
 
-@util.call_counter
+#@util.call_counter
 def setupNeurons(model, **kwargs):
     '''Creates neuron(s) defined by model.
 
@@ -120,11 +119,11 @@ def setupNeurons(model, **kwargs):
     # in syncomp. Need to debug this since eliminated param_sim.stimtimes. See
     # what else needs to be changed in plasticity_test.
     model.plas = {}
-    if model.plasYN and model.calYN and not network:
-        model.plas, model.stimtab = plasticity_test.plasticity_test(model,
-                                                    param_sim.syncomp,
-                                                    model.syn,
-                                                    param_sim.stimtimes)
+    if model.plasYN:
+        model.plas, model.stimtab = plasticity_test.plasticity_test(model)
+                                                    #param_sim.syncomp,
+                                                    #model.syn,
+                                                    #param_sim.stimtimes)
 
     ########## clocks are critical. assign_clocks also sets up the hsolver
 
@@ -138,6 +137,8 @@ def setupNeurons(model, **kwargs):
             calcium.fix_calcium(util.neurontypes(model.param_cond), model)
     else:
         print("Simulating network; not setting up simpaths and clocks in create_model_sim")
+
+    print('****Model.plasYN = {}*****'.format(model.plasYN))
 
     return model
 
@@ -173,7 +174,7 @@ def setupOutput(model, **kwargs):
     model.catab = catab
     model.plastab = plastab
     model.currtab = currtab
-    
+
     if model.log.logger.getEffectiveLevel() == logging.DEBUG:
         for neur in model.neurons.keys():
             print_params.print_elem_params(model, neur, model.param_sim)
@@ -196,7 +197,8 @@ def setupOutput(model, **kwargs):
     if model.spineYN:
         model.spinecatab, model.spinevmtab = tables.spinetabs(model,
                                                               model.neurons,
-                                                              model.param_sim.plotcomps)
+                                                              #model.param_sim.plotcomps,
+                                                              )
     else:
         model.spinevmtab = []
 
@@ -257,6 +259,8 @@ def stepRunPlot(model, **kwargs):
 
 def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printParams = False):
     plt.ion()
+    if model.plasYN:
+        plotIndividualInjections=True
     traces, names, catraces, current_traces, curr_names = [], [], [], [], []
     for inj in model.param_sim.injection_current:
         runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
@@ -300,7 +304,7 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
-            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime,title='Calcium')
+            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
 
     if model.param_sim.plot_current:
         num_currents=np.shape(current_traces)[0]//len(model.param_sim.injection_current)
@@ -330,7 +334,7 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
         header = 'Time (ms),{} pA'.format(inj*1e12)
         np.savetxt(model.param_sim.fname+'difshellwaves.csv', np.column_stack((timeCol,vCol)), delimiter=',', header = header, comments='' )
 
-    
+
 def setupAll(model,**kwargs):
     setupOptions(model, **kwargs)
     setupNeurons(model)

@@ -10,7 +10,13 @@ from moose_nerp.prototypes import (connect,
                                    util)
 log = logutil.Logger()
 
-def plasticity_test(model, syncomp, syn_pop, stimtimes):
+def plasticity_test(model, syncomp=None, syn_pop=None, stimtimes=None):
+    syntype = model.CaPlasticityParams.Plas_syn.Name
+    if stimtimes is None:
+        stimtimes = [.1,.12]
+    if syncomp is None:
+        path = model.neurons[list(model.neurons)[0]].path
+        syncomp = moose.wildcardFind(path+'/##/'+syntype+'[ISA=SynChan]')[0].parent
     plast={}
     stimtab={}
     if model.calYN  and model.plasYN:
@@ -19,12 +25,13 @@ def plasticity_test(model, syncomp, syn_pop, stimtimes):
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
             stimtab[neurtype].vector = stimtimes
 
-            syntype = model.CaPlasticityParams.Plas_syn.Name
             print(syntype,neurtype,syncomp)
-            synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
+            #synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
+            synchan=moose.element(syncomp.path+'/'+syntype)
+            sh = synchan.children[0]
             log.info('Synapse added to {.path}', synchan)
-            connect.synconn(synchan,0,stimtab[neurtype], model.param_syn)
+            connect.synconn(sh,0,stimtab[neurtype], model.param_syn)
 
             ###Synaptic Plasticity
-            plast[neurtype] = plasticity.plasticity(synchan,model.CaPlasticityParams.Plas_syn)
+            plast[neurtype] = plasticity.plasticity2(synchan,model.CaPlasticityParams.Plas_syn)
     return plast, stimtab

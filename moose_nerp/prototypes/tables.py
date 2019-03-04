@@ -155,22 +155,24 @@ def graphtables(model, neuron,pltcurr,curmsg, plas=[],compartments='all'):
         for num,neur_type in enumerate(plas.keys()):
             if len(plas[neur_type]):
                 for comp_name in plas[neur_type]:
-                    plastab[neur_type].append(add_one_table(DATA_NAME,plas[neur_type][comp_name],comp_name))
+                    plastab[neur_type].append(add_one_table(DATA_NAME,plas[neur_type],comp_name))
     return vmtab,catab,plastab,currtab
 
 def add_one_table(DATA_NAME, plas_entry, comp_name):
     if comp_name.find('/')==0:
        comp_name=comp_name[1:]
     plastab=moose.Table(DATA_NAME+'/plas' + comp_name)
-    plasCumtab=moose.Table(DATA_NAME+'/cum' + comp_name)
+    #plasCumtab=moose.Table(DATA_NAME+'/cum' + comp_name)
     syntab=moose.Table(DATA_NAME+'/syn' + comp_name)
     print(plas_entry)
     moose.connect(plastab, 'requestOut', plas_entry['plas'], 'getValue')
-    moose.connect(plasCumtab, 'requestOut', plas_entry['cum'], 'getValue')
+    #moose.connect(plasCumtab, 'requestOut', plas_entry['cum'], 'getValue')
     shname=plas_entry['syn'].path+'/SH'
     sh=moose.element(shname)
     moose.connect(syntab, 'requestOut',sh.synapse[0],'getWeight')
-    return {'plas':plastab,'cum':plasCumtab,'syn':syntab}
+    return {'plas':plastab,
+            #'cum':plasCumtab,
+            'syn':syntab}
 
 def syn_plastabs(connections, param_sim,plas=[]):
     if not moose.exists(DATA_NAME):

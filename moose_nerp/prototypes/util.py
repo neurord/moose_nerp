@@ -267,8 +267,9 @@ def call_counter(func):
         try:
             wrapper.calls += 1
             return func(*args,**kwargs)
-        except: # Fixes count if there's an exception
+        except Exception as E: # Fixes count if there's an exception
             wrapper.calls += -1
+            raise E
             return func(*args,**kwargs)
     wrapper.calls = 0
     return functools.update_wrapper(wrapper, func)

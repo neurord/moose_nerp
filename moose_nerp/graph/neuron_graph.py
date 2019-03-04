@@ -51,9 +51,9 @@ def graphs(model, vmtab, plotcurr, simtime, currtab=[],curlabl="",catab={},plast
     if model.plasYN:
         fig,axes =pyplot.subplots(len(plastab)+1, 1,sharex=True)
         fig.suptitle('Plasticity')
-        for item_num,key in enumerate(plastab.keys()):
-          item = plastab[key]
-          for plasnum,plastype in enumerate(['plas','cum','syn']):
+        for neurtype in plastab.keys():
+          item = plastab[neurtype][0]
+          for plasnum,plastype in enumerate(['plas','syn']):
             if plastype=='plas':
                 title='wt change'
                 scaling=1000
