@@ -12,35 +12,40 @@ import moose
 
 from moose_nerp.prototypes import logutil, util
 from moose_nerp.prototypes.spines import NAME_HEAD
+from moose_nerp.prototypes import plasticity
 
 log = logutil.Logger()
 CONNECT_SEPARATOR='_to_'
 
-def plain_synconn(synchan,presyn,syn_delay):
-    sh=moose.element(synchan.path)
+def plain_synconn(syn,presyn,syn_delay,simdt=None,stp_params=None):
+    sh=moose.element(syn.path)
     jj=sh.synapse.num
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
-    log.debug('SYNAPSE: {} index {} num {} delay {}', synchan.path, jj, sh.synapse.num, sh.synapse[jj].delay)
+    print('SYNAPSE: {} index {} num {} delay {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay))
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
-        moose.connect(presyn, 'eventOut', sh.synapse[jj], 'addSpike')
+        msg='eventOut'
     else:
-        moose.connect(presyn, 'spikeOut', sh.synapse[jj], 'addSpike')
+        msg='spikeOut'
+    moose.connect(presyn, msg, sh.synapse[jj], 'addSpike')
+    if stp_params is not None:
+        plasticity.ShortTermPlas(sh.synapse[jj],jj,stp_params,simdt,presyn,msg)
 
-def synconn(synpath,dist,presyn, syn_params ,mindel=1e-3,cond_vel=0.8):
+def synconn(synpath,dist,presyn, syn_params ,mindel=1e-3,cond_vel=0.8,simdt=None,stp=None):
     if dist:
         syn_delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
     else:
         syn_delay=mindel
-    synchan=moose.element(synpath)
-    plain_synconn(synchan,presyn,syn_delay)
+    syn=moose.element(synpath)
+    plain_synconn(syn,presyn,syn_delay,simdt=simdt,stp_params=stp)
                 
-    if synchan.name==syn_params.NAME_AMPA:
-       nmda_synpath=synchan.parent.path+'/'+syn_params.NAME_NMDA
+    if syn.parent.name==syn_params.NAME_AMPA:
+       nmda_synpath=syn.parent.parent.path+'/'+syn_params.NAME_NMDA+'/'+syn.name
        if moose.exists(nmda_synpath):
-           nmda_synchan=moose.element(nmda_synpath)
-           plain_synconn(nmda_synchan,presyn,syn_delay)
+           nmda_syn=moose.element(nmda_synpath)
+           #probably should add stp for NMDA.  When including desensitization, will be different
+           plain_synconn(nmda_syn,presyn,syn_delay)
 
 def select_entry(table):
     row=np.random.random_integers(0,len(table)-1)
@@ -106,11 +111,12 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
         syn[1]=syn[1]/totalprob
     return syncomps,totalprob
 
-def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params):
+def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,simdt):
     dist=0
     #tt_list is list of time tables stored with number of times the time table can be used in the network
     tt_list=post_connection.pre.stimtab
     dend_loc=post_connection.dend_loc
+    stp=post_connection.stp
     connections={}
     num_choices=np.int(np.round(totalsyn))
     #randomly select num_choices of synapses without replacement from the entire set
@@ -121,7 +127,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params):
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
         log.debug('CONNECT: TT {} POST {} {}', tt,syn, postbranch)
-        synconn(syn,dist,tt,syn_params,netparams.mindelay)
+        synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp)
         #save the connection in a dictionary for inspection later
         connections[postbranch]=tt.path
     return connections
@@ -143,7 +149,7 @@ def timetable_input(cells, netparams, postype, model):
             log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
                 print('## connect to tt',postcell,syntype,pretype)
-                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn)
+                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,model.param_sim.simdt)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
@@ -173,7 +179,7 @@ def connect_neurons(cells, netparams, postype, model):
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
                     ####### connect to time tables instead of other neurons in network
-                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn)
+                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,mode.param_sim.simdt)
                     intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
                 else:
                     spikegen_conns=[]

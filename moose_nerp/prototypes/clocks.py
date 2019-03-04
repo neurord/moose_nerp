@@ -20,14 +20,18 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
     log.info('SimDt={}, PlotDt={}', simdt, plotdt)
     for tab in moose.wildcardFind(DATA_NAME+'/##[TYPE=Table]'):
         moose.setClock(tab.tick,plotdt)
-    for tick in list(range(0,7)) + [12]:
+    for tick in range(0, 13):
         moose.setClock(tick, simdt)
-        # 2 — channels
+        # 1 - CaConc, DifShell, DifBuffer
+        # 2 — channels and synchans
         # 4 — compartments
+        # 5 - SpikeGen
         # 6 — hsolver
-        # 12 - Moose.Function default (i.e. plasticity objects)
+        # 8 - TimeTable
+        # 12 - Function
+    #problem if TimeTable uses plotdt?
     moose.setClock(8, plotdt)
-    # 8 — hdf5datawriter & tables
+    # 8 — hdf5datawriter, tables
 
     for path in model_container_list:
         if hsolveYN:
