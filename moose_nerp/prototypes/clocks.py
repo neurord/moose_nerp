@@ -20,7 +20,7 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
     log.info('SimDt={}, PlotDt={}', simdt, plotdt)
     for tab in moose.wildcardFind(DATA_NAME+'/##[TYPE=Table]'):
         moose.setClock(tab.tick,plotdt)
-    for tick in range(0, 12):
+    for tick in range(0, 13):
         moose.setClock(tick, simdt)
         # 1 - CaConc, DifShell, DifBuffer
         # 2 — channels and synchans

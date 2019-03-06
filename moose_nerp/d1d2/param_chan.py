@@ -32,6 +32,7 @@ from moose_nerp.prototypes.chan_proto import (
 #
 
 #units for membrane potential: volts
+clrev=-60e-3
 krev=-90e-3
 narev=50e-3
 carev=140e-3 #assumes CaExt=2 mM and CaIn=50e-3
@@ -348,6 +349,18 @@ CDI_Z_params = ZChannelParams(Kd = 0.12e-3,
                               power = -4,
                               tau = 142e-3)
 
+
+# Calcium-activated chloride channel params
+# Reference: Pifferi, S., Dibattista, M., & Menini, A. (2009). TMEM16B induces chloride
+#            currents activated by calcium in mammalian cells. Pflügers Archiv-European
+#            Journal of Physiology, 458(6), 1023-1038.
+CaCCparam = ChannelSettings(Xpow=0, Ypow=0, Zpow=1, Erev=clrev, name='CaCC')
+
+CaCC_Z_params = ZChannelParams(Kd = 1.83e-3,
+                             power = 2.3,
+                             tau = 13e-3)
+
+
 #Dictionary of "standard" channels, to create channels using a loop
 #NaF doesn't fit since it uses different prototype form
 #will need separate dictionary for BK
@@ -366,4 +379,5 @@ Channels = NamedDict(
     SKCa =  TypicalOneD(SKparam, [], [], SK_Z_params, calciumDependent=True),
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params),
     BKCa =  TwoD(BKparam, BK_X_params, calciumDependent=True),
+    CaCC =  TypicalOneD(CaCCparam, [], [], CaCC_Z_params, calciumDependent=True),
 )

@@ -48,6 +48,7 @@ _D1 = _util.NamedDict(
     NaF = {prox:229400, med:4080.6 , dist: 705.49},
     SKCa = {prox:1.4664, med: 1.4664, dist:1.4664 },
     BKCa = {prox:12.96, med: 12.96, dist:12.96},
+    CaCC = {prox:5, med: 2, dist:2 },
 )
 _D2 = _util.NamedDict(
     'D2',
@@ -63,6 +64,7 @@ _D2 = _util.NamedDict(
     NaF = {prox:150.0e3, med: 2503, dist: 1073},
     SKCa = {prox:0.5, med: 0.5, dist: 0.5},
     BKCa = {prox:10, med: 10, dist: 10},
+    CaCC = {prox:5, med: 2, dist:2 },
 )
 
 Condset  = _util.NamedDict(
