@@ -7,14 +7,14 @@ param_sim = Namespace()
 # Options for setting up stim paradigm
 param_sim.stim_loc = NAME_SOMA
 param_sim.stim_paradigm = 'inject'
-param_sim.injection_current = [-200e-12,-100e-12, 50e-12,150e-12]
+param_sim.injection_current = [0e-12,-200e-12] #[-200e-12,-100e-12, 50e-12,150e-12]
 param_sim.injection_delay = 0.1
 param_sim.injection_width = 0.3
 param_sim.simtime = 0.55
 
 param_sim.neuron_type = None
 
-param_sim.logging_level = logging.DEBUG
+param_sim.logging_level = logging.INFO
 
 param_sim.save = False #True # save to hdf5
 param_sim.save_txt = False # True # Save text files
@@ -30,7 +30,7 @@ param_sim.plot_vm = True
 param_sim.plotdt = 0.0001
 
 param_sim.plot_activation = False #None
-param_sim.plot_calcium = False#True #True
+param_sim.plot_calcium = True #False
 param_sim.plot_channels = False #['NaS','NaF'] # True for all channels, or name of channel or list of names of channels for individual
 param_sim.plotgate = 'NaS' #TODO: Use this
 param_sim.plot_current = False #True #None
