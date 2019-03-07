@@ -14,9 +14,10 @@ def syn_name(synpath,headname):
         #try to strip out name of cell from branch name
         headpath=moose.element(synpath).parent.path
         parentname=moose.element(headpath).parent.name
-        postbranch=parentname+moose.element(headpath).name
+        postbranch=parentname+'/'+moose.element(headpath).name
     else:
         postbranch=moose.element(synpath).parent.name
+
     return postbranch
 
 def neurontypes(param_cond,override=None):

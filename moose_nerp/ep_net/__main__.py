@@ -116,7 +116,7 @@ for neurtype, tabset in vmtab.items():
        spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
     numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
     print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes')
-#spikes=[st.vector for tabset in spiketab for st in tabset]    
+#spikes=[st.vector for tabset in spiketab for st in tabset]
 
 '''
 ToDo:

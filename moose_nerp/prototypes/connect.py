@@ -102,7 +102,11 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
         #print('syncomp',syncomp,'dist',dist,'prob',dist_prob)
         if dist_prob>0: #only add synchan to list if connection probability is non-zero
             sh=moose.element(syncomp.path+'/SH')
-            SynPerComp = util.distance_mapping(NumSyn[syntype], dist)-sh.numSynapses
+            # TODO: Fix for synapses on spines; there should only be 1 per spine
+            if NAME_HEAD in nm:
+                SynPerComp = 1 - sh.numSynapses
+            else:
+                SynPerComp = util.distance_mapping(NumSyn[syntype], dist)-sh.numSynapses
             for i in range(SynPerComp):
                 syncomps.append([syncomp.path+'/SH',dist_prob])
                 totalprob+=dist_prob #totalprob=total synapses to connect if not using sigmoid
