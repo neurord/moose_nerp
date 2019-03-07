@@ -102,6 +102,14 @@ plt.plot(time,plas_tab.vector,label='plas')
 plt.legend()
 '''
 def desensitization(synchan,SynParams):
+    '''
+    Key equations to be implemented
+    dep.expression = "x = x*"+str(dep_constant)+"y*"+str(SynParams.dep_per_spike)
+    weight.expression = "weight*1/(1+x)/simdt"
+    facsynchan uses:  (1+fac)/(1+dep)/simdt
+    x above is dep, and we didn't have fac, hence 1/(1+x)
+    weight is the current synaptic weight
+    '''
     sh = moose.element(synchan).children[0]
 
     deppath = synchan.path +'/dep'
