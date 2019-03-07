@@ -72,9 +72,11 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None')
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'ep_net/STN_lognorm',syn_per_tt=2)
+#tt_STN = TableSet('tt_STN', 'ep_net/STN_lognorm',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'stptest2tr',syn_per_tt=2)
 tt_STR = TableSet('tt_Str', 'ep_net/SPN_lognorm',syn_per_tt=2)
-tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
+#tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
+tt_GPe = TableSet('tt_GPe', 'stptest4tr',syn_per_tt=2)
 
 #description of intrinsic inputs
 ConnSpaceConst=125e-6
@@ -85,14 +87,14 @@ neur1pre_neur1post=connect(synapse='gaba', pre='ep', post='gaba', probability=0.
 GPe_distr=dend_location(mindist=0,maxdist=60e-6,half_dist=30e-6,steep=-1)
 Str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=1,half_dist=100e-6,steep=1)
 STN_distr=dend_location(postsyn_fraction=0.25)
-STN_facil=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='+')
-STN_depress= SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='*')
-STN_plas=ShortTermPlasParams(depress=STN_depress,facil=STN_facil)
+STN_depress=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='*')
+STN_facil= SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='+')
+STN_plas=ShortTermPlasParams(facil=STN_facil)#depress=STN_depress)#,
 
 #short term plasticity
-GPe_depress=SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='*')
+GPe_depress=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='*')
 GPe_plas=ShortTermPlasParams(depress=GPe_depress)
-str_facil=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='+')
+str_facil=SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='+')
 str_plas=ShortTermPlasParams(facil=str_facil)
 
 ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr,stp=STN_plas)# need reference
