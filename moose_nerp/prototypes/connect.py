@@ -119,14 +119,19 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,sim
     stp=post_connection.stp
     connections={}
     num_choices=np.int(np.round(totalsyn))
-    #randomly select num_choices of synapses without replacement from the entire set
-    syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
-    #randomly select subset of time-tables for spike train input
-    presyn_tt=[select_entry(tt_list) for syn in syn_choices]
+    if num_choices>0:
+        #randomly select num_choices of synapses without replacement from the entire set
+        syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
+        #randomly select subset of time-tables for spike train input
+        presyn_tt=[select_entry(tt_list) for syn in syn_choices]
+        print('## connect from tt',post_connection.pre.tablename)
+    else:
+        syn_choices=[];presyn_tt=[]
+        print('&& no connectons from time tables',post_connection.pre.tablename)
     #connect the time-table to the synapse with mindelay (set dist=0)
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
-        log.debug('CONNECT: TT {} POST {} {}', tt,syn, postbranch)
+        log.info('CONNECT: TT {} POST {} {}', tt,syn, postbranch)
         synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp)
         #save the connection in a dictionary for inspection later
         connections[postbranch]=tt.path
@@ -143,7 +148,7 @@ def timetable_input(cells, netparams, postype, model):
         connect_list[postcell][syntype]={}
         for pretype in post_connections[syntype].keys():
             dend_prob=post_connections[syntype][pretype].dend_loc
-            print('################',postcell, syntype,pretype)
+            print('################',postcell, 'synchan:',syntype,'pretype:',pretype)
             allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
             log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
