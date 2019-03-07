@@ -206,8 +206,15 @@ def plasticity2(synchan,plas_params):
 
     shname = synchan.path+'/SH'
     sh = moose.element(shname)
-    #sh.synapse.num+=1
-    log.debug("{} {} {}", synchan.path, sh.synapse[0], cal.path)
+
+    # Allow plasticity function in unconnected synapses to track heterosynaptic plasticity?
+    if sh.synapse.num == 0:
+        sh.synapse.num +=1
+        print('No synapses on {}, adding a synapse and plasticity function'.format(sh))
+        #return
+    else:
+        print('{} synapses on {}, adding plasticity function to existing synapses'.format(sh.synapse.num,sh))
+
 
     ###  Plasticity Function
 
@@ -237,7 +244,7 @@ def plasticity2(synchan,plas_params):
 
     #######################
     #Second Function object: Calculate plasticity. Uses equations from Asia's code/paper
-    plasname='PLAS'#comp.path+'/'+NAME_PLAS
+    plasname=comp.path+'/'+NAME_PLAS
     plas=moose.Function(plasname)
     plas.tick=1
     # Constants:
@@ -300,8 +307,12 @@ def plasticity2(synchan,plas_params):
     moose.connect(cal,CaMSG,plas.x[1],'input')
     # Get the current synaptic weight of the synapse as variable y0
     moose.connect(plas,'requestOut',sh.synapse[0],'getWeight')
-    # Output the updated weight computed by plasticity function to the synapse
-    moose.connect(plas,'valueOut',sh.synapse[0],'setWeight')
+
+    # Output the updated weight computed by plasticity function to each synapse
+    for synapse in range(sh.synapse.num):
+        #sh.synapse.num+=1
+        log.debug("{} {} {}", synchan.path, sh.synapse[synapse], cal.path)
+        moose.connect(plas,'valueOut',sh.synapse[synapse],'setWeight')
 
     ################################################################################
 
@@ -377,6 +388,6 @@ def addPlasticity(cell_pop,caplas_params):
             if moose.exists(synchan.path+'/SH'):
                 log.debug("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
                 synname = util.syn_name(synchan.path, spines.NAME_HEAD)
-                plascum[cell][synname] = plasticity(synchan, caplas_params.Plas_syn)
+                plascum[cell][synname] = plasticity2(synchan, caplas_params.Plas_syn)
 
     return plascum

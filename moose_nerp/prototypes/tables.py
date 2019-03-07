@@ -191,7 +191,7 @@ def syn_plastabs(connections, param_sim,plas=[]):
                             synchan=moose.element(neur_name+'/'+comp+'/'+syntype)
                             print ('###########',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
                             log.debug('{} {} {} {}', neur_name,syntype, precomp,synchan.path)
-                            syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'%s' %('/'+neur_name.split('/')[-1]+'-'+precomp+CONNECT_SEPARATOR+comp)))
+                            syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'%s' %('/'+neur_name.split('/')[-1]+'-'+precomp+CONNECT_SEPARATOR+comp.replace('/','-'))))
                             log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
                             moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, 'getGk')
                     else:
@@ -217,9 +217,9 @@ def spinetabs(model,neuron,comps='all'):
     spvmtab = defaultdict(list)
     for typenum,neurtype in enumerate(neuron.keys()):
         if type(comps)==str and comps in {'*', 'all'}:
-            spineHeads=[moose.wildcardFind(neurtype+'/##/#head#[ISA=Compartment]')]
+            spineHeads=[moose.wildcardFind(neurtype+'/##/#head#[ISA=CompartmentBase]')]
         else:
-            spineHeads=[moose.wildcardFind(neurtype+'/'+c+'/#head#[ISA=Compartment]') for c in comps]
+            spineHeads=[moose.wildcardFind(neurtype+'/'+c+'/#head#[ISA=CompartmentBase]') for c in comps]
         for spinelist in spineHeads:
             for spinenum,spine in enumerate(spinelist):
                 compname = spine.parent.name
@@ -237,7 +237,6 @@ def spinetabs(model,neuron,comps='all'):
                             spcatab[typenum].append(moose.Table(DATA_NAME+'/%s_%s%s'% (neurtype,sp_num,compname)+child.name))
                             spcal = moose.element(spine.path+'/'+child.name)
                             moose.connect(spcatab[typenum][-1], 'requestOut', spcal, 'getC')
-
     return spcatab,spvmtab
 
 def spiketables(neuron,param_cond):

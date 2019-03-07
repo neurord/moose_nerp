@@ -95,7 +95,7 @@ BufferDensity = {everything:BufferTotals[which_dye]}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
 BufferCapacityDensity = {soma:199.6, dend:78.1}
 Taus = {soma:0.032185, dend: 0.1107359, spines: 0.1107359}
-tauScale='SurfaceArea'
+tauScale=None#'SurfaceArea'
 #Specificy the size of the smaller calcium compartments
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
 tree_shape = ShapeParams(OutershellThickness=.1e-6,ThicknessIncreaseFactor=2,ThicknessIncreaseMode=GEOMETRIC,MinThickness=.11e-6)
@@ -119,4 +119,4 @@ lowFactor
 timeStepFactor = 100.0
 lowThreshold = 0.15e-3
 highThreshold = 0.3e-3
-Plas_syn = PlasParams(Name='ampa',highThreshold=highThreshold,lowThreshold=lowThreshold, highDurationThreshold = 0.005,lowDurationThreshold=0.025,highFactor='(0.5/'+str(timeStepFactor)+')*',lowFactor =  '/'+str(lowThreshold-highThreshold)+'/'+str(timeStepFactor))
+Plas_syn = PlasParams(Name='ampa',highThreshold=highThreshold,lowThreshold=lowThreshold, highDurationThreshold = 0.005,lowDurationThreshold=0.025,highFactor='(0.5/'+str(timeStepFactor)+')',lowFactor =  '/'+str(lowThreshold-highThreshold)+'/'+str(timeStepFactor))

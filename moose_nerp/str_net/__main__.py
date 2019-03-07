@@ -36,11 +36,16 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
-model.plasYN = False
-
+model.plasYN = True
+model.calYN = True
+model.spineYN = True
+net.single=True
+for k,v in model.param_ca_plas.CaShellModeDensity.items():
+    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-
+if net.num_inject==0:
+    param_sim.injection_current=[0]
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)
 all_neur_types=model.neurons
@@ -48,11 +53,14 @@ all_neur_types=model.neurons
 #all_neur_types.update(neuron)
 population,connections,plas=create_network.create_network(model, net, all_neur_types)
 
-###------------------Current Injection
-if net.num_inject<np.inf and not net.single :
+###### Set up stimulation - could be current injection or plasticity protocol
+# set num_inject=0 to avoid current injection
+if net.num_inject<np.inf :
     inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
 else:
     inject_pop=population['pop']
+#Does setupStim work for network?
+#create_model_sim.setupStim(model)
 pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
 moose.showmsg(pg)
 
@@ -67,7 +75,7 @@ else:   #population of neurons
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
-if model.synYN and param_sim.plot_synapse:
+if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab=tables.syn_plastabs(connections,param_sim)
 
@@ -100,3 +108,17 @@ if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
 util.block_if_noninteractive()
+
+'''
+import detect
+if net.single:
+    vmtab=model.vmtab
+spike_time={key:[] for key in population['pop'].keys()}
+numspikes={key:[] for key in population['pop'].keys()}
+for neurtype, tabset in vmtab.items():
+    for tab in tabset:
+       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
+    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
+    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes')
+#spikes=[st.vector for tabset in spiketab for st in tabset]
+'''
