@@ -54,21 +54,24 @@ def graphs(neurons, simtime, vmtab,catab={},plastab={}):
     #    fig.tight_layout()
     #    fig.canvas.draw()
 
-def syn_graph(connections, syntabs, param_sim):
+def syn_graph(connections, syntabs, param_sim,factor=1e9):
     numrows=len(syntabs.keys()) #how many neuron types
     max_index=np.argmax([len(syntabs[k].keys()) for k in syntabs.keys()])
     syntypes=[list(syntabs[k].keys()) for k in syntabs.keys()][max_index] #how many synapse types
     numcols=len(syntypes)
     fig,axes =pyplot.subplots(numrows, numcols,sharex=True)
     axis=fig.axes #convert to 1D list in case numrows or numcols=1
-    fig.canvas.set_window_title('Syn Chans')
+    if factor==1:
+        fig.canvas.set_window_title('desensitization')
+    else:
+        fig.canvas.set_window_title('Syn Chans')
     for typenum,neurtype in enumerate(syntabs.keys()):
         for synnum,syntype in enumerate(syntabs[neurtype].keys()):
             for oid in syntabs[neurtype][syntype]:
                 #synnum=syntypes.index(oid.path.rpartition('_')[2].split('[')[0]) #extract synapse type from table name
                 axisnum=typenum*len(syntypes)+synnum
                 t = np.linspace(0, param_sim.simtime, len(oid.vector))
-                axis[axisnum].plot(t, oid.vector*1e9, label=oid.name)
+                axis[axisnum].plot(t, oid.vector*factor, label=oid.name)
             axis[axisnum].set_ylabel('{} {} {}'.format(param_sim.plot_synapse_label,syntype,neurtype))
     for ax in range(len(axis)):
         axis[ax].legend(fontsize=6,loc='upper left') #add legend
