@@ -27,10 +27,11 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
         # 4 — compartments
         # 5 - SpikeGen
         # 6 — hsolver
-        # 8 - TimeTable
+        # 7 - TimeTables for moose_nerp (see ttables.py)
+        # 8 - Tables
         # 12 - Function
     #problem if TimeTable uses plotdt?
-    moose.setClock(8, plotdt)
+    #moose.setClock(8, plotdt)
     # 8 — hdf5datawriter, tables
 
     for path in model_container_list:
