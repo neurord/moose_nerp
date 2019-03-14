@@ -16,6 +16,12 @@ NAME_DEPRESS='/dep'
 NAME_FACIL='/fac'
 NAME_STP='/stp'
 
+'''
+dy/dt=(ss-y)/tau =  (ss/tau) - y*(1/tau) = A - B*y
+A=ss/tau, B=1/tau, A/B= ss
+y(t2) = y(t1) * exp(-B*dt) + ss*(1-exp(-B*dt))
+'''
+
 def facil_depress(name,stp_params,simdt,presyn,msg):
     #The constants must be defined before setting the expression
     plas=moose.Function(name)
@@ -24,19 +30,19 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     plas.c['tau']= np.exp(-simdt/stp_params.change_tau)
     plas.c['equil']=1
     #x0 is spike time!  not a 0 or 1 spike event
-    initial_value_expr = '(t<2*dt) ? (equil) : '
-    decay_to_initial_expr='(x0+(equil-x0)*tau)'
+    initial_value_expr = '(t<2*dt) ? equil : '
+    decay_to_initial_expr='(x0*tau+equil*(1-tau))'
     #NOTE that input from time table is TIME of spike, thus divide by t
     #NOTE that input from time table STAYS at the time of last spike; thus
     #need to test for spike occurence
-    #if using D -> D*d when spike occurs, d=1 when no spike
     if stp_params.change_operator=='*':
+        #if using D -> D*d when spike occurs, d=1 when no spike
         change_per_spike_expr='(x1==t ? delta*x1/t : 1)'
     else:
         #if using D -> D+d when spike occurs, d=0 when no spike
         change_per_spike_expr='(x1==t ? delta*x1/t : 0)'
     print('%%%%%%%%%%%% CHANGE',stp_params.change_operator)
-    plas.expr='{} ({}{}{})'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
+    plas.expr='{} {}{}{}'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
     plas.x.num=2
     moose.connect(plas,'valueOut',plas.x[0],'input')
     moose.connect(presyn, msg, plas.x[1], 'input')
@@ -111,7 +117,7 @@ plas=moose.element(synchan.path+'/stp0')
 moose.connect(plas_tab, 'requestOut', plas, 'getValue')
 
 moose.reinit()
-moose.start(0.0001)
+moose.start(0.01)
 from matplotlib import pyplot as plt
 plt.ion()
 numpts=len(plas_tab.vector)
