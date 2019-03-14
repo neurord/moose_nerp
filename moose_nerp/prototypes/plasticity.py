@@ -28,7 +28,7 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     plas.c['delta']=stp_params.change_per_spike
     plas.c['dt']=simdt 
     plas.c['tau']= np.exp(-simdt/stp_params.change_tau)
-    plas.c['equil']=1
+    plas.c['equil']=1 
     #x0 is spike time!  not a 0 or 1 spike event
     initial_value_expr = '(t<2*dt) ? equil : '
     decay_to_initial_expr='(x0*tau+equil*(1-tau))'
@@ -37,10 +37,10 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     #need to test for spike occurence
     if stp_params.change_operator=='*':
         #if using D -> D*d when spike occurs, d=1 when no spike
-        change_per_spike_expr='(x1==t ? delta*x1/t : 1)'
+        change_per_spike_expr='((x1>=t && x1<t+dt) ? delta*x1/t : 1)'
     else:
         #if using D -> D+d when spike occurs, d=0 when no spike
-        change_per_spike_expr='(x1==t ? delta*x1/t : 0)'
+        change_per_spike_expr='((x1>=t && x1<t+dt) ? delta*x1/t : 0)'
     print('%%%%%%%%%%%% CHANGE',stp_params.change_operator)
     plas.expr='{} {}{}{}'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
     plas.x.num=2
@@ -90,8 +90,6 @@ sh=moose.element(synchan.path+'/SH')
 sh.numSynapses=1
 tt=moose.TimeTable('tt')
 tt.vector=[2*simdt,0.001,0.01, 0.03, 0.07]
-[0.01, 0.0102, 0.02, 0.0204, 0.03, 0.0308, 0.04, 0.0416, 0.05, 0.0532, 0.06, 0.0664]
-[0.02, 0.0204, 0.04, 0.0416, 0.06, 0.0664, 0.08, 0.0928]
 test1=[0.01,0.011, 0.05, 0.052, 0.1, 0.104]
 test2=[0.02,0.028,0.07,0.086, 0.13, 0.162]
 test3=[0.01,0.074, 0.174]
