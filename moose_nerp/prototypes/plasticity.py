@@ -29,18 +29,19 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     plas.c['dt']=simdt 
     plas.c['tau']= np.exp(-simdt/stp_params.change_tau)
     plas.c['equil']=1 
-    #x0 is spike time!  not a 0 or 1 spike event
+    #x0 is spike time! not a 0 or 1 spike event
     initial_value_expr = '(t<2*dt) ? equil : '
     decay_to_initial_expr='(x0*tau+equil*(1-tau))'
     #NOTE that input from time table is TIME of spike, thus divide by t
     #NOTE that input from time table STAYS at the time of last spike; thus
     #need to test for spike occurence
     if stp_params.change_operator=='*':
+        no_change=1
         #if using D -> D*d when spike occurs, d=1 when no spike
-        change_per_spike_expr='((x1>=t && x1<t+dt) ? delta*x1/t : 1)'
     else:
+        no_change=0
         #if using D -> D+d when spike occurs, d=0 when no spike
-        change_per_spike_expr='((x1>=t && x1<t+dt) ? delta*x1/t : 0)'
+    change_per_spike_expr='((x1<=t && x1>t-dt) ? delta : '+str(no_change)+')'
     print('%%%%%%%%%%%% CHANGE',stp_params.change_operator)
     plas.expr='{} {}{}{}'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
     plas.x.num=2
@@ -84,11 +85,14 @@ def ShortTermPlas(synapse,index,stp_params,simdt,presyn,msg):
     return
 '''
 #specify presyn as tt explicitly and test.  If doesn't work, re-peat outside of cuntion
+import moose
+import numpy as np
 simdt =  model.param_sim.simdt
 synchan=moose.element('/ep[0]/soma[0]/gaba[0]/')
 sh=moose.element(synchan.path+'/SH')
 sh.numSynapses=1
 tt=moose.TimeTable('tt')
+tt.vector=[2.0001*simdt,0.001,0.01, 0.03, 0.07]
 tt.vector=[2*simdt,0.001,0.01, 0.03, 0.07]
 test1=[0.01,0.011, 0.05, 0.052, 0.1, 0.104]
 test2=[0.02,0.028,0.07,0.086, 0.13, 0.162]
@@ -115,6 +119,14 @@ plas=moose.element(synchan.path+'/stp0')
 moose.connect(plas_tab, 'requestOut', plas, 'getValue')
 
 moose.reinit()
+t=0
+moose.start(simdt)
+t=t+simdt
+t
+dep0.x[1].value
+dep0.value
+deptab.vector
+
 moose.start(0.01)
 from matplotlib import pyplot as plt
 plt.ion()
