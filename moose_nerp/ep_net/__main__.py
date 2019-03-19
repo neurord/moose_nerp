@@ -99,6 +99,8 @@ for inj in param_sim.injection_current:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         if model.synYN and param_sim.plot_synapse:
             net_graph.syn_graph(connections, syntab, param_sim)
+            if model.desensYN:
+                net_graph.syn_graph(connections, desenstab,param_sim,factor=1)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
 
 if net.single:
