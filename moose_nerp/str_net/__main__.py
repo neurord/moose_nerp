@@ -77,7 +77,7 @@ else:   #population of neurons
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
-    syntab, plastab=tables.syn_plastabs(connections,param_sim)
+    syntab, plastab, desentab=tables.syn_plastabs(connections,param_sim)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):

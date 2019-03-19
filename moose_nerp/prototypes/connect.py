@@ -97,23 +97,34 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
         dist,nm=util.get_dist_name(syncomp.parent)
         if prob: #calculate dendritic distance dependent connection probability to store with table
             dist_prob=distance_dependent_connection_probability(prob,dist)
+            totalsyns = prob.postsyn_fraction*len(allsyncomp_list)
         else:
             dist_prob=1
+            totalsyns = len(allsyncomp_list)
         #print('syncomp',syncomp,'dist',dist,'prob',dist_prob)
         if dist_prob>0: #only add synchan to list if connection probability is non-zero
             sh=moose.element(syncomp.path+'/SH')
             # TODO: Fix for synapses on spines; there should only be 1 per spine
             if NAME_HEAD in nm:
-                SynPerComp = 1 - sh.numSynapses
+                SynPerComp = 1 #- sh.numSynapses
             else:
-                SynPerComp = util.distance_mapping(NumSyn[syntype], dist)-sh.numSynapses
+                SynPerComp = util.distance_mapping(NumSyn[syntype], dist)#-sh.numSynapses
             for i in range(SynPerComp):
-                syncomps.append([syncomp.path+'/SH',dist_prob])
-                totalprob+=dist_prob #totalprob=total synapses to connect if not using sigmoid
+                if i < SynPerComp - sh.numSynapses:
+                    syncomps.append([syncomp.path+'/SH',dist_prob])
+                    #print('{} synapses already connected of {} total synapses, adding 1 synapse with {} dist_prob to list'.format(sh.numSynapses,SynPerComp,dist_prob))
+                else:
+                    syncomps.append([syncomp.path+'/SH',0])
+                    #print('{} synapses already connected of {} total synapses, adding 1 synapse with 0 dist_prob to list'.format(sh.numSynapses,SynPerComp))
+
+                #totalprob+=dist_prob #totalprob=total synapses to connect if not using sigmoid
+    
     #normalize probability to pdf
+    syncomp_sum = sum([p[1] for p in syncomps])
     for syn in syncomps:
-        syn[1]=syn[1]/totalprob
-    return syncomps,totalprob
+        syn[1]=float(syn[1])/syncomp_sum
+    
+    return syncomps,totalsyns
 
 def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,simdt):
     dist=0
