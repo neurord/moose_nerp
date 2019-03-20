@@ -175,7 +175,7 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
             'syn':syntab}
 
 def create_desens_tabs(synchan,table_name,tabset):
-    print (' && cdt',synchan.path,end='')
+    #print (' && cdt',synchan.path,end='')
     for neigh in synchan.neighbors['childOut']:
         if 'dep' in neigh.name or 'fac' in neigh.name:
             print(neigh.path)
@@ -203,7 +203,7 @@ def syn_plastabs(connections, param_sim,plas=[]):
                     if 'extern' in precomp:
                         for comp in connections[neur_type][neur_name][syntype][precomp].keys():
                             synchan=moose.element(neur_name+'/'+comp+'/'+syntype)
-                            print ('##### syn_plastabs',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
+                            #print ('##### syn_plastabs',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
                             log.debug('{} {} {} {}', neur_name,syntype, precomp,synchan.path)
                             syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'/%s' %(neur_name.split('/')[-1]+'-'+precomp+CONNECT_SEPARATOR+comp.replace('/','-'))))
                             log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
