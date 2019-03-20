@@ -37,7 +37,7 @@ def count_postsyn(netparams,NumSyn,population):
         for syntype in netparams.connect_dict[ntype].keys():  #next level is synaptic receptor
             allsyncomp_list = moose.wildcardFind(neur_proto + '/##/'+syntype+'[ISA=SynChan]')
             print('CREATE_SYNPATH_ARRAY from check_connect.count_postyn, no prob')
-            syncomps,totalsyn=connect.create_synpath_array(allsyncomp_list,syntype,NumSyn)
+            syncomps,totalsyn,availsyn=connect.create_synpath_array(allsyncomp_list,syntype,NumSyn)
             num_postsyn[ntype][syntype]=num_postcells[ntype]*totalsyn
     return num_postsyn,num_postcells,allsyncomp_list
 
@@ -91,7 +91,7 @@ def count_total_tt(netparams,num_postsyn,num_postcells,allsyncomp_list,NumSyn):
                     else:
                         dend_prob=None
                     print('CREATE_SYNPATH_ARRAY from check_connect.count_total_tt')
-                    syncomps,totalsyn=connect.create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=dend_prob)
+                    syncomps,totalsyn,availsyn=connect.create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=dend_prob)
                     needed_trains+=np.int(np.ceil(len(syncomps)/dups))
                     tt_per_ttfile[ttname.tablename][ntype]={'num': np.int(np.ceil(totalsyn/dups))*num_postcells[ntype], 'syn_per_tt': dups}
                     log.info('tt {} syn_per_tt {} postsyn_prob {} needed_trains {} per neuron',pretype, dups,dend_prob,needed_trains)

@@ -122,8 +122,8 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
     print('CONNECT: totsyns:',totalsyns,'syncomp_sum',syncomp_sum)
     for syn in syncomps:
         syn[1]=float(syn[1])/syncomp_sum
-    
-    return syncomps,totalsyns
+    avail_syns=np.int(np.round(syncomp_sum))
+    return syncomps,totalsyns,avail_syns
 
 def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,simdt):
     dist=0
@@ -165,7 +165,7 @@ def timetable_input(cells, netparams, postype, model):
             print('################',postcell, 'synchan:',syntype,'pretype:',pretype)
             allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
             print('CREATE_SYNPATH_ARRAY from timetable_input, pre=', pretype)
-            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
+            syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
             log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
                 print('## connect to tt',postcell,syntype,pretype)
@@ -195,7 +195,7 @@ def connect_neurons(cells, netparams, postype, model):
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 print('CREATE_SYNPATH_ARRAY from connect_neurons, pre=', pretype)
-                syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
+                syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
                 log.info('SYN TABLE for {} {} {} has {} compartments and {} synapses', postsoma, syntype, pretype,len(syncomps),totalsyn)
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
@@ -233,11 +233,11 @@ def connect_neurons(cells, netparams, postype, model):
                         for i in range(len(num_conn)-1,-1,-1):
                             for n in range(num_conn[i]-1):
                                 spikegen_conns.insert(i,spikegen_conns[i])
-                        num_choices=min(len(spikegen_conns),len(syncomps))
-                        if len(spikegen_conns)>len(syncomps):
+                        num_choices=min(len(spikegen_conns),availsyns)
+                        if len(spikegen_conns)>availsyns:
                             print('>>>> uh oh, too few synapses on post-synaptic cell')
                         #randomly select num_choices of synapses
-                        if len(syncomps)==0:
+                        if availsyns==0:
                             print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
                             syn_choices=[]
                         else:
