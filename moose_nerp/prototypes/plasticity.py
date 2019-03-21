@@ -17,9 +17,15 @@ NAME_FACIL='/fac'
 NAME_STP='/stp'
 
 '''
+key expressions for short term plasticity
+y_d -> y*d (multiplicative depression) or
+y_f -> y+f (additive facilitation)
+Meanwhile, decay of depression or facilitation given by:
 dy/dt=(ss-y)/tau =  (ss/tau) - y*(1/tau) = A - B*y
 A=ss/tau, B=1/tau, A/B= ss
 y(t2) = y(t1) * exp(-B*dt) + ss*(1-exp(-B*dt))
+where ss is the initial value or the basal weight multiplier in absence of short term plasticity
+Final weight = y_d*y_f when both depression and facilitation
 '''
 
 def facil_depress(name,stp_params,simdt,presyn,msg):
@@ -42,7 +48,6 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
         no_change=0
         #if using D -> D+d when spike occurs, d=0 when no spike
     change_per_spike_expr='((x1<=t && x1>t-dt) ? delta : '+str(no_change)+')'
-    print('%%%%%%%%%%%% CHANGE',stp_params.change_operator)
     plas.expr='{} {}{}{}'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
     plas.x.num=2
     moose.connect(plas,'valueOut',plas.x[0],'input')
@@ -50,17 +55,18 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     return plas
 
 def ShortTermPlas(synapse,index,stp_params,simdt,presyn,msg):
+    #implements short term plasticity - depression and/or facilitation 
     synchan=synapse.parent.parent
     num_inputs=0
     if stp_params.depress is not None:
         dep=facil_depress(synchan.path+NAME_DEPRESS+str(index),stp_params.depress,simdt,presyn,msg)
-        print('depress=',dep.path, dep.expr,'presyn', presyn.path,end='')
+        log.debug('depress={} {} presyn {}',dep.path, dep.expr,presyn.path)
         num_inputs+=1
         source0=dep
         plas_expr='(init*x0)'
     if stp_params.facil is not None:
         fac=facil_depress(synchan.path+NAME_FACIL+str(index),stp_params.facil,simdt,presyn,msg)
-        print(' facil=',fac.path,fac.expr,'presyn', presyn.path,end='')
+        log.debug(' facil={} {} presyn {}',fac.path,fac.expr,presyn.path)
         num_inputs+=1
         if num_inputs==1:
             source0=fac
@@ -83,59 +89,7 @@ def ShortTermPlas(synapse,index,stp_params,simdt,presyn,msg):
     moose.connect(plas_func,'valueOut',synapse,'setWeight')
 
     return
-'''
-#specify presyn as tt explicitly and test.  If doesn't work, re-peat outside of cuntion
-import moose
-import numpy as np
-simdt =  model.param_sim.simdt
-synchan=moose.element('/ep[0]/soma[0]/gaba[0]/')
-sh=moose.element(synchan.path+'/SH')
-sh.numSynapses=1
-tt=moose.TimeTable('tt')
-tt.vector=[2.0001*simdt,0.001,0.01, 0.03, 0.07]
-tt.vector=[2*simdt,0.001,0.01, 0.03, 0.07]
-test1=[0.01,0.011, 0.05, 0.052, 0.1, 0.104]
-test2=[0.02,0.028,0.07,0.086, 0.13, 0.162]
-test3=[0.01,0.074, 0.174]
-test4=[0.02,0.084,0.184]
-np.savez('stptest2tr.npz',spikeTime=[test1,test2])
-np.savez('stptest4tr.npz',spikeTime=[test1,test2,test3,test4])
-moose.connect(tt,'eventOut', sh.synapse[0], 'addSpike')
-sh.synapse[0].weight=1
-from moose_nerp import ep_net as net
-stp_params=net.param_net.GPe_plas
-#stp_params-net.param_net.STN_plas
-from moose_nerp.prototypes import plasticity
-plasticity.ShortTermPlas(sh.synapse[0],0,stp_params,simdt,tt,'eventOut')
-for ii in range(32):
-    moose.setClock(ii, simdt)
 
-#evaluate result:
-deptab = moose.Table('/deptab')
-dep0=moose.element(synchan.path+'/dep0')
-moose.connect(deptab, 'requestOut', dep0, 'getValue')
-plas_tab = moose.Table('/plastab')
-plas=moose.element(synchan.path+'/stp0')
-moose.connect(plas_tab, 'requestOut', plas, 'getValue')
-
-moose.reinit()
-t=0
-moose.start(simdt)
-t=t+simdt
-t
-dep0.x[1].value
-dep0.value
-deptab.vector
-
-moose.start(0.01)
-from matplotlib import pyplot as plt
-plt.ion()
-numpts=len(plas_tab.vector)
-time=np.arange(0,simdt*numpts,simdt)
-plt.plot(time[0:numpts],deptab.vector,label='dep')
-plt.plot(time[0:numpts],plas_tab.vector*0.9,label='plas')
-plt.legend()
-'''
 def desensitization(synchan,SynParams):
     '''
     Key equations to be implemented
