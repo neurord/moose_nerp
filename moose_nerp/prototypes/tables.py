@@ -174,8 +174,8 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
             #'cum':plasCumtab,
             'syn':syntab}
 
-def create_desens_tabs(synchan,table_name,tabset):
-    print (' && cdt',synchan.path,end='')
+def create_stp_tabs(synchan,table_name,tabset):
+    #print (' && cdt',synchan.path,end='')
     for neigh in synchan.neighbors['childOut']:
         if 'dep' in neigh.name or 'fac' in neigh.name:
             print(neigh.path)
@@ -200,14 +200,14 @@ def syn_plastabs(connections, param_sim,plas=[]):
     syn_tabs={key:{} for key in connections.keys()}
     plas_tabs={key:{} for key in connections.keys()}
     #if model.desensYN
-    desens_tabs={key:{} for key in connections.keys()}
+    stp_tabs={key:{} for key in connections.keys()}
     for neur_type in connections.keys():
         for neur_name in connections[neur_type].keys():
             if not len(syn_tabs[neur_type].keys()):
                 syn_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys()) if key != 'postsoma_loc'}
             #if model.desensYN;
-            if not len(desens_tabs[neur_type].keys()):
-                desens_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys()) if key != 'postsoma_loc'}
+            if not len(stp_tabs[neur_type].keys()):
+                stp_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys()) if key != 'postsoma_loc'}
             if not len(plas_tabs[neur_type].keys()):
                 plas_tabs[neur_type]={key:[] for key in list(connections[neur_type][neur_name].keys()) if key != 'postsoma_loc'}
             for syntype in list(syn_tabs[neur_type].keys()):
@@ -215,12 +215,12 @@ def syn_plastabs(connections, param_sim,plas=[]):
                     if 'extern' in precomp:
                         for comp in connections[neur_type][neur_name][syntype][precomp].keys():
                             synchan=moose.element(neur_name+'/'+comp+'/'+syntype)
-                            print ('##### syn_plastabs',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
+                            #print ('##### syn_plastabs',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp,comp)
                             log.debug('{} {} {} {}', neur_name,syntype, precomp,synchan.path)
                             syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'/%s' %(neur_name.split('/')[-1]+'-'+precomp+CONNECT_SEPARATOR+comp.replace('/','-'))))
                             log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
                             moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, 'getGk')
-                            create_desens_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,desens_tabs[neur_type][syntype])
+                            create_stp_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,stp_tabs[neur_type][syntype])
                             create_plas_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,plas_tabs[neur_type][syntype])
                     else:
                         synchan=moose.element(neur_name+'/'+precomp.split(CONNECT_SEPARATOR)[-1]+'/'+syntype)
@@ -229,10 +229,10 @@ def syn_plastabs(connections, param_sim,plas=[]):
                         syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'/%s' %(neur_name.split('/')[-1]+'-'+precomp)))
                         log.debug('{} {} ', syn_tabs[neur_type][syntype][-1], synchan)
                         moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, param_sim.plot_synapse_message)
-                        create_desens_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,desens_tabs[neur_type][syntype])
+                        create_stp_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,stp_tabs[neur_type][syntype])
                         create_plas_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,plas_tabs[neur_type][syntype])
     #tables of dictionaries with instantaneous plasticity (plas), cumulative plasticity (plasCum) and synaptic weight (syn)
-    return syn_tabs, plas_tabs, desens_tabs
+    return syn_tabs, plas_tabs, stp_tabs
 
 def spinetabs(model,neuron,comps='all'):
     if not moose.exists(DATA_NAME):

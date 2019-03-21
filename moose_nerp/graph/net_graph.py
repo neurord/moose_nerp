@@ -69,9 +69,9 @@ def syn_graph(connections, syntabs, param_sim,factor=1e9,use_plas=False):
         fig.canvas.set_window_title('Syn Chans')
     for typenum,neurtype in enumerate(syntabs.keys()):
         for synnum,syntype in enumerate(syntabs[neurtype].keys()):
+            axisnum=typenum*len(syntypes)+synnum
             for oid in syntabs[neurtype][syntype]:
                 #synnum=syntypes.index(oid.path.rpartition('_')[2].split('[')[0]) #extract synapse type from table name
-                axisnum=typenum*len(syntypes)+synnum
                 t = np.linspace(0, param_sim.simtime, len(oid.vector))
                 axis[axisnum].plot(t, oid.vector*factor, label=oid.name)
             axis[axisnum].set_ylabel('{} {} {}'.format(param_sim.plot_synapse_label,syntype,neurtype))

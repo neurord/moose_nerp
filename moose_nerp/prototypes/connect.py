@@ -22,7 +22,7 @@ def plain_synconn(syn,presyn,syn_delay,simdt=None,stp_params=None):
     jj=sh.synapse.num
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
-    print('SYNAPSE: {} index {} num {} delay {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay))
+    #print('SYNAPSE: {} index {} num {} delay {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay))
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
         msg='eventOut'
@@ -56,7 +56,7 @@ def select_entry(table):
         table=np.resize(table,(len(table)-1,2))
     return element
 
-def distance_dependent_connection_probability(prob,dist):
+def dendritic_distance_dep_connect_prob(prob,dist):
     #Two possibilites:
     #1. sigmoid increase (if steep>0) or decrease (if steep<0) in probability of synapse with distance from soma
     # sigmoid increases to maximum of maxprob (default=1) between mindist and maxdist
@@ -92,15 +92,14 @@ def distance_dependent_connection_probability(prob,dist):
 def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
     #list of possible synapses with connection probability, which takes into account prior creation of synapses
     syncomps=[]
-    totalsyn=0;totalprob=0
+    totalsyns=0
+    print('CONNECT: syntype:', syntype, 'prob',prob)
     for syncomp in allsyncomp_list:
         dist,nm=util.get_dist_name(syncomp.parent)
         if prob: #calculate dendritic distance dependent connection probability to store with table
-            dist_prob=distance_dependent_connection_probability(prob,dist)
-            totalsyns = prob.postsyn_fraction*len(allsyncomp_list)
+            dist_prob=dendritic_distance_dep_connect_prob(prob,dist)
         else:
             dist_prob=1
-            totalsyns = len(allsyncomp_list)
         #print('syncomp',syncomp,'dist',dist,'prob',dist_prob)
         if dist_prob>0: #only add synchan to list if connection probability is non-zero
             sh=moose.element(syncomp.path+'/SH')
@@ -110,6 +109,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
             else:
                 SynPerComp = util.distance_mapping(NumSyn[syntype], dist)#-sh.numSynapses
             for i in range(SynPerComp):
+                totalsyns+=dist_prob #totalsyns=total synapses to connect
                 if i < SynPerComp - sh.numSynapses:
                     syncomps.append([syncomp.path+'/SH',dist_prob])
                     #print('{} synapses already connected of {} total synapses, adding 1 synapse with {} dist_prob to list'.format(sh.numSynapses,SynPerComp,dist_prob))
@@ -117,14 +117,13 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
                     syncomps.append([syncomp.path+'/SH',0])
                     #print('{} synapses already connected of {} total synapses, adding 1 synapse with 0 dist_prob to list'.format(sh.numSynapses,SynPerComp))
 
-                #totalprob+=dist_prob #totalprob=total synapses to connect if not using sigmoid
-    
     #normalize probability to pdf
     syncomp_sum = sum([p[1] for p in syncomps])
+    print('CONNECT: totsyns:',totalsyns,'syncomp_sum',syncomp_sum)
     for syn in syncomps:
         syn[1]=float(syn[1])/syncomp_sum
-    
-    return syncomps,totalsyns
+    avail_syns=np.int(np.round(syncomp_sum))
+    return syncomps,totalsyns,avail_syns
 
 def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,simdt):
     dist=0
@@ -165,7 +164,8 @@ def timetable_input(cells, netparams, postype, model):
             dend_prob=post_connections[syntype][pretype].dend_loc
             print('################',postcell, 'synchan:',syntype,'pretype:',pretype)
             allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
-            syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
+            print('CREATE_SYNPATH_ARRAY from timetable_input, pre=', pretype)
+            syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
             log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
                 print('## connect to tt',postcell,syntype,pretype)
@@ -194,7 +194,8 @@ def connect_neurons(cells, netparams, postype, model):
             for pretype in post_connections[syntype].keys():
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
-                syncomps,totalsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
+                print('CREATE_SYNPATH_ARRAY from connect_neurons, pre=', pretype)
+                syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn,prob=dend_prob)
                 log.info('SYN TABLE for {} {} {} has {} compartments and {} synapses', postsoma, syntype, pretype,len(syncomps),totalsyn)
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
@@ -232,11 +233,11 @@ def connect_neurons(cells, netparams, postype, model):
                         for i in range(len(num_conn)-1,-1,-1):
                             for n in range(num_conn[i]-1):
                                 spikegen_conns.insert(i,spikegen_conns[i])
-                        num_choices=min(len(spikegen_conns),len(syncomps))
-                        if len(spikegen_conns)>len(syncomps):
+                        num_choices=min(len(spikegen_conns),availsyns)
+                        if len(spikegen_conns)>availsyns:
                             print('>>>> uh oh, too few synapses on post-synaptic cell')
                         #randomly select num_choices of synapses
-                        if len(syncomps)==0:
+                        if availsyns==0:
                             print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
                             syn_choices=[]
                         else:
