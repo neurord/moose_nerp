@@ -54,7 +54,7 @@ def graphs(neurons, simtime, vmtab,catab={},plastab={}):
     #    fig.tight_layout()
     #    fig.canvas.draw()
 
-def syn_graph(connections, syntabs, param_sim,factor=1e9):
+def syn_graph(connections, syntabs, param_sim,factor=1e9,use_plas=False):
     numrows=len(syntabs.keys()) #how many neuron types
     max_index=np.argmax([len(syntabs[k].keys()) for k in syntabs.keys()])
     syntypes=[list(syntabs[k].keys()) for k in syntabs.keys()][max_index] #how many synapse types
@@ -63,6 +63,8 @@ def syn_graph(connections, syntabs, param_sim,factor=1e9):
     axis=fig.axes #convert to 1D list in case numrows or numcols=1
     if factor==1:
         fig.canvas.set_window_title('desensitization')
+    elif use_plas==True:
+        fig.canvas.set_window_title('Plasticity Weight')
     else:
         fig.canvas.set_window_title('Syn Chans')
     for typenum,neurtype in enumerate(syntabs.keys()):
