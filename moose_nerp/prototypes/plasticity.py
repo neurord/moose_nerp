@@ -213,7 +213,7 @@ def plasticity2(synchan,plas_params):
     # else return 0
 
     NAME_DUR = 'CaThreshDurAccumulator'
-    durname = comp.path+'/'+NAME_DUR
+    durname = synchan.path+'/'+NAME_DUR
     dur=moose.Function(durname)
     dur.tick=1
     # Set expression constants
@@ -233,7 +233,7 @@ def plasticity2(synchan,plas_params):
 
     #######################
     #Second Function object: Calculate plasticity. Uses equations from Asia's code/paper
-    plasname=comp.path+'/'+NAME_PLAS
+    plasname=synchan.path+'/'+NAME_PLAS
     plas=moose.Function(plasname)
     plas.tick=1
     # Constants:
