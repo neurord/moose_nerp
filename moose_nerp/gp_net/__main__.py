@@ -36,11 +36,12 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
-model.plasYN = False
+model.stpYN = True
 net.single=False
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
+param_sim.simtime=0.001
 if net.num_inject==0:
     param_sim.injection_current=[0]
 
@@ -73,7 +74,7 @@ else:   #population of neurons
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
-    syntab, plastab=tables.syn_plastabs(connections,param_sim)
+    syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -98,6 +99,8 @@ for inj in param_sim.injection_current:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         if model.synYN and param_sim.plot_synapse:
             net_graph.syn_graph(connections, syntab, param_sim)
+            if model.stpYN:
+                net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='stp',factor=1)
         outfname=net.outfile+str(inj)+'gaba'+str(model.param_syn.SYNAPSE_TYPES.gaba.Gbar)    
         net_output.writeOutput(model, outfname,spiketab,vmtab,population)
 

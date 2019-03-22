@@ -304,7 +304,7 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
     if model.param_sim.plot_vm:
         neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
         if model.calYN and model.param_sim.plot_calcium:
-            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime)
+            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime,title='Calcium')
 
     if model.param_sim.plot_current:
         num_currents=np.shape(current_traces)[0]//len(model.param_sim.injection_current)

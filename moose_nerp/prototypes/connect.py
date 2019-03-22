@@ -200,7 +200,7 @@ def connect_neurons(cells, netparams, postype, model):
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
                     ####### connect to time tables instead of other neurons in network
-                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,mode.param_sim.simdt)
+                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,model.param_sim.simdt)
                     intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
                 else:
                     spikegen_conns=[]

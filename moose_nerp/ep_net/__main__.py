@@ -37,11 +37,13 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
-model.plasYN = False
-net.single=True
+model.stpYN = True
+net.single=False
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
+param_sim.simtime=0.02
+param_sim.plot_synapse=True
 if net.num_inject==0:
     param_sim.injection_current=[0]
 
@@ -74,7 +76,7 @@ else:   #population of neurons
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
-    syntab, plastab, desenstab=tables.syn_plastabs(connections,param_sim)
+    syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
 #################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -92,6 +94,8 @@ for inj in param_sim.injection_current:
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
             net_graph.syn_graph(connections, syntab, param_sim)
+            if model.stpYN:
+                net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity')
         if model.spineYN:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
@@ -99,8 +103,8 @@ for inj in param_sim.injection_current:
             net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
         if model.synYN and param_sim.plot_synapse:
             net_graph.syn_graph(connections, syntab, param_sim)
-            if model.desensYN:
-                net_graph.syn_graph(connections, desenstab,param_sim,factor=1)
+            if model.stpYN:
+                net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity',factor=1)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
 
 if net.single:
@@ -122,15 +126,10 @@ for neurtype, tabset in vmtab.items():
 
 '''
 ToDo:
-1. short term plasticity - simplify and test Asia's desensitization code in plasticity.py
-facilitation: A <- A+f : create func that  calculates A+f where A is weight of synapse and f is from another func:
-df/dt=(1-f)/tauF
-euler:
- df = (1-f)/tauF * dt
- f = f + (1-f)/tauF*simdt
- f=f*(1-simdt/tauF) + simdt/tauF
-connect one input to own output
-depression: A <- D*d: create func that  calculates A*d where A is weight of synapse and d is from func same as f
+1. short term plasticity
+a. fix tables or syngraphs: can have connection (syntab) but not short term plasticity, e.g. ampa has no desens but gaba does
+
+b. evaluate response to time table input with and without stp
 
 2. long term plasticity: how much to change synaptic weights?
 

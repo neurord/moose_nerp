@@ -54,21 +54,31 @@ def graphs(neurons, simtime, vmtab,catab={},plastab={}):
     #    fig.tight_layout()
     #    fig.canvas.draw()
 
-def syn_graph(connections, syntabs, param_sim,factor=1e9,use_plas=False):
+def syn_graph(connections, syntabs, param_sim,graph_title='Syn Chans',factor=None):
+    #used to plot synaptic current and plasticity
     numrows=len(syntabs.keys()) #how many neuron types
     max_index=np.argmax([len(syntabs[k].keys()) for k in syntabs.keys()])
     syntypes=[list(syntabs[k].keys()) for k in syntabs.keys()][max_index] #how many synapse types
-    numcols=len(syntypes)
+    #next bit of code checks whether each type of synapse has plasticity.  If not, don't plot empty graph
+    for syn in syntypes:
+        if np.max([len(syntabs[k][syn]) for k in syntabs.keys()])==0:
+            syn_remove=syn  #note that this will not work if more than one syn is lacking
+            syntypes.remove(syn_remove)
+            print('no tables for', syn_remove,'new syntypes',syntypes)
+        else:
+            syn_remove=''
+        numcols=len(syntypes)
     fig,axes =pyplot.subplots(numrows, numcols,sharex=True)
     axis=fig.axes #convert to 1D list in case numrows or numcols=1
-    if factor==1:
-        fig.canvas.set_window_title('desensitization')
-    elif use_plas==True:
-        fig.canvas.set_window_title('Plasticity Weight')
-    else:
-        fig.canvas.set_window_title('Syn Chans')
+    if not factor:
+        if graph_title=='Syn Chans':
+            factor=1e9
+        else:
+            factor=1
+    fig.canvas.set_window_title(graph_title)
     for typenum,neurtype in enumerate(syntabs.keys()):
-        for synnum,syntype in enumerate(syntabs[neurtype].keys()):
+        syntypes=[s for s in syntabs[neurtype].keys() if s != syn_remove]
+        for synnum,syntype in enumerate(syntypes):
             axisnum=typenum*len(syntypes)+synnum
             for oid in syntabs[neurtype][syntype]:
                 #synnum=syntypes.index(oid.path.rpartition('_')[2].split('[')[0]) #extract synapse type from table name
