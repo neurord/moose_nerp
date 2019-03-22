@@ -98,7 +98,7 @@ for inj in param_sim.injection_current:
         if model.synYN:
             net_graph.syn_graph(connections, syntab, param_sim)
         if model.plasYN:
-            net_graph.syn_graph(connections, plastab, param_sim, use_plas=True)
+            net_graph.syn_graph(connections, plastab, param_sim, graph_title='Plas Weight')
         if model.spineYN:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
