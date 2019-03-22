@@ -56,7 +56,7 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None')
 #list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
 tt_Ctx_SPN = TableSet('CtxSPN', 'Ctx_4x4',syn_per_tt=2)
 tt_Thal_SPN = TableSet('ThalSPN', 'Thal_4x4',syn_per_tt=2)
-distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.5)#,half_dist=50e-6,steep=1)
+distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.02)#,half_dist=50e-6,steep=1)
 
 MSNconnSpaceConst=125e-6
 FSIconnSpaceConst=200e-6
@@ -93,4 +93,4 @@ connect_dict['D1']=D1
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel=0.8
-mindelay=1e-3
+mindelay=0e-3

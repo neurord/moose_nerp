@@ -44,6 +44,8 @@ for k,v in model.param_ca_plas.CaShellModeDensity.items():
     model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
+param_sim.simtime = .1
+net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
 #################################-----------create the model: neurons, and synaptic inputs
@@ -77,7 +79,7 @@ else:   #population of neurons
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
-    syntab, plastab, desentab=tables.syn_plastabs(connections,param_sim)
+    syntab, plastab, desentab=tables.syn_plastabs(connections,param_sim,plas=plas)
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -95,6 +97,8 @@ for inj in param_sim.injection_current:
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
             net_graph.syn_graph(connections, syntab, param_sim)
+        if model.plasYN:
+            net_graph.syn_graph(connections, plastab, param_sim, use_plas=True)
         if model.spineYN:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
