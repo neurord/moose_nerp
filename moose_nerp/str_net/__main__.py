@@ -44,7 +44,7 @@ for k,v in model.param_ca_plas.CaShellModeDensity.items():
     model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.simtime = .1
+param_sim.simtime = 2
 net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
@@ -81,6 +81,15 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
+# Streamer to prevent Tables filling up memory on disk
+# This is a hack, should be better implemented
+
+allTables = moose.wildcardFind('/##[ISA=Table]')
+streamer = moose.Streamer('/streamer')
+streamer.outfile = 'streamertest.npy'
+for t in allTables:
+    streamer.addTable(t)
+
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
@@ -111,6 +120,8 @@ for inj in param_sim.injection_current:
 if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
+
+moose.quit() # To flush streamer
 util.block_if_noninteractive()
 
 '''
