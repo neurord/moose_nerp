@@ -92,11 +92,14 @@ STN_distr=dend_location(postsyn_fraction=0.25)
 #STN_plas=ShortTermPlasParams(facil=STN_facil, depress=STN_depress)
 
 #short term plasticity
-GPe_depress=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='*')
+#params from Lavian Eur J Neurosci, except GPe change_tau is faster to match data
+GPe_depress=SpikePlasParams(change_per_spike=0.9,change_tau=0.6,change_operator='*')
 GPe_plas=ShortTermPlasParams(depress=GPe_depress)
 str_facil=SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='+')
 str_plas=ShortTermPlasParams(facil=str_facil)
 
+#specify extrinsic inputs.  If two different gaba inputs have different amplitudes,
+#may need to assign synaptic weight a different value for each
 ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr)# need reference
 ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr,stp=GPe_plas)
 ext3_neur1post=ext_connect(synapse='gaba',pre=tt_str,post='ep', dend_loc=str_distr,stp=str_plas)
@@ -117,4 +120,3 @@ connect_dict['ep']=ep
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel=0.8 #conduction velocity
 mindelay=1e-3
-

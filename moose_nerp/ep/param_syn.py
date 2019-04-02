@@ -19,9 +19,9 @@ _NMDA_MgParams = MgParams(A = 1/6.0,
 
 #Lavian Eur J Neurosci: Egaba=-75 mV, amp ~1mV at -60 mV
 _SynGaba = SynChannelParams(Erev = -75e-3,
-                             tau1 = 1e-3,
-                             tau2 = 20e-3,
-                             Gbar = 0.5e-9,
+                             tau1 = 0.5e-3,
+                             tau2 = 10e-3,
+                             Gbar = 1e-9,
                              var=0.05)
 #may need two time constants of decay to match Lavian
 _SynAMPA = SynChannelParams(Erev = 0,
