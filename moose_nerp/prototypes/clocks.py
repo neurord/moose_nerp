@@ -31,7 +31,7 @@ def assign_clocks(model_container_list, simdt, plotdt,hsolveYN, name_soma):
         # 8 - Tables
         # 12 - Function
     #problem if TimeTable uses plotdt?
-    #moose.setClock(8, plotdt)
+    moose.setClock(8, plotdt)
     # 8 — hdf5datawriter, tables
 
     for path in model_container_list:

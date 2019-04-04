@@ -225,6 +225,40 @@ def syn_plastabs(connections, model,plas=[]):
                             create_plas_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,plas_tabs[neur_type][syntype],['plas'])
     return syn_tabs, plas_tabs, stp_tabs
 
+
+def nonstimplastabs(plas, fraction=1, name_ampa = 'ampa'):
+    '''Create Moose Tables for non stimulated plasticity objects for heterosynaptic plasticity.
+    plas: dictionary returned by plasticity.py of all plasticity objects
+    fraction: optionally, specify what fraction of nonstimulated synapses to return.
+    '''
+    nonstim_plas_tabs={ntype:{name_ampa:[] } for ntype in plas.keys()}
+
+    nonstimplas = []
+    # Generator to loop over plas nested dictionary, which is ordered: Neurontype, Neuronpath, compartment path, plas/syn dict
+    plasdictgen = (dict2
+                   for neurtype,dict0 in plas.items()
+                   for neurpath, dict1 in dict0.items()
+                   for comppath, dict2 in dict1.items())
+
+    for plasdict in plasdictgen:
+        sh = plasdict['syn'].children[[i for i,c in enumerate(plasdict['syn'].children) if  'SynHandler' in c.className][0]][0]
+        if all( len(sh.synapse[s].neighbors['addSpike'])==0 for s in range(sh.numSynapses) ):
+            #print('~~~~~~~~~ No addSpike messages to {}, adding to nonstimplas dict.format(sh.path)')
+            nonstimplas.append(plasdict['syn'])
+        #else: print('~+++++++ addSpike messages exist on {}, NOT adding to nonstimplas dict.format(sh.path)')
+
+    if fraction < 1:
+        nonstimplas = np.random.choice(nonstimplas, int(fraction*len(nonstimplas)))
+
+    for p in nonstimplas:
+        create_plas_tabs(p,
+                         p.path.replace('/','_').lstrip('_').replace('[0]',''),
+                         nonstim_plas_tabs[ p.path.split('/')[1].split('[')[0] ][ name_ampa ],
+                         ['plas'])
+
+    return nonstim_plas_tabs
+
+
 def spinetabs(model,neuron,comps='all'):
     if not moose.exists(DATA_NAME):
         moose.Neutral(DATA_NAME)

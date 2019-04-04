@@ -164,7 +164,7 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
         for c in SpineParams.spineChanList:
             chan_list.extend(c)
         # Get the conductance for each channel:
-        for chanpath in chan_list:
+        for chanpath,mult in chan_list:
             if moose.exists(comp.path+'/'+chanpath):
                 chan = moose.element(comp.path+'/'+chanpath)
                 old_gbar = chan.Gbar/surface_area
@@ -191,7 +191,7 @@ def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,sur
     for c in SpineParams.spineChanList:
         chan_list.extend(c)
     # Get the conductance for each channel:
-    for chanpath in chan_list:
+    for chanpath,mult in chan_list:
         if moose.exists(comp.path+'/'+chanpath):
             chan = moose.element(comp.path+'/'+chanpath)
             old_gbar = chan.Gbar/surface_area
@@ -282,8 +282,8 @@ def addSpines(model, container,ghkYN,name_soma):
                     chan_list = []
                     for c in SpineParams.spineChanList:
                         chan_list.extend(c)
-                    for chanpath in chan_list:
-                        cond = distance_mapping(modelcond[chanpath],head)
+                    for chanpath,mult in chan_list:
+                        cond = mult*distance_mapping(modelcond[chanpath],head)
                         if cond > 0:
                             log.debug('Testing Cond If {} {}', chanpath, cond)
                             calciumPermeable = model.Channels[chanpath].calciumPermeable

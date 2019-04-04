@@ -26,7 +26,7 @@ _SynGaba = SynChannelParams(Erev = -60e-3,
                             nmdaCaFrac = 0.0,
                              var=0.05)
 
-SynGabaNPY = SynChannelParams(Erev = -60e-3, #NPY 
+SynGabaNPY = SynChannelParams(Erev = -60e-3, #NPY
                              tau1 = 0.25e-3,
                              tau2 = 80.75e-3,
                              Gbar = 0.5e-9,
@@ -44,7 +44,7 @@ _SynNMDA = SynChannelParams(Erev = 5e-3,
                              tau1 = 1.1e-3,
                              tau2 = 37.5e-3,
                              Gbar = 2e-9,
-                             var=0.05,
+                             var=0,#0.05,
                              MgBlock = _NMDA_MgParams,
                              spinic = True,
                              NMDA=True,
@@ -70,9 +70,8 @@ NAME_NMDA='nmda'
 
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:3, param_cond.med:2, param_cond.dist:1}
+_gaba = {param_cond.prox:4, param_cond.med:4, param_cond.dist:4}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
 NumSyn={'gaba':_gaba,
         'ampa':_ampa}
-

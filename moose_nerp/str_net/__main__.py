@@ -40,11 +40,18 @@ model.plasYN = True
 model.calYN = True
 model.spineYN = True
 net.single=True
-for k,v in model.param_ca_plas.CaShellModeDensity.items():
-    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
+#for k,v in model.param_ca_plas.CaShellModeDensity.items():
+#    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.simtime = .1
+param_sim.useStreamer = False#True
+param_sim.plotdt = .1e-3
+param_sim.stim_loc = model.NAME_SOMA
+param_sim.stim_paradigm = 'inject'
+param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
+param_sim.injection_delay = 0.2
+param_sim.injection_width = 0.4
+param_sim.simtime = 11.#21
 net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
@@ -80,6 +87,21 @@ else:   #population of neurons
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
+    nonstim_plastab = tables.nonstimplastabs(plas)
+
+
+# Streamer to prevent Tables filling up memory on disk
+# This is a hack, should be better implemented
+if param_sim.useStreamer==True:
+    allTables = moose.wildcardFind('/##[ISA=Table]')
+    streamer = moose.Streamer('/streamer')
+    streamer.outfile = 'plas_sim_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename)
+    moose.setClock(streamer.tick,0.1)
+    for t in allTables:
+        if any (s in t.path for s in ['plas','VmD1_0','extern']):
+            streamer.addTable(t)
+        else:
+            t.tick=-2
 
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
@@ -99,6 +121,8 @@ for inj in param_sim.injection_current:
             net_graph.syn_graph(connections, syntab, param_sim)
         if model.plasYN:
             net_graph.syn_graph(connections, plastab, param_sim, graph_title='Plas Weight')
+            net_graph.syn_graph(connections, nonstim_plastab, param_sim, graph_title='NonStim Plas Weight')
+
         if model.spineYN:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
@@ -111,7 +135,15 @@ for inj in param_sim.injection_current:
 if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
     # block in non-interactive mode
+
+weights = [w.value for w in moose.wildcardFind('/##/plas##[TYPE=Function]')]
+plt.figure()
+plt.hist(weights,bins=100)
 util.block_if_noninteractive()
+
+if param_sim.useStreamer==True:
+    import atexit
+    atexit.register(moose.quit)
 
 '''
 import detect
