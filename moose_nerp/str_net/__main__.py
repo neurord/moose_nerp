@@ -103,6 +103,15 @@ if param_sim.useStreamer==True:
         else:
             t.tick=-2
 
+# Streamer to prevent Tables filling up memory on disk
+# This is a hack, should be better implemented
+
+allTables = moose.wildcardFind('/##[ISA=Table]')
+streamer = moose.Streamer('/streamer')
+streamer.outfile = 'streamertest.npy'
+for t in allTables:
+    streamer.addTable(t)
+
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))

@@ -60,13 +60,13 @@ def ShortTermPlas(synapse,index,stp_params,simdt,presyn,msg):
     num_inputs=0
     if stp_params.depress is not None:
         dep=facil_depress(synchan.path+NAME_DEPRESS+str(index),stp_params.depress,simdt,presyn,msg)
-        log.debug('depress={} {} presyn {}',dep.path, dep.expr,presyn.path)
+        log.debug(' ***depress={} {} presyn {}',dep.path, dep.expr,presyn.path)
         num_inputs+=1
         source0=dep
         plas_expr='(init*x0)'
     if stp_params.facil is not None:
         fac=facil_depress(synchan.path+NAME_FACIL+str(index),stp_params.facil,simdt,presyn,msg)
-        log.debug(' facil={} {} presyn {}',fac.path,fac.expr,presyn.path)
+        log.debug(' ***facil={} {} presyn {}',fac.path,fac.expr,presyn.path)
         num_inputs+=1
         if num_inputs==1:
             source0=fac
@@ -75,7 +75,7 @@ def ShortTermPlas(synapse,index,stp_params,simdt,presyn,msg):
             source1=fac
             plas_expr='(init*x0*x1)'
     #
-    print(' STP=',plas_expr,'x[0]=',source0.path)
+    log.debug('**** STP={} x[0]={} ****',plas_expr,source0.path)
     plaspath=synchan.path+NAME_STP+str(index)
     plas_func=moose.Function(plaspath)
     plas_func.c['init']=synapse.weight

@@ -19,7 +19,7 @@ ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
-morph_file = {'ep':'EP_41compB_162938_ep_5722.p'}
+morph_file = {'ep':'EP_93comp.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES

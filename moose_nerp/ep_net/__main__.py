@@ -38,12 +38,17 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.stpYN = True
-net.single=False
+net.single=True
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.simtime=0.02
+param_sim.injection_current = [50e-12]
 param_sim.plot_synapse=True
+param_sim.injection_delay = 0.1
+param_sim.simtime = 1.0
+param_sim.plot_synapse=True
+
+param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
 if net.num_inject==0:
     param_sim.injection_current=[0]
 
@@ -74,6 +79,10 @@ else:   #population of neurons
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+    # Fix calculation of B parameter in CaConc if using hsolve
+    if model.param_sim.hsolve and model.calYN:
+        calcium.fix_calcium(util.neurontypes(model.param_cond), model)
+
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
@@ -93,7 +102,7 @@ for inj in param_sim.injection_current:
             traces.append(model.vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, syntab, param_sim)
+            net_graph.syn_graph(connections, syntab, param_sim,graph_title="Syn Chans, no plasticity")
             if model.stpYN:
                 net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity')
         if model.spineYN:
@@ -117,19 +126,27 @@ if net.single:
     vmtab=model.vmtab
 spike_time={key:[] for key in population['pop'].keys()}
 numspikes={key:[] for key in population['pop'].keys()}
+isis={key:[] for key in vmtab.keys()}
 for neurtype, tabset in vmtab.items():
     for tab in tabset:
-       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
+       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*tab.dt)
+       isis[neurtype].append(np.diff(spike_time[neurtype][-1]))
     numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
-    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes')
+    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes, ISI mean&STD: ',[np.mean(isi) for isi in isis[neurtype]], [np.std(isi) for isi in isis[neurtype]] )
+if model.param_sim.save_txt:
+    np.savez(outfile,spike_time=spike_time,isi=isis,params=param_dict)
 #spikes=[st.vector for tabset in spiketab for st in tabset]
 
 '''
 ToDo:
-1. short term plasticity
-a. fix tables or syngraphs: can have connection (syntab) but not short term plasticity, e.g. ampa has no desens but gaba does
+c. Verify frequency dependent change in GPe and Str inputs using single timetable inputs, optimized neuron and 
+ i. no firing (hyperpol slightly)
+ ii. firing (no hyperpol or slight depol) - prolonged ISI (Str) or stop firing (GPe)
 
-b. evaluate response to time table input with and without stp
+d. evaluate (network) response to time table input with and without stp, 1 sec sim, 50pA inject
+                                   with stp                         no stp
+MODEL                 fit number   ISI                 spikes       ISI                 spikes    
+pchan_120617_162938.npz, 6583      0.0518 +/- 0.0117   18           0.0628 +/- 0.0287   13
 
 2. long term plasticity: how much to change synaptic weights?
 
