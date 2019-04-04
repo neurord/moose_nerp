@@ -61,8 +61,8 @@ tt_LTSI_SPN = TableSet('LTSISPN','LTSITrains_n-30_f-8-Hz_tmax-25-s_corr-0',syn_p
 
 
 distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.1)#,half_dist=50e-6,steep=1)
-FSI_distr = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=.45)
-LTSI_distr = dend_location(mindist=80e-6,maxdist=400e-6,postsyn_fraction=.45)
+FSI_distr = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=.5)
+LTSI_distr = dend_location(mindist=80e-6,maxdist=400e-6,postsyn_fraction=.25)
 
 MSNconnSpaceConst=125e-6
 FSIconnSpaceConst=200e-6

@@ -199,10 +199,11 @@ def plasticity2(synchan,plas_params):
     # Allow plasticity function in unconnected synapses to track heterosynaptic plasticity?
     if sh.synapse.num == 0:
         sh.synapse.num +=1
-        print('No synapses on {}, adding a synapse and plasticity function'.format(sh))
+        #print('No synapses on {}, adding a synapse and plasticity function'.format(sh))
         #return
     else:
-        print('{} synapses on {}, adding plasticity function to existing synapses'.format(sh.synapse.num,sh))
+        pass
+        #print('{} synapses on {}, adding plasticity function to existing synapses'.format(sh.synapse.num,sh))
 
 
     ###  Plasticity Function

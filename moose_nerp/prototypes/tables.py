@@ -175,7 +175,7 @@ def add_one_table(DATA_NAME, plas_entry, comp_name):
             'syn':syntab}
 
 def create_plas_tabs(synchan,table_name,tabset,plas_type):
-    print (' && cpt',synchan.path,plas_type)
+    #print (' && cpt',synchan.path,plas_type)
     plas_items=[neigh for neigh in synchan.neighbors['childOut'] for plas in plas_type if plas in neigh.name ]
     for plas in plas_items:
         print(plas.path)
