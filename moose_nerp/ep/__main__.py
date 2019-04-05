@@ -30,12 +30,14 @@ param_sim = model.param_sim
 param_sim.injection_delay = 0.0
 model.synYN = True
 model.stpYN = True
-model.param_sim.save_txt=False
+param_sim.save_txt=True
+param_sim.plot_synapse=True
+param_sim.plot_calcium=False
 
 ############ Vary the next three parameters to evaluate response to regular synaptic stimulation
 param_sim.injection_current = [-1e-12] #choose from [50e012,-50e-12]
 syntype='GPe' #choose from 'str', 'GPe'
-stimfreq=5 #choose from 1,5,10,20,40
+stimfreq=10 #choose from 1,5,10,20,40
 
 syn_delay=1.0
 minpulses=10
@@ -51,11 +53,7 @@ param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
 
 param_sim.fname='ep_syn'+syntype+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)
 param_dict={'syn':syntype,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current}
-outfile=param_sim.fname=param_sim.fname+'_inj'+str(param_sim.injection_current[0])
-
-param_sim.save_txt=True
-param_sim.plot_synapse=True
-param_sim.plot_calcium=False
+outfile=param_sim.fname+'_inj'+str(param_sim.injection_current[0])
 
 # This function creates the neuron(s) in Moose:
 create_model_sim.setupNeurons(model)
@@ -88,7 +86,7 @@ create_model_sim.setupStim(model)
 #specify presyn as tt explicitly and test
 #This code should be moved to plasticity_test
 
-from moose_nerp.prototypes import plasticity
+from moose_nerp.prototypes import plasticity_test as plas_test
 from moose_nerp import ep_net as net
 
 if syntype=='str':
@@ -100,31 +98,12 @@ elif syntype=='GPe':
 else:
     print('########### unknown synapse type')
 
-#Connect time table of synaptic inputs to synapse
-sh=moose.element(synchan.path+'/SH')
-sh.numSynapses=1
-moose.connect(tt,'eventOut', sh.synapse[0], 'addSpike')
-#create output table for the synaptic response
-syn_tab=moose.Table('/syntab')
-moose.connect(syn_tab,'requestOut',synchan,'getGk')
-
 #add short term plasticity to synapse as appropriate
 if model.stpYN:
-    simdt =  model.param_sim.simdt
-    plasticity.ShortTermPlas(sh.synapse[0],0,stp_params,simdt,tt,'eventOut')
-
-    #Add output tables for plasticity
-    if stp_params.depress is not None:
-        deptab = moose.Table('/deptab')
-        dep=moose.element(synchan.path+'/dep0')
-        moose.connect(deptab, 'requestOut', dep, 'getValue')
-    if stp_params.facil is not None:
-        factab = moose.Table('/factab')
-        fac=moose.element(synchan.path+'/fac0')
-        moose.connect(factab, 'requestOut', fac, 'getValue')
-    plas_tab = moose.Table('/plastab')
-    plas=moose.element(synchan.path+'/stp0')
-    moose.connect(plas_tab, 'requestOut', plas, 'getValue')
+    syntab,plastabset=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0,
+                                                        simdt=model.param_sim.simdt,stp_params=stp_params)
+else:
+    syntab=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0)
 
 #simulate the model
 create_model_sim.runAll(model,printParams=False)
@@ -136,15 +115,15 @@ import numpy as np
 plt.ion()
 plt.figure()
 plt.title('synapse')
-numpts=len(plas_tab.vector)
-time=np.arange(0,simdt*numpts,simdt)
+numpts=len(syntab.vector)
+time=np.arange(0,syntab.dt*numpts,syntab.dt)
 if model.stpYN:
-    if stp_params.depress is not None:
-        plt.plot(time[0:numpts],deptab.vector,label='dep')
-    if stp_params.facil is not None:
-        plt.plot(time[0:numpts],factab.vector,label='fac')
-    plt.plot(time[0:numpts],plas_tab.vector+0.1,label='plas+0.1')
-plt.plot(time[0:numpts],syn_tab.vector*1e9,label='Gk*1e9')
+    if 'dep' in plastabset.keys():
+        plt.plot(time[0:numpts],plastabset['dep'].vector,label='dep')
+    if 'fac' in plastabset.keys():
+        plt.plot(time[0:numpts],plastabset['fac'].vector,label='fac')
+    plt.plot(time[0:numpts],plastabset['plas'].vector+0.1,label='plas+0.1')
+plt.plot(time[0:numpts],syntab.vector*1e9,label='Gk*1e9')
 plt.legend()
 
 #Extract spike times and calculate ISI if not hyperpolarized
@@ -174,9 +153,9 @@ if len(spike_time['ep'][0]):
 elif not len(stim_spikes):
     #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
     vmtab=model.vmtab['ep'][0].vector
-    vm_init=[vmtab[int(t/simdt)] for t in tt.vector]
+    vm_init=[vmtab[int(t/vmtab.dt)] for t in tt.vector]
     #use np.min for IPSPs and np.max for EPSPs
-    vm_peak=[np.min(vmtab[int(tt.vector[i]/simdt):int(tt.vector[i+1]/simdt)]) for i in range(len(tt.vector)-1)]
+    vm_peak=[np.min(vmtab[int(tt.vector[i]/vmtab.dt):int(tt.vector[i+1]/vmtab.dt)]) for i in range(len(tt.vector)-1)]
     psp_amp=[(vm_init[i]-vm_peak[i]) for i in range(len(vm_peak))]
     psp_norm=[amp/psp_amp[0] for amp in psp_amp]
     pulse=range(len(psp_norm))
@@ -248,3 +227,4 @@ add in regular GPe or STR input and measure change in ISI
 
 b. STN, GPe and str log normal inputs
 compare with and without plasticity
+'''

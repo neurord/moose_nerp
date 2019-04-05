@@ -35,3 +35,34 @@ def plasticity_test(model, syncomp=None, syn_pop=None, stimtimes=None):
             ###Synaptic Plasticity
             plast[neurtype] = plasticity.plasticity2(synchan,model.CaPlasticityParams.Plas_syn)
     return plast, stimtab
+
+def short_term_plasticity_test(synchan,tt,syn_delay=0,simdt=None,stp_params=None):
+    syntab=moose.Table('/syntab')
+    moose.connect(syntab,'requestOut',synchan,'getGk')
+    syn=moose.element(synchan.path+'/SH')
+    if stp_params is not None:
+        tabset={}
+        #Connect time table of synaptic inputs to synapse, and create stp
+        connect.plain_synconn(syn,tt,syn_delay,simdt=simdt,stp_params=stp_params)
+        #create output table for the synaptic response
+        if stp_params.depress is not None:
+            deptab = moose.Table('/deptab')
+            dep=moose.element(synchan.path+'/dep0')
+            moose.connect(deptab, 'requestOut', dep, 'getValue')
+            tabset['dep']=deptab
+        if stp_params.facil is not None:
+            factab = moose.Table('/factab')
+            fac=moose.element(synchan.path+'/fac0')
+            moose.connect(factab, 'requestOut', fac, 'getValue')
+            tabset['fac']=factab
+        plas_tab = moose.Table('/plastab')
+        plas=moose.element(synchan.path+'/stp0')
+        moose.connect(plas_tab, 'requestOut', plas, 'getValue')
+        tabset['plas']=plas_tab
+        return syntab,tabset
+    else:
+        return syntab
+
+#Next, add in to this stp test creation of time tables, TEST
+#add to multisim TEST
+#add to network sim
