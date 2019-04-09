@@ -30,6 +30,7 @@ If 'all' -- spines are randomly chosen with a probability of spine_density
 if a sequencea list -- stimulated spines are randomly chosen from the list
 stim_delay -- delay of the stimulation onset
 pulse_sequence -- which spine gets which pulses
+syntype specifies type of synchan, e.g. gaba or AMPA, if not stimulating spines
 '''
 
 StimLocParams = NamedList('PresynapticLocation','''
@@ -37,6 +38,7 @@ which_spines
 spine_density
 pulse_sequence
 stim_dendrites
+syntype=None
 ''')
 
 StimParams = NamedList('PresynapticStimulation','''
@@ -101,33 +103,36 @@ def MakeGenerators(container,Stimulation):
     return [pulse0,burst_gate,train_gate,experiment_gate]
 
 def loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams):
-
+    
     for spine in my_spines:
         if spine not in time_tables:
             time_tables[spine] = []
-
         time_tables[spine].append(delay+i*1./StimParams.f_train+j*1./StimParams.f_burst+k*1./StimParams.f_pulse)
 
 def MakeTimeTables(Stimulation,spine_no):
 
     StimParams = Stimulation.Paradigm
-
     delay = Stimulation.stim_delay
-
     location=Stimulation.StimLoc
 
     time_tables = {}
-    if location.which_spines in ['all','ALL','All']:
-        how_many  = round(location.spine_density*spine_no)
-    elif location.which_spines:
-        how_many  = round(location.spine_density*len(location.which_spines))
+    if location.spine_density==0.0:
+        how_many=spine_no
+    else:
+        if location.which_spines in ['all','ALL','All']:
+            how_many  = round(location.spine_density*spine_no)
+        elif location.which_spines:
+            how_many  = round(location.spine_density*len(location.which_spines))
 
     for i in range(StimParams.n_train):
         for j in range(StimParams.n_burst):
             for k in range(StimParams.n_pulse):
-                if location.pulse_sequence:
+                if location.spine_density==0:
+                    my_spines=location.stim_dendrites
+                elif location.pulse_sequence:
                     my_spines = location.pulse_sequence[k]
 
+                #The next two elif blocks need work.  Eliminate infinite loop, combine into one block since mostly similar
                 elif location.which_spines in ['all','ALL','All']:
                     my_spines = []
                     how_many_spines = 0
@@ -139,9 +144,7 @@ def MakeTimeTables(Stimulation,spine_no):
                             if how_many_spines == how_many:
                                 break
 
-
                 elif  location.which_spines:
-
                     my_spines = []
                     how_many_spines = 0
                     while True:
@@ -157,8 +160,7 @@ def MakeTimeTables(Stimulation,spine_no):
 
     return time_tables
 
-def HookUpDend(model,dendrite,container):
-
+def enumerate_spine_synchans(model,dendrite):
     #for dend in model.Stimulation.StimParams.which_dendrites:
     my_spines = list(set(moose.element(dendrite).neighbors['handleAxial']).intersection(set(moose.element(dendrite).children)))
     num_spines = len(my_spines)
@@ -178,60 +180,61 @@ def HookUpDend(model,dendrite,container):
                 if moose_child.className == 'SynChan' or moose_child.className == 'NMDAChan':
                     synapses[spine_no].append(moose_child)
 
+    return num_spines,synapses    
+
+def HookUpDend(model,dendrite,container):
+    if model.Stimulation.StimLoc.spine_density>0:
+        num_spines,synchans=enumerate_spine_synchans(model,dendrite)
+        tt_root_name=container.path+'/TimTab'+dendrite.name
+    else:
+        num_spines=1
+        synchans={dendrite.name:[dendrite.path+'/'+model.Stimulation.StimLoc.syntype]}
+        tt_root_name=container.path+'/TimTab'
+        print('HookUpDend, syn:', synchans,num_spines)
+
     time_tables = MakeTimeTables(model.Stimulation,num_spines)
+    print('HookUpDend, tt:', time_tables)
     stimtab = {}
-
-    stim_synapses = {}
-
+    stim_syn = {}
     for spine in time_tables:
-        stimtab[spine] = moose.TimeTable('%s/TimTab%s_%s' % (container.path, dendrite.name,str(spine)))
+        stimtab[spine] = moose.TimeTable('%s_%s' % (tt_root_name,str(spine)))
         stimtab[spine].vector = np.array(time_tables[spine])
+        print('HUD,stimtab {} '.format(stimtab))
 
-
-
-        for synapse in synapses[spine]:
-            synchan = moose.element(synapse)
-            print(synapse.path,time_tables[spine])
-            connect.plain_synconn(synchan,stimtab[spine],0)
-            synname = util.syn_name(synchan.path, spines.NAME_HEAD)
-
-            if model.desenYN and model.DesensitizationParams[synchan.name]:
-                dep,weight = plasticity.desensitization(synchan, model.DesensitizationParams[synchan.name])
-
-                stim_synapses[synname] = {}
-                stim_synapses[synname]['plas'] = dep
-                stim_synapses[synname]['cum'] = weight
-                stim_synapses[synname]['syn'] = synchan
-                synchan.Gbar = synchan.Gbar/2
-
-    return stim_synapses
+        for synchan in synchans[spine]:
+            synapse = moose.element(synchan+'/SH')
+            print('ready to connect',synapse.path,stimtab[spine].vector)
+            connect.plain_synconn(synapse,stimtab[spine],0)
+            stim_syn[synchan]=(stimtab[spine],synapse)
+            
+    return stimtab,synchans,stim_syn
 
 def ConnectPreSynapticPostSynapticStimulation(model,ntype):
     container_name = '/input'
     container = moose.Neutral(container_name)
     SP = model.Stimulation.Paradigm
-    print ('SP', SP)
+    print ('CPSPSS:Stim Paradigm', SP)
     exp_duration = (SP.n_train-1)/SP.f_train+(SP.n_burst-1)/SP.f_burst+(SP.n_pulse-1)/SP.f_pulse+SP.n_AP*SP.AP_interval+2*\
-model.Stimulation.stim_delay
+                   model.Stimulation.stim_delay
 
     if SP.A_inject:
         pg = MakeGenerators(container,model.Stimulation)
         injectcomp = '/'+ntype+'/'+model.param_cond.NAME_SOMA
         moose.connect(pg[0], 'output', injectcomp, 'injectMsg')
 
-    stim_spines = {}
+    stimtabs = {};stim_syn_set={};#synchans={}
     for dend in model.Stimulation.StimLoc.stim_dendrites:
         name_dend = '/'+ntype+'/'+dend
         dendrite = moose.element(name_dend)
-        new_spines = HookUpDend(model,dendrite,container)
-        stim_spines.update(new_spines)
-
-
+        stimtab,synchan,stim_syn = HookUpDend(model,dendrite,container)
+        stimtabs.update(stimtab)
+        #synchans.update(synchan)
+        stim_syn_set.update(stim_syn)
 
     if SP.A_inject:
-        return exp_duration,stim_spines,pg
-
-    return exp_duration,stim_spines, None
+        return exp_duration,stimtabs,stim_syn_set, pg
+    else:
+        return exp_duration,stimtabs, stim_syn_set, None
 
 #Possibly replace this with MakeGenerators
 def setupinj(model, delay,width,neuron_pop):
@@ -251,6 +254,42 @@ def setupinj(model, delay,width,neuron_pop):
             print("INJECT:", name, injectcomp.path)
             moose.connect(pg, 'output', injectcomp, 'injectMsg')
     return pg
+
+def inject_pop(population, num_inject):
+    #select subset of neurons for injection
+    choice_neurs={}
+    for neurtype in population.keys():
+        max_inject=min(num_inject,len(population[neurtype]))
+        if max_inject>0:
+            choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
+    return choice_neurs
+
+def setup_stim(model,param_sim,neuron_paths):
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject':
+        ### plasticity paradigms combining synaptic stimulation with optional current injection
+        sim_time = []
+        tt={ntype:[] for ntype in neuron_paths.keys()}
+        stim_syn_set={ntype:[] for ntype in neuron_paths.keys()}
+        pg=[]
+        for ntype in neuron_paths.keys():
+            #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
+            dur,tt[ntype],stim_syn_set[ntype],pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
+            sim_time.append( dur)
+        model.tt,model.pairs=tt, stim_syn_set
+        param_sim.simtime = max(sim_time) + model.param_stim.Stimulation.stim_delay
+        print('setup_stim, simtime={}'.format(param_sim.simtime))
+        #only set injection_current to 0 if a set of injects was specified, else might be an intended offset current
+        if len(param_sim.injection_current)>1:
+            param_sim.injection_current = [0]
+    #possibly set up constant current injection in addition to patterned stimulation (Check with Dan)
+    ### Current Injection alone, either use values from Paradigm or from command-line options
+    if not len(param_sim.injection_current):
+        param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
+        param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
+        param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
+    if not np.all([inj==0 for inj in param_sim.injection_current]) or not len(param_sim.injection_current):
+        pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,neuron_paths)
+    return pg,param_sim
 
 ###Voltage Clamp (incomplete)
 def Vclam(delay,width,delay_2,r,c,gain,sat,gain_p,tau_1,tau_2,psat):
@@ -279,34 +318,3 @@ def Vclam(delay,width,delay_2,r,c,gain,sat,gain_p,tau_1,tau_2,psat):
     moose.connect(tab,"requestOut",comp,"getIm")
     return tab
 
-def inject_pop(population, num_inject):
-    #select subset of neurons for injection
-    choice_neurs={}
-    for neurtype in population.keys():
-        max_inject=min(num_inject,len(population[neurtype]))
-        if max_inject>0:
-            choice_neurs[neurtype]=list(np.random.choice(population[neurtype],max_inject,replace=False))
-    return choice_neurs
-
-def setup_stim(model,param_sim,neuron_paths):
-    if model.param_stim.Stimulation.Paradigm.name is not 'inject':
-        ### plasticity paradigms combining synaptic stimulation with optional current injection
-        sim_time = []
-        for ntype in neuron_paths.keys():
-            #update how ConnectPreSynapticPostSynapticStimulation deals with param_stim
-            st, spines, pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
-            sim_time.append( st)
-            plas[ntype] = spines
-        param_sim.simtime = max(sim_time) + model.param_stim.Stimulation.stim_delay
-        param_sim.injection_current = [0]
-    else:
-        ### Current Injection alone, either use values from Paradigm or from command-line options
-        if not len(param_sim.injection_current):
-            param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
-            param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
-            param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
-        #all_neurons={}
-        #for ntype in neuron.keys():
-        #    all_neurons[ntype]=list([neuron[ntype].path])
-        pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,neuron_paths)
-    return pg,param_sim
