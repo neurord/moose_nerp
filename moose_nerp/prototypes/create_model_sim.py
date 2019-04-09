@@ -76,7 +76,9 @@ def setupOptions(model, **kwargs):
     # Set fname to default if is None in param_sim:
     if param_sim.fname is None:
         param_sim.fname = (model.param_stim.Stimulation.Paradigm.name + '_' +
-                           model.param_stim.location.stim_dendrites[0])
+                           #model.param_stim.location.stim_dendrites[0])
+                           #change to (after checking with Dan)
+                           model.param_stim.Stimulation.StimLoc.stim_dendrites[0])
 
     ######### Add any new code here to parse additional possible kwargs.
     ######### Be sure to pop any parsed kwarg from kwargs dictionary.
