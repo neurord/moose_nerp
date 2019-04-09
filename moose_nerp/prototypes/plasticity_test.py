@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import moose
 
 from moose_nerp.prototypes import (connect,
+                                   tables,
                                    plasticity,
                                    logutil,
                                    util)
@@ -36,33 +37,19 @@ def plasticity_test(model, syncomp=None, syn_pop=None, stimtimes=None):
             plast[neurtype] = plasticity.plasticity2(synchan,model.CaPlasticityParams.Plas_syn)
     return plast, stimtab
 
-def short_term_plasticity_test(synchan,tt,syn_delay=0,simdt=None,stp_params=None):
-    syntab=moose.Table('/syntab')
+def short_term_plasticity_test(syn,tt,syn_delay=0,simdt=None,stp_params=None):
+    synchan=moose.element(syn.parent)
+    synname=synchan.name
+    syntab=moose.Table(tables.DATA_NAME+'/'+synname+'_syntab')
     moose.connect(syntab,'requestOut',synchan,'getGk')
-    syn=moose.element(synchan.path+'/SH')
     if stp_params is not None:
-        tabset={}
-        #Connect time table of synaptic inputs to synapse, and create stp
-        connect.plain_synconn(syn,tt,syn_delay,simdt=simdt,stp_params=stp_params)
-        #create output table for the synaptic response
-        if stp_params.depress is not None:
-            deptab = moose.Table('/deptab')
-            dep=moose.element(synchan.path+'/dep0')
-            moose.connect(deptab, 'requestOut', dep, 'getValue')
-            tabset['dep']=deptab
-        if stp_params.facil is not None:
-            factab = moose.Table('/factab')
-            fac=moose.element(synchan.path+'/fac0')
-            moose.connect(factab, 'requestOut', fac, 'getValue')
-            tabset['fac']=factab
-        plas_tab = moose.Table('/plastab')
-        plas=moose.element(synchan.path+'/stp0')
-        moose.connect(plas_tab, 'requestOut', plas, 'getValue')
-        tabset['plas']=plas_tab
+        tabset=[]
+        jj=syn.synapse.num-1
+        synapse=syn.synapse[jj]
+        index=0  #need to detect existance of other fac, dep or stp elements and update index accordingly
+        plasticity.ShortTermPlas(synapse,index,stp_params,simdt,tt,'eventOut')
+        tables.create_plas_tabs(synchan,syntab.name,tabset,['fac','dep','stp'])
         return syntab,tabset
     else:
         return syntab
 
-#Next, add in to this stp test creation of time tables, TEST
-#add to multisim TEST
-#add to network sim
