@@ -52,8 +52,7 @@ def select_entry(table):
     element=table[row][0]
     table[row][1]=int(table[row][1])-1
     if table[row][1]==0: 
-        table[row]=table[len(table)-1]
-        table=np.resize(table,(len(table)-1,2))
+        table.pop(row)
     return element
 
 def dendritic_distance_dep_connect_prob(prob,dist):
