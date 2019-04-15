@@ -125,12 +125,17 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
     avail_syns=np.int(np.round(syncomp_sum))
     return syncomps,totalsyns,avail_syns
 
-def connect_timetable(post_connection,syncomps,totalsyn,netparams,syn_params,simdt):
+def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
     dist=0
+    syn_params=model.param_syn
+    simdt=model.param_sim.simdt
     #tt_list is list of time tables stored with number of times the time table can be used in the network
     tt_list=post_connection.pre.stimtab
     dend_loc=post_connection.dend_loc
-    stp=post_connection.stp
+    if getattr(model,'stpYN',False):
+        stp=post_connection.stp
+    else:
+        stp=None
     connections={}
     num_choices=np.int(np.round(totalsyn))
     if num_choices>0:
@@ -169,7 +174,7 @@ def timetable_input(cells, netparams, postype, model):
             log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
                 print('## connect to tt',postcell,syntype,pretype)
-                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,model.param_sim.simdt)
+                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
@@ -203,6 +208,10 @@ def connect_neurons(cells, netparams, postype, model):
                     connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,model.param_sim.simdt)
                     intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
                 else:
+                    if getattr(model,'stpYN',False):
+                        stp=post_connections[syntype][pretype].stp
+                    else:
+                        stp=None
                     spikegen_conns=[]
                     fact=1;prob=0
                     ###### connect to other neurons in network: loop over pre-synaptic neurons
@@ -251,7 +260,7 @@ def connect_neurons(cells, netparams, postype, model):
                                 log.debug('{}',connect_list[postcell][syntype])
                                 #connect the synapse
                                 #print('** intrinsic synconn',i,syn,spikegen_conns[i][2],spikegen_conns[i][0].path)
-                                synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay,netparams.cond_vel)
+                                synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay,netparams.cond_vel,stp_params=stp)
                     else:
                         print('   no pre-synaptic cells selected for',postcell, 'from',pretype)
     tmp=[np.mean(intra_conns[syn])/len(cells[postype]) for syn in intra_conns.keys()]                                     
