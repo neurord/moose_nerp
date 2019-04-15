@@ -1,5 +1,4 @@
 
-
 #Do not define EREST_ACT or ELEAK here - they are in the .p file
 # Contains maximal conductances, name of .p file, and some other parameters
 # such as whether to use GHK, or whether to have real spines
@@ -38,19 +37,19 @@ morph_file = {'D1':'MScelltaperspines.p', 'D2': 'MScelltaperspines.p'} # old_ver
 #CONDUCTANCES - UNITS of Siemens/meter squared
 _D1 = _util.NamedDict(
     'D1',
-    Krp = {prox:0.03153098536573899, med:0.11798139588840685, dist:0.04323845451253293},
-    KaF = {prox:1200.5548368381437, med:697.4519737095645, dist:73.05445633059472},
-    KaS = {prox:40.404877003444774, med: 603.2880958230676, dist: 47.47895158472515},
-    Kir = {prox:4.588682375508999, med: 4.588682375508999, dist: 4.588682375508999},
-    CaL13 = {prox:13.54950268345995*ghKluge, med: 0.026889208914742325*ghKluge, dist: 0.15944551166340565*ghKluge},
-    CaL12 = {prox:8.285376322179289*ghKluge, med: 4.832450810847347*ghKluge, dist: 1.3974048064445423*ghKluge},
-    CaR = {prox:2.1818627864028284*ghKluge, med: 42.21307696914031*ghKluge, dist: 78.36808727998259*ghKluge},
-    CaN = {prox:4.656952174944405*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT = {prox:0.0*ghKluge, med: 0.0679269038806246*ghKluge, dist: 0.008854229505179834*ghKluge},
-    NaF = {prox:284658.39584274805, med:3223.160493124536 , dist: 1485.214919735172},
-    SKCa = {prox:4.089264671148438, med: 4.089264671148438, dist:4.089264671148438 },
-    BKCa = {prox:5.70792868048078, med: 5.70792868048078, dist:5.70792868048078},
-    CaCC = {prox:0.29517102580362675, med: 0.29517102580362675, dist:0.29517102580362675 },
+    Krp = {prox:0.030412982511354256, med:0.1187764150066657, dist:0.04371546368456764},
+    KaF = {prox:1198.6106336137718, med:694.7565410220733, dist:73.63781307916403},
+    KaS = {prox:42.301506989682956, med: 598.1981044394101, dist: 48.109060863002135},
+    Kir = {prox:4.593346732504891, med: 4.593346732504891, dist: 4.593346732504891},
+    CaL13 = {prox:13.497468485634915*ghKluge, med: 0.0003742350945052135*ghKluge, dist: 0.14313485017720698*ghKluge},
+    CaL12 = {prox:8.224130813140018*ghKluge, med: 4.755641803836486*ghKluge, dist: 1.359189909219976*ghKluge},
+    CaR = {prox:2.0319640194309367*ghKluge, med: 42.098081446111564*ghKluge, dist: 77.87435524955357*ghKluge},
+    CaN = {prox:4.8225437615192845*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
+    CaT = {prox:0.0*ghKluge, med: 0.06754073749968142*ghKluge, dist: 0.003149595759888971*ghKluge},
+    NaF = {prox:278913.52391468134, med:3191.508903477709 , dist: 1469.6950316113168},
+    SKCa = {prox:4.098903673534784, med: 4.098903673534784, dist:4.098903673534784 },
+    BKCa = {prox:5.7478346619307406, med: 5.7478346619307406, dist:5.7478346619307406},
+    CaCC = {prox:0.31307249403534215, med: 0.31307249403534215, dist:0.31307249403534215 },
 )
 _D2 = _util.NamedDict(
     'D2',

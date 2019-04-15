@@ -54,23 +54,23 @@ CADIVS = 4001 #10 nM steps
 
 qfactNaF = 2.5
 
-Na_m_params = TauInfMinChannelParams(T_min=0.000319999856631733,
- T_vdep=0.006727996985682187,
- T_vhalf=-0.03485224384186281,
+Na_m_params = TauInfMinChannelParams(T_min=7.998875749153482e-05,
+ T_vdep=0.0016817636262595197,
+ T_vhalf=-0.05308849295680853,
  T_vslope=0.008,
  SS_min=0.0,
  SS_vdep=1.0,
- SS_vhalf=0.002147756158137188,
+ SS_vhalf=-0.01608849295680853,
  SS_vslope=-0.01,
  T_power=2)
 
-Na_h_params = TauInfMinChannelParams(T_min=0.000548472713377449,
- T_vdep=0.002389859317548796,
- T_vhalf=-0.020221280082147595,
+Na_h_params = TauInfMinChannelParams(T_min=0.00027542296648548886,
+ T_vdep=0.0012001000718321953,
+ T_vhalf=-0.034845326172449564,
  T_vslope=0.003,
  SS_min=0.0,
  SS_vdep=1.0,
- SS_vhalf=-0.038221280082147605,
+ SS_vhalf=-0.05284532617244956,
  SS_vslope=0.006,
  T_power=1)
 
@@ -97,25 +97,25 @@ Krpparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='Krp')
 #Act tuned to fit Nisenbaum 1996 fig6C (minf^2) and fig 8C (mtau)
 qfactKrp=3  #Used by RE
 
-Krp_X_params = AlphaBetaChannelParams(A_rate=352.83971247681075,
+Krp_X_params = AlphaBetaChannelParams(A_rate=93.17594708227949,
  A_B=0.0,
  A_C=0.0,
- A_vhalf=-0.007031818920258446,
+ A_vhalf=-0.0023501473737281243,
  A_vslope=-0.02,
- B_rate=52.925956871521606,
+ B_rate=13.976392062341922,
  B_B=0.0,
  B_C=0.0,
- B_vhalf=-0.007031818920258446,
+ B_vhalf=-0.0023501473737281243,
  B_vslope=0.04)
 
 # tuned to fit Nisenbaum 1996 fig 9D (hinf, 87% inactivating) and 9B (htau)
-Krp_Y_params = TauInfMinChannelParams(T_min=6.351114824582592,
- T_vdep=91.73832524397079,
- T_vhalf=-0.049031818920258444,
+Krp_Y_params = TauInfMinChannelParams(T_min=1.6771670474810307,
+ T_vdep=24.22574624139267,
+ T_vhalf=-0.044350147373728124,
  T_vslope=0.013000000000000001,
  SS_min=0.13,
  SS_vdep=0.87,
- SS_vhalf=-0.06303181892025844,
+ SS_vhalf=-0.05835014737372812,
  SS_vslope=0.015,
  T_power=1)
 
@@ -139,29 +139,29 @@ KaFparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaF')
 # matching m2 to Tkatch et al., 2000 Figs 2c, and mtau to fig 2b)
 
 qfactKaF = 2
-KaF_X_params = AlphaBetaChannelParams(A_rate=26836.413071168372,
+KaF_X_params = AlphaBetaChannelParams(A_rate=7078.191955696018,
  A_B=0.0,
  A_C=1.0,
- A_vhalf=0.021534774810745536,
+ A_vhalf=0.019718735644534503,
  A_vslope=-0.013,
- B_rate=6709.103267792093,
+ B_rate=1769.5479889240046,
  B_B=0.0,
  B_C=1.0,
- B_vhalf=0.0015347748107455402,
+ B_vhalf=-0.0002812643554654941,
  B_vslope=0.011)
 
 #inactivation consts for alphas and betas obtained by matching Tkatch et al., 2000 Fig 3b,
 #and tau voltage dependence consistent with their value for V=0 in fig 3c.
 #slowing down inact improves spike shape tremendously
-KaF_Y_params = AlphaBetaChannelParams(A_rate=1144.9233729041205,
+KaF_Y_params = AlphaBetaChannelParams(A_rate=383.3791829132746,
  A_B=0.0,
  A_C=1.0,
- A_vhalf=0.15934201776336743,
+ A_vhalf=0.13455520966793152,
  A_vslope=0.022,
- B_rate=708.7620879882651,
+ B_rate=237.32997037488425,
  B_B=0.0,
  B_C=1.0,
- B_vhalf=0.09334201776336742,
+ B_vhalf=0.06855520966793152,
  B_vslope=-0.011)
 
 #KaS based on Shen 2004 data and Wolf 2005 model code. Note that the Wolf model
@@ -172,26 +172,26 @@ KaF_Y_params = AlphaBetaChannelParams(A_rate=1144.9233729041205,
 #Note: Fit looks ok with these parameters but could stand to be improved.
 KaSparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='KaS')
 qfactKaS = 3 # Shen 2004/Wolf 2005
-KaS_X_params = AlphaBetaChannelParams(A_rate=484839.2175890564,
+KaS_X_params = AlphaBetaChannelParams(A_rate=131874.00929401233,
  A_B=0.0,
  A_C=1,
- A_vhalf=-0.13266144249786604,
+ A_vhalf=-0.10285571937267687,
  A_vslope=-0.0162951634,
- B_rate=7649913724.07291,
+ B_rate=2080740907.394687,
  B_B=0.0,
  B_C=1,
- B_vhalf=0.3534570913021339,
+ B_vhalf=0.3832628144273231,
  B_vslope=0.0218235302)
 
-KaS_Y_params = AlphaBetaChannelParams(A_rate=254395877.14473855,
+KaS_Y_params = AlphaBetaChannelParams(A_rate=111685872.76089874,
  A_B=0.0,
  A_C=1.0,
- A_vhalf=1.2333113968478355,
+ A_vhalf=1.225808650743561,
  A_vslope=0.0645391447,
- B_rate=12.79190264989889,
+ B_rate=5.615951122169981,
  B_B=0.0,
  B_C=1.0,
- B_vhalf=0.011946999649835387,
+ B_vhalf=0.004444253545561,
  B_vslope=-0.0262013787)
 
 #SS values from Churchill and MacVicar, assuming Xpow = 1

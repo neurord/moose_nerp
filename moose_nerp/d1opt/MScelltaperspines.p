@@ -4,12 +4,12 @@
 *asymmetric     
 *lambda_warn     
      
-*set_global RA 0.8877747001409327
+*set_global RA 1.095123494232269
 //change Cm to account for no spines - make 3x higher?
-*set_global CM 0.010056689002871082
-*set_global RM 5.118474080829922
+*set_global CM 0.00952317303180458
+*set_global RM 5.130324629458133
 *set_global EREST_ACT -86e-3 //Volts
-*set_global ELEAK -0.09480021335472455
+*set_global ELEAK -0.09487724323555544
      
 *start_cell     
 *cylindrical     

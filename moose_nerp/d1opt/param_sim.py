@@ -7,7 +7,7 @@ param_sim = Namespace()
 # Options for setting up stim paradigm
 param_sim.stim_loc = 'tertdend1_1'#NAME_SOMA
 param_sim.stim_paradigm = 'inject'#'TestPlas'#'inject'
-param_sim.injection_current = [-0.2e-9, 0.26e-9]
+param_sim.injection_current = [1.75e-10]
 param_sim.injection_delay = 0.2
 param_sim.injection_width = 0.4
 param_sim.simtime = 0.8
