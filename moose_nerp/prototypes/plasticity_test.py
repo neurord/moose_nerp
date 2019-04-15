@@ -37,18 +37,26 @@ def plasticity_test(model, syncomp=None, syn_pop=None, stimtimes=None):
             plast[neurtype] = plasticity.plasticity2(synchan,model.CaPlasticityParams.Plas_syn)
     return plast, stimtab
 
-def short_term_plasticity_test(syn,tt,syn_delay=0,simdt=None,stp_params=None):
+def short_term_plasticity_test(tt_syn_tuple,syn_delay=0,simdt=None,stp_params=None):
+    tt=tt_syn_tuple[0]
+    syn=tt_syn_tuple[1]
+    synnum=tt_syn_tuple[2]
     synchan=moose.element(syn.parent)
-    synname=synchan.name
-    syntab=moose.Table(tables.DATA_NAME+'/'+synname+'_syntab')
+    syntype=synchan.name
+    neurtype=synchan.parent.parent.name
+    syntab=moose.Table(tables.DATA_NAME+'/'+neurtype+'-'+tt.name+'_to_'+syntype)
     moose.connect(syntab,'requestOut',synchan,'getGk')
     if stp_params is not None:
         tabset=[]
-        jj=syn.synapse.num-1
-        synapse=syn.synapse[jj]
-        index=0  #need to detect existance of other fac, dep or stp elements and update index accordingly
+        synapse=syn.synapse[synnum]
+        existing_stp=[neigh.name for neigh in synchan.neighbors['childOut'] if 'stp' in neigh.name ]
+        if existing_stp:
+            index= int(sorted(existing_stp)[-1].split('stp')[-1])+1
+        else:
+            index=0
+        print('****** STPT******** existing',existing_stp,'synapse',synnum,'stp index',index)
         plasticity.ShortTermPlas(synapse,index,stp_params,simdt,tt,'eventOut')
-        tables.create_plas_tabs(synchan,syntab.name,tabset,['fac','dep','stp'])
+        tables.create_plas_tabs(synchan,syntab.name,tabset,['fac'+str(index),'dep'+str(index),'stp'+str(index)])
         return syntab,tabset
     else:
         return syntab
