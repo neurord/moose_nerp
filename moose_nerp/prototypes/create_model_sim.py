@@ -148,7 +148,10 @@ def setupNeurons(model, **kwargs):
 def setupStim(model,**kwargs):
     '''Setup the stimulation pulse generator. This function requires that the
     neurons and options have already been setup'''
-    neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
+    if getattr(model,'inject_pop',False):
+        neuron_paths = model.inject_pop
+    else:
+        neuron_paths = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
     pg, param_sim = inject_func.setup_stim(model, model.param_sim, neuron_paths)
     model.pg, model.param_sim = pg, param_sim
     return model
