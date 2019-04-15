@@ -11,25 +11,21 @@ Spines are optional (spineYesNo=1), but not allowed for network
 The graphs won't work for multiple spines per compartment
 """
 from __future__ import print_function, division
-import logging
 
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
-from pprint import pprint
 import moose
 
 from moose_nerp.prototypes import (create_model_sim,
-                                   cell_proto,
                                    clocks,
                                    inject_func,
                                    create_network,
                                    tables,
                                    net_output,
                                    logutil,
-                                   util,
-                                   standard_options)
+                                   util)
 from moose_nerp import ep as model
 from moose_nerp import ep_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
@@ -40,39 +36,50 @@ model.synYN = True
 model.stpYN = True
 net.single=True
 
+############## Set-up test of synaptic plasticity at single synapse ####################
+presyn='GPe' #choose from 'str', 'GPe'
+stimfreq=20 #choose from 1,5,10,20,40
+model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
+
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [50e-12]
-param_sim.plot_synapse=True
-param_sim.injection_delay = 0.1
-param_sim.simtime = 1.0
+param_sim.injection_current = [0e-12]
+param_sim.injection_delay = 0.0
 param_sim.plot_synapse=True
 
-param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
+#param_sim.simtime = 1.0
+#param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
+
 if net.num_inject==0:
     param_sim.injection_current=[0]
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)
-all_neur_types = model.neurons
-population,connections,plas=create_network.create_network(model, net, all_neur_types)
+population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
-    inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+    model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
 else:
-    inject_pop=population['pop']
-#Does setupStim work for network?
-#create_model_sim.setupStim(model)
-pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
-moose.showmsg(pg)
+    model.inject_pop=population['pop']
+
+############## Set-up test of synaptic plasticity at single synapse ####################
+if presyn=='str':
+    stp_params=net.param_net.str_plas
+elif presyn=='GPe':
+    stp_params=net.param_net.GPe_plas
+else:
+    print('########### unknown synapse type')
+
+param_sim.fname='epnet_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,model.stpYN))
+
+create_model_sim.setupStim(model)
 
 ##############--------------output elements
 if net.single:
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
-    #simpath used to set-up simulation dt and hsolver
-    simpath=['/'+neurotype for neurotype in all_neur_types]
     create_model_sim.setupOutput(model)
 else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
@@ -87,22 +94,29 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
-#################### Actually run the simulation
-def run_simulation(injection_current, simtime):
-    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-    pg.firstLevel = injection_current
-    moose.reinit()
-    moose.start(simtime)
+from moose_nerp.prototypes import plasticity_test as plas_test
+extra_syntab={ntype:[] for ntype in  model.neurons.keys()}
+extra_plastabset={ntype:[] for ntype in  model.neurons.keys()}
+param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
+for ntype in model.neurons.keys():
+    for tt_syn_tuple in model.tuples[ntype].values():
+        if model.stpYN:
+            extra_syntab[ntype],extra_plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
+                                                                    simdt=model.param_sim.simdt,stp_params=stp_params)
+        else:
+            extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+    param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
+#################### Actually run the simulation
 traces, names = [], []
 for inj in param_sim.injection_current:
-    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
     if net.single and len(model.vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
             traces.append(model.vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, syntab, param_sim,graph_title="Syn Chans, no plasticity")
+            net_graph.syn_graph(connections, syntab, param_sim,graph_title="Syn Chans, plasticity="+str(model.stpYN))
             if model.stpYN:
                 net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity')
         if model.spineYN:
@@ -121,37 +135,35 @@ if net.single:
     # block in non-interactive mode
 util.block_if_noninteractive()
 
-import detect
-if net.single:
-    vmtab=model.vmtab
-spike_time={key:[] for key in population['pop'].keys()}
-numspikes={key:[] for key in population['pop'].keys()}
-isis={key:[] for key in vmtab.keys()}
-for neurtype, tabset in vmtab.items():
-    for tab in tabset:
-       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*tab.dt)
-       isis[neurtype].append(np.diff(spike_time[neurtype][-1]))
-    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
-    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype], 'spikes, ISI mean&STD: ',[np.mean(isi) for isi in isis[neurtype]], [np.std(isi) for isi in isis[neurtype]] )
+import ISI_anal
+#stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+
 if model.param_sim.save_txt:
-    np.savez(outfile,spike_time=spike_time,isi=isis,params=param_dict)
+    np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
 #spikes=[st.vector for tabset in spiketab for st in tabset]
+
+plt.figure()
+plt.title('synapse')
+for ntype in extra_syntab.keys():
+    numpts=len(extra_syntab[ntype].vector)
+    time=np.arange(0,extra_syntab[ntype].dt*numpts,extra_syntab[ntype].dt)
+    if model.stpYN:
+        for i,tab in enumerate(extra_plastabset[ntype]):
+            offset=i*0.02
+            labl=tab.name[-4:-1]+'+'+str(offset)
+            plt.plot(time[0:numpts],tab.vector+offset,label=labl)
+plt.plot(time[0:numpts],extra_syntab[ntype].vector*1e9,label='Gk*1e9')
+plt.legend()
 
 '''
 ToDo:
-c. Verify frequency dependent change in GPe and Str inputs using single timetable inputs, optimized neuron and 
- i. no firing (hyperpol slightly)
- ii. firing (no hyperpol or slight depol) - prolonged ISI (Str) or stop firing (GPe)
+2. calculate mean and std of ISI across trials, both mean during syn input, and over time during syn input
+   How does that vary by synapse type or with plasticity?
+'''
 
-d. evaluate (network) response to time table input with and without stp, 1 sec sim, 50pA inject
-                                   with stp                         no stp
-MODEL                 fit number   ISI                 spikes       ISI                 spikes    
-pchan_120617_162938.npz, 6583      0.0518 +/- 0.0117   18           0.0628 +/- 0.0287   13
-
-2. long term plasticity: how much to change synaptic weights?
-
-3. How to analyze results
-
+'''
 for neurtype,neurtype_dict in connections.items():
     for neur,neur_dict in neurtype_dict.items():
         for syn,syn_dict in neur_dict.items():
