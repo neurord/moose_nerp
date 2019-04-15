@@ -50,7 +50,7 @@ def moose_main(p):
                 syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                                      simdt=model.param_sim.simdt,stp_params=stp_params)
             else:
-                syntab[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0)
+                syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #simulate the model

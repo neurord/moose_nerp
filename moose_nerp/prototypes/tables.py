@@ -178,7 +178,7 @@ def create_plas_tabs(synchan,table_name,tabset,plas_type):
     #print (' && cpt',synchan.path,plas_type)
     plas_items=[neigh for neigh in synchan.neighbors['childOut'] for plas in plas_type if plas in neigh.name ]
     for plas in plas_items:
-        print(plas.path)
+        #print(plas.path)
         tabset.append((moose.Table(DATA_NAME+'/%s' %(table_name+plas.name))))
         moose.connect(tabset[-1], 'requestOut', plas, 'getValue')
     return
