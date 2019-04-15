@@ -34,7 +34,7 @@ create_model_sim.setupOptions(model)
 
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [-1e-12] #offset to prevent or enhance firing
+param_sim.injection_current = [-25e-12] #offset to prevent or enhance firing
 param_sim.injection_delay = 0.0
 param_sim.save_txt=False
 param_sim.plot_synapse=True
@@ -51,7 +51,6 @@ else:
 
 param_sim.fname='ep_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
 print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,model.stpYN))
-param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current}
 
 # This function creates the neuron(s) in Moose:
 create_model_sim.setupNeurons(model)
@@ -84,6 +83,7 @@ create_model_sim.setupStim(model)
 from moose_nerp.prototypes import plasticity_test as plas_test
 syntab={ntype:[] for ntype in  model.neurons.keys()}
 plastabset={ntype:[] for ntype in  model.neurons.keys()}
+param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
 for ntype in model.neurons.keys():
     for tt_syn_pair in model.pairs[ntype].values():
         tt=tt_syn_pair[0]
@@ -93,14 +93,31 @@ for ntype in model.neurons.keys():
                                                                    simdt=model.param_sim.simdt,stp_params=stp_params)
         else:
             syntab[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0)
+    param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.pairs[ntype].items()]}
 
 #simulate the model
 create_model_sim.runAll(model,printParams=False)
-
-#plot plasticity and synaptic response
 print('*********** freq',stimfreq,'simtime',param_sim.simtime,'tt',tt.vector)
-from matplotlib import pyplot as plt
+
+#Extract spike times and calculate ISI if spikes occur
 import numpy as np
+import ISI_anal
+#stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
+spike_time,stim_spikes,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,model.tt)
+if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
+    if model.param_sim.save_txt:
+        np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
+if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
+    #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
+    psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
+    if model.param_sim.save_txt:
+        np.savez(param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict)
+else:
+    psp_norm=None
+
+########################## Plotting results ##############################
+#plot plasticity and synaptic response
+from matplotlib import pyplot as plt
 plt.ion()
 plt.figure()
 plt.title('synapse')
@@ -115,48 +132,24 @@ for ntype in model.neurons.keys():
 plt.plot(time[0:numpts],syntab[ntype].vector*1e9,label='Gk*1e9')
 plt.legend()
 
-#Extract spike times and calculate ISI if not hyperpolarized
-import detect
-vmtab=model.vmtab
-spike_time={key:[] for key in vmtab.keys()}
-numspikes={key:[] for key in vmtab.keys()}
-isis={key:[] for key in vmtab.keys()}
-plt.figure()
-plt.title('ISI vs time for '+presyn+' at '+str(stimfreq)+'hz')
-plt.xlabel('Time (msec)')
-plt.ylabel('ISI (sec)')
-for neurtype, tabset in vmtab.items():
-    for tab in tabset:
-        spike_time[neurtype].append(detect.detect_peaks(tab.vector)*tab.dt)
-        isis[neurtype].append(np.diff(spike_time[neurtype][-1]))
-        plt.plot(spike_time[neurtype][-1][0:len(isis[neurtype][-1])],isis[neurtype][-1],'o')
-    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
-    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype],
-          'spikes, ISI mean&STD: ',[np.mean(isi) for isi in isis[neurtype]], [np.std(isi) for isi in isis[neurtype]] )
-
-spike1=np.min(tt.vector)
-spikeN=np.max(tt.vector)
-stim_spikes=[st for st in spike_time['ep'][0] if st>spike1 and st<spikeN ]
-if len(spike_time['ep'][0]):
-    if model.param_sim.save_txt:
-        np.savez(outfile,spike_time=spike_time,isi=isis,params=param_dict)
-elif not len(stim_spikes):
-    #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
-    vmtab=model.vmtab['ep'][0].vector
-    vm_init=[vmtab[int(t/vmtab.dt)] for t in tt.vector]
-    #use np.min for IPSPs and np.max for EPSPs
-    vm_peak=[np.min(vmtab[int(tt.vector[i]/vmtab.dt):int(tt.vector[i+1]/vmtab.dt)]) for i in range(len(tt.vector)-1)]
-    psp_amp=[(vm_init[i]-vm_peak[i]) for i in range(len(vm_peak))]
-    psp_norm=[amp/psp_amp[0] for amp in psp_amp]
-    pulse=range(len(psp_norm))
+#plot spikes or PSP amplitude if no spikes during stimulation
+if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     plt.figure()
-    plt.title('Normalized PSP amp for '+presyn+' at '+str(stimfreq)+'hz')
-    plt.plot(pulse,psp_norm,'o')
+    plt.title('ISI vs time for '+presyn+' at '+str(stimfreq)+'hz')
+    plt.xlabel('Time (msec)')
+    plt.ylabel('ISI (sec)')
+    for neurtype, tabset in isis.items():
+        for i,tab in enumerate(tabset):
+            plt.plot(spike_time[neurtype][i][0:len(tab)],tab,'o')
+if psp_norm:
+    plt.figure()
+    plt.title('normalized PSP amp vs time for '+presyn+' at '+str(stimfreq)+'hz')
+    plt.ylabel('Normalized PSP amp')
     plt.xlabel('stim number')
-    ##save vmtab, psp_amp, psp_norm, spike_time, isi so can plot the entire set of frequencies
-    if model.param_sim.save_txt:
-        np.savez(outfile,amp=psp_amp,norm=psp_norm,params=param_dict)
-
+    for neurtype, tabset in psp_norm.items():
+        for i,tab in enumerate(tabset):
+            plt.plot(range(len(tab)),tab,'o')
+ 
 '''           tau decay = 20ms               Lavian       tau decay = 10 ms
               str      GPe,tau=1s  tau=0.6s  GPe    Str    str   GPe (tau=0.6s)
 initial PSP   0.4 mV   1.5 mV       1.5       3     1.5   
@@ -173,43 +166,6 @@ Traces in Lavian reveal that str decay gets _faster_ with higher frequencies,
 so decay between pulses does not decrease drastically
 Lower membrane time constant with higher tau decay may work better
 
-#Analyze set of files
-import glob
-import numpy as np
-
-presyn='GPe'
-plasYN=1
-inj='-1e-10'
-pattern='ep_syn'+presyn+'*_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-files=glob.glob(pattern)
-results={}
-time={}
-for fname in files:
-    dat=np.load(fname,'r')
-    params=dat['params'].item()
-    if float(inj)<0:
-        results[params['freq']]=dat['norm']#.item()['ep'][0]
-        time[params['freq']]=range(len(dat['norm']))
-        ylabel='normalized PSP amp'
-        xlabel='pulse'
-    if float(inj)>=0:
-        results[params['freq']]=dat['isi'].item()['ep'][0]
-        time[params['freq']]=dat['spike_time'].item()['ep'][0]
-        ylabel='isi (msec)'
-        xlabel='time (msec)'
-
-#plot the set of results:
-from matplotlib import pyplot as plt
-plt.ion()
-plt.figure()
-for freq in sorted(results.keys()):
-    plt.plot(time[freq][0:len(results[freq])],results[freq],label=str(freq))
-
-plt.xlabel(xlabel)
-plt.ylabel(ylabel)
-plt.legend()
-'''
-'''
 Assessment during firing:
 a. STN input to produce firing (using lognormal time tables
 add in regular GPe or STR input and measure change in ISI
