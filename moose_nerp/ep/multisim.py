@@ -3,24 +3,22 @@ def moose_main(p):
     stimfreq,presyn,stpYN=p
     import moose
     from moose_nerp.prototypes import create_model_sim
-    from moose_nerp.prototypes import plasticity_test as plas_test
     from moose_nerp import ep as model
-    from moose_nerp import ep_net as net
 
     model.synYN = True
     model.stpYN = stpYN
     model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
     create_model_sim.setupOptions(model)
     # Parameter overrides can be specified:
-    #stim_protocol='PSP_'+str(stimfreq)+'Hz'
-    #model.param_stim.Stimulation=model.param_stim.paradigm_dict[stim_protocol]
 
     param_sim = model.param_sim
     param_sim.injection_current= [-25e-12] 
+    param_sim.injection_delay = 0.0
     param_sim.save_txt=False
-    param_sim.plot_synapse=True
+    param_sim.plot_synapse=False
     param_sim.plot_calcium=False
 
+    from moose_nerp import ep_net as net
     if presyn=='str':
         stp_params=net.param_net.str_plas
     elif presyn=='GPe':
@@ -30,7 +28,6 @@ def moose_main(p):
 
     param_sim.fname='ep_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
     print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,stpYN))
-    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current}
 
     # This function creates the neuron(s) in Moose:
     create_model_sim.setupNeurons(model)
@@ -43,30 +40,43 @@ def moose_main(p):
     create_model_sim.setupStim(model)
 
     #add short term plasticity to synapse as appropriate - need to modify this to NOT create or hook up tt, just create plas and output tables
+    from moose_nerp.prototypes import plasticity_test as plas_test
     syntab={ntype:[] for ntype in  model.neurons.keys()}
     plastabset={ntype:[] for ntype in  model.neurons.keys()}
+    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
     for ntype in model.neurons.keys():
-        for tt_syn_pair in model.pairs[ntype].values():
-            tt=tt_syn_pair[0]
-            synchan=tt_syn_pair[1]
-            if model.stpYN:
-                syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0,
+        for tt_syn_tuple in model.tuples[ntype].values():
+           if model.stpYN:
+                syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                                      simdt=model.param_sim.simdt,stp_params=stp_params)
             else:
                 syntab[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0)
+        param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #simulate the model
     create_model_sim.runAll(model,printParams=False)
     print('<<<<<<<<<<< moose_main, sim {} finished'.format(param_sim.fname))
 
-    #create dictionary with the output (vectors) from tables
+    #Extract spike times and calculate ISI if spikes occur
+    import numpy as np
+    import ISI_anal
+    #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
+    spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+    if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
+        np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
+    if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
+        psp_amp,psp_norm=psp_amp(model.vmtab,model.tt)
+
+    #create dictionary with the output (vectors) from tables 
     tab_dict={}
     for ntype,tabset in syntab.items():
-        tab_dict[ntype]={'syn':tabset.vector,'syndt':tabset.dt,
+        tab_dict[ntype]={'syn':tabset.vector,'syndt':tabset.dt, 
         'tt': {ntype+'_'+pt:tab.vector for pt,tab in model.tt[ntype].items()}}#,'tt_dt':tabset.dt}
         if model.stpYN:
             tab_dict[ntype]['plas']={tab.name:tab.vector for tab in plastabset[ntype]}
-    return tab_dict
+    vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
+    return param_dict,tab_dict,vmtab,spike_time,isis
 
 def multi_main(syntype,stpYN):
     from multiprocessing.pool import Pool
@@ -79,7 +89,7 @@ def multi_main(syntype,stpYN):
 
 if __name__ == "__main__":
     print('running main')
-    syn='GPe'
+    syn='str'
     stpYN=1
     results = multi_main(syn,stpYN)
 
@@ -96,30 +106,30 @@ if __name__ == "__main__":
     axis=fig.axes
     axis[-1].set_xlabel('time, sec')
     for stimfreq,tabset in results.items():
-        for ntype,tabs in tabset.items():
-            dt=tabs['syndt'] 
-            print('*********** freq',stimfreq,'tt',tabs['tt'])
-            numpts=len(tabs['syn'])
+        param_dict,syntab_dict,vm,spike_time,isis=tabset
+        for ntype,syntabs in syntab_dict.items():
+            dt=syntabs['syndt'] 
+            print('*********** freq',stimfreq,'tt',syntabs['tt'])
+            numpts=len(syntabs['syn'])
             time=np.arange(0,dt*numpts,dt)
             if stpYN:
-                for tabname,tab in tabs['plas'].items():
+                for tabname,tab in syntabs['plas'].items():
                     if 'stp' in tabname:
-                        axisnum=1
+                        axisnum=2
                     else:
-                        axisnum=0
+                        axisnum=1
                     labl=ntype+'_'+tabname[-4:-1]+str(stimfreq)
                     axis[axisnum].plot(time[0:numpts],tab,label=labl)
-                axis[0].set_ylabel('dep or fac')
-                axis[1].set_ylabel('plas')
-                axis[0].legend()
-        axis[2].plot(time[0:numpts],tabset[ntype]['syn']*1e9,label=ntype+' freq='+str(stimfreq))
-        axis[2].set_ylabel('Gk*1e9')
-    axis[2].legend()
+                axis[1].set_ylabel('dep or fac')
+                axis[2].set_ylabel('plas')
+                axis[2].legend()
+        axis[0].plot(time[0:numpts],syntabs['syn']*1e9,label=ntype+' freq='+str(stimfreq))
+        axis[0].set_ylabel('Gk*1e9')
+    axis[0].legend()
 
 '''
 ToDo:
-add these functions to network simulation - possibly "reserve" the synapse from random time tables
-write tables to disk, move spike time and ISI calculation into function
-add trial number as parameter in network simulations
-calculate ISI across trials
+re-analyze effect of stp on PSP amp vs frequency using optimized model
+   a. hyperpol to prevent spiking
+   b. depol with spiking
 '''   

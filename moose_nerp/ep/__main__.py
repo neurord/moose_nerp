@@ -85,25 +85,25 @@ syntab={ntype:[] for ntype in  model.neurons.keys()}
 plastabset={ntype:[] for ntype in  model.neurons.keys()}
 param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
 for ntype in model.neurons.keys():
-    for tt_syn_pair in model.pairs[ntype].values():
-        tt=tt_syn_pair[0]
-        synchan=tt_syn_pair[1]
+    for tt_syn_tuple in model.tuples[ntype].values():
         if model.stpYN:
-            syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0,
+            syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                    simdt=model.param_sim.simdt,stp_params=stp_params)
         else:
-            syntab[ntype]=plas_test.short_term_plasticity_test(synchan,tt,syn_delay=0)
-    param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.pairs[ntype].items()]}
+            syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+    param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 #simulate the model
 create_model_sim.runAll(model,printParams=False)
-print('*********** freq',stimfreq,'simtime',param_sim.simtime,'tt',tt.vector)
+print('*********** freq',stimfreq,'simtime',param_sim.simtime,'tt',tt_syn_tuple[0].vector)
 
 #Extract spike times and calculate ISI if spikes occur
 import numpy as np
 import ISI_anal
 #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
-spike_time,stim_spikes,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,model.tt)
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     if model.param_sim.save_txt:
         np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
