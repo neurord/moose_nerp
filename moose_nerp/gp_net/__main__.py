@@ -20,16 +20,14 @@ plt.ion()
 from pprint import pprint
 import moose
 
-from moose_nerp.prototypes import (create_model_sim,
-                                   cell_proto,
+from moose_nerp.prototypes import (create_model_sim
                                    clocks,
                                    inject_func,
                                    create_network,
                                    tables,
                                    net_output,
                                    logutil,
-                                   util,
-                                   standard_options)
+                                   util)
 from moose_nerp import gp as model
 from moose_nerp import gp_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
@@ -47,45 +45,37 @@ if net.num_inject==0:
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)
-all_neur_types = model.neurons
-population,connections,plas=create_network.create_network(model, net, all_neur_types)
+population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
-    inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+    model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
 else:
-    inject_pop=population['pop']
-#Does setupStim work for network?
-#create_model_sim.setupStim(model)
-pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
-moose.showmsg(pg)
+    model.inject_pop=population['pop']
+
+create_model_sim.setupStim(model)
 
 ##############--------------output elements
 if net.single:
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
-    #simpath used to set-up simulation dt and hsolver
-    simpath=['/'+neurotype for neurotype in all_neur_types]
     create_model_sim.setupOutput(model)
 else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+    if model.param_sim.hsolve and model.calYN:
+        calcium.fix_calcium(util.neurontypes(model.param_cond), model)
+
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
 ################### Actually run the simulation
-def run_simulation(injection_current, simtime):
-    print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
-    pg.firstLevel = injection_current
-    moose.reinit()
-    moose.start(simtime)
-
 traces, names = [], []
 for inj in param_sim.injection_current:
-    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
     if net.single and len(model.vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
             traces.append(model.vmtab[neurtype][0].vector)
