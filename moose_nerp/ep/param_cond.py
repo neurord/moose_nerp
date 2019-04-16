@@ -1,3 +1,4 @@
+# Generated from npzfile: pchan_032117_162938.npz of fit number: 8080
 # Generated from npzfile: fitep-ep-pchan_032717_162938.npz of fit number: 5722
 #Do not define EREST_ACT or ELEAK here - they are in the .p file
 # Contains maximal conductances, name of .p file, and some other parameters
@@ -19,7 +20,7 @@ ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
-morph_file = {'ep':'EP_93comp.p'}
+morph_file = {'ep':'EP_93comp_162938_ep_8080.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -36,17 +37,17 @@ axon = (0.,1., 'axon')
 #CONDUCTANCE VALUES - UNITS of Siemens/meter squared
 _ep = _util.NamedDict(
     'ep',
-    KDr={prox: 87.20822921957834, dist: 7.003738121181193, axon: 222.9499419622778}, #KDr is Kv2
-    Kv3={prox: 822.9783849138091, dist: 221.47346536550566, axon: 571.7413459607062},  
-    KvS={prox: 1.2607614689487021, dist: 7.293988599249282, axon: 11.588543676550637},  
-    KvF={prox: 17.105185611864304, dist: 17.275681005861088, axon: 6.439718525745909},  
-    NaF={prox: 160.5098624216612, dist: 48.689751257426, axon: 3661.324423541809}, 
-    NaS={prox: 5.899554971319288, dist: 9.924256975928728, axon: 4.446831864899851},
-    Ca={prox: 0.8198658465772009, dist: 0.0013341233044197568, axon: 0},  
-    HCN1={prox: 4.194450733328087, dist: 4.025948508906228, axon: 0}, 
-    HCN2={prox: 2.7286797690191666, dist: 4.550548190296555, axon: 0}, 
-    SKCa={prox: 2.00460422036248, dist: 0.36314594357834923, axon: 0},  
-    BKCa={prox: 11.64588674353397, dist: 2.29946179927898, axon: 0}, 
+    KDr={prox: 4.770646343567948, dist: 11.580858134398845, axon: 195.0403867814316}, #KDr is Kv2
+    Kv3={prox: 736.8216998732888, dist: 1402.900645554406, axon: 729.2217379045869},  
+    KvS={prox: 9.625003609239965, dist: 14.816596591818115, axon: 1.5141050650221697},  
+    KvF={prox: 10.067142050937445, dist: 7.8844967404188235, axon: 16.175716784730458},  
+    NaF={prox: 181.05412302395015, dist: 151.40473183042286, axon: 18391.466370001686}, 
+    NaS={prox: 4.978184560770554, dist: 6.763970102779737, axon: 7.136171989201076},
+    Ca={prox: 0.14508085299411955, dist: 0.10440912242796829, axon: 0},  
+    HCN1={prox: 0.08583627688169095, dist: 0.44055539373336716, axon: 0}, 
+    HCN2={prox: 0.47365915156951843, dist: 0.5262383869994962, axon: 0}, 
+    SKCa={prox: 0.43383651241744997, dist: 6.505619092332097, axon: 0},  
+    BKCa={prox: 6.968570081935845, dist: 5.931895239981525, axon: 0}, 
 )
 
 Condset  = _util.NamedDict(
