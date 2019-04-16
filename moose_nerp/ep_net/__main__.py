@@ -157,11 +157,6 @@ for ntype in extra_syntab.keys():
 plt.plot(time[0:numpts],extra_syntab[ntype].vector*1e9,label='Gk*1e9')
 plt.legend()
 
-'''
-ToDo:
-2. calculate mean and std of ISI across trials, both mean during syn input, and over time during syn input
-   How does that vary by synapse type or with plasticity?
-'''
 
 '''
 for neurtype,neurtype_dict in connections.items():

@@ -116,33 +116,30 @@ def multi_main(syntype,stpYN,stimfreqs,num_trials):
     from multiprocessing.pool import Pool
     p = Pool(12,maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
-    all_results=[]
-    for trial in range(num_trials):
-        params=[(freq,syntype,stpYN,trial) for freq in stimfreqs]
+    all_results={}
+    #for trial in range(num_trials):
+    #    params=[(freq,syntype,stpYN,trial) for freq in stimfreqs]
+    for freq in stimfreqs:
+        params=[(freq,syntype,stpYN,trial) for trial in range(num_trials)]
         results = p.map(moose_main,params)
-    all_results.append(dict(zip(stimfreqs,results)))
-    return 
+        all_results[freq]=dict(zip(range(num_trials),results))
+    #all_results.append(dict(zip(stimfreqs,results)))
+    return all_results
 
 if __name__ == "__main__":
     print('running main')
     syn='str'
     stpYN=1
-    num_trials=2
-    stimfreqs=[20,40]
+    num_trials=10
+    stimfreqs=[20]
     all_results = multi_main(syn,stpYN,stimfreqs,num_trials)
-    #for result in all_results:
-        
-#spikes=[st.vector for tabset in spiketab for st in tabset]
+
 
 '''
 ToDo:
-3d ---> 1. multisim.py : re-arrange all_results to facilitate averaging over trialnum
-b. possibly "reserve" the synapse from random time tables 
-   e.g. by calling create_model_sim.setupStim(model) after creating population but before connecting time_tables
-2nd --->c. simulate effect of stp and frequency on firing
-d. repeat stp effect with dopamine blocked conditions
-1st --->2. calculate mean and std of ISI across trials, both mean during syn input, and over time during syn input
-   How does that vary by synapse type or with plasticity?
+a. possibly "reserve" the synapse from random time tables 
+   e.g. call create_model_sim.setupStim(model) after creating pop but before connecting time_tables
+b. repeat stp effect with dopamine blocked conditions
 '''
 
 '''

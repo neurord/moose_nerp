@@ -9,7 +9,7 @@ PSP_1 = ParadigmParams(f_pulse = 1., n_pulse=1,A_inject=0e-9, f_burst=1, n_burst
 
 TestPlas = ParadigmParams(f_pulse = 5, n_pulse = 3,A_inject=0, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="TestPlas")
 
-inject = ParadigmParams(f_pulse = 5, n_pulse = 0,A_inject=0.25e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="inject")
+inject = ParadigmParams(f_pulse = 5, n_pulse = 0,A_inject=0.25e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.5, AP_interval=0.01, n_AP=0, ISI=0, name="inject")
 
 PSP_1Hz=ParadigmParams(f_pulse = 1., n_pulse=10,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_1Hz")
 PSP_5Hz=ParadigmParams(f_pulse = 5., n_pulse=10,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_5Hz")
@@ -36,7 +36,7 @@ location_str=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequenc
 location_GPe=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1'],syntype='gaba')
 
 #stim_delay units: sec
-Stimulation = StimParams(Paradigm = PSP_10Hz,stim_delay = 1.0,StimLoc=location_str)
+Stimulation = StimParams(Paradigm = PSP_10Hz,stim_delay = 1.5,StimLoc=location_str)
 
 #pulse sequence should be of the form:
 #{1:[0,1],2:[2,3],3:[0,1]} -- for each pulse specify a list of spines to stimulate
