@@ -34,7 +34,7 @@ create_model_sim.setupOptions(model)
 
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [-25e-12] #offset to prevent or enhance firing
+param_sim.injection_current = [0e-12] #offset to prevent or enhance firing
 param_sim.injection_delay = 0.0
 param_sim.save_txt=False
 param_sim.plot_synapse=True
@@ -94,8 +94,8 @@ for ntype in model.neurons.keys():
     param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 #simulate the model
-create_model_sim.runAll(model,printParams=False)
-print('*********** freq',stimfreq,'simtime',param_sim.simtime,'tt',tt_syn_tuple[0].vector)
+create_model_sim.runAll(model,printParams=True)
+print('<<<<<<<<<<< sim finished: freq',stimfreq,'simtime',param_sim.simtime,'tt',tt_syn_tuple[0].vector)
 
 #Extract spike times and calculate ISI if spikes occur
 import numpy as np

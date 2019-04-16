@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 def moose_main(p):
-    stimfreq,presyn,stpYN=p
+    stimfreq,presyn,stpYN,inj=p
     import moose
     from moose_nerp.prototypes import create_model_sim
     from moose_nerp import ep as model
@@ -12,9 +12,9 @@ def moose_main(p):
     # Parameter overrides can be specified:
 
     param_sim = model.param_sim
-    param_sim.injection_current= [-25e-12] 
+    param_sim.injection_current= [inj] 
     param_sim.injection_delay = 0.0
-    param_sim.save_txt=False
+    param_sim.save_txt=True
     param_sim.plot_synapse=False
     param_sim.plot_calcium=False
 
@@ -46,7 +46,7 @@ def moose_main(p):
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
     for ntype in model.neurons.keys():
         for tt_syn_tuple in model.tuples[ntype].values():
-           if model.stpYN:
+            if model.stpYN:
                 syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                                      simdt=model.param_sim.simdt,stp_params=stp_params)
             else:
@@ -54,7 +54,7 @@ def moose_main(p):
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #simulate the model
-    create_model_sim.runAll(model,printParams=False)
+    create_model_sim.runAll(model,printParams=True)
     print('<<<<<<<<<<< moose_main, sim {} finished'.format(param_sim.fname))
 
     #Extract spike times and calculate ISI if spikes occur
@@ -66,7 +66,7 @@ def moose_main(p):
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
     if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
-        psp_amp,psp_norm=psp_amp(model.vmtab,model.tt)
+        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
 
     #create dictionary with the output (vectors) from tables 
     tab_dict={}
@@ -78,20 +78,21 @@ def moose_main(p):
     vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     return param_dict,tab_dict,vmtab,spike_time,isis
 
-def multi_main(syntype,stpYN):
+def multi_main(syntype,stpYN,inj):
     from multiprocessing.pool import Pool
     p = Pool(12,maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
-    stimfreqs=[5,10,20,40]
-    params=[(freq,syntype,stpYN) for freq in stimfreqs]
+    stimfreqs=[1,5,10,20,40]
+    params=[(freq,syntype,stpYN,inj) for freq in stimfreqs]
     results = p.map(moose_main,params)
     return dict(zip(stimfreqs,results))
 
 if __name__ == "__main__":
     print('running main')
-    syn='str'
-    stpYN=1
-    results = multi_main(syn,stpYN)
+    syn='GPe' #choose from str or GPe
+    stpYN=0
+    inj=0.0 #choose from 0 or 15 pA
+    results = multi_main(syn,stpYN,inj)
 
     #plot plasticity and synaptic response
     from matplotlib import pyplot as plt
