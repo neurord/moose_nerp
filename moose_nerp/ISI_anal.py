@@ -1,4 +1,4 @@
-#Analyze set of files
+#Functions for calculating ISI, latency, psp_amplitude for a set of files
 import glob
 import numpy as np
 import detect
@@ -37,9 +37,8 @@ def psp_amp(vmtab,timetables):
 
 def latency(freq,neurtype,presyn,plasYN,inj,numbins):
     pattern='epnet_syn'+presyn+'_freq'+str(freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-    files=glob.glob(pattern)
+    files=file_set(pattern)
     if len(files)==0:
-        print('********* no files found for ',pattern)
         return
     isi=1.0/freq
     latency={'pre':[[] for i in range(freq)],'post':[[] for i in range(freq)], 'stim':[[] for i in range(freq)]}
@@ -48,7 +47,7 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
     with np.load(files[0],'r') as dat:
         params=dat['params'].item()
         stim_tt=params[neurtype]['syn_tt'][0][1]
-    bin_size=(stim_tt[-1]+1/float(stim_freq)-stim_tt[0])/numbins
+    bin_size=(stim_tt[-1]+1/float(freq)-stim_tt[0])/numbins
     #bins['stim']={stim_tt[0]+i*bin_size : stim_tt[0]+(i+1)*bin_size for i in range(numbins)}
     bins['stim']=[stim_tt[0]+i*bin_size for i in range(numbins)]
     num_bins=int(stim_tt[0]/bin_size)
@@ -99,9 +98,8 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
 
 def freq_dependence(presyn,plasYN,inj):
     pattern='ep_syn'+presyn+'*_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-    files=glob.glob(pattern)
+    files=file_set(pattern)
     if len(files)==0:
-        print('********* no files found for ',pattern)
         return
     frequency_set=np.unique([int(fname.split('freq')[-1].split('_')[0]) for fname in files])
     results={freq:{} for freq in frequency_set}
@@ -129,84 +127,9 @@ def freq_dependence(presyn,plasYN,inj):
             print('issue with file {} keys {}'.format(fname,dat.keys))
     return numplots,results,xval_set,xlabel,ylabel
 
-if __name__ == "__main__": 
-    ####################################
-    # Parameters of set of files to analyze
-    neurtype='ep'
-    plasYN=0
-    #inj='-2.5e-11'
-    inj='0.0'
-    stim_freq=20
-    numbins=10
-    presyn_set=['GPe','str']
-    ############################################################
-    all_results=[];all_xvals=[]
-    for i,presyn in enumerate(presyn_set):
-        numplots,results,xval_set,xlabel,ylabel=freq_dependence(presyn,plasYN,inj)    
-        all_results.append(results)
-        all_xvals.append(xval_set)
-        
-    #plot the set of results from single neuron simulations, all frequencies
-    from matplotlib import pyplot as plt
-    plt.ion()
-    colors=['r','k','b']
-    fig,axes =plt.subplots(numplots, len(presyn_set),sharex=True, sharey=True)
-    fig.suptitle(neurtype+' stp='+str(plasYN)+', inject='+inj)
-    axis=fig.axes
-    for i,presyn in enumerate(presyn_set):
-        for freq in sorted(all_results[i].keys()):
-            for j,ntype in enumerate(all_results[i][freq].keys()):
-                axisnum=i*len(all_results[i][freq].keys())+j
-                for yval in all_results[i][freq][ntype]:
-                    axis[axisnum].scatter(all_xvals[i][freq][ntype][0:len(yval)],yval,label=str(freq),marker='o')
-                axis[axisnum].set_ylabel(str(ntype)+' '+ylabel)
-            axis[axisnum].legend()
-        axis[axisnum].set_xlabel(xlabel)
+def file_set(pattern):
+    files=glob.glob(pattern)
+    if len(files)==0:
+        print('********* no files found for ',pattern)
+    return files
 
-    #plot the set of results from network neuron simulations, one frequency, multiple trials
-    fig,axes =plt.subplots(len(presyn_set),1,sharex=True)
-    axis=fig.axes
-    for i,presyn in enumerate(presyn_set):
-        lat_mean,lat_std,isi_mean,isi_std,bins=latency(stim_freq,neurtype,presyn,plasYN,inj,numbins)
-        for k,key in enumerate(lat_mean.keys()):
-            axis[i].plot(range(len(lat_mean[key])),lat_mean[key],label=key+' mean',color=colors[k])
-            axis[i].plot(range(len(lat_std[key])),lat_std[key],label=key+' std',linestyle='dashed',color=colors[k])
-        axis[i].set_xlabel('stim number')
-        axis[i].set_ylabel(presyn+'input, latency (sec)')
-        fig.suptitle('Latency: frequency='+str(stim_freq)+' stp='+str(plasYN))
-        axis[i].legend()
-
-    fig,axes =plt.subplots(len(presyn_set),1,sharex=True)
-    axis=fig.axes
-    for i,presyn in enumerate(presyn_set):
-        lat_mean,lat_std,isi_mean,isi_std,bins=latency(stim_freq,neurtype,presyn,plasYN,inj,numbins)
-        for k,key in enumerate(bins.keys()):
-            axis[i].plot(bins[key],isi_mean[key],label=key+' mean',color=colors[k])
-            axis[i].plot(bins[key],isi_std[key],label=key+' std',linestyle='dashed',color=colors[k])
-        axis[i].set_xlabel('time (sec)')
-        axis[i].set_ylabel(presyn+'input, isi (sec)')
-        fig.suptitle('ISI: frequency='+str(stim_freq)+' stp='+str(plasYN))
-        axis[i].legend()
-
-    ####### Raster plot from results #############
-    fig,axes =plt.subplots(len(presyn_set), 1,sharex=True)
-    fig.suptitle('frequency='+str(stim_freq)+' plasticity='+str(plasYN))
-    axis=fig.axes
-    for ax,presyn in enumerate(presyn_set):
-        pattern='epnet_syn'+presyn+'_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-        files=glob.glob(pattern)
-        if len(files)==0:
-            print('********* no files found for ',pattern)
-        spiketimes=[]
-        for fname in files:
-            dat=np.load(fname,'r')
-            spiketimes.append(dat['spike_time'].item()[neurtype][0])
-        axis[ax].eventplot(spiketimes)
-        xstart=dat['params'].item()['ep']['syn_tt'][0][1][0]
-        xend=dat['params'].item()['ep']['syn_tt'][0][1][-1]
-        maxtime=max([max(st) for st in spiketimes])
-        axis[ax].annotate('stim onset',xy=(xstart,0),xytext=(xstart/maxtime, -0.2), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05))
-        axis[ax].annotate('offset',xy=(xend,0),xytext=(xend/maxtime, -0.2), textcoords='axes fraction', arrowprops=dict(facecolor='red', shrink=0.05))
-        axis[ax].set_ylabel(presyn+' trial')
-    axis[-1].set_xlabel('time (sec)')
-#ToDo: plot set of vm
