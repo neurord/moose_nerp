@@ -42,16 +42,19 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
         print('********* no files found for ',pattern)
         return
     isi=1.0/freq
-    latency=[[] for i in range(freq)]
-    pre_post_lat={'pre':[[] for i in range(freq)],'post':[[] for i in range(freq)]}
+    latency={'pre':[[] for i in range(freq)],'post':[[] for i in range(freq)], 'stim':[[] for i in range(freq)]}
     pre_post_stim={}
+    bins={}
     with np.load(files[0],'r') as dat:
         params=dat['params'].item()
         stim_tt=params[neurtype]['syn_tt'][0][1]
-    bin_interval=(stim_tt[-1]+1/float(stim_freq)-stim_tt[0])/numbins
-    bins={stim_tt[0]+i*bin_interval: stim_tt[0]+(i+1)*bin_interval for i in range(numbins*2)}
-    #bins=[(stim_tt[0]+i*bin_interval, stim_tt[0]+(i+1)*bin_interval) for i in range(numbins)]
-    isi_set={k:[] for k in bins.keys()}
+    bin_size=(stim_tt[-1]+1/float(stim_freq)-stim_tt[0])/numbins
+    #bins['stim']={stim_tt[0]+i*bin_size : stim_tt[0]+(i+1)*bin_size for i in range(numbins)}
+    bins['stim']=[stim_tt[0]+i*bin_size for i in range(numbins)]
+    num_bins=int(stim_tt[0]/bin_size)
+    bins['pre']=[bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)]
+    bins['post']=[bins['stim'][-1]+(i+1)*bin_size for i in range(num_bins)]
+    isi_set={'pre':{k:[] for k in bins['pre']},'post':{k:[] for k in bins['post']},'stim':{k:[] for k in bins['stim']}}
     for fname in files:
         dat=np.load(fname,'r')
         params=dat['params'].item()
@@ -60,39 +63,39 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
             #1st [0] below because could have multiple synapses stimulated
             #each item is tuple of (synapse,stim_times)
             stim_tt=params[neurtype]['syn_tt'][0][1]
+            pre_post_stim['stim']=stim_tt
             num_pre=int(stim_tt[0]/isi)
             pre_post_stim['pre']=[stim_tt[0]-(i+1)*isi for i in range(min(num_pre-1,freq))]
             num_post=int((spike_time[-1]-stim_tt[-1])/isi)
             pre_post_stim['post']=[stim_tt[-1]+(i+1)*isi for i in range(min(num_pre-1,freq))]
-            for i,time in enumerate(stim_tt):
-                next_spike=np.min(spike_time[np.where(spike_time>time)])
-                latency[i].append(next_spike-time)
             for pre_post in pre_post_stim.keys():
                 for i,time in enumerate(pre_post_stim[pre_post]):
                     next_spike=np.min(spike_time[np.where(spike_time>time)])
-                    pre_post_lat[pre_post][i].append(next_spike-time)
+                    latency[pre_post][i].append(next_spike-time)
             isi_vals=dat['isi'].item()[neurtype][0]
             st_isi=dict(zip(spike_time[1:],isi_vals))
-            #for (binmin,binmax) in bins:
-            for binmin,binmax in bins.items():
-                isi_set[binmin].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
+            for pre_post in bins.keys():
+                for binmin in bins[pre_post]:
+                    binmax=binmin+bin_size
+                    isi_set[pre_post][binmin].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
         else:
             print('whoops, wrong file',fname,'for freq', freq,'file contains', dat.keys())
-    mean_lat={}
-    std_lat={}
-    mean_lat['stim']=np.mean(latency,axis=1)
-    std_lat['stim']=np.std(latency,axis=1)
-    print('latency: mean {} \n std {}'.format(mean_lat['stim'],std_lat['stim']))
-    for pre_post in pre_post_lat.keys():
-        mean_lat[pre_post]=np.mean(pre_post_lat[pre_post],axis=1)
-        std_lat[pre_post]=np.std(pre_post_lat[pre_post],axis=1)
-        print('latency {}: mean {} \n std {}'.format(pre_post,mean_lat[pre_post],std_lat[pre_post]))
-    for binmin,isilist in isi_set.items():
-        isi_set[binmin]=[item for sublist in isilist for item in sublist]
-    print(isi_set)
-    isi_mean=[np.mean(isi_set[binmin]) for binmin in isi_set.keys()]
-    isi_std=[np.std(isi_set[binmin]) for binmin in isi_set.keys()]
-    return mean_lat,std_lat,isi_mean,isi_std,bins
+    lat_mean={}
+    lat_std={}
+    for pre_post in latency.keys():
+        lat_mean[pre_post]=np.mean(latency[pre_post],axis=1)
+        lat_std[pre_post]=np.std(latency[pre_post],axis=1)
+        print('latency {}: mean {} \n std {}'.format(pre_post,lat_mean[pre_post],lat_std[pre_post]))
+    isi_mean={}
+    isi_std={}
+    for pre_post in isi_set.keys():
+        for binmin,isilist in isi_set[pre_post].items():
+            isi_set[pre_post][binmin]=[item for sublist in isilist for item in sublist]
+    for pre_post in isi_set.keys():
+        isi_mean[pre_post]=[np.mean(isis) for isis in isi_set[pre_post].values()]
+        isi_std[pre_post]=[np.std(isis) for isis in isi_set[pre_post].values()]
+        print('isi {}: mean {} \n std {}'.format(pre_post,isi_mean[pre_post],isi_std[pre_post]))
+    return lat_mean,lat_std,isi_mean,isi_std,bins
 
 def freq_dependence(presyn,plasYN,inj):
     pattern='ep_syn'+presyn+'*_plas'+str(plasYN)+'_inj'+inj+'*.npz'
@@ -102,7 +105,7 @@ def freq_dependence(presyn,plasYN,inj):
         return
     frequency_set=np.unique([int(fname.split('freq')[-1].split('_')[0]) for fname in files])
     results={freq:{} for freq in frequency_set}
-    xval_set={}
+    xval_set={freq:{} for freq in frequency_set}
     for fname in files:
         dat=np.load(fname,'r')
         params=dat['params'].item()
@@ -111,7 +114,7 @@ def freq_dependence(presyn,plasYN,inj):
             results[params['freq']]={ntype:[] for ntype in dat['norm'].item().keys()}
             for neurtype in dat['norm'].item().keys():
                 results[params['freq']][neurtype]=dat['norm'].item()[neurtype]
-                xval_set[params['freq']]=range(len(dat['norm']))
+                xval_set[params['freq']][neurtype]=range(len(dat['norm']))
             ylabel='normalized PSP amp'
             xlabel='pulse'
         elif 'isi' in dat.keys():
@@ -119,7 +122,7 @@ def freq_dependence(presyn,plasYN,inj):
             results[params['freq']]={ntype:[] for ntype in dat['isi'].item().keys()}
             for neurtype in dat['isi'].item().keys():
                 results[params['freq']][neurtype]=dat['isi'].item()[neurtype]
-                xval_set[params['freq']]=dat['spike_time'].item()[neurtype][0]
+                xval_set[params['freq']][neurtype]=dat['spike_time'].item()[neurtype][0]
             ylabel='isi (sec)'
             xlabel='time (sec)'
         else:
@@ -130,45 +133,80 @@ if __name__ == "__main__":
     ####################################
     # Parameters of set of files to analyze
     neurtype='ep'
-    presyn='GPe'
-    plasYN=1
+    plasYN=0
     #inj='-2.5e-11'
     inj='0.0'
     stim_freq=20
-    numbins=5
+    numbins=10
+    presyn_set=['GPe','str']
     ############################################################
-
-    mean_lat,std_lat,isi_mean,isi_std,bins=latency(stim_freq,neurtype,presyn,plasYN,inj,numbins)
-
-    numplots,results,xval_set,xlabel,ylabel=freq_dependence(presyn,plasYN,inj)    
-
-    #plot the set of results:
+    all_results=[];all_xvals=[]
+    for i,presyn in enumerate(presyn_set):
+        numplots,results,xval_set,xlabel,ylabel=freq_dependence(presyn,plasYN,inj)    
+        all_results.append(results)
+        all_xvals.append(xval_set)
+        
+    #plot the set of results from single neuron simulations, all frequencies
     from matplotlib import pyplot as plt
     plt.ion()
-    fig,axes =plt.subplots(numplots, 1,sharex=True)
-    fig.suptitle('synapse type='+presyn+', inject='+inj)
+    colors=['r','k','b']
+    fig,axes =plt.subplots(numplots, len(presyn_set),sharex=True, sharey=True)
+    fig.suptitle(neurtype+' stp='+str(plasYN)+', inject='+inj)
     axis=fig.axes
-    for freq in sorted(results.keys()):
-        for axisnum,ntype in enumerate(results[freq].keys()):
-            for yval in results[freq][ntype]:
-                axis[axisnum].scatter(xval_set[freq][0:len(yval)],yval,label=str(ntype)+' '+str(freq),marker='o')
-        axis[axisnum].set_ylabel(ylabel)
-    axis[-1].set_xlabel(xlabel)
-    axis[axisnum].legend()
+    for i,presyn in enumerate(presyn_set):
+        for freq in sorted(all_results[i].keys()):
+            for j,ntype in enumerate(all_results[i][freq].keys()):
+                axisnum=i*len(all_results[i][freq].keys())+j
+                for yval in all_results[i][freq][ntype]:
+                    axis[axisnum].scatter(all_xvals[i][freq][ntype][0:len(yval)],yval,label=str(freq),marker='o')
+                axis[axisnum].set_ylabel(str(ntype)+' '+ylabel)
+            axis[axisnum].legend()
+        axis[axisnum].set_xlabel(xlabel)
 
-    plt.figure()
-    for key in mean_lat.keys():
-       plt.plot(range(len(mean_lat[key])),mean_lat[key],label=key)
-    plt.xlabel('stim number')
-    plt.ylabel('latency')
-    plt.title(presyn+' frequency='+str(stim_freq))
-    plt.legend()
+    #plot the set of results from network neuron simulations, one frequency, multiple trials
+    fig,axes =plt.subplots(len(presyn_set),1,sharex=True)
+    axis=fig.axes
+    for i,presyn in enumerate(presyn_set):
+        lat_mean,lat_std,isi_mean,isi_std,bins=latency(stim_freq,neurtype,presyn,plasYN,inj,numbins)
+        for k,key in enumerate(lat_mean.keys()):
+            axis[i].plot(range(len(lat_mean[key])),lat_mean[key],label=key+' mean',color=colors[k])
+            axis[i].plot(range(len(lat_std[key])),lat_std[key],label=key+' std',linestyle='dashed',color=colors[k])
+        axis[i].set_xlabel('stim number')
+        axis[i].set_ylabel(presyn+'input, latency (sec)')
+        fig.suptitle('Latency: frequency='+str(stim_freq)+' stp='+str(plasYN))
+        axis[i].legend()
 
-    plt.figure()
-    plt.plot(list(bins.keys()),isi_mean)
-    plt.xlabel('time (sec)')
-    plt.ylabel('mean isi (sec)')
-    plt.title(presyn+' frequency='+str(stim_freq))
+    fig,axes =plt.subplots(len(presyn_set),1,sharex=True)
+    axis=fig.axes
+    for i,presyn in enumerate(presyn_set):
+        lat_mean,lat_std,isi_mean,isi_std,bins=latency(stim_freq,neurtype,presyn,plasYN,inj,numbins)
+        for k,key in enumerate(bins.keys()):
+            axis[i].plot(bins[key],isi_mean[key],label=key+' mean',color=colors[k])
+            axis[i].plot(bins[key],isi_std[key],label=key+' std',linestyle='dashed',color=colors[k])
+        axis[i].set_xlabel('time (sec)')
+        axis[i].set_ylabel(presyn+'input, isi (sec)')
+        fig.suptitle('ISI: frequency='+str(stim_freq)+' stp='+str(plasYN))
+        axis[i].legend()
 
-
-#ToDo: raster plot of results, plot set of vm, mean isi for pre and post
+    ####### Raster plot from results #############
+    fig,axes =plt.subplots(len(presyn_set), 1,sharex=True)
+    fig.suptitle('frequency='+str(stim_freq)+' plasticity='+str(plasYN))
+    axis=fig.axes
+    for ax,presyn in enumerate(presyn_set):
+        pattern='epnet_syn'+presyn+'_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+        files=glob.glob(pattern)
+        if len(files)==0:
+            print('********* no files found for ',pattern)
+        spiketimes=[]
+        for fname in files:
+            dat=np.load(fname,'r')
+            spiketimes.append(dat['spike_time'].item()[neurtype][0])
+        axis[ax].eventplot(spiketimes)
+        xstart=dat['params'].item()['ep']['syn_tt'][0][1][0]
+        xend=dat['params'].item()['ep']['syn_tt'][0][1][-1]
+        maxtime=max([max(st) for st in spiketimes])
+        axis[ax].annotate('stim onset',xy=(xstart,0),xytext=(xstart/maxtime, -0.2), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05))
+        axis[ax].annotate('offset',xy=(xend,0),xytext=(xend/maxtime, -0.2), textcoords='axes fraction', arrowprops=dict(facecolor='red', shrink=0.05))
+        axis[ax].set_ylabel(presyn+' trial')
+    axis[-1].set_xlabel('time (sec)')
+#ToDo: plot set of vm
