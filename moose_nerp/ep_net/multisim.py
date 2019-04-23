@@ -30,7 +30,7 @@ def moose_main(p):
 
     create_model_sim.setupOptions(model)
     param_sim = model.param_sim
-    param_sim.injection_current = [0e-12]
+    param_sim.injection_current = [25e-12]
     param_sim.injection_delay = 0.0
     param_sim.plot_synapse=False
 
@@ -56,7 +56,7 @@ def moose_main(p):
         print('########### unknown synapse type')
 
     param_sim.fname='epnet_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
-    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {}'.format(stimfreq,presyn,model.stpYN,trialnum))
+    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {}'.format(presyn,model.stpYN,stimfreq,trialnum))
 
     create_model_sim.setupStim(model)
 
@@ -91,7 +91,11 @@ def moose_main(p):
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #################### Actually run the simulation
-    create_model_sim.runOneSim(model)
+    if not np.all([inj==0 for inj in param_sim.injection_current]):
+        inj=[i for i in param_sim.injection_current if i !=0]
+        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj[0])
+    else:
+        create_model_sim.runOneSim(model)
     #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
 
     import ISI_anal
@@ -128,7 +132,7 @@ def multi_main(syntype,stpYN,stimfreqs,num_trials):
 
 if __name__ == "__main__":
     print('running main')
-    syn='str'
+    syn='GPe'
     stpYN=1
     num_trials=10
     stimfreqs=[20]
