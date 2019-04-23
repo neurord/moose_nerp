@@ -6,17 +6,10 @@
 ##      calcium based learning rule/plasticity function, optional
 ##      spines, optionally with ion channels and synpases
 ##      Synapses to test the plasticity function, optional
-##      used to tune parameters and channel kinetics (but using larger morphology)
 
 from __future__ import print_function, division
-from moose_nerp import ep as model
-'''Evaluates moose_nerp/ca1/__init__.py to load all the parameters, e.g.
-param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
-into the model namespace. These parameters are then accessible by, e.g.,
-`model.param_sim.fname`.
-'''
-
 from moose_nerp.prototypes import create_model_sim
+from moose_nerp import ep as model
 '''Imports functions for setting up and simulating model. These take the `model`
 namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
@@ -26,7 +19,7 @@ model.synYN = True
 model.stpYN = True
 presyn='GPe' #choose from 'str', 'GPe'
 stimfreq=20 #choose from 1,5,10,20,40
-model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
+model.param_sim.stim_paradigm='inject'#'PSP_'+str(stimfreq)+'Hz'
 
 # This function sets up the options specified in param_sim or passed from
 # command line:
@@ -34,13 +27,13 @@ create_model_sim.setupOptions(model)
 
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [0e-12] #offset to prevent or enhance firing
-param_sim.injection_delay = 0.0
+param_sim.injection_current = [-200e-12,-100e-12,50e-12] #offset to prevent or enhance firing
+param_sim.injection_delay = 0.1
 param_sim.save_txt=False
 param_sim.plot_synapse=True
 param_sim.plot_calcium=False
 
-#
+# this is only needed if adding short term plasticity to synapse
 from moose_nerp import ep_net as net
 if presyn=='str':
     stp_params=net.param_net.str_plas
@@ -62,13 +55,25 @@ create_model_sim.setupOutput(model)
 # injection or synaptic stimulation:
 create_model_sim.setupStim(model)
 
-# There is also a convenience function, `create_model_sim.setupAll(model)` that
-# would sequentially call the above four functions: setupOptions, setupNeurons,
-# setupOutput, and setupStim
+#add short term plasticity to synapse as appropriate
+if model.param_sim.stim_paradigm != 'inject':
+    from moose_nerp.prototypes import plasticity_test as plas_test
+    syntab={ntype:[] for ntype in  model.neurons.keys()}
+    plastabset={ntype:[] for ntype in  model.neurons.keys()}
+    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
+    for ntype in model.neurons.keys():
+        for tt_syn_tuple in model.tuples[ntype].values():
+            if model.stpYN:
+                syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
+                                                                       simdt=model.param_sim.simdt,stp_params=stp_params)
+            else:
+                syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+        param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 # This function runs all the specified simulations, plotting and saving them
 # as specified:
-#create_model_sim.runAll(model,printParams=False)
+create_model_sim.runAll(model,printParams=True)
+
 # Alternative function to create_model_sim.runAll, that runs a simulation a few
 # steps at a time and then updates a plot, to show the live simulation results.
 # This is an example of modifying, expanding, or customizing code:
@@ -79,58 +84,46 @@ create_model_sim.setupStim(model)
 # with new options that do not alter the current state of the functions unless
 # the new options are explicitly called.
 
-#add short term plasticity to synapse as appropriate
-from moose_nerp.prototypes import plasticity_test as plas_test
-syntab={ntype:[] for ntype in  model.neurons.keys()}
-plastabset={ntype:[] for ntype in  model.neurons.keys()}
-param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
-for ntype in model.neurons.keys():
-    for tt_syn_tuple in model.tuples[ntype].values():
-        if model.stpYN:
-            syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
-                                                                   simdt=model.param_sim.simdt,stp_params=stp_params)
-        else:
-            syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
-    param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
+# There is also a convenience function, `create_model_sim.setupAll(model)` that
+# would sequentially call the above four functions: setupOptions, setupNeurons,
+# setupOutput, and setupStim
+#That function does not include adding short term plasticity
 
-#simulate the model
-create_model_sim.runAll(model,printParams=True)
-print('<<<<<<<<<<< sim finished: freq',stimfreq,'simtime',param_sim.simtime,'tt',tt_syn_tuple[0].vector)
-
+###################### Analysis ##############################
 #Extract spike times and calculate ISI if spikes occur
 import numpy as np
 import ISI_anal
 #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
-stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
-
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     if model.param_sim.save_txt:
         np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
-if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
-    #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
-    psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
-    if model.param_sim.save_txt:
-        np.savez(param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict)
-else:
-    psp_norm=None
+psp_norm=None
+if model.param_sim.stim_paradigm != 'inject':
+    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+    if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
+        #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
+        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
+        if model.param_sim.save_txt:
+            np.savez(param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict)
 
 ########################## Plotting results ##############################
 #plot plasticity and synaptic response
 from matplotlib import pyplot as plt
 plt.ion()
-plt.figure()
-plt.title('synapse')
-for ntype in model.neurons.keys():
-    numpts=len(syntab[ntype].vector)
-    time=np.arange(0,syntab[ntype].dt*numpts,syntab[ntype].dt)
-    if model.stpYN:
-        for i,tab in enumerate(plastabset[ntype]):
-            offset=i*0.02
-            labl=tab.name[-4:-1]+'+'+str(offset)
-            plt.plot(time[0:numpts],tab.vector+offset,label=labl)
-plt.plot(time[0:numpts],syntab[ntype].vector*1e9,label='Gk*1e9')
-plt.legend()
+if psp_norm:
+    plt.figure()
+    plt.title('synapse')
+    for ntype in model.neurons.keys():
+        numpts=len(syntab[ntype].vector)
+        time=np.arange(0,syntab[ntype].dt*numpts,syntab[ntype].dt)
+        if model.stpYN:
+            for i,tab in enumerate(plastabset[ntype]):
+                offset=i*0.02
+                labl=tab.name[-4:-1]+'+'+str(offset)
+                plt.plot(time[0:numpts],tab.vector+offset,label=labl)
+    plt.plot(time[0:numpts],syntab[ntype].vector*1e9,label='Gk*1e9')
+    plt.legend()
 
 #plot spikes or PSP amplitude if no spikes during stimulation
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
@@ -150,7 +143,12 @@ if psp_norm:
         for i,tab in enumerate(tabset):
             plt.plot(range(len(tab)),tab,'o')
  
-'''           tau decay = 20ms               Lavian       tau decay = 10 ms
+''' 
+ToDo:
+1. update this chart
+2. fix inject protocol and handling of overrides
+
+          tau decay = 20ms               Lavian       tau decay = 10 ms
               str      GPe,tau=1s  tau=0.6s  GPe    Str    str   GPe (tau=0.6s)
 initial PSP   0.4 mV   1.5 mV       1.5       3     1.5   
 1 Hz                                          0.9   1.0
