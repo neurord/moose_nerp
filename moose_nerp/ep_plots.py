@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 plt.ion()
 import ISI_anal
+colors=['r','k','b']
 
 def ISI_plot(stim_freq,neurtype,presyn_set,plasYN,inj,numbins):
     #plot the ISI and latency from network neuron simulations, one frequency, multiple trials
@@ -60,7 +61,6 @@ def freq_dep_plot(presyn_set,plasYN,inj,neurtype):
         numplots,results,xval_set,xlabel,ylabel=ISI_anal.freq_dependence(presyn,plasYN,inj)    
         all_results.append(results)
         all_xvals.append(xval_set)
-    colors=['r','k','b']
     fig,axes =plt.subplots(numplots, len(presyn_set),sharex=True, sharey=True)
     fig.suptitle(neurtype+' stp='+str(plasYN)+', inject='+inj)
     axis=fig.axes
@@ -100,18 +100,18 @@ def freq_dep_vm(presyn_set,plasYN,inj,neurtype):
 ####################################
 # Parameters of set of files to analyze
 neurtype='ep'
-plasYN=0
-#inj='-2.5e-11'
-inj='-1.5e-11'
+plasYN=1
+inj='2.5e-11'
+#inj='-1.5e-11'
 stim_freq=20
 numbins=10
 presyn_set=['GPe','str']
 ############################################################
 #plots for network simulations:
-#latency_plot(stim_freq,neurtype,presyn_set,plasYN,inj,numbins)
-#ISI_plot(stim_freq,neurtype,presyn_set,plasYN,inj,numbins)
-#raster_plot(presyn_set,stim_freq,plasYN)
+latency_plot(stim_freq,neurtype,presyn_set,plasYN,inj,numbins)
+ISI_plot(stim_freq,neurtype,presyn_set,plasYN,inj,numbins)
+raster_plot(presyn_set,stim_freq,plasYN)
 
 #plots for single neuron simulations:
 #freq_dep_plot(presyn_set,plasYN,inj,neurtype)
-freq_dep_vm(presyn_set,plasYN,inj,neurtype)
+#freq_dep_vm(presyn_set,plasYN,inj,neurtype)
