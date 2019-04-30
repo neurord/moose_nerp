@@ -19,7 +19,8 @@ param_sim.logging_level = logging.INFO
 param_sim.save = False #True # save to hdf5
 param_sim.save_txt = False # True # Save text files
 
-param_sim.simdt = 1e-05
+#smaller than previous to improve stability
+param_sim.simdt = 1e-06
 param_sim.hsolve = True
 
 param_sim.plotcomps = [NAME_SOMA]
@@ -32,7 +33,7 @@ param_sim.plotdt = 0.0001
 param_sim.plot_activation = False #None
 param_sim.plot_calcium = True #False
 param_sim.plot_channels = False #['NaS','NaF'] # True for all channels, or name of channel or list of names of channels for individual
-param_sim.plotgate = 'NaS' #TODO: Use this
+param_sim.plotgate = 'NaF' #TODO: Use this
 param_sim.plot_current = False #True #None
 param_sim.plot_current_label = 'Cond, S'
 param_sim.plot_current_message = 'getGk'

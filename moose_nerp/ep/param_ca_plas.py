@@ -40,10 +40,11 @@ CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL}
 #    Tau is used only if using single time constant of decay instead of pumps and buffers
 
 CaBasal = 50e-6
-CaTau = 2e-3     # 0.001 sec used in Jadegers model
+#much slower tau decay to better match Korngreen data
+CaTau = 20e-3     # 0.001 sec used in Jadegers model
 CalciumParams = CellCalcium(CaName='Shell',Ceq=CaBasal,DCa=200e-12,tau=CaTau)
 
-BufCapacity = 10 #20e-3  # use 1 from Jaegers model to match the value of B (B=1/Z.F.V.KB)
+BufCapacity = 20 #20e-3  # use 1 from Jaegers model to match the value of B (B=1/Z.F.V.KB)
                  #10 implies that 90% of calcium immediately binds to buffer
 CaThick = 0.020e-6 #0.02 microns
 

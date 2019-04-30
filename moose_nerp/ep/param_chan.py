@@ -285,12 +285,13 @@ HCN2_X_params = AlphaBetaChannelParams(A_rate=6.634849628827391,
 HCN2_Y_params=[]
 
 #Caparam - D.James Surmeier, ( tau and ss)
+#decreases the Ca rates to help prevent instability
 Caparam=ChannelSettings(Xpow=1 , Ypow=0 , Zpow=0, Erev=carev , name='Ca')
-Ca_X_params = AlphaBetaChannelParams(A_rate=147272.72742,
- A_B=-2727272.73,
+Ca_X_params = AlphaBetaChannelParams(A_rate= 45000,
+                                     A_B=45000/-54e-3,#2727272.73,
  A_C=-1,
  A_vhalf=-0.054,
- A_vslope=-0.011,
+ A_vslope=-0.012,
  B_rate=450,
  B_B=0,
  B_C=1,
