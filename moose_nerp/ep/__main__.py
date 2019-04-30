@@ -8,6 +8,8 @@
 ##      Synapses to test the plasticity function, optional
 
 from __future__ import print_function, division
+import moose
+import numpy as np
 from moose_nerp.prototypes import create_model_sim
 from moose_nerp import ep as model
 '''Imports functions for setting up and simulating model. These take the `model`
@@ -15,35 +17,42 @@ namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
 
-model.synYN = True
-model.stpYN = True
-presyn='GPe' #choose from 'str', 'GPe'
+model.synYN = False#True
+model.stpYN = False#True
+presyn='none' #choose from 'str', 'GPe', 'none'
 stimfreq=20 #choose from 1,5,10,20,40
-model.param_sim.stim_paradigm='inject'#'PSP_'+str(stimfreq)+'Hz'
+stimtype='AP_' #choose from AP and PSP
+model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
 
 # This function sets up the options specified in param_sim or passed from
 # command line:
 create_model_sim.setupOptions(model)
-
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [-200e-12,-100e-12,50e-12] #offset to prevent or enhance firing
-param_sim.injection_delay = 0.1
+param_sim.injection_current = [0]
+param_sim.injection_delay = 0.0
+param_sim.injection_width = 5.0
 param_sim.save_txt=False
-param_sim.plot_synapse=True
-param_sim.plot_calcium=False
+#param_sim.plot_synapse=True
+#param_sim.plot_calcium=False
+param_sim.plotcomps = param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1_a']
+#soma:13 um diam
+#p0b1:16 um away
+#p0b1b1:46 um (additional 30 um)
+#p0b1b1_x:76 um (additional 30 um)
+
 
 # this is only needed if adding short term plasticity to synapse
 from moose_nerp import ep_net as net
-if presyn=='str':
+if presyn=='str' and model.stpYN:
     stp_params=net.param_net.str_plas
-elif presyn=='GPe':
+elif presyn=='GPe' and model.stpYN:
     stp_params=net.param_net.GPe_plas
 else:
-    print('########### unknown synapse type')
+    print('########### unknown synapse type:', presyn)
 
-param_sim.fname='ep_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,model.stpYN))
+param_sim.fname='ep20ms'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN))
 
 # This function creates the neuron(s) in Moose:
 create_model_sim.setupNeurons(model)
@@ -54,9 +63,12 @@ create_model_sim.setupOutput(model)
 # This function sets up the stimulation in Moose, e.g. pulsegen for current
 # injection or synaptic stimulation:
 create_model_sim.setupStim(model)
+#additional current injection, e.g. if an offset current is desired
+if not np.all([inj==0 for inj in param_sim.injection_current]):
+    setupinj(model, param_sim.injection_delay,param_sim.injection_width,neuron_pop)
 
 #add short term plasticity to synapse as appropriate
-if model.param_sim.stim_paradigm != 'inject':
+if model.param_sim.stim_paradigm.startswith('PSP'):
     from moose_nerp.prototypes import plasticity_test as plas_test
     syntab={ntype:[] for ntype in  model.neurons.keys()}
     plastabset={ntype:[] for ntype in  model.neurons.keys()}
