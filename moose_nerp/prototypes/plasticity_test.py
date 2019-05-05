@@ -26,7 +26,7 @@ def plasticity_test(model, syncomp=None, syn_pop=None, stimtimes=None):
             stimtab[neurtype]=moose.TimeTable('%s/TimTab%s' % (neu.path, neurtype))
             stimtab[neurtype].vector = stimtimes
 
-            print(syntype,neurtype,syncomp)
+            print('**** plasticity test ********',syntype,neurtype,syncomp)
             #synchan=moose.element(syn_pop[neurtype][syntype][syncomp])
             synchan=moose.element(syncomp.path+'/'+syntype)
             sh = synchan.children[0]

@@ -39,6 +39,7 @@ spine_density
 pulse_sequence
 stim_dendrites
 syntype=None
+weight=None
 ''')
 
 StimParams = NamedList('PresynapticStimulation','''
@@ -155,7 +156,7 @@ def MakeTimeTables(Stimulation,spine_no):
                             how_many_spines += 1
                             if how_many_spines == how_many:
                                 break
-
+                #ANOTHER ISSUE: This will create identical time_tables for each spine, instead of hooking up same tt to multiples
                 loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams)
 
     return time_tables
@@ -191,7 +192,10 @@ def HookUpDend(model,dendrite,container):
         synchans={dendrite.name:[dendrite.path+'/'+model.Stimulation.StimLoc.syntype]}
         tt_root_name=container.path+'/TimTab'
         print('HookUpDend, syn:', synchans,num_spines)
-
+    if getattr(model.Stimulation.StimLoc,'weight',None):
+        weight=model.Stimulation.StimLoc.weight
+    else:
+        weight=1
     time_tables = MakeTimeTables(model.Stimulation,num_spines)
     freq=model.Stimulation.Paradigm.f_pulse
     print('HookUpDend, tt:', time_tables)
@@ -204,9 +208,9 @@ def HookUpDend(model,dendrite,container):
 
         for synchan in synchans[spine]:
             synapse = moose.element(synchan+'/SH')
-            print('**** ready to connect',synapse.path,stimtab[spine].vector)
+            print('**** ready to connect',synapse.path,stimtab[spine].vector,model.Stimulation.Paradigm.name,model.Stimulation.StimLoc.stim_dendrites,'weight=',weight)
             #connect.plain_synconn(synapse,stimtab[spine],0)
-            connect.synconn(synapse.path,0,stimtab[spine],model.param_syn)
+            connect.synconn(synapse.path,0,stimtab[spine],model.param_syn,weight=weight)
             stim_syn[synchan]=(stimtab[spine],synapse,synapse.synapse.num-1)
             
     return stimtab,synchans,stim_syn
@@ -225,6 +229,7 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
         moose.connect(pg[0], 'output', injectcomp, 'injectMsg')
 
     stimtabs = {};stim_syn_set={};#synchans={}
+    #ISSUE WITH THIS LOOP: potentially creating independent but identical timetables for multiple dendrites
     for dend in model.Stimulation.StimLoc.stim_dendrites:
         name_dend = '/'+ntype+'/'+dend
         dendrite = moose.element(name_dend)
@@ -280,16 +285,15 @@ def setup_stim(model,param_sim,neuron_paths):
         model.tt,model.tuples=tt, stim_syn_set
         param_sim.simtime = max(sim_time) + model.param_stim.Stimulation.stim_delay
         print('setup_stim, simtime={}'.format(param_sim.simtime))
-        #only set injection_current to 0 if a set of injects was specified, else might be an intended offset current
-        if len(param_sim.injection_current)>1:
-            param_sim.injection_current = [0]
-    #possibly set up constant current injection in addition to patterned stimulation (Check with Dan)
-    ### Current Injection alone, either use values from Paradigm or from command-line options
-    if not len(param_sim.injection_current):
-        param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
-        param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
-        param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
-    if not np.all([inj==0 for inj in param_sim.injection_current]) or not len(param_sim.injection_current):
+        #param_sim.injection_current = [0]
+    else:
+        ### Current Injection alone, either use values from Paradigm or from command-line options
+        #Dan: param_sim should update param_stim.Stimulation? only param_sim.injection_current should be used?
+        #test for existence, not len of injection_current to determine over-writing?
+        if not len(param_sim.injection_current):
+            param_sim.injection_current = [model.param_stim.Stimulation.Paradigm.A_inject]
+            param_sim.injection_delay = model.param_stim.Stimulation.stim_delay
+            param_sim.injection_width = model.param_stim.Stimulation.Paradigm.width_AP
         pg=setupinj(model, param_sim.injection_delay, param_sim.injection_width,neuron_paths)
     return pg,param_sim
 

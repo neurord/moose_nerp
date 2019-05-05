@@ -17,12 +17,14 @@ from moose_nerp.prototypes import plasticity
 log = logutil.Logger()
 CONNECT_SEPARATOR='_to_'
 
-def plain_synconn(syn,presyn,syn_delay,simdt=None,stp_params=None):
+def plain_synconn(syn,presyn,syn_delay,weight,simdt=None,stp_params=None):
     sh=moose.element(syn.path)
     jj=sh.synapse.num
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
-    #print('SYNAPSE: {} index {} num {} delay {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay))
+    sh.synapse[jj].weight=weight
+    if weight>1:
+        print('SYNAPSE: {} index {} num {} delay {} weight {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay, sh.synapse[jj].weight))
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
         msg='eventOut'
@@ -32,20 +34,20 @@ def plain_synconn(syn,presyn,syn_delay,simdt=None,stp_params=None):
     if stp_params is not None:
         plasticity.ShortTermPlas(sh.synapse[jj],jj,stp_params,simdt,presyn,msg)
 
-def synconn(synpath,dist,presyn, syn_params ,mindel=1e-3,cond_vel=0.8,simdt=None,stp=None):
+def synconn(synpath,dist,presyn, syn_params ,mindel=1e-3,cond_vel=0.8,simdt=None,stp=None,weight=1):
     if dist:
         syn_delay = max(mindel,np.random.normal(mindel+dist/cond_vel,mindel))
     else:
         syn_delay=mindel
     syn=moose.element(synpath)
-    plain_synconn(syn,presyn,syn_delay,simdt=simdt,stp_params=stp)
+    plain_synconn(syn,presyn,syn_delay,weight,simdt=simdt,stp_params=stp)
                 
     if syn.parent.name==syn_params.NAME_AMPA:
        nmda_synpath=syn.parent.parent.path+'/'+syn_params.NAME_NMDA+'/'+syn.name
        if moose.exists(nmda_synpath):
            nmda_syn=moose.element(nmda_synpath)
            #probably should add stp for NMDA.  When including desensitization, will be different
-           plain_synconn(nmda_syn,presyn,syn_delay)
+           plain_synconn(nmda_syn,presyn,syn_delay,weight)
 
 def select_entry(table):
     row=np.random.random_integers(0,len(table)-1)
@@ -150,7 +152,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
         log.info('CONNECT: TT {} POST {} {}', tt,syn, postbranch)
-        synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp)
+        synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
         #save the connection in a dictionary for inspection later
         connections[postbranch]=tt.path
     return connections
