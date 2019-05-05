@@ -38,14 +38,17 @@ net.single=True
 
 ############## Set-up test of synaptic plasticity at single synapse ####################
 presyn='GPe' #choose from 'str', 'GPe'
-stimfreq=20 #choose from 1,5,10,20,40
-model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
+stimfreq=40 #choose from 1,5,10,20,40
+stimtype='PSP_' #choose from AP and PSP
+model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
+model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.injection_current = [0e-12]
 param_sim.injection_delay = 0.0
 param_sim.plot_synapse=True
+param_sim.save_txt = True
 
 #param_sim.simtime = 1.0
 #param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
@@ -72,10 +75,13 @@ elif presyn=='GPe':
 else:
     print('########### unknown synapse type')
 
-param_sim.fname='epnet_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,model.stpYN))
+param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+print('>>>>>>>>>> moose_main, protocol {} stimfreq {} presyn {} stpYN {}'.format(model.param_sim.stim_paradigm,stimfreq,presyn,model.stpYN))
 
 create_model_sim.setupStim(model)
+if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+    pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
+    pg.firstLevel = param_sim.injection_current[0]
 
 ##############--------------output elements
 if net.single:
@@ -94,6 +100,7 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
+#add short term plasticity to synapse as appropriate
 from moose_nerp.prototypes import plasticity_test as plas_test
 extra_syntab={ntype:[] for ntype in  model.neurons.keys()}
 extra_plastabset={ntype:[] for ntype in  model.neurons.keys()}

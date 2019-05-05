@@ -27,10 +27,11 @@ def moose_main(p):
     model.stpYN = stpYN
     net.single=True
     model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
+    model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
 
     create_model_sim.setupOptions(model)
     param_sim = model.param_sim
-    param_sim.injection_current = [25e-12]
+    param_sim.injection_current = [0e-12]
     param_sim.injection_delay = 0.0
     param_sim.plot_synapse=False
 
@@ -55,10 +56,14 @@ def moose_main(p):
     else:
         print('########### unknown synapse type')
 
-    param_sim.fname='epnet_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
+    param_sim.fname='epGABA_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {}'.format(presyn,model.stpYN,stimfreq,trialnum))
 
     create_model_sim.setupStim(model)
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
+        pg.firstLevel = param_sim.injection_current[0]
+
 
     ##############--------------output elements
     if net.single:
@@ -89,7 +94,7 @@ def moose_main(p):
             else:
                 extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
-
+    #
     #################### Actually run the simulation
     if not np.all([inj==0 for inj in param_sim.injection_current]):
         inj=[i for i in param_sim.injection_current if i !=0]
@@ -97,7 +102,7 @@ def moose_main(p):
     else:
         create_model_sim.runOneSim(model)
     #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
-
+    #
     import ISI_anal
     #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
@@ -132,7 +137,7 @@ def multi_main(syntype,stpYN,stimfreqs,num_trials):
 
 if __name__ == "__main__":
     print('running main')
-    syn='GPe'
+    syn='str'
     stpYN=1
     num_trials=10
     stimfreqs=[20]
