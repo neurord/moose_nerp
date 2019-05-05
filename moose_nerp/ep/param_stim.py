@@ -43,11 +43,12 @@ paradigm_dict={'inject':inject,
 #stim_dendrite list must correspond to dendrites in morphology.p
 #spine_density units: fraction of spines connected in specified compartments
 #if zero, will connect directly to dendrite, but must specify syntype
-location_str=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1b1b2'],syntype='gaba')
-location_GPe=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1'],syntype='gaba')
+location={}
+location['str']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1b1b2'],syntype='gaba')
+location['GPe']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1'],syntype='gaba',weight=2)
 
 #stim_delay units: sec
-Stimulation = StimParams(Paradigm = PSP_10Hz,stim_delay = 0.5,StimLoc=location_str)
+Stimulation = StimParams(Paradigm = PSP_10Hz,stim_delay = 1.0,StimLoc=location['GPe'])
 
 #pulse sequence should be of the form:
 #{1:[0,1],2:[2,3],3:[0,1]} -- for each pulse specify a list of spines to stimulate
