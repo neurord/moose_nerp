@@ -35,13 +35,20 @@ def psp_amp(vmtab,timetables):
             psp_norm[neurtype].append([amp/psp_amp[neurtype][-1][0] for amp in psp_amp[neurtype][-1]])
     return psp_amp,psp_norm
 
-def latency(freq,neurtype,presyn,plasYN,inj,numbins):
-    pattern='epnet_syn'+presyn+'_freq'+str(freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+def isi_vs_time(spike_time,isi_vals,bins,binsize,isi_set):
+    st_isi=dict(zip(spike_time[1:],isi_vals))
+    for pre_post in bins.keys():
+        for binmin in bins[pre_post]:
+            binmax=binmin+binsize
+            isi_set[pre_post][binmin].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
+    return isi_set
+
+def latency(pattern,freq,neurtype,numbins):
     files=file_set(pattern)
     if len(files)==0:
         return
     isi=1.0/freq
-    latency={'pre':[[] for i in range(freq)],'post':[[] for i in range(freq)], 'stim':[[] for i in range(freq)]}
+    latency={'pre':np.zeros((freq,len(files))),'post':np.zeros((freq,len(files))), 'stim':np.zeros((freq,len(files)))}
     pre_post_stim={}
     bins={}
     with np.load(files[0],'r') as dat:
@@ -54,7 +61,7 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
     bins['pre']=[bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)]
     bins['post']=[bins['stim'][-1]+(i+1)*bin_size for i in range(num_bins)]
     isi_set={'pre':{k:[] for k in bins['pre']},'post':{k:[] for k in bins['post']},'stim':{k:[] for k in bins['stim']}}
-    for fname in files:
+    for fnum,fname in enumerate(files):
         dat=np.load(fname,'r')
         params=dat['params'].item()
         if 'spike_time' in dat.keys() and params['freq']==freq:
@@ -70,13 +77,9 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
             for pre_post in pre_post_stim.keys():
                 for i,time in enumerate(pre_post_stim[pre_post]):
                     next_spike=np.min(spike_time[np.where(spike_time>time)])
-                    latency[pre_post][i].append(next_spike-time)
+                    latency[pre_post][i,fnum]=next_spike-time
             isi_vals=dat['isi'].item()[neurtype][0]
-            st_isi=dict(zip(spike_time[1:],isi_vals))
-            for pre_post in bins.keys():
-                for binmin in bins[pre_post]:
-                    binmax=binmin+bin_size
-                    isi_set[pre_post][binmin].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
+            isi_set=isi_vs_time(spike_time,isi_vals,bins,bin_size,isi_set)
         else:
             print('whoops, wrong file',fname,'for freq', freq,'file contains', dat.keys())
     lat_mean={}
@@ -84,7 +87,7 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
     for pre_post in latency.keys():
         lat_mean[pre_post]=np.mean(latency[pre_post],axis=1)
         lat_std[pre_post]=np.std(latency[pre_post],axis=1)
-        print('latency {}: mean {} \n std {}'.format(pre_post,lat_mean[pre_post],lat_std[pre_post]))
+        #print('latency {}: mean {} \n std {}'.format(pre_post,lat_mean[pre_post],lat_std[pre_post]))
     isi_mean={}
     isi_std={}
     for pre_post in isi_set.keys():
@@ -93,11 +96,11 @@ def latency(freq,neurtype,presyn,plasYN,inj,numbins):
     for pre_post in isi_set.keys():
         isi_mean[pre_post]=[np.mean(isis) for isis in isi_set[pre_post].values()]
         isi_std[pre_post]=[np.std(isis) for isis in isi_set[pre_post].values()]
-        print('isi {}: mean {} \n std {}'.format(pre_post,isi_mean[pre_post],isi_std[pre_post]))
+        #print('isi {}: mean {} \n std {}'.format(pre_post,isi_mean[pre_post],isi_std[pre_post]))
     return lat_mean,lat_std,isi_mean,isi_std,bins
 
-def freq_dependence(presyn,plasYN,inj):
-    pattern='ep_syn'+presyn+'*_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+def freq_dependence(fileroot,presyn,suffix):
+    pattern=fileroot+presyn+'*'+suffix
     files=file_set(pattern)
     if len(files)==0:
         return
@@ -132,4 +135,17 @@ def file_set(pattern):
     if len(files)==0:
         print('********* no files found for ',pattern)
     return files
+
+############# Call this from multisim, after import ISI_anal
+#  ISI_anal.save_tt(connections)
+def save_tt(connections):
+    used_tt={}
+    for syntype in connections['ep']['/ep'].keys():
+        used_tt[syntype]={}
+        for ext in connections['ep']['/ep'][syntype].keys():
+            used_tt[syntype][ext]={}
+            for syn in connections['ep']['/ep'][syntype][ext].keys():
+                tt=moose.element(connections['ep']['/ep'][syntype][ext][syn])
+                used_tt[syntype][ext][syn]=tt.vector
+    np.save('tt'+param_sim.fname,used_tt)
 
