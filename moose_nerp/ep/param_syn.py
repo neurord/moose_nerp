@@ -21,9 +21,10 @@ _NMDA_MgParams = MgParams(A = 1/6.0,
 _SynGaba = SynChannelParams(Erev = -75e-3,
                              tau1 = 0.5e-3,
                              tau2 = 10e-3,
-                             Gbar = 1e-9,
+                             Gbar = 1.5e-9,
                              var=0.05)
 #may need two time constants of decay to match Lavian
+#Use 1.5e-9 for str and 3e-9 for GPe?
 _SynAMPA = SynChannelParams(Erev = 0,
                              tau1 = 1e-3,
                              tau2 = 3e-3,
