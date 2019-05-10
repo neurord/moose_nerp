@@ -1,6 +1,7 @@
 #Functions for calculating ISI, latency, psp_amplitude for a set of files
 import glob
 import numpy as np
+
 import detect
 
 def spike_isi_from_vm(vmtab,simtime):
@@ -43,37 +44,46 @@ def isi_vs_time(spike_time,isi_vals,bins,binsize,isi_set):
             isi_set[pre_post][binmin].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
     return isi_set
 
+def set_up_bins(file0,freq,numbins,neurtype):
+    bins={}
+    with np.load(file0,'r') as dat:
+        params=dat['params'].item()
+        #1st [0] below because could have multiple synapses stimulated
+        #each item is tuple of (synapse,stim_times)
+        stim_tt=params[neurtype]['syn_tt'][0][1]
+        #simtime=params[simtime]
+        simtime=4.0
+    bin_size=(stim_tt[-1]+1/float(freq)-stim_tt[0])/numbins
+    #bins['stim']={stim_tt[0]+i*bin_size : stim_tt[0]+(i+1)*bin_size for i in range(numbins)}
+    bins['stim']=[stim_tt[0]+i*bin_size for i in range(numbins)]
+    num_bins=min(numbins,int(stim_tt[0]/bin_size))
+    bins['pre']=[bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)]
+    bins['post']=[bins['stim'][-1]+(i+1)*bin_size for i in range(num_bins)]
+    return bins,bin_size,stim_tt,simtime
+
+def setup_stimtimes(freq,stim_tt,isi,simtime):
+    pre_post_stim={}
+    pre_post_stim['stim']=stim_tt
+    num_pre=int(stim_tt[0]/isi)
+    pre_post_stim['pre']=[stim_tt[0]-(i+1)*isi for i in range(min(num_pre-1,freq))]
+    num_post=int((simtime-stim_tt[-1])/isi)
+    pre_post_stim['post']=[stim_tt[-1]+(i+1)*isi for i in range(min(num_post-1,freq))]
+    return pre_post_stim
+
 def latency(pattern,freq,neurtype,numbins):
     files=file_set(pattern)
     if len(files)==0:
         return
     isi=1.0/freq
     latency={'pre':np.zeros((freq,len(files))),'post':np.zeros((freq,len(files))), 'stim':np.zeros((freq,len(files)))}
-    pre_post_stim={}
-    bins={}
-    with np.load(files[0],'r') as dat:
-        params=dat['params'].item()
-        stim_tt=params[neurtype]['syn_tt'][0][1]
-    bin_size=(stim_tt[-1]+1/float(freq)-stim_tt[0])/numbins
-    #bins['stim']={stim_tt[0]+i*bin_size : stim_tt[0]+(i+1)*bin_size for i in range(numbins)}
-    bins['stim']=[stim_tt[0]+i*bin_size for i in range(numbins)]
-    num_bins=int(stim_tt[0]/bin_size)
-    bins['pre']=[bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)]
-    bins['post']=[bins['stim'][-1]+(i+1)*bin_size for i in range(num_bins)]
+    bins,bin_size,stim_tt,simtime=set_up_bins(files[0],freq,numbins,neurtype)
     isi_set={'pre':{k:[] for k in bins['pre']},'post':{k:[] for k in bins['post']},'stim':{k:[] for k in bins['stim']}}
+    pre_post_stim=setup_stimtimes(freq,stim_tt,isi,simtime)
     for fnum,fname in enumerate(files):
         dat=np.load(fname,'r')
         params=dat['params'].item()
         if 'spike_time' in dat.keys() and params['freq']==freq:
             spike_time=dat['spike_time'].item()[neurtype][0]
-            #1st [0] below because could have multiple synapses stimulated
-            #each item is tuple of (synapse,stim_times)
-            stim_tt=params[neurtype]['syn_tt'][0][1]
-            pre_post_stim['stim']=stim_tt
-            num_pre=int(stim_tt[0]/isi)
-            pre_post_stim['pre']=[stim_tt[0]-(i+1)*isi for i in range(min(num_pre-1,freq))]
-            num_post=int((spike_time[-1]-stim_tt[-1])/isi)
-            pre_post_stim['post']=[stim_tt[-1]+(i+1)*isi for i in range(min(num_pre-1,freq))]
             for pre_post in pre_post_stim.keys():
                 for i,time in enumerate(pre_post_stim[pre_post]):
                     next_spike=np.min(spike_time[np.where(spike_time>time)])
@@ -136,9 +146,47 @@ def file_set(pattern):
         print('********* no files found for ',pattern)
     return files
 
+def ISI_histogram(fileroot,presyn,suffix,stim_freq,neurtype):
+    pattern=fileroot+presyn+suffix
+    files=file_set(pattern)
+    if len(files)==0:
+        print('no files found')
+
+    #set-up pre, during and post-stimulation time frames (bins)
+    bins,binsize,stim_tt,simtime=set_up_bins(files[0],stim_freq,1,neurtype)
+    isi_set={'pre':[],'post':[],'stim':[]}
+    #read in ISI data and separate into 3 time frames
+    for fname in files:
+        dat=np.load(fname,'r')
+        params=dat['params'].item()
+        if 'spike_time' in dat.keys() and params['freq']==stim_freq:
+            spike_time=dat['spike_time'].item()[neurtype][0]
+            isi_vals=dat['isi'].item()[neurtype][0]
+            #separate into pre, post and during stimulation (optional)
+            st_isi=dict(zip(spike_time[1:],isi_vals))
+            for pre_post,binlist in bins.items():
+                binmin=binlist[0]
+                binmax=binmin+binsize
+                isi_set[pre_post].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
+        else:
+            print('wrong frequency')
+    return isi_set
+
+#################### Spike triggered averages
+def calc_sta(spike_time,samplesize,vmdat,plotdt):
+    numspikes=len(spike_time)
+    sta_array=np.zeros((numspikes,samplesize))
+    for i,st in enumerate(spike_time):
+        endpt=int(st/plotdt)
+        sta_array[i,:]=vmdat[endpt-samplesize:endpt]
+    sta=np.mean(sta_array,axis=0)
+    xvals=np.arange(-samplesize*plotdt,0,plotdt)
+    return xvals,sta
+
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)
-def save_tt(connections):
+def save_tt(connections,param_sim):
+    import moose
     used_tt={}
     for syntype in connections['ep']['/ep'].keys():
         used_tt[syntype]={}

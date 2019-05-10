@@ -54,6 +54,7 @@ def raster_plot(fileroot,suffix,presyn_set,stim_freq):
             axis[ax].annotate('offset',xy=(xend,0),xytext=(xend/maxt, -0.2), textcoords='axes fraction', arrowprops=dict(facecolor='red', shrink=0.05))
         axis[ax].set_ylabel(presyn+' trial')
     axis[-1].set_xlabel('time (sec)')
+    return
 
 #plot the set of results from single neuron simulations, all frequencies
 #either normalized PSPs if no spikes, or ISIs if spikes
@@ -106,55 +107,29 @@ def flatten(isiarray):
 neurtype='ep'
 plasYN=1
 inj='0.0'
-#inj='-1.5e-11'
 stim_freq=40
 presyn_set=['GPe']#,'str']
 presyn='GPe'
 numbins=10
 ############################################################
 #specify file name pattern
-fileroot='epGABA_syn'
+fileroot='ep_net/output/epGABA_syn'
 suffix='_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-
-#plots for network simulations:
-latency_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
+#plots for network simulations; raster determines simtime
+#raster_plot(fileroot,suffix,presyn_set,stim_freq)
+#latency_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
 #latency not too meaningfull if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
-ISI_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
-raster_plot(fileroot,suffix,presyn_set,stim_freq)
+#ISI_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
 
 #plots for single neuron simulations:
 #freq_dep_plot(fileroot,presyn_set,suffix,neurtype)
 #freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype)
 
 ############### Next analysis: ISI histogram
-#def ISI_histogram(fileroot,presyn,suffix,stim_freq):
-pattern=fileroot+presyn+suffix
-files=ISI_anal.file_set(pattern)
-if len(files)==0:
-    print('no files found')
-
-#set-up pre, during and post-stimulation time frames (bins)
-with np.load(files[0],'r') as dat:
-    params=dat['params'].item()
-    stim_tt=params[neurtype]['syn_tt'][0][1]
-binsize=stim_tt[-1]+1/float(stim_freq)-stim_tt[0]
-bins={'stim':stim_tt[0],'pre':stim_tt[0]-binsize,'post':stim_tt[-1]+1/float(stim_freq)}
-isi_set={'pre':[],'post':[],'stim':[]}
-
-#read in ISI data and separate into 3 time frames
-for fname in files:
-    dat=np.load(fname,'r')
-    if 'spike_time' in dat.keys() and params['freq']==stim_freq:
-        spike_time=dat['spike_time'].item()[neurtype][0]
-        isi_vals=dat['isi'].item()[neurtype][0]
-        #separate into pre, post and during stimulation (optional)
-        st_isi=dict(zip(spike_time[1:],isi_vals))
-        for pre_post,binmin in bins.items():
-            binmax=binmin+binsize
-            isi_set[pre_post].append([isi_val for st, isi_val in st_isi.items() if st>=binmin and st<binmax])
+isi_set=ISI_anal.ISI_histogram(fileroot,presyn,suffix,stim_freq,neurtype)
 
 #Calculate and plot histograms
-
+#plot_isi_hist(isi_set,numbins,suffix):
 mins=[np.min(flatten(isi_set[k])) for k in isi_set.keys()]
 maxs=[np.max(flatten(isi_set[k])) for k in isi_set.keys()]
 min_max=[np.min(mins),np.max(maxs)]
@@ -175,15 +150,47 @@ plt.legend()
 plt.xlabel('ISI')
 plt.ylabel('num events')
 
-#################### Spike triggered averages
-#raster plot of input spike times
-infile='ttepPSP_str_freq10_plas1_inj0.0.npy'
+fname='ep/epGABA_synstr_freq20_plas1_inj0.0t9.npz'
+#parameter: how much time prior to spike to evaluate
+pretime=20e-3
+##### ep spike triggered average of vm before the spike
+'''
+dat=np.loadtxt(vmfile)
+vmdat=dat[:,1]
+plotdt=dat[1,0]-dat[0,0]
+
+dat=np.load(fname,'r')
+params=dat['params'].item()
+plotdt=params['dt']
+window=int(pretime/plotdt)
+if 'spike_time' in dat.keys():# and ['freq']==stimfreq:
+    spike_time=dat['spike_time'].item()[neurtype][0]
+    vmdat=dat['vm'].item()
+    xvals,sta=ISI_anal.calc_sta(spike_time,window,vmdat,plotdt)
+    plt.plot(xvals,sta,label='sta') 
+    e_sta=elephant.sta.spike_triggered_average(vmdat,spike_time,(-window*s,0*s))
+    plt.plot(xvals,e_sta,label='e_sta') 
+else:
+    print('wrong spike file')
+'''
+#raster plot of input spike times and instantaneous rate
+#def input_raster(infile):
+fileroot='ep_net/output/ttepGABA_syn'
+suffix='_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npy'
+pattern=fileroot+presyn+suffix
+files=ISI_anal.file_set(pattern)
+#for trial,infile in enumerate(files):
+infile='ep_net/output/ttepGABA_synGPe_freq40_plas1_inj0.0t0.npy'
+plotdt=0.1e-3
+window=int(pretime/plotdt)
+######### End temp stuff
 tt=np.load(infile).item()
 fig,axes =plt.subplots(len(tt.keys()), 1,sharex=True)
 fig.suptitle('input raster '+infile.split('.')[0])
 axis=fig.axes
 colors=plt.get_cmap('viridis')
 #colors=plt.get_cmap('gist_heat')
+pre_spikes={}
 for ax,syntype in enumerate(tt.keys()):
     for presyn in tt[syntype].keys():
         spiketimes=[]
@@ -193,11 +200,26 @@ for ax,syntype in enumerate(tt.keys()):
         for branch in sorted(tt[syntype][presyn].keys()):
             #axis[ax].eventplot(tt[syntype][presyn][branch])
             spiketimes.append(tt[syntype][presyn][branch])
+        #flatten the spiketime array to use for prospective STA
+        pre_spikes[syntype+presyn]=flatten(spiketimes)
         axis[ax].eventplot(spiketimes,color=color_set)
     axis[ax].set_ylabel(syntype)
 axis[-1].set_xlabel('time (s)')
 
-#Next: use both pre-synaptic and post-synaptic spikes and Vm
-#for each post-syn spike, look at vm prior to spike (e.g. 20 ms), and average over input spikes:
+#input Spike triggered average Vm
+for key,spikes in pre_spikes.items():
+    xvals,sta=ISI_anal.calc_sta(spikes,window,vmdat,plotdt)
+    plt.plot(xvals,sta)        
+
+#Next: use both pre-synaptic and post-synaptic spikes for spike triggered average input:
+import elephant
+inst_rate={}
+for ax,spike_set in pre_spikes.items():
+    inst_rate[spike_set]=elephant.statistics.instantaneous_rate(neo.SpikeTrain(spike_set*pq.s,t_stop=5),plotdt*pq.s)
+#returns analog signal, that can't be stored in dictionary, and has extra junk
+#Calculate mean firing rate over time without the overhead of elephant
+#1. create time bins, sum across set of spike trains - number of spikes / bin size
+#2. calculate sta using input fire freq instead of vmdat
+
 # give +1 for ampa and -1*weight for gaba?  Or calculate separate traces for ampa and gaba
-# for each pre-synaptic spike, look at vm after spike (e.g. 20 ms)
+
