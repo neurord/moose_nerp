@@ -7,6 +7,12 @@ import detect
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
 
+def file_set(pattern):
+    files=sorted(glob.glob(pattern))
+    if len(files)==0:
+        print('********* no files found for ',pattern)
+    return files
+
 def spike_isi_from_vm(vmtab,simtime):
     spike_time={key:[] for key in vmtab.keys()}
     numspikes={key:[] for key in vmtab.keys()}
@@ -73,10 +79,7 @@ def setup_stimtimes(freq,stim_tt,isi,simtime):
     pre_post_stim['post']=[stim_tt[-1]+(i+1)*isi for i in range(min(num_post-1,freq))]
     return pre_post_stim
 
-def latency(pattern,freq,neurtype,numbins):
-    files=file_set(pattern)
-    if len(files)==0:
-        return
+def latency(files,freq,neurtype,numbins):
     isi=1.0/freq
     latency={'pre':np.zeros((freq,len(files))),'post':np.zeros((freq,len(files))), 'stim':np.zeros((freq,len(files)))}
     bins,bin_size,stim_tt,simtime=set_up_bins(files[0],freq,numbins,neurtype)
@@ -143,18 +146,24 @@ def freq_dependence(fileroot,presyn,suffix):
             print('issue with file {} keys {}'.format(fname,dat.keys))
     return numplots,results,xval_set,xlabel,ylabel
 
-def file_set(pattern):
-    files=sorted(glob.glob(pattern))
-    if len(files)==0:
-        print('********* no files found for ',pattern)
-    return files
+def get_spiketimes(files,neurtype):
+    spiketimes=[]
+    #creates list of spike times from set of trials
+    if len(files)>0:
+        for fname in files:
+            dat=np.load(fname,'r')
+            spiketimes.append(dat['spike_time'].item()[neurtype][0])
+        #Get start and end of stimulation only from last file
+        if neurtype in dat['params'].item().keys():
+            xstart=dat['params'].item()[neurtype]['syn_tt'][0][1][0]
+            xend=dat['params'].item()[neurtype]['syn_tt'][0][1][-1]
+            maxt=max([max(st) for st in spiketimes])
+            syntt_info={'xstart':xstart,'xend':xend,'maxt':maxt}
+        else:
+            syntt_info={}
+    return spiketimes,syntt_info
 
-def ISI_histogram(fileroot,presyn,suffix,stim_freq,neurtype):
-    pattern=fileroot+presyn+suffix
-    files=file_set(pattern)
-    if len(files)==0:
-        print('no files found')
-
+def ISI_histogram(files,stim_freq,neurtype):
     #set-up pre, during and post-stimulation time frames (bins)
     bins,binsize,stim_tt,simtime=set_up_bins(files[0],stim_freq,1,neurtype)
     isi_set={'pre':[],'post':[],'stim':[]}
@@ -194,23 +203,20 @@ def calc_sta(spike_time,window,vmdat,plotdt):
     xvals=np.arange(window[0]*plotdt,window[1]*plotdt,plotdt)
     return xvals,sta
 
-def sta_set(fileroot,presyn,suffix,neurtype,sta_start,sta_end):
-    pattern=fileroot+presyn+suffix
-    files=file_set(pattern)
+def sta_set(files,spike_time,neurtype,sta_start,sta_end):
     vmdat=[]
     sta_list=[]
-    spike_set=[]
-    for trial,fname in enumerate(files):
+    for trial,fname in enumerate(files[0:1]):
         dat=np.load(fname,'r')
         params=dat['params'].item()
         plotdt=params['dt']
         window=(int(sta_start/plotdt),int(sta_end/plotdt))
-        if 'spike_time' in dat.keys():# and ['freq']==stimfreq:
-            spike_time=dat['spike_time'].item()[neurtype][0]
+        if 'vm' in dat.keys():
             vmdat.append(dat['vm'].item()[neurtype])
-            xvals,sta=calc_sta(spike_time,window,vmdat[trial][1],plotdt)
+            #if (dat['vm'] has multiple traces, choose the last one
+            trace=np.shape(vmdat)[1]-1
+            xvals,sta=calc_sta(spike_time[trial],window,vmdat[trial][trace],plotdt)
             sta_list.append(sta)
-            spike_set.append(spike_time)
             '''
             vmsignal=AnalogSignal(vmdat[trial][1],units='V',sampling_rate=plotdt*q.Hz)
             spikes=SpikeTrain(spike_time*q.s,t_stop=vmsignal.times[-1])
@@ -219,11 +225,9 @@ def sta_set(fileroot,presyn,suffix,neurtype,sta_start,sta_end):
             '''
         else:
             print('wrong spike file')
-    return sta_list,xvals,plotdt,vmdat,spike_set
+    return sta_list,xvals,plotdt,vmdat
 
-def input_raster(fileroot,presyn,suffix):
-    pattern=fileroot+presyn+suffix
-    files=file_set(pattern)
+def input_raster(files):
     pre_spikes=[{} for f in files]
     for trial,infile in enumerate(files):
         ######### End temp stuff
@@ -244,12 +248,27 @@ def post_sta_set(pre_spikes,sta_start,sta_end,plotdt,vmdat):
     for trial in range(len(pre_spikes)):
         for ax,(key,spiketimes) in enumerate(pre_spikes[trial].items()):
             spikes=flatten(spiketimes)
-            xvals,sta=calc_sta(spikes,window,vmdat[trial][1],plotdt)
+            trace=np.shape(vmdat)[1]-1
+            print(trial,np.shape(vmdat), trace)
+            xvals,sta=calc_sta(spikes,window,vmdat[trial][trace],plotdt)
             post_sta[key].append(sta)
     mean_sta={}
     for ax,key in enumerate(post_sta.keys()):
         mean_sta[key]=np.mean(post_sta[key],axis=0)
     return post_sta,mean_sta,xvals
+
+def sta_fire_freq(inst_rate,sta_start,sta_end,weights,xbins):
+    binsize=xbins[1]-xbins[0]
+    window=(int(sta_start/binsize),int(sta_end/binsize))
+    weighted_inst_rate=[np.zeros(len(xbins)) for trial in range(len(inst_rate))] 
+    prespike_sta=[{} for t in range(len(inst_rate))]
+    for trial in range(len(inst_rate)):
+        spike_time=spike_list[trial]
+        for key in inst_rate1[trial].keys():
+            weighted_inst_rate[trial]+=weights[key]*inst_rate[trial][key] 
+            dummy,prespike_sta[trial][key]=ISI_anal.calc_sta(spike_time,window,inst_rate[trial][key],binsize)
+        dummy,prespike_sta[trial]['sum']=ISI_anal.calc_sta(spike_time,window,weighted_inst_rate[trial],binsize)
+    return prespike_sta
 
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)
