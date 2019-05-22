@@ -1,4 +1,34 @@
 EP project:
+
+Analyze simulation results
+------------------------------------------------
+22 May: DONE
+
+simulate response of EP to synaptic inputs POST plasticity, compare with PRE plasticity
+
+POST: make str inputs 140% of current value (weight=1.4)
+      make GP inputs 40% of current value (weight=0.8 - 0.4*2.0)
+      make STN inputs 60% of current value (weight=0.6)
+CHANGE FILENAME to avoid overwriting current files
+for above, do syn='non', stimfreqs=[0], stpYN=1 (and possibly 0)(1 set of 16)
+possible repeat str and GPe response to 20 and 40 with stpYN=1 (2 sets of 16)
+
+--------------------------------------------
+Start simulations on 21 May:
+DA: block Da means Gpe-> EP is 140% post 100 Hz, str -> EP have no change
+
+POST/No_Da: make str inputs 100% of current value (weight=1)
+      make GP inputs 140% of current value (weight=2.8)
+      make STN inputs 100% of current value (weight=1)
+      do syn='non', stimfreqs=[0], stpYN=1 (1 set of 16)
+possible repeat str and GPe response to 20 and 40 with stpYN=1 (2 sets of 16)
+--------------------------------------------
+Still need syn='non' for POST-HFS
+
+When stimulating a single (extra) synapse:
+possibly "reserve" the synapse from random time tables 
+   e.g. call create_model_sim.setupStim(model) after creating pop but before connecting time_tables
+################################################################
 NOT NEEDED 1. try another opt with smaller window for AHP (after GP opt finished)
 2. create 3 different time tables - Str,GPe, STN, and update  connection probability to be realistic
 DONE 3. edit connect.py to allow specification of spatial location
@@ -48,7 +78,6 @@ I would prefer to return the pulsegenerator as pg
 And, I would prefer to keep param_sim not under model
 
 Bigger issue: need for net.num_inject to override current injection specification in param_sim.py
-even bigger issue: by setting up hsolve in setupNeurons, network creation (varying channel conductance) fails
 
 ####################
 Then, update __main__.py in network simulations to use create_model_sim as much as possible

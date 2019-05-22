@@ -4,6 +4,9 @@ import numpy as np
 
 import detect
 
+def flatten(isiarray):
+    return [item for sublist in isiarray for item in sublist]
+
 def spike_isi_from_vm(vmtab,simtime):
     spike_time={key:[] for key in vmtab.keys()}
     numspikes={key:[] for key in vmtab.keys()}
@@ -141,7 +144,7 @@ def freq_dependence(fileroot,presyn,suffix):
     return numplots,results,xval_set,xlabel,ylabel
 
 def file_set(pattern):
-    files=glob.glob(pattern)
+    files=sorted(glob.glob(pattern))
     if len(files)==0:
         print('********* no files found for ',pattern)
     return files
@@ -173,15 +176,80 @@ def ISI_histogram(fileroot,presyn,suffix,stim_freq,neurtype):
     return isi_set
 
 #################### Spike triggered averages
-def calc_sta(spike_time,samplesize,vmdat,plotdt):
+def calc_sta(spike_time,window,vmdat,plotdt):
     numspikes=len(spike_time)
+    samplesize=window[-1]-window[0]
     sta_array=np.zeros((numspikes,samplesize))
     for i,st in enumerate(spike_time):
-        endpt=int(st/plotdt)
-        sta_array[i,:]=vmdat[endpt-samplesize:endpt]
+        endpt=int(st/plotdt)+window[1]
+        if endpt<len(vmdat):
+            startpt=endpt-samplesize
+            if startpt<0:
+                sta_start=-startpt
+                startpt=0
+            else:
+                sta_start=0
+            sta_array[i,sta_start:]=vmdat[startpt:endpt]
     sta=np.mean(sta_array,axis=0)
-    xvals=np.arange(-samplesize*plotdt,0,plotdt)
+    xvals=np.arange(window[0]*plotdt,window[1]*plotdt,plotdt)
     return xvals,sta
+
+def sta_set(fileroot,presyn,suffix,neurtype,sta_start,sta_end):
+    pattern=fileroot+presyn+suffix
+    files=file_set(pattern)
+    vmdat=[]
+    sta_list=[]
+    spike_set=[]
+    for trial,fname in enumerate(files):
+        dat=np.load(fname,'r')
+        params=dat['params'].item()
+        plotdt=params['dt']
+        window=(int(sta_start/plotdt),int(sta_end/plotdt))
+        if 'spike_time' in dat.keys():# and ['freq']==stimfreq:
+            spike_time=dat['spike_time'].item()[neurtype][0]
+            vmdat.append(dat['vm'].item()[neurtype])
+            xvals,sta=calc_sta(spike_time,window,vmdat[trial][1],plotdt)
+            sta_list.append(sta)
+            spike_set.append(spike_time)
+            '''
+            vmsignal=AnalogSignal(vmdat[trial][1],units='V',sampling_rate=plotdt*q.Hz)
+            spikes=SpikeTrain(spike_time*q.s,t_stop=vmsignal.times[-1])
+            e_sta=elephant.sta.spike_triggered_average(vmsignal,spikes,(-window*q.s,0*q.s))
+            plt.plot(xvals,e_sta.magnitude,label='e_sta') 
+            '''
+        else:
+            print('wrong spike file')
+    return sta_list,xvals,plotdt,vmdat,spike_set
+
+def input_raster(fileroot,presyn,suffix):
+    pattern=fileroot+presyn+suffix
+    files=file_set(pattern)
+    pre_spikes=[{} for f in files]
+    for trial,infile in enumerate(files):
+        ######### End temp stuff
+        tt=np.load(infile).item()
+        for ax,syntype in enumerate(tt.keys()):
+            for presyn in tt[syntype].keys():
+                spiketimes=[]
+                for branch in sorted(tt[syntype][presyn].keys()):
+                    #axis[ax].eventplot(tt[syntype][presyn][branch])
+                    spiketimes.append(tt[syntype][presyn][branch])
+                #flatten the spiketime array to use for prospective STA
+                pre_spikes[trial][syntype+presyn]=spiketimes
+    return pre_spikes
+
+def post_sta_set(pre_spikes,sta_start,sta_end,plotdt,vmdat):
+    window=(int(sta_start/plotdt),int(sta_end/plotdt))
+    post_sta={key:[] for key in pre_spikes[0]}
+    for trial in range(len(pre_spikes)):
+        for ax,(key,spiketimes) in enumerate(pre_spikes[trial].items()):
+            spikes=flatten(spiketimes)
+            xvals,sta=calc_sta(spikes,window,vmdat[trial][1],plotdt)
+            post_sta[key].append(sta)
+    mean_sta={}
+    for ax,key in enumerate(post_sta.keys()):
+        mean_sta[key]=np.mean(post_sta[key],axis=0)
+    return post_sta,mean_sta,xvals
 
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)

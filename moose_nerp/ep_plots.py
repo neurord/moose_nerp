@@ -1,11 +1,12 @@
 import numpy as np
+import os
 from matplotlib import pyplot as plt
 plt.ion()
 import ISI_anal
 colors=['r','k','b']
 
-def latency_plot(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
-    #plot the ISI and latency from network neuron simulations, one frequency, multiple trials
+def plot_latency(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
+    #plot the latency from network neuron simulations with one regular input train, multiple trials
     fig1,axes =plt.subplots(len(presyn_set),1,sharex=True)
     axis1=fig1.axes
     for i,presyn in enumerate(presyn_set):
@@ -19,7 +20,8 @@ def latency_plot(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
         fig1.suptitle('Latency: '+filesuffix.split('.')[0])
         axis1[i].legend()
 
-def ISI_plot(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
+def plot_ISI(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
+    #plot the ISI from network neuron simulations, one regular input train, multiple trials
     fig2,axes =plt.subplots(len(presyn_set),1,sharex=True)
     axis2=fig2.axes
     for i,presyn in enumerate(presyn_set):
@@ -33,8 +35,8 @@ def ISI_plot(fileprefix,filesuffix,stim_freq,neurtype,presyn_set,numbins):
         fig2.suptitle('ISI: '+filesuffix.split('.')[0])
         axis2[i].legend()
 
-def raster_plot(fileroot,suffix,presyn_set,stim_freq):
-    ####### Raster plot from results #############
+def plot_postsyn_raster(fileroot,suffix,presyn_set,stim_freq):
+    ####### Raster plot of spikes in post-synaptic neuron #############
     fig,axes =plt.subplots(len(presyn_set), 1,sharex=True)
     fig.suptitle('output '+suffix)
     axis=fig.axes
@@ -56,9 +58,9 @@ def raster_plot(fileroot,suffix,presyn_set,stim_freq):
     axis[-1].set_xlabel('time (sec)')
     return
 
-#plot the set of results from single neuron simulations, all frequencies
-#either normalized PSPs if no spikes, or ISIs if spikes
-def freq_dep_plot(fileroot,presyn_set,suffix,neurtype):
+#################### plot the set of results from single neuron simulations, range of input frequencies
+##### either normalized PSPs if no spikes, or ISIs if spikes
+def plot_freq_dep_psp(fileroot,presyn_set,suffix,neurtype):
     all_results=[];all_xvals=[]
     for i,presyn in enumerate(presyn_set):
         numplots,results,xval_set,xlabel,ylabel=ISI_anal.freq_dependence(fileroot,presyn,suffix)    
@@ -77,8 +79,8 @@ def freq_dep_plot(fileroot,presyn_set,suffix,neurtype):
             axis[axisnum].legend()
         axis[axisnum].set_xlabel(xlabel)
 
-def freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype):
 ####### Membrane potential  #############
+def plot_freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype):
     fig,axes =plt.subplots(len(presyn_set), 1,sharex=True)
     fig.suptitle(' plasticity='+str(plasYN))
     axis=fig.axes
@@ -99,6 +101,64 @@ def freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype):
         axis[ax].legend()
     axis[-1].set_xlabel('Time (sec)')
 
+#################### Raster plot of pre-synaptic inputs 
+def plot_input_raster(pre_spikes,fileroot,presyn,suffix):
+    colors=plt.get_cmap('viridis')
+    #colors=plt.get_cmap('gist_heat')
+    for trial in range(len(pre_spikes)):
+        fig,axes =plt.subplots(len(pre_spikes[trial].keys()), 1,sharex=True)
+        fig.suptitle('input raster '+os.path.basename(fileroot+presyn+suffix).split('.')[0]+'_'+str(trial))
+        axis=fig.axes
+        for ax,(key,spikes) in enumerate(pre_spikes[trial].items()):
+            color_num=[int(cellnum*(colors.N/len(spikes))) for cellnum in range(len(spikes))]
+            color_set=np.array([colors.__call__(color) for color in color_num])
+            axis[ax].eventplot(spikes,color=color_set)
+            axis[ax].set_ylabel(key)
+        axis[-1].set_xlabel('time (s)')
+
+def plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals):
+    fig,axes=plt.subplots(len(pre_spikes[0].keys()),1) 
+    fig.suptitle('post sta')
+    axis=fig.axes
+    for ax,(key,post_sta_list) in enumerate(post_sta.items()):
+        for sta in post_sta_list:
+            axis[ax].plot(post_xvals,sta,label=str(trial))
+            axis[ax].set_ylabel(key+' trig')
+            axis[ax].plot(post_xvals,mean_sta[key],'k--',lw=3)
+    axis[-1].set_xlabel('time (s)')
+    fig.tight_layout()
+
+def plot_sta_vm(pre_xvals,sta_list,fileroot,presyn,suffix):
+    plt.figure()
+    plt.title('ep STA '+os.path.basename(fileroot+presyn+suffix).split('.')[0])
+    for trial in range(len(sta_list)):
+        plt.plot(pre_xvals,sta_list[trial],label='sta'+str(trial))
+    plt.legend(loc='upper left')
+    plt.xlabel('time (s)')
+    plt.ylabel('Vm (V)')
+
+def plot_prespike_sta(prespike_sta,pre_xvals):
+    fig,axes=plt.subplots(len(prespike_sta[0].keys()),1) 
+    fig.suptitle('prespike sta')
+    axis=fig.axes
+    for trial in range(len(prespike_sta)):
+        for ax,(key,sta) in enumerate(prespike_sta[trial].items()):
+            axis[ax].plot(pre_xvals,sta,label=str(trial))
+            axis[ax].set_ylabel(key)
+    axis[-1].set_xlabel('time (s)')
+    axis[-1].legend()
+
+def plot_inst_firing(inst_rate,xbins):
+    fig,axes=plt.subplots(len(inst_rate[0].keys()),1) 
+    fig.suptitle('instaneous pre-synaptic firing rate')
+    axis=fig.axes
+    for trial in range(len(inst_rate)):
+        for ax,(key,frate) in enumerate(inst_rate[trial].items()):
+            axis[ax].plot(xbins,frate,label=str(trial))
+            axis[ax].set_ylabel(key)
+    axis[-1].set_xlabel('time (s)')
+    axis[-1].legend()
+
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
 
@@ -107,23 +167,29 @@ def flatten(isiarray):
 neurtype='ep'
 plasYN=1
 inj='0.0'
-stim_freq=40
-presyn_set=['GPe']#,'str']
-presyn='GPe'
+stim_freq=20
+presyn_set=['str']#,'str']
+presyn='str'
 numbins=10
+status=['POST-NoDa', 'POST-HFS', 'GABA']
+presyn_set=[('non',0),('GPe',40),('str',20)]
 ############################################################
 #specify file name pattern
-fileroot='ep_net/output/epGABA_syn'
+filedir='ep_net/output/'
+rootname='epGABA_syn'
+fileroot=filedir+rootname
 suffix='_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-#plots for network simulations; raster determines simtime
-#raster_plot(fileroot,suffix,presyn_set,stim_freq)
-#latency_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
+
+#for (syn,freq) in presyn_set:
+#plots for network simulations
+plot_postsyn_raster(fileroot,suffix,presyn_set,stim_freq)
+plot_latency(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
 #latency not too meaningfull if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
-#ISI_plot(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
+plot_ISI(fileroot,suffix,stim_freq,neurtype,presyn_set,numbins)
 
 #plots for single neuron simulations:
-#freq_dep_plot(fileroot,presyn_set,suffix,neurtype)
-#freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype)
+#plot_freq_dep_psp(fileroot,presyn_set,suffix,neurtype)
+#plot_freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype)
 
 ############### Next analysis: ISI histogram
 isi_set=ISI_anal.ISI_histogram(fileroot,presyn,suffix,stim_freq,neurtype)
@@ -150,76 +216,65 @@ plt.legend()
 plt.xlabel('ISI')
 plt.ylabel('num events')
 
-fname='ep/epGABA_synstr_freq20_plas1_inj0.0t9.npz'
-#parameter: how much time prior to spike to evaluate
-pretime=20e-3
-##### ep spike triggered average of vm before the spike
-'''
-dat=np.loadtxt(vmfile)
-vmdat=dat[:,1]
-plotdt=dat[1,0]-dat[0,0]
+######################################## ep spike triggered average of vm before the spike
+#parameters: how much time prior to spike to evaluate
+sta_start=-20e-3
+sta_end=0
+sta_list,pre_xvals,plotdt,vmdat,spike_list=ISI_anal.sta_set(fileroot,presyn,suffix,neurtype,sta_start,sta_end)
 
-dat=np.load(fname,'r')
-params=dat['params'].item()
-plotdt=params['dt']
-window=int(pretime/plotdt)
-if 'spike_time' in dat.keys():# and ['freq']==stimfreq:
-    spike_time=dat['spike_time'].item()[neurtype][0]
-    vmdat=dat['vm'].item()
-    xvals,sta=ISI_anal.calc_sta(spike_time,window,vmdat,plotdt)
-    plt.plot(xvals,sta,label='sta') 
-    e_sta=elephant.sta.spike_triggered_average(vmdat,spike_time,(-window*s,0*s))
-    plt.plot(xvals,e_sta,label='e_sta') 
-else:
-    print('wrong spike file')
-'''
-#raster plot of input spike times and instantaneous rate
-#def input_raster(infile):
-fileroot='ep_net/output/ttepGABA_syn'
-suffix='_freq'+str(stim_freq)+'_plas'+str(plasYN)+'_inj'+inj+'*.npy'
-pattern=fileroot+presyn+suffix
-files=ISI_anal.file_set(pattern)
-#for trial,infile in enumerate(files):
-infile='ep_net/output/ttepGABA_synGPe_freq40_plas1_inj0.0t0.npy'
-plotdt=0.1e-3
-window=int(pretime/plotdt)
-######### End temp stuff
-tt=np.load(infile).item()
-fig,axes =plt.subplots(len(tt.keys()), 1,sharex=True)
-fig.suptitle('input raster '+infile.split('.')[0])
-axis=fig.axes
-colors=plt.get_cmap('viridis')
-#colors=plt.get_cmap('gist_heat')
-pre_spikes={}
-for ax,syntype in enumerate(tt.keys()):
-    for presyn in tt[syntype].keys():
-        spiketimes=[]
-        num_in=len(tt[syntype][presyn].keys())
-        color_num=[int(cellnum*(colors.N/num_in)) for cellnum in range(num_in)]
-        color_set=np.array([colors.__call__(color) for color in color_num])
-        for branch in sorted(tt[syntype][presyn].keys()):
-            #axis[ax].eventplot(tt[syntype][presyn][branch])
-            spiketimes.append(tt[syntype][presyn][branch])
-        #flatten the spiketime array to use for prospective STA
-        pre_spikes[syntype+presyn]=flatten(spiketimes)
-        axis[ax].eventplot(spiketimes,color=color_set)
-    axis[ax].set_ylabel(syntype)
-axis[-1].set_xlabel('time (s)')
+plot_sta_vm(pre_xvals,sta_list,fileroot,presyn,suffix)
 
-#input Spike triggered average Vm
-for key,spikes in pre_spikes.items():
-    xvals,sta=ISI_anal.calc_sta(spikes,window,vmdat,plotdt)
-    plt.plot(xvals,sta)        
+############# raster plot of input spike times and instantaneous rate
+fileroot=filedir+'tt'+rootname
+suffix=suffix.split('npz')[0]+'npy'
+pre_spikes=ISI_anal.input_raster(fileroot,presyn,suffix)
 
-#Next: use both pre-synaptic and post-synaptic spikes for spike triggered average input:
-import elephant
-inst_rate={}
-for ax,spike_set in pre_spikes.items():
-    inst_rate[spike_set]=elephant.statistics.instantaneous_rate(neo.SpikeTrain(spike_set*pq.s,t_stop=5),plotdt*pq.s)
-#returns analog signal, that can't be stored in dictionary, and has extra junk
-#Calculate mean firing rate over time without the overhead of elephant
-#1. create time bins, sum across set of spike trains - number of spikes / bin size
-#2. calculate sta using input fire freq instead of vmdat
+plot_input_raster(pre_spikes,fileroot,presyn,suffix)
 
-# give +1 for ampa and -1*weight for gaba?  Or calculate separate traces for ampa and gaba
+############################ input Spike triggered average Vm after the spike
+sta_start=0e-3
+sta_end=20e-3
+post_sta,mean_sta,post_xvals=ISI_anal.post_sta_set(pre_spikes,sta_start,sta_end,plotdt,vmdat)
+
+plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals)
+
+#################### use both pre-synaptic and post-synaptic spikes for spike triggered average input:
+#1st calculate instantaneous input firing frequency for each type of input
+binsize=plotdt#*100
+def input_fire_freq(pre_spikes,binsize):
+    import elephant
+    from neo.core import AnalogSignal,SpikeTrain
+    import quantities as q
+    inst_rate1=[{} for t in range(len(pre_spikes))]
+    inst_rate2=[{} for t in range(len(pre_spikes))]
+    for trial in range(len(pre_spikes)):
+        print('inst firing rate for trial',trial)
+        for key,spike_set in pre_spikes[trial].items():
+            if isinstance(spike_set, list):
+                spikes = np.sort(np.concatenate([st for st in spike_set]))
+            else:
+                spikes=spike_set
+            train=SpikeTrain(spikes*q.s,t_stop=np.ceil(spikes[-1])*q.s)
+            inst_rate1[trial][key]=elephant.statistics.instantaneous_rate(train,binsize*q.s).magnitude[:,0]
+            xbins=np.arange(0,np.ceil(spikes[-1]),binsize)
+            inst_rate2[trial][key]=np.zeros(len(xbins))
+            for i,binmin in enumerate(xbins):
+                inst_rate2[trial][key][i]=len([st for st in spikes if st>=binmin and st<binmin+binsize])/binsize
+    return inst_rate1,inst_rate2,xbins
+
+#2nd calculate sta using input fire freq instead of vmdat
+#weights used to sum the different external inputs - values are weights from param_net
+sta_start=-20e-3
+sta_end=0
+weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
+prespike_sta1=ISI_anal.sta_fire_freq(inst_rate1,sta_start,sta_end,weights,xbins)
+prespike_sta2=ISI_anal.sta_fire_freq(inst_rate2,sta_start,sta_end,weights,xbins)
+
+########### Now plot instaneous pre-synaptic firing rate as well as firing rate sta 
+plot_inst_firing(inst_rate1,xbins)
+plot_inst_firing(inst_rate2,xbins)
+plot_prespike_sta(prespike_sta1,pre_xvals)
+plot_prespike_sta(prespike_sta2,pre_xvals)
+
+plt.figure()
 
