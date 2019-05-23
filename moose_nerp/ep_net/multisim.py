@@ -5,7 +5,7 @@
 from __future__ import print_function, division
 
 def moose_main(p):
-    stimfreq,presyn,stpYN,trialnum=p
+    stimfreq,presyn,stpYN,trialnum,prefix=p
 
     import numpy as np
     import moose
@@ -61,8 +61,8 @@ def moose_main(p):
     else:
         print('########### unknown synapse type')
 
-    param_sim.fname='epGABA_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
-    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {}'.format(presyn,model.stpYN,stimfreq,trialnum))
+    param_sim.fname='ep'+prefix+'_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
+    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {} plotcomps {}'.format(presyn,model.stpYN,stimfreq,trialnum, param_sim.plotcomps))
 
     create_model_sim.setupStim(model)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
@@ -142,7 +142,7 @@ def moose_main(p):
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
     return param_dict,tab_dict,vmtab,spike_time,isis
 
-def multi_main(syntype,stpYN,stimfreqs,num_trials):
+def multi_main(syntype,stpYN,stimfreqs,num_trials,prefix):
     from multiprocessing.pool import Pool
     p = Pool(12,maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
@@ -150,7 +150,7 @@ def multi_main(syntype,stpYN,stimfreqs,num_trials):
     #for trial in range(num_trials):
     #    params=[(freq,syntype,stpYN,trial) for freq in stimfreqs]
     for freq in stimfreqs:
-        params=[(freq,syntype,stpYN,trial) for trial in range(num_trials)]
+        params=[(freq,syntype,stpYN,trial,prefix) for trial in range(num_trials)]
         results = p.map(moose_main,params)
         all_results[freq]=dict(zip(range(num_trials),results))
     #all_results.append(dict(zip(stimfreqs,results)))
@@ -158,33 +158,14 @@ def multi_main(syntype,stpYN,stimfreqs,num_trials):
 
 if __name__ == "__main__":
     print('running main')
+    prefix='GABA'
+    num_trials=15
+
     syn='str'
     stpYN=1
-    num_trials=2
     stimfreqs=[20]
-    all_results = multi_main(syn,stpYN,stimfreqs,num_trials)
+    #all_results = multi_main(syn,stpYN,stimfreqs,num_trials,prefix)
 
-    syn='GPe'
-    stpYN=1
-    stimfreqs=[40]
-    all_results = multi_main(syn,stpYN,stimfreqs,num_trials)
-
-    syn='non'
-    stpYN=1
-    stimfreqs=[0]
-    all_results = multi_main(syn,stpYN,stimfreqs,num_trials)
-
-    syn='non'
-    stpYN=0
-    stimfreqs=[0]
-    all_results = multi_main(syn,stpYN,stimfreqs,num_trials)
-
-'''
-ToDo:
-a. possibly "reserve" the synapse from random time tables 
-   e.g. call create_model_sim.setupStim(model) after creating pop but before connecting time_tables
-b. repeat stp effect with dopamine blocked conditions
-'''
 
 '''
 for neurtype,neurtype_dict in connections.items():
