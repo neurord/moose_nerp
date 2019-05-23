@@ -206,7 +206,7 @@ def calc_sta(spike_time,window,vmdat,plotdt):
 def sta_set(files,spike_time,neurtype,sta_start,sta_end):
     vmdat=[]
     sta_list=[]
-    for trial,fname in enumerate(files[0:1]):
+    for trial,fname in enumerate(files):
         dat=np.load(fname,'r')
         params=dat['params'].item()
         plotdt=params['dt']
@@ -249,7 +249,6 @@ def post_sta_set(pre_spikes,sta_start,sta_end,plotdt,vmdat):
         for ax,(key,spiketimes) in enumerate(pre_spikes[trial].items()):
             spikes=flatten(spiketimes)
             trace=np.shape(vmdat)[1]-1
-            print(trial,np.shape(vmdat), trace)
             xvals,sta=calc_sta(spikes,window,vmdat[trial][trace],plotdt)
             post_sta[key].append(sta)
     mean_sta={}
@@ -257,18 +256,39 @@ def post_sta_set(pre_spikes,sta_start,sta_end,plotdt,vmdat):
         mean_sta[key]=np.mean(post_sta[key],axis=0)
     return post_sta,mean_sta,xvals
 
-def sta_fire_freq(inst_rate,sta_start,sta_end,weights,xbins):
+def sta_fire_freq(inst_rate,spike_list,sta_start,sta_end,weights,xbins):
     binsize=xbins[1]-xbins[0]
     window=(int(sta_start/binsize),int(sta_end/binsize))
     weighted_inst_rate=[np.zeros(len(xbins)) for trial in range(len(inst_rate))] 
     prespike_sta=[{} for t in range(len(inst_rate))]
     for trial in range(len(inst_rate)):
         spike_time=spike_list[trial]
-        for key in inst_rate1[trial].keys():
+        for key in inst_rate[trial].keys():
             weighted_inst_rate[trial]+=weights[key]*inst_rate[trial][key] 
-            dummy,prespike_sta[trial][key]=ISI_anal.calc_sta(spike_time,window,inst_rate[trial][key],binsize)
-        dummy,prespike_sta[trial]['sum']=ISI_anal.calc_sta(spike_time,window,weighted_inst_rate[trial],binsize)
+            dummy,prespike_sta[trial][key]=calc_sta(spike_time,window,inst_rate[trial][key],binsize)
+        dummy,prespike_sta[trial]['sum']=calc_sta(spike_time,window,weighted_inst_rate[trial],binsize)
     return prespike_sta
+
+def input_fire_freq(pre_spikes,binsize):
+    import elephant
+    from neo.core import AnalogSignal,SpikeTrain
+    import quantities as q
+    inst_rate1=[{} for t in range(len(pre_spikes))]
+    inst_rate2=[{} for t in range(len(pre_spikes))]
+    for trial in range(len(pre_spikes)):
+        print('inst firing rate for trial',trial)
+        for key,spike_set in pre_spikes[trial].items():
+            if isinstance(spike_set, list):
+                spikes = np.sort(np.concatenate([st for st in spike_set]))
+            else:
+                spikes=spike_set
+            train=SpikeTrain(spikes*q.s,t_stop=np.ceil(spikes[-1])*q.s)
+            inst_rate1[trial][key]=elephant.statistics.instantaneous_rate(train,binsize*q.s).magnitude[:,0]
+            xbins=np.arange(0,np.ceil(spikes[-1]),binsize)
+            inst_rate2[trial][key]=np.zeros(len(xbins))
+            for i,binmin in enumerate(xbins):
+                inst_rate2[trial][key][i]=len([st for st in spikes if st>=binmin and st<binmin+binsize])/binsize
+    return inst_rate1,inst_rate2,xbins
 
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)

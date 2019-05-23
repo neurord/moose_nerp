@@ -117,25 +117,26 @@ def plot_input_raster(pre_spikes,pattern,maxplots=None):
             axis[ax].set_ylabel(key)
         axis[-1].set_xlabel('time (s)')
 
-def plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals):
-    fig,axes=plt.subplots(len(pre_spikes[0].keys()),1) 
-    fig.suptitle('post sta')
-    axis=fig.axes
-    for ax,(key,post_sta_list) in enumerate(post_sta.items()):
-        for sta in post_sta_list:
-            axis[ax].plot(post_xvals,sta,label=str(trial))
-            axis[ax].set_ylabel(key+' trig')
-            axis[ax].plot(post_xvals,mean_sta[key],'k--',lw=3)
-    axis[-1].set_xlabel('time (s)')
-    fig.tight_layout()
+def plot_sta_post_vm(pre_spikes,post_sta_dict,mean_sta_dict,post_xvals):
+    for i,(synstim,sta_list) in enumerate(post_sta_dict.items()):
+        fig,axes=plt.subplots(len(pre_spikes[synstim][0].keys()),1) 
+        fig.suptitle('post sta '+synstim)
+        axis=fig.axes
+        for ax,(key,post_sta) in enumerate(sta_list.items()):
+            for trial,sta in enumerate(post_sta):
+                axis[ax].plot(post_xvals,sta,label=str(trial))
+                axis[ax].set_ylabel(key+' trig')
+                axis[ax].plot(post_xvals,mean_sta[synstim][key],'k--',lw=3)
+        axis[-1].set_xlabel('time (s)')
+        #fig.tight_layout()
 
 def plot_sta_vm(pre_xvals,sta_list_dict,fileroot,suffix):
     fig,axes =plt.subplots(len(sta_list_dict),1,sharex=True)
     axis=fig.axes
-    fig.suptitle('ep STA '+os.path.basename(fileroot+suffix).split('.')[0])
+    fig.suptitle('ep STA '+os.path.basename(fileroot+suffix).split('_')[0])
     for i,(synstim,sta_list) in enumerate(sta_list_dict.items()):
         for trial in range(len(sta_list)):
-            plt.plot(pre_xvals,sta_list[trial],label='sta'+str(trial))
+            axis[i].plot(pre_xvals,sta_list[trial],label='sta'+str(trial))
         axis[i].set_ylabel(synstim+' Vm (V)')
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
@@ -201,14 +202,16 @@ presyn_set=['str']#,'str']
 presyn='str'
 numbins=10
 status=['POST-NoDa', 'POST-HFS', 'GABA']
-presyn_set=[('GPe',40),('str',20),('non',0)]
+presyn_set=[('GPe',40),('str',20),('non',0)]#
 ############################################################
+##### 1st set of analyses ignores the input spikes
 #specify file name pattern
 filedir='ep_net/output/'
-rootname='epGABA_syn'
+rootname='epGABA_syn'#'epPOST-HFS_syn'
 fileroot=filedir+rootname
 suffix='_plas'+str(plasYN)+'_inj'+inj+'*.npz'
 
+#time points for spike triggered average
 sta_start=-20e-3
 sta_end=0
 
@@ -231,26 +234,26 @@ for (syn,freq) in presyn_set:
         #ep spike triggered average of vm before the spike (the standard sta)
         sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
 
-#plots for network simulations
-'''
+#####1st set of graphs
 plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info)
 plot_latency(lat_mean,lat_std,suffix)
 #latency not too meaningfull if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
 plot_ISI(isi_mean,isi_std,bins,suffix)
 #ISI histogram
 plot_isi_hist(isi_set,numbins,suffix)
-'''
-################## plots for single neuron simulations:
+
+####### plots for single neuron simulations:
 #plot_freq_dep_psp(fileroot,presyn_set,suffix,neurtype)
 #plot_freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype)
 
-################## various spike triggered averages
-#ep spike triggered average of vm before the spike (the standard sta)
+################## various spike triggered averages and raster plot of input spike times,
+#1. ep spike triggered average of vm before the spike (the standard sta)
 
 plot_sta_vm(pre_xvals,sta_list,fileroot,suffix)
 
-############# raster plot of input spike times and instantaneous rate
-#uses different filenames or different sta start and end
+######## This next set of analyses requires the input spikes
+#2. spike triggered Vm after the spike
+#uses different filenames and different sta start and end
 sta_start=0e-3
 sta_end=20e-3
 
@@ -266,50 +269,30 @@ for (syn,freq) in presyn_set:
     key='syn'+syn+'_'+'freq'+str(freq)
     #calculate raster of pre-synaptic spikes
     pre_spikes[key]=ISI_anal.input_raster(files)
-    ############################ input Spike triggered average Vm after the spike
+    # input Spike triggered average Vm after the spike
     post_sta[key],mean_sta[key],post_xvals=ISI_anal.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
-    #plots - update plot functions to loop over key
+    #plots
     plot_input_raster(pre_spikes[key],pattern,maxplots=1)
-    plot_sta_post_vm(pre_spikes[key],post_sta[key],mean_sta[key],post_xvals)
+plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals)
 
-#################### use both pre-synaptic and post-synaptic spikes for spike triggered average input:
+#3. use both pre-synaptic and post-synaptic spikes for spike triggered average input:
 #1st calculate instantaneous input firing frequency for each type of input
-binsize=plotdt#*100
-def input_fire_freq(pre_spikes,binsize):
-    import elephant
-    from neo.core import AnalogSignal,SpikeTrain
-    import quantities as q
-    inst_rate1=[{} for t in range(len(pre_spikes))]
-    inst_rate2=[{} for t in range(len(pre_spikes))]
-    for trial in range(len(pre_spikes)):
-        print('inst firing rate for trial',trial)
-        for key,spike_set in pre_spikes[trial].items():
-            if isinstance(spike_set, list):
-                spikes = np.sort(np.concatenate([st for st in spike_set]))
-            else:
-                spikes=spike_set
-            train=SpikeTrain(spikes*q.s,t_stop=np.ceil(spikes[-1])*q.s)
-            inst_rate1[trial][key]=elephant.statistics.instantaneous_rate(train,binsize*q.s).magnitude[:,0]
-            xbins=np.arange(0,np.ceil(spikes[-1]),binsize)
-            inst_rate2[trial][key]=np.zeros(len(xbins))
-            for i,binmin in enumerate(xbins):
-                inst_rate2[trial][key][i]=len([st for st in spikes if st>=binmin and st<binmin+binsize])/binsize
-    return inst_rate1,inst_rate2,xbins
-
 #2nd calculate sta using input fire freq instead of vmdat
 #weights used to sum the different external inputs - values are weights from param_net
+weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
+binsize=plotdt*10#*100
 sta_start=-20e-3
 sta_end=0
-weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
-'''
-prespike_sta1=ISI_anal.sta_fire_freq(inst_rate1,sta_start,sta_end,weights,xbins)
-prespike_sta2=ISI_anal.sta_fire_freq(inst_rate2,sta_start,sta_end,weights,xbins)
+inst_rate1={}; inst_rate2={}
+prespike_sta1={}; prespike_sta2={}
 
-########### Now plot instaneous pre-synaptic firing rate as well as firing rate sta 
-plot_inst_firing(inst_rate1,xbins)
-plot_inst_firing(inst_rate2,xbins)
-plot_prespike_sta(prespike_sta1,pre_xvals)
-plot_prespike_sta(prespike_sta2,pre_xvals)
+for key in pre_spikes:
+    inst_rate1[key],inst_rate2[key],xbins=ISI_anal.input_fire_freq(pre_spikes[key],binsize)
+    prespike_sta1[key]=ISI_anal.sta_fire_freq(inst_rate1[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
+    prespike_sta2[key]=ISI_anal.sta_fire_freq(inst_rate2[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
+    ######## second set of graphs -
+    plot_inst_firing(inst_rate1[key],xbins)
+    plot_inst_firing(inst_rate2[key],xbins)
+    plot_prespike_sta(prespike_sta1[key],pre_xvals)
+    plot_prespike_sta(prespike_sta2[key],pre_xvals)
 
-plt.figure()
-'''
