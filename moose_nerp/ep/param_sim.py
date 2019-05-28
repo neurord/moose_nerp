@@ -10,7 +10,7 @@ param_sim.stim_paradigm = 'inject'
 param_sim.injection_current = [0e-12,-200e-12] #[-200e-12,-100e-12, 50e-12,150e-12]
 param_sim.injection_delay = 0.1
 param_sim.injection_width = 0.3
-param_sim.simtime = 0.55
+param_sim.simtime = 4.0
 
 param_sim.neuron_type = None
 

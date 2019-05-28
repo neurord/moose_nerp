@@ -23,8 +23,8 @@ def plain_synconn(syn,presyn,syn_delay,weight,simdt=None,stp_params=None):
     sh.synapse.num = sh.synapse.num+1
     sh.synapse[jj].delay=syn_delay
     sh.synapse[jj].weight=weight
-    if weight>1:
-        print('SYNAPSE: {} index {} num {} delay {} weight {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay, sh.synapse[jj].weight))
+    if weight!=1:
+        print('SYNAPSE: {} index {} num {} delay {} weight {} tt {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay, sh.synapse[jj].weight,presyn.path))
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
         msg='eventOut'
@@ -144,14 +144,14 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
         syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
         #randomly select subset of time-tables for spike train input
         presyn_tt=[select_entry(tt_list) for syn in syn_choices]
-        print('## connect from tt',post_connection.pre.tablename)
+        print('## connect from tt',post_connection.pre.tablename,', number of connections',len(presyn_tt))
     else:
         syn_choices=[];presyn_tt=[]
         print('&& no connectons from time tables',post_connection.pre.tablename)
     #connect the time-table to the synapse with mindelay (set dist=0)
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
-        log.info('CONNECT: TT {} POST {} {}', tt,syn, postbranch)
+        log.debug('CONNECT: TT {} POST {}', tt.path,syn)
         synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
         #save the connection in a dictionary for inspection later
         connections[postbranch]=tt.path
