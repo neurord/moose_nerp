@@ -24,19 +24,19 @@ stimfreq=10 #choose from 1,5,10,20,40
 stimtype='PSP_' #choose from AP and PSP
 model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
 model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
-
+model.param_sim.stim_paradigm='inject'
 # This function sets up the options specified in param_sim or passed from
 # command line:
 create_model_sim.setupOptions(model)
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [-25e-12]
+param_sim.injection_current = [0e-12]
 param_sim.injection_delay = 0.0
-param_sim.injection_width = 5.0
+param_sim.injection_width = 1.0
 param_sim.save_txt=True
 #param_sim.plot_synapse=True
 #param_sim.plot_calcium=False
-param_sim.plotcomps = param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1_a']
+param_sim.plotcomps = param_sim.plotcomps#+['p0b1','p0b1b1','p0b1b1_a']
 #soma:13 um diam
 #p0b1:16 um away
 #p0b1b1:46 um (additional 30 um)
