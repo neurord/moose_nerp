@@ -100,9 +100,9 @@ str_plas=ShortTermPlasParams(facil=str_facil)
 
 #specify extrinsic inputs.  If two different gaba inputs have different amplitudes,
 #may need to assign synaptic weight a different value for each
-ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr)# need reference
-ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr,stp=GPe_plas,weight=2)
-ext3_neur1post=ext_connect(synapse='gaba',pre=tt_str,post='ep', dend_loc=str_distr,stp=str_plas)
+ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr,weight=1.0)# need reference
+ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr,stp=GPe_plas,weight=2.0)
+ext3_neur1post=ext_connect(synapse='gaba',pre=tt_str,post='ep', dend_loc=str_distr,stp=str_plas,weight=1.0)
 
 #Collect all connection information into dictionaries
 #1st create one dictionary for each post-synaptic neuron class

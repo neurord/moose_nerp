@@ -43,16 +43,25 @@ stimtype='PSP_' #choose from AP and PSP
 outdir="ep_net/output/"
 model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
 model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
+prefix='POST-NoDa'
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.injection_current = [0e-12]
 param_sim.injection_delay = 0.0
 param_sim.plot_synapse=True
-param_sim.save_txt = True
+param_sim.save_txt = False
 
-#param_sim.simtime = 1.0
+param_sim.simtime = 0.01
 #param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
+if prefix.startswith('POST-HFS'):
+    net.connect_dict['ep']['gaba']['extern2'].weight=0.8 #GPe - weaker
+    net.connect_dict['ep']['gaba']['extern3'].weight=1.4 #str - stronger
+    net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
+if prefix.startswith('POST-NoDa'):
+    net.connect_dict['ep']['gaba']['extern2'].weight=2.8 #GPe - stronger
+    net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
+    net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)

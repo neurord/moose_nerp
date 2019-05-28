@@ -33,14 +33,23 @@ def moose_main(p):
         model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
     else:
         model.param_sim.stim_paradigm='inject'
- 
     create_model_sim.setupOptions(model)
     param_sim = model.param_sim
     param_sim.injection_current = [0e-12]
     param_sim.injection_delay = 0.0
     param_sim.plot_synapse=False
-
+       
+    if prefix.startswith('POST-HFS'):
+        net.connect_dict['ep']['gaba']['extern2'].weight=0.8 #GPe - weaker
+        net.connect_dict['ep']['gaba']['extern3'].weight=1.4 #str - stronger
+        net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
+    if prefix.startswith('POST-NoDa'):
+        net.connect_dict['ep']['gaba']['extern2'].weight=2.8 #GPe - stronger
+        net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
+        net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
+    
     #################################-----------create the model: neurons, and synaptic inputs
+    
     model=create_model_sim.setupNeurons(model,network=not net.single)
     population,connections,plas=create_network.create_network(model, net, model.neurons)
 
@@ -65,9 +74,6 @@ def moose_main(p):
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {} plotcomps {}'.format(presyn,model.stpYN,stimfreq,trialnum, param_sim.plotcomps))
 
     create_model_sim.setupStim(model)
-    if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
-        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
-        pg.firstLevel = param_sim.injection_current[0]
 
     ##############--------------output elements
     if net.single:
@@ -102,11 +108,14 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-    if not np.all([inj==0 for inj in param_sim.injection_current]):
+
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
-        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj[0])
+        pg.firstLevel = param_sim.injection_current[0]
+        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
     else:
-        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=0)
+        create_model_sim.runAll(model,printParams=True)
     #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
     #
     #Save results: spike time, Vm, parameters, input time tables
@@ -142,31 +151,27 @@ def moose_main(p):
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
     return param_dict,tab_dict,vmtab,spike_time,isis
 
-def multi_main(syntype,stpYN,stimfreqs,num_trials,prefix):
+def multi_main():
     from multiprocessing.pool import Pool
-    p = Pool(12,maxtasksperchild=1)
-    # Apply main simulation varying cortical fractions:
+    import os
+    
+    prefix='GABA'
+    num_trials=15
+    syntype='str'
+    stpYN=1
+    stimfreqs=[20]
+    #
+    max_pools=os.cpu_count()
+    num_pools=min(num_trials,maxpools)
+    p = Pool(num_pools,maxtasksperchild=1)
+    #
     all_results={}
-    #for trial in range(num_trials):
-    #    params=[(freq,syntype,stpYN,trial) for freq in stimfreqs]
     for freq in stimfreqs:
         params=[(freq,syntype,stpYN,trial,prefix) for trial in range(num_trials)]
         results = p.map(moose_main,params)
         all_results[freq]=dict(zip(range(num_trials),results))
-    #all_results.append(dict(zip(stimfreqs,results)))
-    return all_results
 
-if __name__ == "__main__":
-    print('running main')
-    prefix='GABA'
-    num_trials=15
-
-    syn='str'
-    stpYN=1
-    stimfreqs=[20]
-    #all_results = multi_main(syn,stpYN,stimfreqs,num_trials,prefix)
-
-
+#multi_main()
 '''
 for neurtype,neurtype_dict in connections.items():
     for neur,neur_dict in neurtype_dict.items():
