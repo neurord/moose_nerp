@@ -36,6 +36,7 @@ def moose_main(p):
     create_model_sim.setupNeurons(model)
 
     # This function sets up the Output options, e.g. saving, graph tables, etc.
+
     create_model_sim.setupOutput(model)
 
     # This function sets up the stimulation in Moose, e.g. pulsegen for current
@@ -58,13 +59,15 @@ def moose_main(p):
 
     #simulate the model
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+        print('$$$$$$$$$$$$$$ stim paradigm',model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
         neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
         pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,neuron_pop)
         for inj in model.param_sim.injection_current:
             pg.firstLevel=inj
             create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
     else:
-        create_model_sim.runAll(model,printParams=True)
+        for inj in model.param_sim.injection_current:
+            create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
     print('<<<<<<<<<<< moose_main, sim {} finished'.format(param_sim.fname))
 
     #Extract spike times and calculate ISI if spikes occur
@@ -72,7 +75,7 @@ def moose_main(p):
     import numpy as np
     import ISI_anal
     #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
-    spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+    spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
     stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
     if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
         psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
@@ -100,53 +103,65 @@ def multi_main(synset,stpYN,inj,stimfreqs):
     key=[(p[0],p[1]) for p in params]
     max_pools=os.cpu_count()
     num_pools=min(len(params),max_pools)
-    print('************* number of processors',num_pools,' params',params)
+    print('************* number of processors',num_pools,' params',len(params),params, 'syn', synset)
     p = Pool(num_pools,maxtasksperchild=1)
     results = p.map(moose_main,params)
     return dict(zip(key,results))
 
 if __name__ == "__main__":
+    import sys
     print('running main')
-    syn=['GPe','str'] #choose from str or GPe
-    stpYN=0 #either 0 or 1
-    inj=-15e-12 #choose from 0 or -15e-12 (15 pA)
+    try:
+        args = ARGS.split(" ")
+        print("ARGS =", ARGS, "commandline=", args)
+        plot_stuff=1
+        do_exit = False
+    except NameError: #NameError refers to an undefined variable (in this case ARGS)
+        args = sys.argv[1:]
+        plot_stuff=0
+        print("commandline =", args)
+        do_exit = True
+    inj=float(args[0]) #choose from 0 or -15e-12 (15 pA)
+    stpYN=int(args[1]) #either 0 or 1
+    synset=['GPe','str']
     stimfreqs=[5,10,20,40]
-    results = multi_main(syn,stpYN,inj,stimfreqs)
+    results = multi_main(synset,stpYN,inj,stimfreqs)
 
-    #plot plasticity and synaptic response
-    from matplotlib import pyplot as plt
-    import numpy as np
-    plt.ion()
-    if stpYN:
-        numplots=3
-    else:
-        numplots=1
-fig,axes =plt.subplots(numplots, len(syn),sharex=True)
-fig.canvas.set_window_title(syn)
-axis=fig.axes
-for (stimfreq,syntype),tabset in results.items():
-    synindex=syn.index(syntype)#0 or 1
-    param_dict,syntab_dict,vmtab,spike_time,isis=tabset
-    for ntype,syntabs in syntab_dict.items():
-        dt=syntabs['syndt'] 
-        #print('*********** freq',stimfreq,'tt',syntabs['tt'])
-        numpts=len(syntabs['syn'])
-        time=np.arange(0,dt*numpts,dt)
+    if plot_stuff:
+        #plot plasticity and synaptic response
+        from matplotlib import pyplot as plt
+        import numpy as np
+        plt.ion()
         if stpYN:
-            for tabname,tab in syntabs['plas'].items():
-                if 'stp' in tabname:
-                    axisnum=2*len(syn)
-                    ylabel=syntype+' plas'
-                else:
-                    axisnum=1*len(syn)
-                    ylabel=syntype+' dep or fac'
-                labl=ntype+'_'+tabname[-4:-1]+str(stimfreq)
-                axis[synindex+axisnum].plot(time[0:numpts],tab,label=labl)
-                axis[synindex+axisnum].set_ylabel(ylabel)
-    axis[synindex].plot(time[0:numpts],syntabs['syn']*1e9,label=ntype+' freq='+str(stimfreq))
-    axis[synindex+(numplots-1)*len(syn)].set_xlabel('time, sec')
-    axis[synindex].set_ylabel(syntype+' Gk*1e9')
-    axis[synindex].legend()
+            numplots=3
+        else:
+            numplots=1
+        fig,axes =plt.subplots(numplots, len(syn),sharex=True)
+        fig.canvas.set_window_title(syn)
+        axis=fig.axes
+        for (stimfreq,syntype),tabset in results.items():
+            synindex=syn.index(syntype)#0 or 1
+            param_dict,syntab_dict,vmtab,spike_time,isis=tabset
+            for ntype,syntabs in syntab_dict.items():
+                dt=syntabs['syndt'] 
+                #print('*********** freq',stimfreq,'tt',syntabs['tt'])
+                numpts=len(syntabs['syn'])
+                time=np.arange(0,dt*numpts,dt)
+                if stpYN:
+                    for tabname,tab in syntabs['plas'].items():
+                        if 'stp' in tabname:
+                            axisnum=2*len(syn)
+                            ylabel=syntype+' plas'
+                        else:
+                            axisnum=1*len(syn)
+                            ylabel=syntype+' dep or fac'
+                        labl=ntype+'_'+tabname[-4:-1]+str(stimfreq)
+                        axis[synindex+axisnum].plot(time[0:numpts],tab,label=labl)
+                        axis[synindex+axisnum].set_ylabel(ylabel)
+            axis[synindex].plot(time[0:numpts],syntabs['syn']*1e9,label=ntype+' freq='+str(stimfreq))
+            axis[synindex+(numplots-1)*len(syn)].set_xlabel('time, sec')
+            axis[synindex].set_ylabel(syntype+' Gk*1e9')
+            axis[synindex].legend()
 
 '''
 2D axes are numbered as follows:

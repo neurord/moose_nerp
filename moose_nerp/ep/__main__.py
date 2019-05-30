@@ -24,7 +24,7 @@ stimfreq=10 #choose from 1,5,10,20,40
 stimtype='PSP_' #choose from AP and PSP
 model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
 model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
-model.param_sim.stim_paradigm='inject'
+
 # This function sets up the options specified in param_sim or passed from
 # command line:
 create_model_sim.setupOptions(model)
@@ -36,12 +36,11 @@ param_sim.injection_width = 1.0
 param_sim.save_txt=True
 #param_sim.plot_synapse=True
 #param_sim.plot_calcium=False
-param_sim.plotcomps = param_sim.plotcomps#+['p0b1','p0b1b1','p0b1b1_a']
+#param_sim.plotcomps = param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1_a']
 #soma:13 um diam
 #p0b1:16 um away
 #p0b1b1:46 um (additional 30 um)
 #p0b1b1_x:76 um (additional 30 um)
-
 
 # this is only needed if adding short term plasticity to synapse
 from moose_nerp import ep_net as net
@@ -53,7 +52,7 @@ else:
     print('########### unknown synapse type:', presyn)
 
 param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN))
+print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} plot comps {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN,param_sim.plotcomps))
 
 # This function creates the neuron(s) in Moose:
 create_model_sim.setupNeurons(model)
@@ -87,6 +86,7 @@ if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
 
 # This function runs all the specified simulations, plotting and saving them
 # as specified:
+
 create_model_sim.runAll(model,printParams=True)
 
 # Alternative function to create_model_sim.runAll, that runs a simulation a few
@@ -108,8 +108,9 @@ create_model_sim.runAll(model,printParams=True)
 #Extract spike times and calculate ISI if spikes occur
 import numpy as np
 import ISI_anal
+
 #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
-spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     if model.param_sim.save_txt:
         np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
@@ -157,7 +158,7 @@ if psp_norm:
     for neurtype, tabset in psp_norm.items():
         for i,tab in enumerate(tabset):
             plt.plot(range(len(tab)),tab,'o')
- 
+
 ''' 
 ToDo:
 1. update this chart

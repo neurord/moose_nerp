@@ -77,7 +77,6 @@ def moose_main(p):
 
     ##############--------------output elements
     if net.single:
-        #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
         create_model_sim.setupOutput(model)
     else:   #population of neurons
         spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
@@ -108,20 +107,22 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-
+    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]))
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
         pg.firstLevel = param_sim.injection_current[0]
         create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
     else:
-        create_model_sim.runAll(model,printParams=True)
+        for inj in model.param_sim.injection_current:
+            create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
+
     #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
     #
     #Save results: spike time, Vm, parameters, input time tables
     vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     import ISI_anal
-    spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+    spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
     else:

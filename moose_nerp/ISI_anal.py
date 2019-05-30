@@ -1,6 +1,7 @@
 #Functions for calculating ISI, latency, psp_amplitude for a set of files
 import glob
 import numpy as np
+import moose
 
 import detect
 
@@ -13,12 +14,17 @@ def file_set(pattern):
         print('********* no files found for ',pattern)
     return files
 
-def spike_isi_from_vm(vmtab,simtime):
+def spike_isi_from_vm(vmtab,simtime,soma='soma'):
     spike_time={key:[] for key in vmtab.keys()}
     numspikes={key:[] for key in vmtab.keys()}
     isis={key:[] for key in vmtab.keys()}
     for neurtype, tabset in vmtab.items():
-        for tab in tabset:
+        comp_names=[tab.neighbors['requestOut'][0].name for tab in tabset]
+        soma_tabs=[tab for tab in tabset if tab.neighbors['requestOut'][0].name==soma]
+        print ('ISI_ANAL: vm tables {}, soma vmtab={}, comp={}'.format(comp_names,soma_tabs,[st.neighbors['requestOut'][0].path for st in soma_tabs]))
+        if len(soma_tabs)==0:
+            soma_tabs=comp_names[-1]
+        for tab in soma_tabs:
             spike_time[neurtype].append(detect.detect_peaks(tab.vector)*tab.dt)
             isis[neurtype].append(np.diff(spike_time[neurtype][-1]))
             numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
@@ -57,8 +63,9 @@ def set_up_bins(file0,freq,numbins,neurtype):
     bins={}
     with np.load(file0,'r') as dat:
         params=dat['params'].item()
-        #1st [0] below because could have multiple synapses stimulated
-        #each item is tuple of (synapse,stim_times)
+        #'syn_tt' has one tuple (but could have multiple), 
+        #1st [0] selects the 1st tuple
+        #2nd [1] selects stim_times (array of spike times) from tuple (synapse,stim_times), 
         stim_tt=params[neurtype]['syn_tt'][0][1]
         #simtime=params[simtime]
         simtime=4.0
@@ -127,14 +134,19 @@ def freq_dependence(fileroot,presyn,suffix):
         dat=np.load(fname,'r')
         params=dat['params'].item()
         if 'norm' in dat.keys():
+            print ('freq dep fname', fname, dat.keys())
             numplots=len(dat['norm'].item().keys())
             results[params['freq']]={ntype:[] for ntype in dat['norm'].item().keys()}
             for neurtype in dat['norm'].item().keys():
                 results[params['freq']][neurtype]=dat['norm'].item()[neurtype]
-                xval_set[params['freq']][neurtype]=range(len(dat['norm']))
+                #'syn_tt' has one tuple (but could have multiple), 
+                #1st [0] selects the 1st tuple
+                #2nd [1] selects stim_times (array of spike times) from tuple (synapse,stim_times), 
+                xval_set[params['freq']][neurtype]=dat['params'].item()['ep']['syn_tt'][0][1]
             ylabel='normalized PSP amp'
             xlabel='pulse'
         elif 'isi' in dat.keys():
+            print ('freq dep fname', fname, dat.keys())
             numplots=len(dat['isi'].item().keys())
             results[params['freq']]={ntype:[] for ntype in dat['isi'].item().keys()}
             for neurtype in dat['isi'].item().keys():
@@ -154,6 +166,7 @@ def get_spiketimes(files,neurtype):
             dat=np.load(fname,'r')
             spiketimes.append(dat['spike_time'].item()[neurtype][0])
         #Get start and end of stimulation only from last file
+        #'syn_tt' has one tuple (but could have multiple), 1st item is comp, 2nd item is array of spike times
         if neurtype in dat['params'].item().keys():
             xstart=dat['params'].item()[neurtype]['syn_tt'][0][1][0]
             xend=dat['params'].item()[neurtype]['syn_tt'][0][1][-1]
