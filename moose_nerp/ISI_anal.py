@@ -238,6 +238,7 @@ def sta_set(files,spike_time,neurtype,sta_start,sta_end):
             '''
         else:
             print('wrong spike file')
+    #calculate mean over trials
     return sta_list,xvals,plotdt,vmdat
 
 def input_raster(files):
@@ -278,9 +279,14 @@ def sta_fire_freq(inst_rate,spike_list,sta_start,sta_end,weights,xbins):
         spike_time=spike_list[trial]
         for key in inst_rate[trial].keys():
             weighted_inst_rate[trial]+=weights[key]*inst_rate[trial][key] 
-            dummy,prespike_sta[trial][key]=calc_sta(spike_time,window,inst_rate[trial][key],binsize)
-        dummy,prespike_sta[trial]['sum']=calc_sta(spike_time,window,weighted_inst_rate[trial],binsize)
-    return prespike_sta
+            xbins,prespike_sta[trial][key]=calc_sta(spike_time,window,inst_rate[trial][key],binsize)
+        xbins,prespike_sta[trial]['sum']=calc_sta(spike_time,window,weighted_inst_rate[trial],binsize)
+    mean_sta={k:np.zeros(len(prespike_sta[0][k])) for k in prespike_sta[0]}
+    for ax,key in enumerate(prespike_sta[0].keys()):
+        for trial in range(len(prespike_sta)):
+            mean_sta[key]+=prespike_sta[trial][key]
+        mean_sta[key]=mean_sta[key]/len(prespike_sta)
+    return prespike_sta,mean_sta,xbins
 
 def input_fire_freq(pre_spikes,binsize):
     import elephant
