@@ -40,13 +40,13 @@ def moose_main(p):
     param_sim.plot_synapse=False
        
     if prefix.startswith('POST-HFS'):
+        net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
         net.connect_dict['ep']['gaba']['extern2'].weight=0.8 #GPe - weaker
         net.connect_dict['ep']['gaba']['extern3'].weight=1.4 #str - stronger
-        net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
     if prefix.startswith('POST-NoDa'):
+        net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
         net.connect_dict['ep']['gaba']['extern2'].weight=2.8 #GPe - stronger
         net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
-        net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
     
     #################################-----------create the model: neurons, and synaptic inputs
     
