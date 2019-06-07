@@ -143,7 +143,14 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
         #randomly select num_choices of synapses without replacement from the entire set
         syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
         #randomly select subset of time-tables for spike train input
-        presyn_tt=[select_entry(tt_list) for syn in syn_choices]
+        #could do this in one line, but then meaningless error message
+        presyn_tt=[]
+        for i,syn in enumerate(syn_choices):
+            if len(tt_list)>0:
+                presyn_tt.append(select_entry(tt_list))
+            else:
+                print('table empty',i,syn,tt_list)
+        #presyn_tt=[select_entry(tt_list) for syn in syn_choices]
         print('## connect from tt',post_connection.pre.tablename,', number of connections',len(presyn_tt))
     else:
         syn_choices=[];presyn_tt=[]
@@ -206,7 +213,7 @@ def connect_neurons(cells, netparams, postype, model):
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
                     ####### connect to time tables instead of other neurons in network
-                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model.param_syn,model.param_sim.simdt)
+                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,netparams,model)
                     intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
                 else:
                     if getattr(model,'stpYN',False):
