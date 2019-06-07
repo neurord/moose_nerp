@@ -10,7 +10,8 @@ def moose_main(p):
     import numpy as np
     import moose
 
-    from moose_nerp.prototypes import (create_model_sim,
+    from moose_nerp.prototypes import (calcium,
+                                       create_model_sim,
                                        clocks,
                                        inject_func,
                                        create_network,

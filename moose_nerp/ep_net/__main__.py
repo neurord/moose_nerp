@@ -18,7 +18,8 @@ plt.ion()
 
 import moose
 
-from moose_nerp.prototypes import (create_model_sim,
+from moose_nerp.prototypes import (calcium,
+                                   create_model_sim,
                                    clocks,
                                    inject_func,
                                    create_network,
@@ -34,7 +35,7 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.stpYN = True
-net.single=True
+net.single=False
 
 ############## Set-up test of synaptic plasticity at single synapse ####################
 presyn='GPe' #choose from 'str', 'GPe'
@@ -49,6 +50,7 @@ create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.injection_current = [0e-12]
 param_sim.injection_delay = 0.0
+param_sim.injection_width = 4.0
 param_sim.plot_synapse=True
 param_sim.save_txt = False
 
