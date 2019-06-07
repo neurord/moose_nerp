@@ -61,7 +61,8 @@ def moose_main(p):
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         print('$$$$$$$$$$$$$$ stim paradigm',model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
         neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
-        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,neuron_pop)
+        #set injection width to simulation time
+        pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,neuron_pop)
         for inj in model.param_sim.injection_current:
             pg.firstLevel=inj
             create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)

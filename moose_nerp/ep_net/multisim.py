@@ -107,9 +107,10 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
+
     print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]))
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
-        pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
+        pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
         pg.firstLevel = param_sim.injection_current[0]
         create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
@@ -152,27 +153,38 @@ def moose_main(p):
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
     return param_dict,tab_dict,vmtab,spike_time,isis
 
-def multi_main():
+def multi_main(prefix,num_trials,syntype,stpYN,stimfreq):
     from multiprocessing.pool import Pool
     import os
     
-    prefix='GABA'
-    num_trials=15
-    syntype='str'
-    stpYN=1
-    stimfreqs=[20]
-    #
     max_pools=os.cpu_count()
-    num_pools=min(num_trials,maxpools)
+    params=[(stimfreq,syntype,stpYN,trial,prefix) for trial in range(num_trials)]
+    num_pools=min(len(params),max_pools)
+    print('************* number of processors',max_pools,' params',num_pools,params, 'syn', syntype,stimfreq)
     p = Pool(num_pools,maxtasksperchild=1)
     #
-    all_results={}
-    for freq in stimfreqs:
-        params=[(freq,syntype,stpYN,trial,prefix) for trial in range(num_trials)]
-        results = p.map(moose_main,params)
-        all_results[freq]=dict(zip(range(num_trials),results))
+    results = p.map(moose_main,params)
 
-#multi_main()
+if __name__ == "__main__":
+    import sys
+    print('running main')
+    try:
+        args = ARGS.split(" ")
+        print("ARGS =", ARGS, "commandline=", args)
+        plot_stuff=1
+        do_exit = False
+    except NameError: #NameError refers to an undefined variable (in this case ARGS)
+        args = sys.argv[1:]
+        plot_stuff=0
+        print("commandline =", args)
+        do_exit = True
+    condition=args[0] #GABA for ctrl, POST-HFS or POST-NoDa
+    num_trials=int(args[1])
+    syn=args[2] #str, GPe or non
+    stpYN=int(args[3]) #either 0 or 1
+    stimfreq=int(args[4])
+    results = multi_main(condition,num_trials,syn,stpYN,stimfreq)
+
 '''
 for neurtype,neurtype_dict in connections.items():
     for neur,neur_dict in neurtype_dict.items():
