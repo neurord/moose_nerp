@@ -14,16 +14,28 @@ def file_set(pattern):
         print('********* no files found for ',pattern)
     return files
 
+def find_somatabs(tabset,soma_name,tt=None):
+    #find the table(s) with vm from the soma
+    comp_names=[tab.neighbors['requestOut'][0].name for tab in tabset]
+    soma_tabs=[tab for tab in tabset if tab.neighbors['requestOut'][0].name==soma_name]
+    print ('ISI_ANAL: vm tables {}, soma vmtab={}, comp={}'.format(comp_names,soma_tabs,[st.neighbors['requestOut'][0].path for st in soma_tabs]))
+    #if no soma tables found (perhaps wrong name) use the last one, which might be soma
+    #or send back number of tables equal to number of time tables 
+    ######## Needs more debugging for network simulation #################3
+    if len(soma_tabs)==0:
+        if tt:
+            num_tabs=len(tt)
+        else:
+            num_tabs=1
+        soma_tabs=comp_names[-num_tabs:]
+    return soma_tabs
+    
 def spike_isi_from_vm(vmtab,simtime,soma='soma'):
     spike_time={key:[] for key in vmtab.keys()}
     numspikes={key:[] for key in vmtab.keys()}
     isis={key:[] for key in vmtab.keys()}
     for neurtype, tabset in vmtab.items():
-        comp_names=[tab.neighbors['requestOut'][0].name for tab in tabset]
-        soma_tabs=[tab for tab in tabset if tab.neighbors['requestOut'][0].name==soma]
-        print ('ISI_ANAL: vm tables {}, soma vmtab={}, comp={}'.format(comp_names,soma_tabs,[st.neighbors['requestOut'][0].path for st in soma_tabs]))
-        if len(soma_tabs)==0:
-            soma_tabs=comp_names[-1]
+        soma_tabs=find_somatabs(tabset,soma)
         for tab in soma_tabs:
             spike_time[neurtype].append(detect.detect_peaks(tab.vector)*tab.dt)
             isis[neurtype].append(np.diff(spike_time[neurtype][-1]))
@@ -39,11 +51,12 @@ def stim_spikes(spike_time,timetables):
             stim_spikes[neurtype].append([st for st in spike_time[neurtype][-1] if st>np.min(tt.vector) and st<np.max(tt.vector)])
     return stim_spikes
 
-def psp_amp(vmtab,timetables):
+def psp_amp(vmtab,timetables,soma='soma'):
     psp_amp={key:[] for key in vmtab.keys()}
     psp_norm={key:[] for key in vmtab.keys()}
     for neurtype, tabset in vmtab.items():
-        for tab,tt in zip(tabset,timetables[neurtype].values()):
+        soma_tabs=find_somatabs(tabset,soma,tt=timetables[neurtype].values())
+        for tab,tt in zip(soma_tabs,timetables[neurtype].values()):
             vm_init=[tab.vector[int(t/tab.dt)] for t in tt.vector]
             #use np.min for IPSPs and np.max for EPSPs
             vm_peak=[np.min(tab.vector[int(tt.vector[i]/tab.dt):int(tt.vector[i+1]/tab.dt)]) for i in range(len(tt.vector)-1)]

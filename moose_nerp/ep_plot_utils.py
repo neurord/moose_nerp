@@ -52,6 +52,7 @@ def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
             axis[ax].annotate('offset',xy=(xend,0),xytext=(xend/maxt, -0.2),
                               textcoords='axes fraction', arrowprops=dict(facecolor='red', shrink=0.05))
     axis[-1].set_xlabel('time (sec)')
+    axis[0].set_xlim(0.5,3.5)
     return
 
 #################### plot the set of results from single neuron simulations, range of input frequencies
