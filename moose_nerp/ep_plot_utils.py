@@ -67,11 +67,11 @@ def plot_freq_dep_psp(fileroot,presyn_set,suffix,neurtype):
     fig.suptitle(neurtype+suffix)
     axis=fig.axes
     for i,presyn in enumerate(presyn_set):
-        for freq in sorted(all_results[presyn].keys()):
+        for k,freq in enumerate(sorted(all_results[presyn].keys())):
             for j,ntype in enumerate(all_results[presyn][freq].keys()):
                 axisnum=i*len(all_results[presyn][freq].keys())+j
                 for yval in all_results[presyn][freq][ntype]:
-                    axis[axisnum].scatter(all_xvals[presyn][freq][ntype][0:len(yval)],yval,label=str(ntype)+str(freq),marker='.')
+                    axis[axisnum].scatter(all_xvals[presyn][freq][ntype][0:len(yval)]-k*0.02,yval,label=str(ntype)+str(freq),marker='.')
                 axis[axisnum].set_ylabel(str(presyn)+' '+ylabel)
             axis[axisnum].legend()
         axis[axisnum].set_xlabel(xlabel)

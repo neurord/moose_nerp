@@ -13,13 +13,21 @@ colors=['r','k','b']
 # Parameters of set of files to analyze
 neurtype='ep'
 plasYN=1
-inj='0'
-stim_freqs=[5,10,20,40]
 presyn=['str','GPe']
 numbins=10
-condition=['POST-NoDa', 'POST-HFS', 'GABA'] #will be used later
-#presyn_set=[(freq,syn) for freq in stim_freqs for syn in presyn]
-presyn_set=[(20,'str'),(40,'GPe'),(0,'non')]
+networksim=0
+
+if networksim:
+    #condition=['POST-NoDa', 'POST-HFS', 'GABA'] 
+    condition=['GABA']
+    inj=0.0 
+    presyn_set=[(20,'str'),(40,'GPe'),(0,'non')]
+    filedir='ep_net/output/'
+else:
+    stim_freqs=[5,10,20,40]
+    condition=['-1.5e-11']#'0.0',
+    presyn_set=[(freq,syn) for freq in stim_freqs for syn in presyn]
+    filedir='ep/output/'
 show_plots=1
 ############################################################
 ##### 1st set of analyses ignores the input spikes
@@ -27,18 +35,20 @@ show_plots=1
 mean_prespike_sta1={};mean_prespike_sta2={}
 mean_sta_vm={};all_isi_mean={}
 for cond in condition:
-    filedir='ep_net/output/'
-    rootname='ep'+cond+'_syn'
-    #filedir='ep/output/'
-    #rootname='ep_syn'
-    fileroot=filedir+rootname
+    if networksim:
+        rootname='ep'+cond+'_syn'
+    else:
+        inj=cond
+        rootname='ep_syn'
     suffix='_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+    fileroot=filedir+rootname
     #
     ####### plots for single neuron simulations, multiple frequencies, single trials:
-    #all_results,all_xvals=pu.plot_freq_dep_psp(fileroot,presyn,suffix,neurtype)
-    #pu.plot_freq_dep_vm(fileroot,presyn,plasYN,inj,neurtype)
+    all_results,all_xvals=pu.plot_freq_dep_psp(fileroot,presyn,suffix,neurtype)
+    pu.plot_freq_dep_vm(fileroot,presyn,plasYN,inj,neurtype)
     #
     ######### most of these analyses,except for sta, assume multiple trials
+    '''
     #time points for spike triggered average
     sta_start=-30e-3
     sta_end=0
@@ -73,7 +83,9 @@ for cond in condition:
         #ISI histogram
         #pu.plot_isi_hist(rootname,isi_set,numbins,suffix)
         #ep spike triggered average of vm before the spike (the standard sta)
-        pu.plot_sta_vm(pre_xvals,sta_list,fileroot,suffix)
+        #pu.plot_sta_vm(pre_xvals,sta_list,fileroot,suffix)
+    '''
+    '''
     #
     ################## additional spike triggered averages and raster plot of input spike times,
     ######## This next set of analyses requires the input spikes
@@ -161,4 +173,4 @@ for j,cond in enumerate(all_isi_mean.keys()):
         axis[i].set_xlabel('time (sec)')
         axis[i].set_ylabel(presyn+' input, isi (sec)')
 axis[i].legend(loc='lower left')
-
+'''
