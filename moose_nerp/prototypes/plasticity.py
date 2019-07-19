@@ -243,7 +243,7 @@ def plasticity2(synchan,plas_params):
     plas.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Parameterize
     plas.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Parameterize
     plas.c['LTP_gain'] = 1100 # TODO: Parameterize
-    plas.c['LTD_gain'] = 4500 # TODO: Parameterize
+    plas.c['LTD_gain'] = 4500*2 # TODO: Parameterize
     min_weight = 0.0
     max_weight = 2.0
     plas.c['min_weight'] = min_weight

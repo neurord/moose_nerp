@@ -76,19 +76,19 @@ Na_h_params = TauInfMinChannelParams(T_min = 2*0.2754e-3/qfactNaF,
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
-KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
+# KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 
-KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
-                                      A_B = 0,
-                                      A_C = 0.0,
-                                      A_vhalf = 0,
-                                      A_vslope = -12.5e-3,
-                                      B_rate = 6.78,
-                                      B_B = 0.0,
-                                      B_C = 0.0,
-                                      B_vhalf = 0.0,
-                                      B_vslope = 33.5e-3)
-KDr_Y_params = []
+# KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
+#                                       A_B = 0,
+#                                       A_C = 0.0,
+#                                       A_vhalf = 0,
+#                                       A_vslope = -12.5e-3,
+#                                       B_rate = 6.78,
+#                                       B_B = 0.0,
+#                                       B_C = 0.0,
+#                                       B_vhalf = 0.0,
+#                                       B_vslope = 33.5e-3)
+# KDr_Y_params = []
 
 Krpparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='Krp')
 

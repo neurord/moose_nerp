@@ -35,8 +35,8 @@ GEOMETRIC = 1
 LINEAR = 0
 
 #SPECIFY TYPE OF CALCIUM DYNAMICS HERE
-CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
-#CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included
+#CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
+CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included
 
 ############################################
 #intrinsic calcium params
@@ -93,8 +93,8 @@ PumpVmaxDensities.NCX = {soma:0, dend:0, spines:8.e-8}
 #Buffer density specification -- this is used with difshells
 BufferDensity = {everything:BufferTotals[which_dye]}
 #Buffer capacity specification -- this is used with CaConc (single time constant of Ca decay)
-BufferCapacityDensity = {soma:199.6, dend:78.1}
-Taus = {soma:0.032185, dend: 0.1107359, spines: 0.1107359}
+BufferCapacityDensity = {soma:20, dend:20}
+#Taus = {soma:0.032185, dend: 0.1107359, spines: 0.1107359}
 tauScale=None#'SurfaceArea'
 #Specificy the size of the smaller calcium compartments
 #When subdividing dendrite or spine, can have the PSD or submembrane shell thinner than inner shells with a thickness increase.
