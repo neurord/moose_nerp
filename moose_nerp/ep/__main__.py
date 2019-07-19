@@ -17,10 +17,10 @@ namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
 
-model.synYN = False#True
-model.stpYN = False#True
+model.synYN = True
+model.stpYN = True
 presyn='str' #choose from 'str', 'GPe', 'none'
-stimfreq=10 #choose from 1,5,10,20,40
+stimfreq=100 #choose from 1,5,10,20,40
 stimtype='PSP_' #choose from AP and PSP
 model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
 model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
@@ -30,12 +30,12 @@ model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
 create_model_sim.setupOptions(model)
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [0e-12]
+param_sim.injection_current = [0]
 param_sim.injection_delay = 0.0
-param_sim.injection_width = 1.0
+
 param_sim.save_txt=True
-#param_sim.plot_synapse=True
-#param_sim.plot_calcium=False
+param_sim.plot_synapse=True
+param_sim.plot_calcium=False
 #param_sim.plotcomps = param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1_a']
 #soma:13 um diam
 #p0b1:16 um away
@@ -63,12 +63,7 @@ create_model_sim.setupOutput(model)
 # This function sets up the stimulation in Moose, e.g. pulsegen for current
 # injection or synaptic stimulation:
 create_model_sim.setupStim(model)
-#additional current injection, e.g. if an offset current is desired
-if not np.all([inj==0 for inj in param_sim.injection_current]):
-    neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
-    pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,neuron_pop)
-    pg.firstLevel = param_sim.injection_current[0]
-    
+
 #add short term plasticity to synapse as appropriate
 if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
     from moose_nerp.prototypes import plasticity_test as plas_test
@@ -84,25 +79,34 @@ if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
                 syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
-# This function runs all the specified simulations, plotting and saving them
-# as specified:
+#additional current injection, e.g. if an offset current is desired
+if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+    print('$$$$$$$$$$$$$$ stim paradigm',model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
+    neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
+    #set injection width to simulation time
+    pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.simtime,neuron_pop)
+    pg.firstLevel = param_sim.injection_current[0]
 
+##################### for debugging: shows that some spikes elicit 2x increase in weight
+fac=moose.element('/ep/p0b1b1b2/gaba/fac0')
+x0=fac.x[0]
+x1=fac.x[1]
+x0tab=moose.Table('x0tab')
+x1tab=moose.Table('x1tab')
+moose.connect(x0tab,'requestOut',x0,'getValue')
+moose.connect(x1tab,'requestOut',x1,'getValue')
+ttstate=moose.Table('/data/ttstate')
+tt=list(model.tuples['ep'].values())[0][0]
+moose.connect(ttstate, 'requestOut', tt, 'getState')
+param_sim.simtime=0.1
+##################### 
 create_model_sim.runAll(model,printParams=True)
+print('<<<<<<<<<<< moose_main, sim {} finished'.format(param_sim.fname))
 
 # Alternative function to create_model_sim.runAll, that runs a simulation a few
 # steps at a time and then updates a plot, to show the live simulation results.
 # This is an example of modifying, expanding, or customizing code:
 #   `create_model_sim.stepRunPlot(model)`
-
-# Note that customizations should be added to 'create_model_sim' to make them
-# available to any model, by adding new functions or expanding existing functions
-# with new options that do not alter the current state of the functions unless
-# the new options are explicitly called.
-
-# There is also a convenience function, `create_model_sim.setupAll(model)` that
-# would sequentially call the above four functions: setupOptions, setupNeurons,
-# setupOutput, and setupStim
-#That function does not include adding short term plasticity
 
 ###################### Analysis ##############################
 #Extract spike times and calculate ISI if spikes occur
@@ -115,31 +119,39 @@ if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     if model.param_sim.save_txt:
         np.savez(param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
 psp_norm=None
+'''
 if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
-    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt,soma=model.param_cond.NAME_SOMA)
     if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
         #Extract amplitude of PSPs based on knowledge of spike time if no spikes during stimulation
-        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
+        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt,soma=model.param_cond.NAME_SOMA)
         if model.param_sim.save_txt:
             np.savez(param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict)
-
+'''
 ########################## Plotting results ##############################
 #plot plasticity and synaptic response
 from matplotlib import pyplot as plt
 plt.ion()
-if psp_norm:
-    plt.figure()
-    plt.title('synapse')
-    for ntype in model.neurons.keys():
-        numpts=len(syntab[ntype].vector)
-        time=np.arange(0,syntab[ntype].dt*numpts,syntab[ntype].dt)
-        if model.stpYN:
-            for i,tab in enumerate(plastabset[ntype]):
-                offset=i*0.02
-                labl=tab.name[-4:-1]+'+'+str(offset)
-                plt.plot(time[0:numpts],tab.vector+offset,label=labl)
-    plt.plot(time[0:numpts],syntab[ntype].vector*1e9,label='Gk*1e9')
-    plt.legend()
+plt.figure()
+plt.title('synapse')
+for ntype in model.neurons.keys():
+    numpts=len(syntab[ntype].vector)
+    time=np.arange(0,syntab[ntype].dt*numpts,syntab[ntype].dt)
+    if model.stpYN:
+        for i,tab in enumerate(plastabset[ntype]):
+            offset=i*0.02
+            labl=tab.name[-4:-1]+'+'+str(offset)
+            plt.plot(time[0:numpts],tab.vector+offset,label=labl)
+plt.plot(time[0:numpts],syntab[ntype].vector*1e9,label='Gk*1e9')
+plt.legend()
+
+##################### for debugging: shows that some spikes elicit 2x increase in weight
+plt.figure()
+plt.plot(time[0:numpts],x0tab.vector,label='x0tab')
+plt.plot(time[0:numpts],x1tab.vector,label='x1tab')
+plt.plot(time[0:numpts],ttstate.vector,label='tt state')
+plt.legend()
+#####################
 
 #plot spikes or PSP amplitude if no spikes during stimulation
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):

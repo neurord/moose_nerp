@@ -16,6 +16,7 @@ PSP_5Hz=ParadigmParams(f_pulse = 5., n_pulse=10,A_inject=0e-9, f_burst=1, n_burs
 PSP_10Hz=ParadigmParams(f_pulse = 10., n_pulse=10,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_10Hz")
 PSP_20Hz=ParadigmParams(f_pulse = 20., n_pulse=20,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_20Hz")
 PSP_40Hz=ParadigmParams(f_pulse = 40., n_pulse=40,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_40Hz")
+PSP_100Hz=ParadigmParams(f_pulse = 100., n_pulse=100,A_inject=0e-9, f_burst=1, n_burst=1, f_train=1, n_train=1, width_AP=0.005, AP_interval=0.01, n_AP=0, ISI=0, name="PSP_100Hz")
 
 #n_AP is number of AP per PSP input pulse, AP_interval dicates frequency of AP when n_AP>1
 #set ISI to large negative number to avoid observing any PSPs
@@ -38,7 +39,8 @@ paradigm_dict={'inject':inject,
                'PSP_5Hz': PSP_5Hz,
                'PSP_10Hz': PSP_10Hz,
                'PSP_20Hz': PSP_20Hz,
-               'PSP_40Hz': PSP_40Hz}
+               'PSP_40Hz': PSP_40Hz,
+               'PSP_100Hz': PSP_100Hz}
 
 #stim_dendrite list must correspond to dendrites in morphology.p
 #spine_density units: fraction of spines connected in specified compartments
@@ -48,7 +50,7 @@ location['str']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequ
 location['GPe']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1'],syntype='gaba',weight=2)
 
 #stim_delay units: sec
-Stimulation = StimParams(Paradigm = PSP_10Hz,stim_delay = 1.0,StimLoc=location['GPe'])
+Stimulation = StimParams(Paradigm = PSP_100Hz,stim_delay = 0,StimLoc=location['GPe'])
 
 #pulse sequence should be of the form:
 #{1:[0,1],2:[2,3],3:[0,1]} -- for each pulse specify a list of spines to stimulate
