@@ -10,7 +10,8 @@ def moose_main(p):
     model.synYN = True
     model.stpYN = stpYN
     outdir="ep/output/"
-    model.param_sim.stim_paradigm='PSP_'+str(stimfreq)+'Hz'
+    stimtype='PSP_' #choose from AP and PSP
+    model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
     create_model_sim.setupOptions(model)
     # Parameter overrides can be specified:
 
@@ -21,16 +22,17 @@ def moose_main(p):
     param_sim.plot_synapse=False
     param_sim.plot_calcium=False
 
+    # this is only needed if adding short term plasticity to synapse
     from moose_nerp import ep_net as net
-    if presyn=='str':
+    if presyn=='str' and model.stpYN:
         stp_params=net.param_net.str_plas
-    elif presyn=='GPe':
+    elif presyn=='GPe' and model.stpYN:
         stp_params=net.param_net.GPe_plas
     else:
-        print('########### unknown synapse type')
+        print('########### unknown synapse type', presyn)
 
-    param_sim.fname='ep_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-    print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {}'.format(stimfreq,presyn,stpYN))
+    param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+    print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {} plot comps {}'.format(stimfreq,presyn,stpYN,param_sim.plotcomps))
 
     # This function creates the neuron(s) in Moose:
     create_model_sim.setupNeurons(model)
@@ -43,11 +45,12 @@ def moose_main(p):
     # injection or synaptic stimulation:
     create_model_sim.setupStim(model)
 
-    #add short term plasticity to synapse as appropriate
+     #add short term plasticity to synapse as appropriate
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
     from moose_nerp.prototypes import plasticity_test as plas_test
     syntab={ntype:[] for ntype in  model.neurons.keys()}
     plastabset={ntype:[] for ntype in  model.neurons.keys()}
+    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
     for ntype in model.neurons.keys():
         for tt_syn_tuple in model.tuples[ntype].values():
             if model.stpYN:
@@ -58,17 +61,18 @@ def moose_main(p):
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #simulate the model
-    if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+    if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([ij==0 for ij in param_sim.injection_current]):
         print('$$$$$$$$$$$$$$ stim paradigm',model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
         neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
         #set injection width to simulation time
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,neuron_pop)
-        for inj in model.param_sim.injection_current:
-            pg.firstLevel=inj
+        #for ij in model.param_sim.injection_current:
+        pg.firstLevel=param_sim.injection_current[0]
+    '''
             create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
     else:
-        for inj in model.param_sim.injection_current:
-            create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
+    '''
+    create_model_sim.runAll(model,printParams=True)
     print('<<<<<<<<<<< moose_main, sim {} finished'.format(param_sim.fname))
 
     #Extract spike times and calculate ISI if spikes occur
@@ -77,9 +81,9 @@ def moose_main(p):
     import ISI_anal
     #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
-    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt)
+    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt,soma=model.param_cond.NAME_SOMA)
     if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
-        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt)
+        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt,soma=model.param_cond.NAME_SOMA)
         np.savez(outdir+param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict,vm=vmtab)
         print('&&&&&&&&&&&&&&&&& Saving PSP amplitude &&&&&&&&&&&&&&&&&&&', param_sim.fname)
     if np.any([len(st) for tabset in stim_spikes.values() for st in tabset]):

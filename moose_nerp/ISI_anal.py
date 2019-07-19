@@ -44,7 +44,7 @@ def spike_isi_from_vm(vmtab,simtime,soma='soma'):
               'spikes, ISI mean&STD: ',[np.mean(isi) for isi in isis[neurtype]], [np.std(isi) for isi in isis[neurtype]] )
     return spike_time,isis
 
-def stim_spikes(spike_time,timetables):
+def stim_spikes(spike_time,timetables,soma='soma'):
     stim_spikes={key:[] for key in spike_time.keys()}
     for neurtype, tabset in spike_time.items():
         for tab,tt in zip(tabset,timetables[neurtype].values()):
