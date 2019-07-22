@@ -2,6 +2,7 @@
 import glob
 import numpy as np
 import moose
+from scipy import fftpack, signal
 
 import detect
 
@@ -321,6 +322,25 @@ def input_fire_freq(pre_spikes,binsize):
             for i,binmin in enumerate(xbins):
                 inst_rate2[trial][key][i]=len([st for st in spikes if st>=binmin and st<binmin+binsize])/binsize
     return inst_rate1,inst_rate2,xbins
+
+def fft_func(wave_array,ts,init_time):
+    fft_wave=[]
+    phase=[]
+    init_point=np.min(np.where(ts>init_time))
+    for wave in wave_array:
+        #wave is an analog signal - either Vm or binary spike signal.  Do not use spiketime
+        fft_wave.append(fftpack.fft(wave[0][init_point:]))
+        #Note that maximum frequency for fft is fs/2; the frequency unit is cycles/time units.
+        #freqs is x axis. Two ways to obtain correct frequencies:
+        #specify sampling spacing as 2nd parameter, note that fs=1/ts
+        #freqs = fftpack.fftfreq(len(wave))*fs
+        #multiply by sample spacing by max frequency (=1/ts):
+        phase.append(np.arctan2(fft_wave[-1].imag,fft_wave[-1].real))
+    freqs=fftpack.fftfreq(len(wave[0][init_point:]),ts[init_point:])
+    mean_wave=np.mean(wave_array,axis=0)[0]
+    fft_wave.append(fftpack.fft(mean_wave[init_point:]))
+    phase.append(np.arctan2(fft_wave[-1].imag,fft_wave[-1].real))
+    return fft_wave,phase,freqs,mean_wave
 
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)

@@ -35,6 +35,21 @@ def plot_ISI(rootname,isi_mean_dict,isi_std_dict,bins,filesuffix):
         fig.suptitle('ISI: '+rootname+filesuffix.split('.')[0])
         axis[i].legend()
 
+def plot_ISI_cond(all_isi_mean,bins):
+    fig,axes =plt.subplots(len(all_isi_mean[cond]),1,sharex=True)
+    axis=fig.axes
+    fig.suptitle('ISI mean: all conditions')
+    for j,cond in enumerate(all_isi_mean.keys()): 
+        for i,synstim in enumerate(all_isi_mean[cond].keys()):
+            presyn=synstim.split('_')[0]
+            freq=synstim.split('_')[1]
+            for k,key in enumerate(bins.keys()):
+                label=cond if k==0 else ""
+                axis[i].plot(bins[key],all_isi_mean[cond][synstim][key],label=label,color=colors[j])
+            axis[i].set_xlabel('time (sec)')
+            axis[i].set_ylabel(presyn+' input, isi (sec)')
+    axis[i].legend(loc='lower left')
+    
 def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
     ####### Raster plot of spikes in post-synaptic neuron #############
     fig,axes =plt.subplots(len(spiketime_dict), 1,sharex=True)
@@ -143,6 +158,17 @@ def plot_sta_vm(pre_xvals,sta_list_dict,fileroot,suffix):
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
 
+def plot_sta_vm_cond(pre_xvals,sta_list_dict,mean_sta_vm):
+    fig,axes=plt.subplots(len(sta_list_dict.keys()),sharex=True) 
+    axis=fig.axes
+    fig.suptitle('mean sta vm')
+    for cond in mean_sta_vm.keys():
+        for i,(synfreq,mean_sta) in enumerate(mean_sta_vm[cond].items()):
+            axis[i].plot(pre_xvals,mean_sta,label=cond)
+            axis[i].set_ylabel(synfreq+' Vm (V)')
+    axis[-1].set_xlabel('time (s)')
+    axis[-1].legend()
+    
 def plot_prespike_sta(prespike_sta,mean_sta,pre_xvals,title=''):
     fig,axes=plt.subplots(len(prespike_sta[0].keys()),1) 
     fig.suptitle('prespike sta '+title)
@@ -156,6 +182,19 @@ def plot_prespike_sta(prespike_sta,mean_sta,pre_xvals,title=''):
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
 
+def plot_prespike_sta_cond(mean_prespike_sta,bins):
+    fig,axis=plt.subplots(len(mean_prespike_sta[cond][synfreq].keys()),len(mean_prespike_sta[cond].keys()),sharex=True) 
+    fig.suptitle('mean spike triggered average pre-synaptic firing')
+    #need titles for each of the three columns
+    for cond in mean_prespike_sta.keys():
+        for axy,synfreq in enumerate(mean_prespike_sta[cond].keys()):
+            for axx,(key,sta) in enumerate(mean_prespike_sta[cond][synfreq].items()):
+                axis[axx,axy].plot(bins,sta,label=cond)
+                axis[axx,0].set_ylabel(key)
+            axis[-1,axy].set_xlabel('time (s)')
+            axis[0,axy].title.set_text(synfreq)
+        axis[0,0].legend()
+    
 def plot_inst_firing(inst_rate,xbins,title=''):
     fig,axes=plt.subplots(len(inst_rate[0].keys()),1) 
     fig.suptitle('instaneous pre-syn firing rate '+title)
@@ -195,3 +234,4 @@ def plot_isi_hist(rootname,isi_set_dict,numbins,suffix):
 
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
+
