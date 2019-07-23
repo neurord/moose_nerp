@@ -55,7 +55,10 @@ def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
     fig,axes =plt.subplots(len(spiketime_dict), 1,sharex=True)
     fig.suptitle('output '+rootname+suffix)
     axis=fig.axes
+    maxtime=0
     for ax,key in enumerate(spiketime_dict.keys()):
+        maxtime=max(maxtime,np.max([np.max(m) for m in spiketime_dict[key]]))
+        print(key,maxtime)
         axis[ax].eventplot(spiketime_dict[key])
         axis[ax].set_ylabel(key+' trial')
         if len(syntt_info[key]):
@@ -67,7 +70,7 @@ def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
             axis[ax].annotate('offset',xy=(xend,0),xytext=(xend/maxt, -0.2),
                               textcoords='axes fraction', arrowprops=dict(facecolor='red', shrink=0.05))
     axis[-1].set_xlabel('time (sec)')
-    axis[0].set_xlim(0.5,3.5)
+    axis[0].set_xlim(1.0,np.round(maxtime))
     return
 
 #################### plot the set of results from single neuron simulations, range of input frequencies

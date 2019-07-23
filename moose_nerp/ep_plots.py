@@ -21,8 +21,8 @@ numbins=10
 networksim=1
 
 if networksim:
-    #condition=['POST-NoDa', 'POST-HFS', 'GABA'] 
-    condition=['GABA']
+    condition=['POST-NoDaosc', 'POST-HFSosc', 'GABAosc'] 
+    #condition=['GABAosc']
     inj='0.0'
     presyn_set=[(0,'non')]#(20,'str'),(40,'GPe'),
     filedir='ep_net/output/'
@@ -53,7 +53,7 @@ else:
     lat_mean={};lat_std={}
     isi_mean={};isi_std={}
     isi_set={};all_isi_mean={}
-    fft_wave={};phase={};freqs={}
+    fft_wave={};phase={};freqs={};mean_fft_phase={}
     for cond in condition:
         #specify file name pattern
         rootname='ep'+cond+'_syn'
@@ -61,7 +61,7 @@ else:
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         mean_sta_vm[cond]={}
-        fft_wave[cond]={};phase[cond]={}
+        fft_wave[cond]={};phase[cond]={};mean_fft_phase[cond]={}
         for (freq,syn) in presyn_set:
             key=syn+'_'+'freq'+str(freq)
             pattern=fileroot+key+suffix
@@ -76,23 +76,23 @@ else:
                 #ep spike triggered average of vm before the spike (the standard sta)
                 sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
                 mean_sta_vm[cond][key]=np.mean(sta_list[key],axis=0)
-                time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]))
-                fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0)
+                time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
+                fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=18.0)
         all_isi_mean[cond]=isi_mean
         #
         #####1st set of graphs
         if show_plots:
             pu.plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info)
             if len(lat_mean):
-                #pu.plot_latency(rootname,lat_mean,lat_std,suffix)
+                pu.plot_latency(rootname,lat_mean,lat_std,suffix)
                 #latency not too meaningful if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
                 pu.plot_ISI(rootname,isi_mean,isi_std,bins,suffix)
                 #ISI histogram
-                #pu.plot_isi_hist(rootname,isi_set,numbins,suffix)
+                pu.plot_isi_hist(rootname,isi_set,numbins,suffix)
             if sta_start != sta_end:
                 #ep spike triggered average of vm before the spike (the standard sta)
                 pu.plot_sta_vm(pre_xvals,sta_list,fileroot,suffix)
-                fft_plot(time_wave,vmdat[key],freqs[cond],fft_wave[cond][key],phase=phase[cond][key],title=cond+key)
+                fft_plot(time_wave,vmdat[key],freqs[cond],fft_wave[cond][key],phase=phase[cond][key],title=cond+key)#,mean_fft=mean_fft_phase[cond])
         #
         ################## additional spike triggered averages and raster plot of input spike times,
         ######## This next set of analyses requires the input spikes
@@ -123,7 +123,6 @@ else:
         #1st calculate instantaneous input firing frequency for each type of input
         #2nd calculate sta using input fire freq instead of vmdat
         #weights used to sum the different external inputs - values are weights from param_net
-        '''
         weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
         binsize=plotdt*10#*100
         sta_start=-20e-3
@@ -131,6 +130,7 @@ else:
         inst_rate1={}; inst_rate2={}
         prespike_sta1={}; prespike_sta2={}
         mean_pre_sta1={}; mean_pre_sta2={}
+        '''
         #
         for synfreq in pre_spikes:
             inst_rate1[synfreq],inst_rate2[synfreq],xbins=ISI_anal.input_fire_freq(pre_spikes[synfreq],binsize)
@@ -145,13 +145,31 @@ else:
                 #pu.plot_inst_firing(inst_rate2[synfreq],xbins,title=cond+synfreq)
                 pu.plot_prespike_sta(prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1,title=cond+synfreq+' smoothed')
                 pu.plot_prespike_sta(prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2,title=cond+synfreq)
+        '''
     #
-    '''
     #####Plots of means compared across conditions
-    plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
-    #
-    plot_ISI_cond(all_isi_mean,bins)
-    #
-    #plot_prespike_sta_cond(mean_prespike_sta1,bins1)
-    #
+    if len(condition)>1:
+        pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
+        #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
+        fig,axes=plt.subplots(1,1)
+        fig.suptitle('Mean fft')
+        fs=np.max(freqs)
+        Hz500=np.min(np.where(freqs>500))
+        maxval=np.max([np.max(np.abs(f[1:])) for f in mean_fft_phase.values()['mag']])
+        for cond,fft_set in mean_fft_phase.items():
+            for key,fft in fft_set.items():
+                axes.plot(freqs[0:Hz500], np.abs(fft['mag'])[0:Hz500], label=cond+' '+key+' mean')
+                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+                axes.plot(freqs[0:Hz500], mean_of_fft[0:Hz500],label='mean of '+cond+' '+key)
+        axes.set_xlabel('Frequency in Hertz [Hz]')
+        axes.set_ylabel('FFT Magnitude')
+        axes.set_xlim(0 , fs[0:Hz500] )
+        axes.set_ylim(0,np.round(maxval) )
+        #
+        if len(lat_mean):
+            pu.plot_ISI_cond(all_isi_mean,bins)
+        #
+        if len(inst_rate1):
+            pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
+        #
 
