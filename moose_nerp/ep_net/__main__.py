@@ -35,27 +35,28 @@ from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.stpYN = True
-net.single=False
+net.single=True
 
 ############## Set-up test of synaptic plasticity at single synapse ####################
 presyn='GPe' #choose from 'str', 'GPe'
-stimfreq=40 #choose from 1,5,10,20,40
+stimfreq=0 #choose from 1,5,10,20,40
 stimtype='PSP_' #choose from AP and PSP
 outdir="ep_net/output/"
-model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
-model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
-prefix='POST-NoDa'
+if stimfreq>0:
+    model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
+    model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
+else:
+    model.param_sim.stim_paradigm='inject'
+prefix='GABAosc'
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [0e-12]
+param_sim.injection_current = [-10e-12]
 param_sim.injection_delay = 0.0
-param_sim.injection_width = 4.0
+param_sim.injection_width = param_sim.simtime
 param_sim.plot_synapse=True
 param_sim.save_txt = False
 
-param_sim.simtime = 0.01
-#param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
 if prefix.startswith('POST-HFS'):
     net.connect_dict['ep']['gaba']['extern2'].weight=0.8 #GPe - weaker
     net.connect_dict['ep']['gaba']['extern3'].weight=1.4 #str - stronger
@@ -75,7 +76,6 @@ if net.num_inject<np.inf :
     model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
     if net.num_inject==0:
         param_sim.injection_current=[0]
-
 else:
     model.inject_pop=population['pop']
 
@@ -88,13 +88,10 @@ else:
     print('########### unknown synapse type')
 
 param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} stimfreq {} '.format(model.param_sim.stim_paradigm,presyn,model.stpYN,stimfreq))
+print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} stimfreq {} simtime {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN,stimfreq, param_sim.simtime))
 
 create_model_sim.setupStim(model)
-if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
-    pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
-    pg.firstLevel = param_sim.injection_current[0]
-
+print('>>>> After setupStim, simtime:', param_sim.simtime) 
 ##############--------------output elements
 if net.single:
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
@@ -128,10 +125,21 @@ if stimfreq>0:
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 #################### Actually run the simulation
+param_sim.simtime=1
+print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),', simtime:', param_sim.simtime)
+#in case simtime was changed by setupStim, make sure injection width is long enough
+#param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
+
 traces, names = [], []
-param_sim.simtime = 0.001
+pg=False
+if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
+    pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,model.inject_pop)
 for inj in param_sim.injection_current:
-    create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
+    if pg:
+        pg.firstLevel = inj
+        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime)
+    else:
+        create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
     if net.single and len(model.vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
             traces.append(model.vmtab[neurtype][0].vector)
@@ -169,24 +177,25 @@ if net.single:
 util.block_if_noninteractive()
 
 import ISI_anal
-spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime)
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
 if model.param_sim.save_txt:
     np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
 #spikes=[st.vector for tabset in spiketab for st in tabset]
 
-plt.figure()
-plt.title('synapse')
-for ntype in extra_syntab.keys():
-    numpts=len(extra_syntab[ntype].vector)
-    time=np.arange(0,extra_syntab[ntype].dt*numpts,extra_syntab[ntype].dt)
-    if model.stpYN:
-        for i,tab in enumerate(extra_plastabset[ntype]):
-            offset=i*0.02
-            labl=tab.name[-4:-1]+'+'+str(offset)
-            plt.plot(time[0:numpts],tab.vector+offset,label=labl)
-plt.plot(time[0:numpts],extra_syntab[ntype].vector*1e9,label='Gk*1e9')
-plt.legend()
+if stimfreq>0:
+    plt.figure()
+    plt.title('synapse')
+    for ntype in extra_syntab.keys():
+        numpts=len(extra_syntab[ntype].vector)
+        time=np.arange(0,extra_syntab[ntype].dt*numpts,extra_syntab[ntype].dt)
+        if model.stpYN:
+            for i,tab in enumerate(extra_plastabset[ntype]):
+                offset=i*0.02
+                labl=tab.name[-4:-1]+'+'+str(offset)
+                plt.plot(time[0:numpts],tab.vector+offset,label=labl)
+    plt.plot(time[0:numpts],extra_syntab[ntype].vector*1e9,label='Gk*1e9')
+    plt.legend()
 
 
 '''

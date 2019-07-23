@@ -72,7 +72,7 @@ def moose_main(p):
         print('########### unknown synapse type')
 
     param_sim.fname='ep'+prefix+'_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
-    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} trial {} plotcomps {}'.format(presyn,model.stpYN,stimfreq,trialnum, param_sim.plotcomps))
+    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps))
 
     create_model_sim.setupStim(model)
 
@@ -108,8 +108,8 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-
-    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]))
+    param_sim.simtime=20.0
+    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]

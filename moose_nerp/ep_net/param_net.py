@@ -72,10 +72,10 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None wei
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'ep_net/STN_lognorm',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'ep_net/STN_InhomPoisson',syn_per_tt=2)
 #tt_STN = TableSet('tt_STN', 'stptest2tr',syn_per_tt=2)
-tt_str = TableSet('tt_str', 'ep_net/SPN_lognorm',syn_per_tt=2)
-tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
+tt_str = TableSet('tt_str', 'ep_net/SPN_InhomPoisson',syn_per_tt=2)
+tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_InhomPoisson',syn_per_tt=2)
 #tt_GPe = TableSet('tt_GPe', 'stptest4tr',syn_per_tt=2)
 
 #description of intrinsic inputs
