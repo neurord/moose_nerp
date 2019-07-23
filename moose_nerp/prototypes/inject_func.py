@@ -204,7 +204,8 @@ def HookUpDend(model,dendrite,container):
     for spine in time_tables:
         stimtab[spine] = moose.TimeTable('%s_%s_%s' % (tt_root_name,str(spine),str(int(freq))))
         stimtab[spine].vector = np.array(time_tables[spine])
-        print('HUD,stimtab {} '.format(stimtab))
+        stimtab[spine].tick=7#moose.element(synchans[spine][0]).tick
+        print('HUD,stimtab {} '.format(stimtab),'tick',stimtab[spine].tick)
 
         for synchan in synchans[spine]:
             synapse = moose.element(synchan+'/SH')
@@ -234,6 +235,10 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
         name_dend = '/'+ntype+'/'+dend
         dendrite = moose.element(name_dend)
         stimtab,synchan,stim_syn = HookUpDend(model,dendrite,container)
+        max_time=[np.max(st.vector) for st in stimtab.values()]
+        exp_dur= np.max(max_time)+model.Stimulation.stim_delay
+        #print('EXP DUR',max_time,'max time:',exp_dur,'AP',exp_duration)
+        exp_duration=(exp_dur if exp_dur>exp_duration else exp_duration)
         stimtabs.update(stimtab)
         #synchans.update(synchan)
         stim_syn_set.update(stim_syn)
@@ -283,7 +288,7 @@ def setup_stim(model,param_sim,neuron_paths):
             dur,tt[ntype],stim_syn_set[ntype],pg = ConnectPreSynapticPostSynapticStimulation(model,ntype)
             sim_time.append( dur)
         model.tt,model.tuples=tt, stim_syn_set
-        param_sim.simtime = max(sim_time) + model.param_stim.Stimulation.stim_delay
+        param_sim.simtime = max(sim_time)# + model.param_stim.Stimulation.stim_delay
         print('setup_stim, simtime={}'.format(param_sim.simtime))
         #param_sim.injection_current = [0]
     else:
