@@ -58,7 +58,7 @@ def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
     maxtime=0
     for ax,key in enumerate(spiketime_dict.keys()):
         maxtime=max(maxtime,np.max([np.max(m) for m in spiketime_dict[key]]))
-        print(key,maxtime)
+        print(key,'max time=',maxtime, 'mean freq',np.mean([len(m)/maxtime for m in spiketime_dict[key]]))
         axis[ax].eventplot(spiketime_dict[key])
         axis[ax].set_ylabel(key+' trial')
         if len(syntt_info[key]):

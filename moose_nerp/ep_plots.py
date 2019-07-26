@@ -9,9 +9,6 @@ from matplotlib import pyplot as plt
 plt.ion()
 colors=['r','k','b']
 
-#TO DO: why is FFT magnitude not symmetric?  Perhaps use realFFT
-#plot meanFFT in different color, compare with fft of mean VM
-#analyze data for periodic inputs
 ####################################
 # Parameters of set of files to analyze
 neurtype='ep'
@@ -22,9 +19,9 @@ networksim=1
 
 if networksim:
     condition=['POST-NoDaosc', 'POST-HFSosc', 'GABAosc'] 
-    #condition=['GABAosc']
+    condition=['GABA','GABAosc']
     inj='0.0'
-    presyn_set=[(0,'non')]#(20,'str'),(40,'GPe'),
+    presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe'),
     filedir='ep_net/output/'
 else:
     stim_freqs=[5,10,20,40]
@@ -53,31 +50,34 @@ else:
     isi_set={};all_isi_mean={}
     fft_wave={};phase={};freqs={};mean_fft_phase={}
     for cond in condition:
-        sta_start=-30e-3
+        sta_start=-40e-3
         sta_end=0
         #specify file name pattern
         rootname='ep'+cond+'_syn'
-        suffix='_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+        #suffix='_plas'+str(plasYN)+'_inj'+inj+'*.npz'
+        suffix='_inj'+inj+'*.npz'
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         mean_sta_vm[cond]={}
         fft_wave[cond]={};phase[cond]={};mean_fft_phase[cond]={}
-        for (freq,syn) in presyn_set:
-            key=syn+'_'+'freq'+str(freq)
+        for (freq,syn,plasYN) in presyn_set:
+            #key=syn+'_'+'freq'+str(freq)
+            key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
             pattern=fileroot+key+suffix
             files=ISI_anal.file_set(pattern)
-            spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
-            if freq>0 and len(files)>1:
-                #latency not defined if no regular stimulation
-                #isi in these two functions is separated into pre and post stimulation - requires regulator stimulation
-                lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], bins=ISI_anal.latency(files,freq,neurtype,numbins)
-                isi_set[key]=ISI_anal.ISI_histogram(files,freq,neurtype)
-            if sta_start != sta_end:
-                #ep spike triggered average of vm before the spike (the standard sta)
-                sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
-                mean_sta_vm[cond][key]=np.mean(sta_list[key],axis=0)
-                time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
-                fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=18.0)
+            if len(files):
+                spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
+                if freq>0:
+                    #latency not defined if no regular stimulation
+                    #isi in these two functions is separated into pre and post stimulation - requires regulator stimulation
+                    lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], bins=ISI_anal.latency(files,freq,neurtype,numbins)
+                    isi_set[key]=ISI_anal.ISI_histogram(files,freq,neurtype)
+                if sta_start != sta_end:
+                    #ep spike triggered average of vm before the spike (the standard sta)
+                    sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
+                    mean_sta_vm[cond][key]=np.mean(sta_list[key],axis=0)
+                    time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
+                    fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=18.0)
         all_isi_mean[cond]=isi_mean
         #
         #####1st set of graphs
@@ -105,19 +105,22 @@ else:
         mean_sta={}
         fileroot=filedir+'tt'+rootname
         suffix=suffix.split('npz')[0]+'npy'
-        for (freq,syn) in presyn_set:
-            pattern=fileroot+syn+'_freq'+str(freq)+suffix
+        for (freq,syn,stp) in presyn_set:
+            #pattern=fileroot+syn+'_freq'+str(freq)+suffix
+            pattern=fileroot+syn+'_freq'+str(freq)+'_plas'+str(stp)+suffix
             files=ISI_anal.file_set(pattern)
             print('tt files',pattern, 'num files',len(files))
-            synfreq=syn+'_'+'freq'+str(freq)
-            #calculate raster of pre-synaptic spikes
-            pre_spikes[synfreq]=ISI_anal.input_raster(files)
-            # input Spike triggered average Vm after the spike
-            post_sta[synfreq],mean_sta[synfreq],post_xvals=ISI_anal.post_sta_set(pre_spikes[synfreq],sta_start,sta_end,plotdt,vmdat[synfreq])
+            #key=syn+'_'+'freq'+str(freq)
+            if len(files):
+                key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
+                #calculate raster of pre-synaptic spikes
+                pre_spikes[key]=ISI_anal.input_raster(files)
+                # input Spike triggered average Vm after the spike
+                post_sta[key],mean_sta[key],post_xvals=ISI_anal.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
         if show_plots:
             pu.plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals)
-            for synfreq in pre_spikes:
-                pu.plot_input_raster(pre_spikes[synfreq],pattern,maxplots=1)
+            for key in pre_spikes:
+                pu.plot_input_raster(pre_spikes[key],pattern,maxplots=1)
         #
         #3. use both pre-synaptic and post-synaptic spikes for spike triggered average input:
         #1st calculate instantaneous input firing frequency for each type of input
@@ -147,25 +150,24 @@ else:
                 pu.plot_prespike_sta(prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2,title=cond+synfreq)
         '''
     #
-    #####Plots of means compared across conditions
+    ##### Plots of means compared across conditions or across presyn_set
     if len(condition)>1:
         pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
         #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
-fig,axes=plt.subplots(1,1)
-fig.suptitle('Mean fft')
-for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
-    maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
-    maxfreq=np.min(np.where(freqs[cond]>500))
-    for key,fft in fft_set.items():
-        axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean',color=colors[i])
-        mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-        axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],'--',label='mean of '+cond+' '+key,color=colors[i])
-
-axes.set_xlabel('Frequency in Hertz [Hz]')
-axes.set_ylabel('FFT Magnitude')
-axes.set_xlim(0 , freqs[maxfreq] )
-axes.set_ylim(0,np.round(maxval) )
-axes.legend()
+        fig,axes=plt.subplots(1,1)
+        fig.suptitle('Mean fft')
+        for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
+            maxfreq=np.min(np.where(freqs[cond]>500))
+            for key,fft in fft_set.items():
+                axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean',color=colors[i])
+                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+                axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],'--',label='mean of '+cond+' '+key,color=colors[i])
+        axes.set_xlabel('Frequency in Hertz [Hz]')
+        axes.set_ylabel('FFT Magnitude')
+        axes.set_xlim(0 , freqs[cond][maxfreq] )
+        axes.set_ylim(0,np.round(maxval) )
+        axes.legend()
         #
         if len(lat_mean):
             pu.plot_ISI_cond(all_isi_mean,bins)
@@ -173,4 +175,25 @@ axes.legend()
         if len(inst_rate1):
             pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
         #
-
+    else:
+        if len(presyn_set)>1:
+            cond=condition[0]
+            plt.figure()
+            plt.suptitle('mean sta vm')
+            for i,(synfreq,mean_sta) in enumerate(mean_sta_vm[cond].items()):
+                plt.plot(pre_xvals,mean_sta,label=synfreq)
+            plt.legend()
+            plt.xlabel('time (s)')
+            plt.ylabel('Vm (V)')
+            #
+            fig,axes=plt.subplots(1,1)
+            fig.suptitle('Mean fft')
+            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
+            maxfreq=np.min(np.where(freqs[cond]>500))
+            for i,(key,fft) in enumerate(mean_fft_phase[cond].items()):
+                axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean',color=colors[i])
+            axes.set_xlabel('Frequency in Hertz [Hz]')
+            axes.set_ylabel('FFT Magnitude')
+            axes.set_xlim(0 , freqs[cond][maxfreq] )
+            axes.set_ylim(0,np.round(maxval) )
+            axes.legend()
