@@ -89,7 +89,7 @@ def distanceWeighting(elementList, distanceMapping):
 
 def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                         minDistance=0, maxDistance=1, commonParentOrder=0,
-                        numBranches='all', branchOrder=None):
+                        numBranches='all', branchOrder=None,min_length = None, min_path_length = None, max_path_length = None,branch_list = None):
     '''Generate list of Moose elements between minDistance and maxDistance from
     soma. if commonParent is None, then all branches considered. If numBranches
     is None, then all branches included. If numBranches is not None, then n branches
@@ -114,9 +114,12 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     for s in wildcardStrings:
         l = moose.wildcardFind(neuron.path+'/##/#'+s+'#[ISA='+elementType+']')
         allList.extend(l)
-    print(allList)
-    possibleBranches = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
-                                          commonParentOrder=commonParentOrder)
+    #print(allList)
+    if branch_list is None:
+        possibleBranches = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
+                                          commonParentOrder=commonParentOrder, min_length = min_length, min_path_length = min_path_length, max_path_length = max_path_length)
+    else:
+        possibleBranches = branch_list
     bd = getBranchDict(neuron)
     possibleCompartments = [comp for branch in possibleBranches for comp in bd[branch]['CompList']]
     elementList = []
@@ -134,10 +137,12 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
         if any(s in name.lower() for s in ['head'.lower(),'neck'.lower()]):
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = moose.element(path).parent
-        print(name, dist, path)
+        #print('#####possible compartments')
+        #print(possibleCompartments)
+        #print(name, dist, path)
         if (minDistance<dist<maxDistance) and path.path in possibleCompartments:
             elementList.append(el)
-    print(elementList)
+    #print(elementList)
     return elementList
 
 
@@ -155,6 +160,7 @@ def getBranchDict(neuron):
     '''Return a {BranchNameString: {CompList: [CompartmentsInBranchList],
                                     BranchPath: [Soma,Primary,...CurrentBranch],
                                     BranchOrder: IntegerValue,
+                                    BranchLength: Float in meters,
                                     Terminal: Bool}
     dictionary for all dendritic compartments of a neuron. BranchNameString
     should be the compartment path string of the first compartment after a
@@ -186,9 +192,17 @@ def getBranchDict(neuron):
                 branchDict[comp.path] = {'BranchPath':[comp.path]}
             branchDict[comp.path]['BranchOrder']=len(branchDict[comp.path]['BranchPath'])-1
             branchDict[comp.path]['CompList'] = [comp.path]
+            branchDict[comp.path]['BranchLength'] = comp.length
+            
+            dist,name = util.get_dist_name(comp)
+            branchDict[comp.path]['MinBranchDistance'] = dist-comp.length/2
+            branchDict[comp.path]['MaxBranchDistance'] = dist+comp.length/2
+                        
             lastbranchpoint = branchDict[comp.path]['BranchPath']
         elif len(parentCompChildren)==1: # This is an additional compartment of lastbranchpoint, just append to comp list
             branchDict[lastbranchpoint[-1]]['CompList'].append(comp.path)
+            branchDict[lastbranchpoint[-1]]['BranchLength'] += comp.length
+            branchDict[lastbranchpoint[-1]]['MaxBranchDistance'] += comp.length
 
         if len(children)==0: #This is a terminal compartment
             branchDict[lastbranchpoint[-1]]['Terminal'] = True
@@ -216,7 +230,7 @@ def mapCompartmentToBranch(neuron):
     return compToBranchDict
 
 
-def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0):
+def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0, min_length = None, min_path_length = None, max_path_length = None):
     '''Returns n Branches selected without replacement of specified order from
     soma (0=soma, 1=primary branch, etc.). n can be an int, less than the
     total number of branches of specified order, or an error will be raised.
@@ -236,6 +250,16 @@ def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0):
         branchesOfOrder = [branch for branch in bd.keys() if commonParentBranch in bd[branch]['BranchPath']]
     else:
         branchesOfOrder = [branch for branch in bd.keys() if order == bd[branch]['BranchOrder'] and commonParentBranch in bd[branch]['BranchPath']]
+    
+    if min_length is not None:
+        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['BranchLength'] > min_length]
+    
+    if min_path_length is not None:
+        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MinBranchDistance'] <= min_path_length]
+    
+    if max_path_length is not None:
+        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MaxBranchDistance'] >= max_path_length]
+    
     if n in ['all','All','ALL']:
         return branchesOfOrder
     else:
@@ -247,9 +271,135 @@ def temporalMapping(inputList, minTime = 0, maxTime = 0, random = True):
     for input in inputList:
         input.delay = np.random.uniform(minTime, maxTime)
 
+def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0):
+    from moose_nerp.prototypes import connect
+    num = len(inputList)
+    for i,input in enumerate(inputList):
+        sh = moose.element(input.path+'/SH')
+        tt = moose.TimeTable(input.path+'/tt')
+        tt.vector = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)]
+        #print(tt.vector)
+        connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
+
 def exampleClusteredDistal(model, nInputs = 5):
     for neuron in model.neurons.values():
-        inputs = selectRandom(generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                minDistance=150e-6, maxDistance=1, commonParentOrder=0,
-                                numBranches=1, branchOrder=3),n=nInputs)
-        print(inputs)
+        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+                                minDistance=180e-6, maxDistance=200e-6, commonParentOrder=0,
+                                numBranches=1, branchOrder=-1,min_length=20e-6, max_path_length = 180e-6, min_path_length = 200e-6,
+                                branch_list = ['/D1[0]/570_3[0]'],
+                                #branch_list = ['/D1[0]/138_3[0]'],
+                                )
+        inputs = selectRandom(elementlist,n=nInputs)
+        #print(inputs)
+        return inputs
+
+def dispersed(model, nInputs = 100):
+    for neuron in model.neurons.values():
+        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',)
+        inputs = selectRandom(elementlist,n=nInputs)
+        return inputs
+
+if __name__ == '__main__':
+    from moose_nerp import d1patchsample2 as model
+    from moose_nerp.prototypes import create_model_sim
+    #model.param_sim.hsolve=False
+    model.spineYN = True
+    model.calYN = True
+    model.synYN = True
+    model.SpineParams.explicitSpineDensity=1e6
+    model.SpineParams.spineParent = '570_3'
+    model.param_syn._SynNMDA.Gbar = 10e-09*2
+    model.param_syn._SynAMPA.Gbar = 1e-09
+    #model.morph_file = 'D1_patch_sample_3.p'
+    #for k,v in model.Condset.D1.NaF.items():
+    #    model.Condset.D1.NaF[k]=0.0
+    model.Condset.D1.NaF[model.param_cond.dist]=0
+    #model.Condset.D1.SKCa[model.param_cond.dist]*=.25
+    #model.Condset.D1.BKCa[model.param_cond.dist]*=.25
+    model.Condset.D1.KaF[model.param_cond.dist]*=.5
+    model.Condset.D1.KaS[model.param_cond.dist]*=.25
+    model.Condset.D1.Kir[model.param_cond.dist]*=.5
+    
+
+    for chan in ['CaL12','CaL13']:
+        for k,v in model.Condset.D1[chan].items():
+            #model.Condset.D1[chan][k]*=.2
+            model.Condset.D1[chan][model.param_cond.dist]*=1
+    for chan in ['CaT32','CaT33']:
+        for k,v in model.Condset.D1[chan].items():
+            #model.Condset.D1[chan][k]*=1.#1.0e-12
+            model.Condset.D1[chan][model.param_cond.dist]*=1
+
+    for chan in ['CaR']:
+        for k,v in model.Condset.D1[chan].items():
+            #model.Condset.D1[chan][k]*=.0010#1.0e-12
+            model.Condset.D1[chan][model.param_cond.dist]*=1
+
+    model.param_syn.SYNAPSE_TYPES.nmda.MgBlock.C=1
+    create_model_sim.setupOptions(model)
+
+    create_model_sim.setupNeurons(model)
+
+    create_model_sim.setupOutput(model)
+
+    
+    inputs = exampleClusteredDistal(model,nInputs = 15)
+    spine_cur_tab = []
+    which_spine = inputs[0].parent
+    for ch in ['SKCa','CaL13','CaL12','CaR','CaT33','CaT32']:
+        chan = moose.element(which_spine.path+'/'+ch)
+        tab = moose.Table('data/'+chan.path.replace('/','__').replace('[0]',''))
+        moose.connect(tab,'requestOut',chan,'getGk')
+        spine_cur_tab.append(tab)
+    
+
+    plotgate ='CaR'
+    gatepath = which_spine.path+'/'+plotgate
+    gate = moose.element(gatepath)
+    model.gatetables = {}
+    gatextab=moose.Table('/data/gatex')
+    moose.connect(gatextab, 'requestOut', gate, 'getX')
+    model.gatetables['gatextab']=gatextab
+    gateytab=moose.Table('/data/gatey')
+    moose.connect(gateytab, 'requestOut', gate, 'getY')
+    model.gatetables['gateytab']=gateytab
+    if model.Channels[plotgate][0][2]>0:
+        gateztab=moose.Table('/data/gatez')
+        moose.connect(gateztab, 'requestOut', gate, 'getZ')
+        model.gatetables['gateztab']=gateztab
+
+
+    #dispersed_inputs = dispersed(model, nInputs = 100)
+    createTimeTables(inputs,model,n_per_syn=3)
+    #createTimeTables(dispersed_inputs,model,n_per_syn=2,start_time=0.01,freq=100.0)
+    #c = moose.element('D1/634_3')
+    #c.Rm = c.Rm*100
+
+    moose.reinit()
+    moose.start(.3)
+    create_model_sim.neuron_graph.graphs(model, model.vmtab, False,.3)
+    from matplotlib import pyplot as plt
+    plt.ion()
+    plt.show()
+    plt.figure()
+    for i in model.spinevmtab[0]:
+        t = np.linspace(0,.3,len(i.vector))
+        plt.plot(t,i.vector)
+
+    n = model.neurons['D1'][0]
+    d_vs_len = [(p,c.diameter) for c,p in zip(n.compartments,n.geometricalDistanceFromSoma)]
+    d_vs_len = np.array(d_vs_len)
+    plt.figure()
+    plt.scatter(d_vs_len[:,0],d_vs_len[:,1])
+
+    plt.figure()
+    
+    for cur in spine_cur_tab:
+        plt.plot(cur.vector,label=cur.name.strip('_'))
+    
+    plt.legend()
+    create_model_sim.plot_channel.plot_gate_params(moose.element('/library/CaR'),3)
+
+    plt.figure()
+    for g in [gatextab,gateytab,gateztab]:
+        plt.plot(g.vector)

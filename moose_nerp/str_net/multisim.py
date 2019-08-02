@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function, division
-def moose_main(cortical_fraction=.1):
+def moose_main(corticalinput):
     import logging
 
     import numpy as np
@@ -20,12 +20,16 @@ def moose_main(cortical_fraction=.1):
                                     logutil,
                                     util,
                                     standard_options)
-    from moose_nerp import d1d2 as model
+    from moose_nerp import d1opt as model
     from moose_nerp import str_net as net
     from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
     #additional, optional parameter overrides specified from with python terminal
-    net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction = cortical_fraction
+    #model.Condset.D1.NaF[model.param_cond.prox] /= 3
+    #model.Condset.D1.KaS[model.param_cond.prox] *= 3
+
+    net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction = 0.8
+    net.param_net.tt_Ctx_SPN.filename = corticalinput
     print('cortical_fraction = {}'.format(net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction))
     model.synYN = True
     model.plasYN = True
@@ -41,8 +45,10 @@ def moose_main(cortical_fraction=.1):
     param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
     param_sim.injection_delay = 0.2
     param_sim.injection_width = 0.4
-    param_sim.simtime = 1.5 #21
+    param_sim.simtime = 21
     net.num_inject = 0
+    net.confile = 'str_connect_plas_simd1opt_{}_corticalfraction_{}'.format(net.param_net.tt_Ctx_SPN.filename,0.8)
+
     if net.num_inject==0:
         param_sim.injection_current=[0]
     #################################-----------create the model: neurons, and synaptic inputs
@@ -85,10 +91,10 @@ def moose_main(cortical_fraction=.1):
     if param_sim.useStreamer==True:
         allTables = moose.wildcardFind('/##[ISA=Table]')
         streamer = moose.Streamer('/streamer')
-        streamer.outfile = 'plas_sim_{}_corticalfraction_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename,cortical_fraction)
+        streamer.outfile = 'plas_simd1opt_{}_corticalfraction_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename,0.8)
         moose.setClock(streamer.tick,0.1)
         for t in allTables:
-            if any (s in t.path for s in ['plas','VmD1_0','extern']):
+            if any (s in t.path for s in ['plas','VmD1_0','extern','Shell_0']):
                 streamer.addTable(t)
             else:
                 t.tick=-2
@@ -99,7 +105,7 @@ def moose_main(cortical_fraction=.1):
         print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
         pg.firstLevel = injection_current
         moose.reinit()
-        moose.start(simtime)
+        moose.start(simtime,True)
 
     traces, names = [], []
     for inj in param_sim.injection_current:
@@ -109,7 +115,7 @@ def moose_main(cortical_fraction=.1):
     plt.figure()
     plt.hist(weights,bins=100)
     plt.title('plas_sim_{}_corticalfraction_{}'.format(net.param_net.tt_Ctx_SPN.filename,cortical_fraction))
-    plt.savefig('plas_sim_{}_corticalfraction_{}.png'.format(net.param_net.tt_Ctx_SPN.filename,cortical_fraction))
+    plt.savefig('plas_simd1opt_{}_corticalfraction_{}.png'.format(net.param_net.tt_Ctx_SPN.filename,0.8))
     if param_sim.useStreamer==True:
         import atexit
         atexit.register(moose.quit)
@@ -117,9 +123,9 @@ def moose_main(cortical_fraction=.1):
 
 def multi_main():
     from multiprocessing.pool import Pool
-    p = Pool(12,maxtasksperchild=1)
+    p = Pool(4,maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
-    cfs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    cfs = ['FullTrialLowVariability', 'FullTrialHighVariability','FullTrialHigherVariability']
     results = p.map(moose_main,cfs)
     return dict(zip(cfs,results))
 

@@ -76,19 +76,19 @@ Na_h_params = TauInfMinChannelParams(T_min = 2*0.2754e-3/qfactNaF,
 NaFparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=narev, name='NaF')
 
 #This is from Migliore.
-# KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
+KDrparam = ChannelSettings(Xpow=1, Ypow=0, Zpow=0, Erev=krev, name='KDr')
 
-# KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
-#                                       A_B = 0,
-#                                       A_C = 0.0,
-#                                       A_vhalf = 0,
-#                                       A_vslope = -12.5e-3,
-#                                       B_rate = 6.78,
-#                                       B_B = 0.0,
-#                                       B_C = 0.0,
-#                                       B_vhalf = 0.0,
-#                                       B_vslope = 33.5e-3)
-# KDr_Y_params = []
+KDr_X_params = AlphaBetaChannelParams(A_rate = 28.2,
+                                      A_B = 0,
+                                      A_C = 0.0,
+                                      A_vhalf = 0,
+                                      A_vslope = -12.5e-3,
+                                      B_rate = 6.78,
+                                      B_B = 0.0,
+                                      B_C = 0.0,
+                                      B_vhalf = 0.0,
+                                      B_vslope = 33.5e-3)
+KDr_Y_params = []
 
 Krpparam = ChannelSettings(Xpow=2, Ypow=1, Zpow=0, Erev=krev, name='Krp')
 
@@ -273,45 +273,6 @@ CaT_Y_params = AlphaBetaChannelParams(A_rate = 34000 * 113.0003e-3 * qfactCaT,
                                       B_vhalf = 0.0,
                                       B_vslope = -17e-3)
 
-
-CaT32param = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=carev, name='CaT32')
-qfactCaT32 = 1#2
-CaT32_X_params = TauInfMinChannelParams(T_min = .916e-3/qfactCaT32,
-                                     T_vdep = 13.3e-3/qfactCaT32,
-                                     T_vhalf = -53.6e-3,
-                                     T_vslope = 10.4e-3,
-                                     SS_min = 0.0,
-                                     SS_vdep = 1.0,
-                                     SS_vhalf = -52.3e-3,
-                                     SS_vslope = -6.8e-3)
-CaT32_Y_params = TauInfMinChannelParams(T_min = 20.4e-3/qfactCaT32,
-                                     T_vdep = 45.6e-3/qfactCaT32,
-                                     T_vhalf = -45.5e-3,
-                                     T_vslope = 3.0e-3,
-                                     SS_min = 0.0,
-                                     SS_vdep = 1.0,
-                                     SS_vhalf = -73.8e-3,
-                                     SS_vslope = 2.8e-3)
-
-CaT33param = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=carev, name='CaT33')
-qfactCaT33 = 1#2
-CaT33_X_params = TauInfMinChannelParams(T_min = 3.2e-3/qfactCaT33,
-                                     T_vdep = 201e-3/qfactCaT33,
-                                     T_vhalf = -81.4e-3,
-                                     T_vslope = 8.9e-3,
-                                     SS_min = 0.003,
-                                     SS_vdep = 1.0,
-                                     SS_vhalf = -72.7e-3,
-                                     SS_vslope = -8.7e-3)
-CaT33_Y_params = TauInfMinChannelParams(T_min = 114.1e-3/qfactCaT33,
-                                     T_vdep = 1/qfactCaT33,
-                                     T_vhalf = -69.9e-3,
-                                     T_vslope = 4.4e-3,
-                                     SS_min = 0.005,
-                                     SS_vdep = 1.0,
-                                     SS_vhalf = -93.2e-3,
-                                     SS_vslope = 4.9e-3)
-
 # CaN SS parameters tuned so m2 fits Bargas and Surmeier 1994 boltzmann curve
 # CaN tau from kasai 1992.
 # Kasai measures calcium dependent inactivation
@@ -410,13 +371,11 @@ Channels = NamedDict(
     KaF =   TypicalOneD(KaFparam, KaF_X_params, KaF_Y_params),
     KaS =   TypicalOneD(KaSparam, KaS_X_params, KaS_Y_params),
     Kir =   TypicalOneD(Kirparam,  Kir_X_params, []),
-    CaL12 = TypicalOneD(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True,calciumDependent=True),
-    CaL13 = TypicalOneD(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True,calciumDependent=True),
-    CaN =   TypicalOneD(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True,calciumDependent=True),
-    CaR =   TypicalOneD(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True,calciumDependent=True),
+    CaL12 = TypicalOneD(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaL13 = TypicalOneD(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaN =   TypicalOneD(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True),
+    CaR =   TypicalOneD(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True),
     CaT =   TypicalOneD(CaTparam,CaT_X_params, CaT_Y_params, [], calciumPermeable=True),
-    CaT32 =   TypicalOneD(CaT32param,CaT32_X_params, CaT32_Y_params, [], calciumPermeable=True),
-    CaT33 =   TypicalOneD(CaT33param,CaT33_X_params, CaT33_Y_params, [], calciumPermeable=True),
     SKCa =  TypicalOneD(SKparam, [], [], SK_Z_params, calciumDependent=True),
     NaF =   TypicalOneD(NaFparam, Na_m_params, Na_h_params),
     BKCa =  TwoD(BKparam, BK_X_params, calciumDependent=True),
