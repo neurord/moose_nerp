@@ -60,7 +60,8 @@ NAME_NMDA='nmda'
 
 # number of synapses at each distance
 _gaba = {param_cond.prox:3, param_cond.dist:1}
-_ampa= {param_cond.prox:1, param_cond.dist:3}
+_ampa= {param_cond.prox:1, param_cond.dist:2}
+#CHANGE FROM 3 TO 2 on 7/26 to obtain ~20 Hz firing rate in response to in vivo like synaptic inputs
 
 NumSyn={'gaba':_gaba,
         'ampa':_ampa}
