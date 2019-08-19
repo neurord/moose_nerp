@@ -16,10 +16,13 @@ plasYN=1
 presyn=['str','GPe']
 numbins=10
 networksim=1
+spike_sta=0
+#key in weights dictionary must equal names of inputs in connect_dict in param_net.py
+weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
 
 if networksim:
     condition=['POST-NoDaosc', 'POST-HFSosc', 'GABAosc'] 
-    condition=['GABA','GABAosc']
+    #condition=['GABA']#'GABAosc',
     inj='0.0'
     presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe'),
     filedir='ep_net/output/'
@@ -125,30 +128,33 @@ else:
         #3. use both pre-synaptic and post-synaptic spikes for spike triggered average input:
         #1st calculate instantaneous input firing frequency for each type of input
         #2nd calculate sta using input fire freq instead of vmdat
-        #weights used to sum the different external inputs - values are weights from param_net
-        weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
+        #Perhaps better to represent the input fire freq as vector across input types?
+        #1. change the dict with keys ['gabaextern2', 'gabaextern3', 'ampaextern1' into array
+        #2. adapt pre_spike_sta to use the array
+        #3. plot the new prespike_sta array
+        #4. alternative: adapt Dan's code which keeps spatial information, and group inputs by discretized distances from soma, e.g. soma, prox, middle, distal dendrites - either excite or inhib - array of 8xtimebins
+        #5. calculate Spike triggered covariance also
+        #6. calculate PCA on same set of 8xtimebins input patterns; test EP response to each component
         binsize=plotdt*10#*100
         sta_start=-20e-3
         sta_end=0
         inst_rate1={}; inst_rate2={}
         prespike_sta1={}; prespike_sta2={}
         mean_pre_sta1={}; mean_pre_sta2={}
-        '''
-        #
-        for synfreq in pre_spikes:
-            inst_rate1[synfreq],inst_rate2[synfreq],xbins=ISI_anal.input_fire_freq(pre_spikes[synfreq],binsize)
-            prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1=ISI_anal.sta_fire_freq(inst_rate1[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
-            prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2=ISI_anal.sta_fire_freq(inst_rate2[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
-        mean_prespike_sta1[cond]=mean_pre_sta1
-        mean_prespike_sta2[cond]=mean_pre_sta2
-        ######## second set of graphs
-        if show_plots:
+        if spike_sta:
+            for synfreq in pre_spikes:
+                inst_rate1[synfreq],inst_rate2[synfreq],xbins=ISI_anal.input_fire_freq(pre_spikes[synfreq],binsize)
+                prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1=ISI_anal.sta_fire_freq(inst_rate1[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
+                prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2=ISI_anal.sta_fire_freq(inst_rate2[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
+            mean_prespike_sta1[cond]=mean_pre_sta1
+            mean_prespike_sta2[cond]=mean_pre_sta2
+            ######## second set of graphs
+        if show_plots and spike_sta:
             for synfreq in inst_rate1:
                 pu.plot_inst_firing(inst_rate1[synfreq],xbins,title=cond+synfreq+' smoothed')
                 #pu.plot_inst_firing(inst_rate2[synfreq],xbins,title=cond+synfreq)
                 pu.plot_prespike_sta(prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1,title=cond+synfreq+' smoothed')
                 pu.plot_prespike_sta(prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2,title=cond+synfreq)
-        '''
     #
     ##### Plots of means compared across conditions or across presyn_set
     if len(condition)>1:
@@ -160,9 +166,9 @@ else:
             maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
             maxfreq=np.min(np.where(freqs[cond]>500))
             for key,fft in fft_set.items():
-                axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean',color=colors[i])
+                #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
                 mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-                axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],'--',label='mean of '+cond+' '+key,color=colors[i])
+                axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=colors[i])
         axes.set_xlabel('Frequency in Hertz [Hz]')
         axes.set_ylabel('FFT Magnitude')
         axes.set_xlim(0 , freqs[cond][maxfreq] )
