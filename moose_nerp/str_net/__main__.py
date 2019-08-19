@@ -30,11 +30,15 @@ from moose_nerp.prototypes import (create_model_sim,
                                    logutil,
                                    util,
                                    standard_options)
-from moose_nerp import d1d2 as model
+from moose_nerp import d1opt as model
 from moose_nerp import str_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #additional, optional parameter overrides specified from with python terminal
+#model.Condset.D1.NaF[model.param_cond.prox] /= 3
+#model.Condset.D1.KaS[model.param_cond.prox] *= 3
+net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction = 0.7
+net.param_net.tt_Ctx_SPN.filename = 'FullTrialLowVariability'
 model.synYN = True
 model.plasYN = True
 model.calYN = True
@@ -51,7 +55,7 @@ param_sim.stim_paradigm = 'inject'
 param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
 param_sim.injection_delay = 0.2
 param_sim.injection_width = 0.4
-param_sim.simtime = 11.#21
+param_sim.simtime = .3#.#21
 net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
@@ -98,30 +102,29 @@ if param_sim.useStreamer==True:
     streamer.outfile = 'plas_sim_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename)
     moose.setClock(streamer.tick,0.1)
     for t in allTables:
-        if any (s in t.path for s in ['plas','VmD1_0','extern']):
+        if any (s in t.path for s in ['plas','VmD1_0','extern','Shell_0']):
             streamer.addTable(t)
         else:
             t.tick=-2
 
-# Streamer to prevent Tables filling up memory on disk
-# This is a hack, should be better implemented
-
-allTables = moose.wildcardFind('/##[ISA=Table]')
-streamer = moose.Streamer('/streamer')
-streamer.outfile = 'streamertest.npy'
-for t in allTables:
-    streamer.addTable(t)
-
+spinedistdict = {}
+for sp in moose.wildcardFind('D1/##/#head#[ISA=CompartmentBase]'):
+    dist,_ = util.get_dist_name(sp)
+    path = sp.path
+    spinedistdict[path]=dist
+    
 ################### Actually run the simulation
-def run_simulation(injection_current, simtime):
+def run_simulation(injection_current, simtime, continue_sim = False):
     print(u'◢◤◢◤◢◤◢◤ injection_current = {} ◢◤◢◤◢◤◢◤'.format(injection_current))
     pg.firstLevel = injection_current
-    moose.reinit()
+    if not continue_sim:
+        moose.reinit()
     moose.start(simtime)
 
+continue_sim = False
 traces, names = [], []
 for inj in param_sim.injection_current:
-    run_simulation(injection_current=inj, simtime=param_sim.simtime)
+    run_simulation(injection_current=inj, simtime=param_sim.simtime,continue_sim=continue_sim)
     if net.single and len(model.vmtab):
         for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
             traces.append(model.vmtab[neurtype][0].vector)
