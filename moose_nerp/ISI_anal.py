@@ -218,13 +218,14 @@ def calc_sta(spike_time,window,vmdat,plotdt):
     sta_array=np.zeros((numspikes,samplesize))
     for i,st in enumerate(spike_time):
         endpt=int(st/plotdt)+window[1]
-        if endpt<len(vmdat):
+        if endpt<len(vmdat) and st>0:
             startpt=endpt-samplesize
             if startpt<0:
                 sta_start=-startpt
                 startpt=0
             else:
                 sta_start=0
+            #print('line 228',numspikes,samplesize,np.round(st,4),sta_start,startpt,endpt)
             sta_array[i,sta_start:]=vmdat[startpt:endpt]
     sta=np.mean(sta_array,axis=0)
     xvals=np.arange(window[0]*plotdt,window[1]*plotdt,plotdt)

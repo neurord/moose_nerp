@@ -20,12 +20,26 @@ spike_sta=0
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
 
+#customize the following according to file naming convention and parameters
+def file_pattern(fileroot,suffix,params,filetype):
+    freq,syn,plasYN,corr=params
+    #key=syn+'_'+'freq'+str(freq)
+    #key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
+    fname=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)+suffix
+    key=corr
+    pattern=fileroot+fname+key+filetype
+    return pattern,key,freq
+
 if networksim:
-    condition=['POST-NoDaosc', 'POST-HFSosc', 'GABAosc'] 
-    #condition=['GABA']#'GABAosc',
-    inj='0.0'
-    presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe'),
+    condition=['POST-HFS', 'GABA'] #'POST-NoDaosc', 
+    #condition=['Ctrl']#'GABAosc',
+    #change 3 value from plasYN to Str corr value
+    presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]#,(0,'non',0)]#(20,'str'),(40,'GPe'),
     filedir='ep_net/output/'
+    #inj='0.0'
+    #suffix='_inj'+inj+'*.npz'
+    GPe_input='exp_freq18' #or 29
+    suffix='_tg_GPe_'+GPe_input+'_ts_SPN_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
     condition=['-1e-11']#'0.0',
@@ -57,16 +71,12 @@ else:
         sta_end=0
         #specify file name pattern
         rootname='ep'+cond+'_syn'
-        #suffix='_plas'+str(plasYN)+'_inj'+inj+'*.npz'
-        suffix='_inj'+inj+'*.npz'
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         mean_sta_vm[cond]={}
         fft_wave[cond]={};phase[cond]={};mean_fft_phase[cond]={}
-        for (freq,syn,plasYN) in presyn_set:
-            #key=syn+'_'+'freq'+str(freq)
-            key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
-            pattern=fileroot+key+suffix
+        for params in presyn_set:
+            pattern,key,freq=file_pattern(fileroot,suffix,params,'*.npz')
             files=ISI_anal.file_set(pattern)
             if len(files):
                 spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
@@ -80,7 +90,7 @@ else:
                     sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
                     mean_sta_vm[cond][key]=np.mean(sta_list[key],axis=0)
                     time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
-                    fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=18.0)
+                    fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=19.0)
         all_isi_mean[cond]=isi_mean
         #
         #####1st set of graphs
@@ -107,15 +117,11 @@ else:
         post_sta={}
         mean_sta={}
         fileroot=filedir+'tt'+rootname
-        suffix=suffix.split('npz')[0]+'npy'
-        for (freq,syn,stp) in presyn_set:
-            #pattern=fileroot+syn+'_freq'+str(freq)+suffix
-            pattern=fileroot+syn+'_freq'+str(freq)+'_plas'+str(stp)+suffix
+        for params in presyn_set:
+            pattern,key,freq=file_pattern(fileroot,suffix,params, '*.npy')
             files=ISI_anal.file_set(pattern)
             print('tt files',pattern, 'num files',len(files))
-            #key=syn+'_'+'freq'+str(freq)
             if len(files):
-                key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
                 #calculate raster of pre-synaptic spikes
                 pre_spikes[key]=ISI_anal.input_raster(files)
                 # input Spike triggered average Vm after the spike
@@ -135,27 +141,73 @@ else:
         #4. alternative: adapt Dan's code which keeps spatial information, and group inputs by discretized distances from soma, e.g. soma, prox, middle, distal dendrites - either excite or inhib - array of 8xtimebins
         #5. calculate Spike triggered covariance also
         #6. calculate PCA on same set of 8xtimebins input patterns; test EP response to each component
-        binsize=plotdt*10#*100
+        binsize=plotdt*100#*10
         sta_start=-20e-3
         sta_end=0
         inst_rate1={}; inst_rate2={}
         prespike_sta1={}; prespike_sta2={}
         mean_pre_sta1={}; mean_pre_sta2={}
         if spike_sta:
-            for synfreq in pre_spikes:
-                inst_rate1[synfreq],inst_rate2[synfreq],xbins=ISI_anal.input_fire_freq(pre_spikes[synfreq],binsize)
-                prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1=ISI_anal.sta_fire_freq(inst_rate1[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
-                prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2=ISI_anal.sta_fire_freq(inst_rate2[synfreq],spiketime_dict[synfreq],sta_start,sta_end,weights,xbins)
+            for key in pre_spikes:
+                inst_rate1[key],inst_rate2[key],xbins=ISI_anal.input_fire_freq(pre_spikes[key],binsize)
+                prespike_sta1[key],mean_pre_sta1[key],bins1=ISI_anal.sta_fire_freq(inst_rate1[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
+                prespike_sta2[key],mean_pre_sta2[key],bins2=ISI_anal.sta_fire_freq(inst_rate2[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
             mean_prespike_sta1[cond]=mean_pre_sta1
             mean_prespike_sta2[cond]=mean_pre_sta2
             ######## second set of graphs
         if show_plots and spike_sta:
-            for synfreq in inst_rate1:
-                pu.plot_inst_firing(inst_rate1[synfreq],xbins,title=cond+synfreq+' smoothed')
-                #pu.plot_inst_firing(inst_rate2[synfreq],xbins,title=cond+synfreq)
-                pu.plot_prespike_sta(prespike_sta1[synfreq],mean_pre_sta1[synfreq],bins1,title=cond+synfreq+' smoothed')
-                pu.plot_prespike_sta(prespike_sta2[synfreq],mean_pre_sta2[synfreq],bins2,title=cond+synfreq)
+            for key in inst_rate1:
+                pu.plot_inst_firing(inst_rate1[key],xbins,title=cond+key+' smoothed')
+                #pu.plot_inst_firing(inst_rate2[key],xbins,title=cond+key)
+                pu.plot_prespike_sta(prespike_sta1[key],mean_pre_sta1[key],bins1,title=cond+key+' smoothed')
+                pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
     #
+    ##################### calculate cross-correlogram from input and output rate histograms #####################
+    #def plot_cross_corr(pre_spikes,post_spikes,presyn):
+    import elephant
+    from neo.core import AnalogSignal,SpikeTrain
+    import quantities as q
+    from elephant.conversion import BinnedSpikeTrain
+    numtrials=len(pre_spikes[key])
+    numtrials=3
+    presyn='gabaextern3'
+    last_spike=[train[-1] for train in pre_spikes[key][0][presyn]]
+    t_end=np.round(np.max(last_spike))
+    cc_hist=[[] for t in range(numtrials)]
+    fig,axes =plt.subplots(numtrials,numtrials,sharex=True)
+    fig.suptitle('cross correlograms '+key)
+    for trial_in in range(numtrials):
+        for trial_out in range(numtrials):
+            if isinstance(pre_spikes[key][trial_in][presyn], list):
+                spikes = np.sort(np.concatenate(pre_spikes[key][trial_in][presyn]))
+            else:
+                spikes=pre_spikes[key][trial_in][presyn]
+            train=SpikeTrain(spikes*q.s,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
+            in_train=BinnedSpikeTrain(train,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
+            train=SpikeTrain(spiketime_dict[key][trial_out]*q.s,t_stop=t_end*q.s)
+            out_train=BinnedSpikeTrain(train,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
+            print('trial_in,trial_out', trial_in, trial_out)
+            cc_hist[trial_in].append(elephant.spike_train_correlation.cross_correlation_histogram(in_train,out_train))
+            axes[trial_in,trial_out].plot(cc_hist[trial_in][trial_out][0].magnitude[:,0])
+        axes[trial_in,0].set_ylabel('input '+str(trial_in))
+    for trial_out in range(trial_in,numtrials):
+        axes[-1,trial_out].set_xlabel('output '+str(trial_out))
+    #shuffle corrected mean cross-correlogram
+    #initialize these to accumulate across conditions, e.g. pre and post-HFS, and possibly across keys (str freq)
+    cc_same=[cc_hist[a][a][0].magnitude[:,0] for a in range(numtrials)]
+    mean_cc=np.mean(cc_same,axis=0)
+    cc_diff=[cc_hist[a][b][0].magnitude[:,0] for a in range(numtrials) for b in range(numtrials) if b != a ]
+    mean_cc_shuffle=np.mean(cc_diff,axis=0)
+    cc_shuffle_corrected=mean_cc-mean_cc_shuffle
+    xbins=np.linspace(-t_end,t_end,len(mean_cc))
+    fig,axes =plt.subplots(3,1,sharex=True)
+    axes[0].plot(xbins,mean_cc)
+    axes[1].plot(xbins,mean_cc_shuffle)
+    axes[2].plot(xbins,cc_shuffle_corrected)
+    axes[0].set_ylabel('mean cc')
+    axes[1].set_ylabel('mean cc shuffled')
+    axes[1].set_ylabel('mean cc shuffled-corrected')
+    ################################### End cross correlogram ##################### 
     ##### Plots of means compared across conditions or across presyn_set
     if len(condition)>1:
         pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
@@ -186,8 +238,8 @@ else:
             cond=condition[0]
             plt.figure()
             plt.suptitle('mean sta vm')
-            for i,(synfreq,mean_sta) in enumerate(mean_sta_vm[cond].items()):
-                plt.plot(pre_xvals,mean_sta,label=synfreq)
+            for i,(key,mean_sta) in enumerate(mean_sta_vm[cond].items()):
+                plt.plot(pre_xvals,mean_sta,label=key)
             plt.legend()
             plt.xlabel('time (s)')
             plt.ylabel('Vm (V)')
