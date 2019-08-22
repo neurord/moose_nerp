@@ -6,4 +6,5 @@ __pycache__/
 *txt
 *.npz
 *.log
+*.png
 

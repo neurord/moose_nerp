@@ -5,9 +5,10 @@
 from __future__ import print_function, division
 
 def moose_main(p):
-    stimfreq,presyn,stpYN,trialnum,prefix=p
+    stimfreq,presyn,stpYN,trialnum,prefix,ttGPe,ttstr=p
 
     import numpy as np
+    import os
     import moose
 
     from moose_nerp.prototypes import (calcium,
@@ -48,7 +49,17 @@ def moose_main(p):
         net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
         net.connect_dict['ep']['gaba']['extern2'].weight=2.8 #GPe - stronger
         net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
-    
+
+    #override time tables here - before creating model, e.g.
+    fname_part=''
+    if ttGPe is not None:
+        net.param_net.tt_GPe.filename=ttGPe
+        print ('!!!!!!! new tt file for GPe:',net.param_net.tt_GPe.filename)
+        fname_part=fname_part+'_tg_'+os.path.basename(ttGPe)
+    if ttstr is not None:
+        net.param_net.tt_str.filename=ttstr
+        print ('!!!!!!! new tt file for str:',net.param_net.tt_str.filename)
+        fname_part=fname_part+'_ts_'+os.path.basename(ttstr)
     #################################-----------create the model: neurons, and synaptic inputs
     
     model=create_model_sim.setupNeurons(model,network=not net.single)
@@ -71,8 +82,8 @@ def moose_main(p):
     else:
         print('########### unknown synapse type')
 
-    param_sim.fname='ep'+prefix+'_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])+'t'+str(trialnum)
-    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps))
+    param_sim.fname='ep'+prefix+'_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
+    print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
 
@@ -154,37 +165,59 @@ def moose_main(p):
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
     return param_dict,tab_dict,vmtab,spike_time,isis
 
-def multi_main(prefix,num_trials,syntype,stpYN,stimfreq):
+def multi_main(p):
     from multiprocessing.pool import Pool
     import os
     
     max_pools=os.cpu_count()
-    params=[(stimfreq,syntype,stpYN,trial,prefix) for trial in range(num_trials)]
-    num_pools=min(len(params),max_pools)
-    print('************* number of processors',max_pools,' params',num_pools,params, 'syn', syntype,stimfreq)
+    #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix t1-t15
+    #p.ttstr+'t'+str(trial)
+    sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr) for trial in range(p.trials)]
+    num_pools=min(len(sim_params),max_pools)
+    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq)
     p = Pool(num_pools,maxtasksperchild=1)
     #
-    results = p.map(moose_main,params)
+    results = p.map(moose_main,sim_params)
+
+from moose_nerp.prototypes import standard_options 
+def parse_args(commandline,do_exit):
+    parser, _ = standard_options.standard_options()
+    parser.add_argument("--cond",'-c', type=str, help = 'give exper name, for example: GABAosc')
+    #these control synaptic strength and should start with GABA for ctrl, POST-HFS or POST-NoDa
+    parser.add_argument("--syn",'-syn', type=str, default='non', help = 'optional: synapse type of special input, omit or non for none')
+    parser.add_argument("--freq",'-f', type=int, default=0, help="optional: frequency of special input, omit or 0 for non")
+    #could  change this to type list to provide a range of frequencies
+    parser.add_argument("--trials",'-n', type=int, help="number of trials")
+    parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
+    parser.add_argument("--ttGPe",'-tg', type=str, help="name of tt files for GPe")
+    parser.add_argument("--ttstr",'-ts', type=str, help="name of tt files for Str")
+    try:
+        args = parser.parse_args(commandline) # maps arguments (commandline) to choices, and checks for validity of choices.
+    except SystemExit:
+        if do_exit:
+            raise # raise the exception above (SystemExit)
+        else:
+            raise ValueError('invalid ARGS')
+    return args
 
 if __name__ == "__main__":
+    #from within python: ARGS="--cond GABAosc --trials 15 --syn non --stp 1 --freq 0"
+    #or ARGS="-c GABA -n 15 -syn non -stp 1 -f 0"
+    #execfile ('multisim.py')
+    #from outside python, see multi-sim.bat for examples
     import sys
     print('running main')
     try:
         args = ARGS.split(" ")
         print("ARGS =", ARGS, "commandline=", args)
-        plot_stuff=1
         do_exit = False
     except NameError: #NameError refers to an undefined variable (in this case ARGS)
         args = sys.argv[1:]
-        plot_stuff=0
         print("commandline =", args)
         do_exit = True
-    condition=args[0] #GABA for ctrl, POST-HFS or POST-NoDa
-    num_trials=int(args[1])
-    syn=args[2] #str, GPe or non
-    stpYN=int(args[3]) #either 0 or 1
-    stimfreq=int(args[4])
-    results = multi_main(condition,num_trials,syn,stpYN,stimfreq)
+    params=parse_args(args,do_exit)
+    print('params',params)
+    results = multi_main(params)
 
 '''
 for neurtype,neurtype_dict in connections.items():
