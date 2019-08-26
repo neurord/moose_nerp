@@ -24,25 +24,25 @@
 
 ############## 16 sets of simulations to evaluate effect of input correlation on Str-EP cross correlation
 #~6 hours each. 4/day, 4 days
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr010 > GABA_non_0_stp1_GPe18_SPN_010.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr010 > POST-HFS_non_0_stp1_GPe18_SPN_010.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr030 > GABA_non_0_stp1_GPe18_SPN_030.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr030 > POST-HFS_non_0_stp1_GPe18_SPN_030.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr100 > GABA_non_0_stp1_GPe18_SPN_100.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr100 > POST-HFS_non_0_stp1_GPe18_SPN_100.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr300 > GABA_non_0_stp1_GPe18_SPN_300.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr300 > POST-HFS_non_0_stp1_GPe18_SPN_300.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr010 > GABA_non_0_stp1_GPe18_str_010.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr010 > POST-HFS_non_0_stp1_GPe18_str_010.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr030 > GABA_non_0_stp1_GPe18_str_030.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr030 > POST-HFS_non_0_stp1_GPe18_str_030.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr100 > GABA_non_0_stp1_GPe18_str_100.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr100 > POST-HFS_non_0_stp1_GPe18_str_100.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr300 > GABA_non_0_stp1_GPe18_str_300.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr300 > POST-HFS_non_0_stp1_GPe18_str_300.log
 
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr010 > GABA_non_0_stp1_GPe29_SPN_010.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr010 > POST-HFS_non_0_stp1_GPe29_SPN_010.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr030 > GABA_non_0_stp1_GPe29_SPN_030.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr030 > POST-HFS_non_0_stp1_GPe29_SPN_030.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr100 > GABA_non_0_stp1_GPe29_SPN_100.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr100 > POST-HFS_non_0_stp1_GPe29_SPN_100.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr300 > GABA_non_0_stp1_GPe29_SPN_300.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/SPN_exp_corr300 > POST-HFS_non_0_stp1_GPe29_SPN_300.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr010 > GABA_non_0_stp1_GPe29_str_010.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr010 > POST-HFS_non_0_stp1_GPe29_str_010.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr030 > GABA_non_0_stp1_GPe29_str_030.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr030 > POST-HFS_non_0_stp1_GPe29_str_030.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr100 > GABA_non_0_stp1_GPe29_str_100.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr100 > POST-HFS_non_0_stp1_GPe29_str_100.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr300 > GABA_non_0_stp1_GPe29_str_300.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr300 > POST-HFS_non_0_stp1_GPe29_str_300.log
 
 ################
-#3. calculate correlation between SPN input and EP output
+#3. calculate correlation between str input and EP output
 #consider an additional GPe correlation depending on results
 

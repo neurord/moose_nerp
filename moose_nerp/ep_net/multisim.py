@@ -171,10 +171,10 @@ def multi_main(p):
     
     max_pools=os.cpu_count()
     #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix t1-t15
-    #p.ttstr+'t'+str(trial)
-    sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr) for trial in range(p.trials)]
+    sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
     num_pools=min(len(sim_params),max_pools)
-    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq)
+    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfile',p.ttstr)
+    print(sim_params)
     p = Pool(num_pools,maxtasksperchild=1)
     #
     results = p.map(moose_main,sim_params)
