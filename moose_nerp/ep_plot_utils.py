@@ -118,23 +118,24 @@ def plot_freq_dep_vm(fileroot,presyn_set,plasYN,inj,neurtype):
     axis[-1].set_xlabel('Time (sec)')
 
 #################### Raster plot of pre-synaptic inputs 
-def plot_input_raster(pre_spikes,pattern,maxplots=None):
+def plot_input_raster(pre_spike_set,suffix,maxplots=None):
     colors=plt.get_cmap('viridis')
     #colors=plt.get_cmap('gist_heat')
-    if maxplots:
-        numplots=min(maxplots,len(pre_spikes))
-    else:
-        numplots=len(pre_spikes)
-    for trial in range(numplots):
-        fig,axes =plt.subplots(len(pre_spikes[trial].keys()), 1,sharex=True)
-        fig.suptitle('input raster '+os.path.basename(pattern).split('.')[0]+'_'+str(trial))
-        axis=fig.axes
-        for ax,(key,spikes) in enumerate(pre_spikes[trial].items()):
-            color_num=[int(cellnum*(colors.N/len(spikes))) for cellnum in range(len(spikes))]
-            color_set=np.array([colors.__call__(color) for color in color_num])
-            axis[ax].eventplot(spikes,color=color_set)
-            axis[ax].set_ylabel(key)
-        axis[-1].set_xlabel('time (s)')
+    for param,pre_spikes in pre_spike_set.items():
+        if maxplots:
+            numplots=min(maxplots,len(pre_spikes))
+        else:
+            numplots=len(pre_spikes)
+        for trial in range(numplots):
+            fig,axes =plt.subplots(len(pre_spikes[trial].keys()), 1,sharex=True)
+            fig.suptitle('input raster '+suffix+'_'+param+'_'+str(trial))
+            axis=fig.axes
+            for ax,(key,spikes) in enumerate(pre_spikes[trial].items()):
+                color_num=[int(cellnum*(colors.N/len(spikes))) for cellnum in range(len(spikes))]
+                color_set=np.array([colors.__call__(color) for color in color_num])
+                axis[ax].eventplot(spikes,color=color_set)
+                axis[ax].set_ylabel(key)
+            axis[-1].set_xlabel('time (s)')
 
 def plot_sta_post_vm(pre_spikes,post_sta_dict,mean_sta_dict,post_xvals):
     for i,(synstim,sta_list) in enumerate(post_sta_dict.items()):

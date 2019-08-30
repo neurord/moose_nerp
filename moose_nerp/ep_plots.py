@@ -3,6 +3,7 @@ import elephant
 #must import elephant prior to matplotlib else plt.ion() doesn't work properly
 import ISI_anal
 import ep_plot_utils as pu
+import cross_corr as cc
 exec(open('/home/avrama/ephys_anal/fft_utils.py').read())
 
 from matplotlib import pyplot as plt
@@ -17,6 +18,7 @@ presyn=['str','GPe']
 numbins=10
 networksim=1
 spike_sta=0
+show_plots=0
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
 
@@ -31,22 +33,25 @@ def file_pattern(fileroot,suffix,params,filetype):
     return pattern,key,freq
 
 if networksim:
+    #presyn_set overrides plasYN and presyn
     condition=['POST-HFS', 'GABA'] #'POST-NoDaosc', 
-    #condition=['Ctrl']#'GABAosc',
-    #change 3 value from plasYN to Str corr value
-    presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]#,(0,'non',0)]#(20,'str'),(40,'GPe'),
+    #condition=['GABAosc']
+    #tuples of (freq,syntype,plasYN,striatal correlation)
+    presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]#,(0,'non',0)]#(20,'str'),(40,'GPe')
+    #location of files to analyze, path relative to current directory
     filedir='ep_net/output/'
     #inj='0.0'
     #suffix='_inj'+inj+'*.npz'
-    GPe_input='exp_freq18' #or 29
-    suffix='_tg_GPe_'+GPe_input+'_ts_SPN_exp_corr'
+    #filenames constructed from pattern constructed from presyn_set and the suffix below
+    #may need to adjust fname pattern in file_pattern above depending on parameters and file naming convention
+    GPe_input='lognorm_freq18' #or 29
+    suffix='_tg_GPe_'+GPe_input+'_ts_str_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
     condition=['-1e-11']#'0.0',
     presyn_set=[(freq,syn) for freq in stim_freqs for syn in presyn]
     rootname='ep_syn'
     filedir='ep/output/'
-show_plots=1
 ############################################################
 ####### plots for single neuron simulations, multiple frequencies, single trials:
 if not networksim:
@@ -58,7 +63,7 @@ if not networksim:
         pu.plot_freq_dep_vm(fileroot,presyn,plasYN,inj,neurtype)
 else:
     #Network simulations
-    #time points for spike triggered average
+    #set up some dictionaries to hold results
     mean_prespike_sta1={};mean_prespike_sta2={}
     mean_sta_vm={};vmdat={};sta_list={}
     spiketime_dict={};syntt_info={}
@@ -67,9 +72,10 @@ else:
     isi_set={};all_isi_mean={}
     fft_wave={};phase={};freqs={};mean_fft_phase={}
     for cond in condition:
+        #time points for spike triggered average
         sta_start=-40e-3
         sta_end=0
-        #specify file name pattern
+        #construct file name pattern
         rootname='ep'+cond+'_syn'
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
@@ -81,8 +87,9 @@ else:
             if len(files):
                 spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
                 if freq>0:
-                    #latency not defined if no regular stimulation
-                    #isi in these two functions is separated into pre and post stimulation - requires regulator stimulation
+                    #latency: time from simulation of specific synapse to spike
+                    #not defined if no regular (periodic) stimulation
+                    #isi in these two functions is separated into pre and post stimulation - requires regular stimulation
                     lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], bins=ISI_anal.latency(files,freq,neurtype,numbins)
                     isi_set[key]=ISI_anal.ISI_histogram(files,freq,neurtype)
                 if sta_start != sta_end:
@@ -128,8 +135,7 @@ else:
                 post_sta[key],mean_sta[key],post_xvals=ISI_anal.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
         if show_plots:
             pu.plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals)
-            for key in pre_spikes:
-                pu.plot_input_raster(pre_spikes[key],pattern,maxplots=1)
+            pu.plot_input_raster(pre_spikes,suffix,maxplots=1)
         #
         #3. use both pre-synaptic and post-synaptic spikes for spike triggered average input:
         #1st calculate instantaneous input firing frequency for each type of input
@@ -163,64 +169,30 @@ else:
                 pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
     #
     ##################### calculate cross-correlogram from input and output rate histograms #####################
-    #def plot_cross_corr(pre_spikes,post_spikes,presyn):
-    import elephant
-    from neo.core import AnalogSignal,SpikeTrain
-    import quantities as q
-    from elephant.conversion import BinnedSpikeTrain
-    numtrials=len(pre_spikes[key])
-    numtrials=3
     presyn='gabaextern3'
-    last_spike=[train[-1] for train in pre_spikes[key][0][presyn]]
-    t_end=np.round(np.max(last_spike))
-    cc_hist=[[] for t in range(numtrials)]
-    fig,axes =plt.subplots(numtrials,numtrials,sharex=True)
-    fig.suptitle('cross correlograms '+key)
-    for trial_in in range(numtrials):
-        for trial_out in range(numtrials):
-            if isinstance(pre_spikes[key][trial_in][presyn], list):
-                spikes = np.sort(np.concatenate(pre_spikes[key][trial_in][presyn]))
-            else:
-                spikes=pre_spikes[key][trial_in][presyn]
-            train=SpikeTrain(spikes*q.s,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
-            in_train=BinnedSpikeTrain(train,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
-            train=SpikeTrain(spiketime_dict[key][trial_out]*q.s,t_stop=t_end*q.s)
-            out_train=BinnedSpikeTrain(train,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
-            print('trial_in,trial_out', trial_in, trial_out)
-            cc_hist[trial_in].append(elephant.spike_train_correlation.cross_correlation_histogram(in_train,out_train))
-            axes[trial_in,trial_out].plot(cc_hist[trial_in][trial_out][0].magnitude[:,0])
-        axes[trial_in,0].set_ylabel('input '+str(trial_in))
-    for trial_out in range(trial_in,numtrials):
-        axes[-1,trial_out].set_xlabel('output '+str(trial_out))
-    #shuffle corrected mean cross-correlogram
-    #initialize these to accumulate across conditions, e.g. pre and post-HFS, and possibly across keys (str freq)
-    cc_same=[cc_hist[a][a][0].magnitude[:,0] for a in range(numtrials)]
-    mean_cc=np.mean(cc_same,axis=0)
-    cc_diff=[cc_hist[a][b][0].magnitude[:,0] for a in range(numtrials) for b in range(numtrials) if b != a ]
-    mean_cc_shuffle=np.mean(cc_diff,axis=0)
-    cc_shuffle_corrected=mean_cc-mean_cc_shuffle
-    xbins=np.linspace(-t_end,t_end,len(mean_cc))
-    fig,axes =plt.subplots(3,1,sharex=True)
-    axes[0].plot(xbins,mean_cc)
-    axes[1].plot(xbins,mean_cc_shuffle)
-    axes[2].plot(xbins,cc_shuffle_corrected)
-    axes[0].set_ylabel('mean cc')
-    axes[1].set_ylabel('mean cc shuffled')
-    axes[1].set_ylabel('mean cc shuffled-corrected')
+    cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
     ################################### End cross correlogram ##################### 
     ##### Plots of means compared across conditions or across presyn_set
+    colors=plt.get_cmap('viridis')
+    colors2D=[plt.get_cmap('gist_heat'),plt.get_cmap('summer'),plt.get_cmap('Blues')]
+    offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
+    partial_scale=0.75 #avoid the very light colors.  Note that non-zero offset must be <= (1-partial_scale)*255
     if len(condition)>1:
         pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
         #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
         fig,axes=plt.subplots(1,1)
         fig.suptitle('Mean fft')
         for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+            if len(fft_set.keys())>1:
+                col_inc=(len(colors.colors)-1)/(len(fft_set.keys())-1)
             maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
             maxfreq=np.min(np.where(freqs[cond]>500))
-            for key,fft in fft_set.items():
+            for j,(key,fft) in enumerate(fft_set.items()):
+                color_index=int(j*col_inc*partial_scale)
+                mycolor=colors2D[i].__call__(color_index+offset[i])
                 #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
                 mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-                axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=colors[i])
+                axes.plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
         axes.set_xlabel('Frequency in Hertz [Hz]')
         axes.set_ylabel('FFT Magnitude')
         axes.set_xlim(0 , freqs[cond][maxfreq] )
