@@ -74,12 +74,12 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None wei
 #first string is name of the table in moose, and 2nd string is name of external file
 #tt_STN = TableSet('tt_STN', 'ep_net/STN_InhomPoisson',syn_per_tt=2)
 tt_STN = TableSet('tt_STN', 'ep_net/STN_lognorm',syn_per_tt=2)
-#tt_STN = TableSet('tt_STN', 'stptest2tr',syn_per_tt=2)
 #tt_str = TableSet('tt_str', 'ep_net/SPN_InhomPoisson',syn_per_tt=2)
-tt_str = TableSet('tt_str', 'ep_net/SPN_lognorm',syn_per_tt=2)
-#tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_InhomPoisson',syn_per_tt=2)
-tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
-#tt_GPe = TableSet('tt_GPe', 'stptest4tr',syn_per_tt=2)
+tt_str = TableSet('tt_str', 'ep_net/str_exp_corr0.49',syn_per_tt=2)
+#tt_str1 = TableSet('tt_str1', 'ep_net/str_InhomPoisson_freq4.0_osc1.8',syn_per_tt=2)
+#tt_str2 = TableSet('tt_str2', 'ep_net/str_InhomPoisson_freq4.0_osc5.0',syn_per_tt=2)
+tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_InhomPoisson',syn_per_tt=2)
+#tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_lognorm',syn_per_tt=2)
 
 #description of intrinsic inputs
 ConnSpaceConst=125e-6
@@ -88,7 +88,8 @@ neur1pre_neur1post=connect(synapse='gaba', pre='ep', post='gaba', probability=0.
 
 #description of synapse and dendritic location of extrinsic inputs
 GPe_distr=dend_location(mindist=0,maxdist=60e-6,half_dist=30e-6,steep=-1)
-str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=1,half_dist=100e-6,steep=1)
+#str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=0.5,half_dist=100e-6,steep=1) #use with two str inputs
+str_distr=dend_location(mindist=30e-6,maxdist=1000e-6,postsyn_fraction=1.0,half_dist=100e-6,steep=1)
 STN_distr=dend_location(postsyn_fraction=0.9)
 #STN_depress=SpikePlasParams(change_per_spike=0.9,change_tau=1.0,change_operator='*')
 #STN_facil= SpikePlasParams(change_per_spike=0.6,change_tau=0.4,change_operator='+')
@@ -105,14 +106,15 @@ str_plas=ShortTermPlasParams(facil=str_facil)
 #may need to assign synaptic weight a different value for each
 ext1_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='ep', dend_loc=STN_distr,weight=1.0)# need reference
 ext2_neur1post=ext_connect(synapse='gaba',pre=tt_GPe,post='ep', dend_loc=GPe_distr,stp=GPe_plas,weight=2.0)
-ext3_neur1post=ext_connect(synapse='gaba',pre=tt_str,post='ep', dend_loc=str_distr,stp=str_plas,weight=1.0)
+ext3_neur1post=ext_connect(synapse='gaba',pre=tt_str1,post='ep', dend_loc=str_distr,stp=str_plas,weight=1.0)
+#ext4_neur1post=ext_connect(synapse='gaba',pre=tt_str2,post='ep', dend_loc=str_distr,stp=str_plas,weight=1.0)
 
 #Collect all connection information into dictionaries
 #1st create one dictionary for each post-synaptic neuron class
 ep={}
 #connections further organized by synapse type
 #the dictionary key for tt must have 'extern' in it
-ep['gaba']={'extern2': ext2_neur1post, 'extern3': ext3_neur1post}#, 'ep':neur1pre_neur1post}
+ep['gaba']={'extern2': ext2_neur1post, 'extern3': ext3_neur1post}#, 'extern4': ext4_neur1post}#, 'ep':neur1pre_neur1post}
 ep['ampa']={'extern1': ext1_neur1post}
 
 #Then, collect the post-synaptic dictionaries into a single dictionary.
