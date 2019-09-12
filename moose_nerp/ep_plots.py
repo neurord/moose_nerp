@@ -16,41 +16,51 @@ neurtype='ep'
 plasYN=1
 presyn=['str','GPe']
 numbins=10
+binsize_factor=10
 networksim=1
 spike_sta=0
-show_plots=0
+show_plots=1
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
-weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}
+weights={'gabaextern2':-2,'gabaextern3':-1,'gabaextern4':-1,'ampaextern1':1}
 
 #customize the following according to file naming convention and parameters
 def file_pattern(fileroot,suffix,params,filetype):
+    #file pattern when using correlated trains
+    '''
     freq,syn,plasYN,corr=params
-    #key=syn+'_'+'freq'+str(freq)
-    #key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
+    key=corr 
     fname=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)+suffix
-    key=corr
     pattern=fileroot+fname+key+filetype
+    '''
+    #file pattern when using oscillatory trains
+    freq,syn,plasYN=params
+    #key=syn+'_'+'freq'+str(freq)
+    key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
+    fname=key+suffix
+    pattern=fileroot+fname+filetype
     return pattern,key,freq
 
 if networksim:
     #presyn_set overrides plasYN and presyn
-    condition=['POST-HFS', 'GABA'] #'POST-NoDaosc', 
-    #condition=['GABAosc']
+    condition=['POST-HFSosc', 'GABAosc'] #'POST-NoDaosc', 
+    #condition=['GABAoscStr']
     #tuples of (freq,syntype,plasYN,striatal correlation)
-    presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]#,(0,'non',0)]#(20,'str'),(40,'GPe')
+    #presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]
+    #presyn_set=[(0,'non',1,'0.95'),(0,'non',1,'0.90'),(0,'non',1,'0.81'),(0,'non',1,'0.64'),(0,'non',1,'0.49')]
+    presyn_set=[(0,'non',1)]#(20,'str'),(40,'GPe')
     #location of files to analyze, path relative to current directory
     filedir='ep_net/output/'
-    #inj='0.0'
-    #suffix='_inj'+inj+'*.npz'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
     #may need to adjust fname pattern in file_pattern above depending on parameters and file naming convention
-    GPe_input='lognorm_freq18' #or 29
-    suffix='_tg_GPe_'+GPe_input+'_ts_str_exp_corr'
+    inj='0.0'
+    #suffix='_inj'+inj
+    GPe_input='lognorm_freq18' #18 or 29
+    suffix='_tg_GPe_'+GPe_input #+'_ts_str_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
     condition=['-1e-11']#'0.0',
     presyn_set=[(freq,syn) for freq in stim_freqs for syn in presyn]
-    rootname='ep_syn'
+    rootname='ep_PSP_'
     filedir='ep/output/'
 ############################################################
 ####### plots for single neuron simulations, multiple frequencies, single trials:
@@ -76,7 +86,7 @@ else:
         sta_start=-40e-3
         sta_end=0
         #construct file name pattern
-        rootname='ep'+cond+'_syn'
+        rootname='ep'+cond+'PSP_'# '_syn'
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         mean_sta_vm[cond]={}
@@ -147,7 +157,7 @@ else:
         #4. alternative: adapt Dan's code which keeps spatial information, and group inputs by discretized distances from soma, e.g. soma, prox, middle, distal dendrites - either excite or inhib - array of 8xtimebins
         #5. calculate Spike triggered covariance also
         #6. calculate PCA on same set of 8xtimebins input patterns; test EP response to each component
-        binsize=plotdt*100#*10
+        binsize=plotdt*binsize_factor
         sta_start=-20e-3
         sta_end=0
         inst_rate1={}; inst_rate2={}
@@ -169,8 +179,10 @@ else:
                 pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
     #
     ##################### calculate cross-correlogram from input and output rate histograms #####################
-    presyn='gabaextern3'
-    cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
+    presyn_types=['gabaextern3','gabaextern4']
+    #even better, get presyn_types from weights.keys, or pre_spikes[key][0].keys()
+    for presyn in presyn_types:
+        cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
     ################################### End cross correlogram ##################### 
     ##### Plots of means compared across conditions or across presyn_set
     colors=plt.get_cmap('viridis')
