@@ -1,6 +1,13 @@
 # -*- coding:utf-8 -*-
 
 ######## ep_net/multisim.py ############
+"""
+Runs a set of EP network simulations
+parameters to specify from command line include:
+   pre-synaptic spike-based short term plasticity (stpYN=1)
+   stim frequency and synapse type of stim_paradigm that provides regular input to synapses
+   alternative time tables for in vivo like input
+"""
 
 from __future__ import print_function, division
 
@@ -30,6 +37,7 @@ def moose_main(p):
     net.single=True
     stimtype='PSP_'
     outdir="ep_net/output/"
+    ############## if stim_freq>0, stim_paradigm adds regular input and synaptic plasticity at single synapse ####################
     if stimfreq>0:
         model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
         model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
@@ -82,11 +90,11 @@ def moose_main(p):
     else:
         print('########### unknown synapse type')
 
-    param_sim.fname='ep'+prefix+'_syn'+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
+    param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
-
+    print('>>>> After setupStim, simtime:', param_sim.simtime) 
     ##############--------------output elements
     if net.single:
         create_model_sim.setupOutput(model)
@@ -171,7 +179,15 @@ def multi_main(p):
     
     max_pools=os.cpu_count()
     #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix t1-t15
-    sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
+    if p.ttstr and p.ttGPe:
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
+    elif p.ttstr:
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,None,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
+    elif p.ttGPe:
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,None) for trial in range(p.trials)]
+    else:
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,None,None) for trial in range(p.trials)]
+        
     num_pools=min(len(sim_params),max_pools)
     print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfile',p.ttstr)
     print(sim_params)
@@ -190,7 +206,7 @@ def parse_args(commandline,do_exit):
     parser.add_argument("--trials",'-n', type=int, help="number of trials")
     parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
     parser.add_argument("--ttGPe",'-tg', type=str, help="name of tt files for GPe")
-    parser.add_argument("--ttstr",'-ts', type=str, help="name of tt files for Str")
+    parser.add_argument("--ttstr",'-ts', type=str, default=None,help="name of tt files for Str")
     try:
         args = parser.parse_args(commandline) # maps arguments (commandline) to choices, and checks for validity of choices.
     except SystemExit:

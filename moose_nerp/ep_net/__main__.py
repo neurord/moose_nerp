@@ -1,15 +1,16 @@
 # -*- coding:utf-8 -*-
 
 ######## GPnetSim.py ############
-"""\
-Create a network of GP neurons using dictionaries for channels, synapses, and network parameters
-
-Can use ghk for calcium permeable channels if ghkYesNo=1
-Optional calcium concentration in compartments (calcium=1)
-Optional synaptic plasticity based on calcium (plasyesno=1)
-Spines are optional (spineYesNo=1), but not allowed for network
+"""
+Create a network of EP neurons using dictionaries for channels, synapses, and network parameters
+net.single=True creates single neuron with timetable (spike train) inputs
+net.single=False creates network of neurons with timetable (spike train) inputs
+Optional long term synaptic plasticity based on calcium (plasYN=1)
+optional pre-synaptic spike-based short term plasticity (stpYN=1)
+Spines are optional (spineYesNo=1), but not allowed for net.single=False
 The graphs won't work for multiple spines per compartment
 """
+
 from __future__ import print_function, division
 
 import numpy as np
@@ -25,7 +26,6 @@ from moose_nerp.prototypes import (calcium,
                                    create_network,
                                    tables,
                                    net_output,
-                                   logutil,
                                    util)
 from moose_nerp import ep as model
 from moose_nerp import ep_net as net
@@ -37,34 +37,35 @@ model.synYN = True
 model.stpYN = True
 net.single=True
 
-############## Set-up test of synaptic plasticity at single synapse ####################
-presyn='GPe' #choose from 'str', 'GPe'
-stimfreq=0 #choose from 1,5,10,20,40
+#these parameters passed are passed into function in multisim.py
 stimtype='PSP_' #choose from AP and PSP
+presyn='non' #choose from 'str', 'GPe', or 'non' to provide no additional input
+stimfreq=0 #choose from 1,5,10,20,40
 outdir="ep_net/output/"
+prefix='GABAoscStr'
+############## if stim_freq>0, stim_paradigm adds regular input and synaptic plasticity at specified synapse ####################
 if stimfreq>0:
     model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
     model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
 else:
     model.param_sim.stim_paradigm='inject'
-prefix='GABAosc'
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [-10e-12]
+param_sim.injection_current = [-0e-12]
 param_sim.injection_delay = 0.0
 param_sim.injection_width = param_sim.simtime
 param_sim.plot_synapse=True
 param_sim.save_txt = False
 
 if prefix.startswith('POST-HFS'):
+    net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
     net.connect_dict['ep']['gaba']['extern2'].weight=0.8 #GPe - weaker
     net.connect_dict['ep']['gaba']['extern3'].weight=1.4 #str - stronger
-    net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
 if prefix.startswith('POST-NoDa'):
+    net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
     net.connect_dict['ep']['gaba']['extern2'].weight=2.8 #GPe - stronger
     net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
-    net.connect_dict['ep']['ampa']['extern1'].weight=1.0 #STN - no change
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)
@@ -87,14 +88,13 @@ elif presyn=='GPe':
 else:
     print('########### unknown synapse type')
 
-param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
-print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} stimfreq {} simtime {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN,stimfreq, param_sim.simtime))
+param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} stimfreq {} simtime {} plotcomps {} '.format(model.param_sim.stim_paradigm,presyn,model.stpYN,stimfreq, param_sim.simtime, param_sim.plotcomps))
 
 create_model_sim.setupStim(model)
 print('>>>> After setupStim, simtime:', param_sim.simtime) 
 ##############--------------output elements
 if net.single:
-    #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
     create_model_sim.setupOutput(model)
 else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
@@ -110,7 +110,7 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
 
 #add short term plasticity to synapse as appropriate
-param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
+param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
 if stimfreq>0:
     from moose_nerp.prototypes import plasticity_test as plas_test
     extra_syntab={ntype:[] for ntype in  model.neurons.keys()}
@@ -159,9 +159,22 @@ for inj in param_sim.injection_current:
                 net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity',factor=1)
         net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
 
+#Save results: spike time, Vm, parameters, input time tables
+vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
+import ISI_anal
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+
+if model.param_sim.save_txt:
+    if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
+        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
+    else:
+        print('no spikes for',param_sim.fname, 'saving vm and parameters')
+        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmtab)
+#spikes=[st.vector for tabset in spiketab for st in tabset]
+
 if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    #write timtable vectors for analysis
+    #save spiketime of all input time tables
     timtabs={}
     for neurtype,neurtype_dict in connections.items():
         for neur,neur_dict in neurtype_dict.items():
@@ -175,13 +188,6 @@ if net.single:
     np.save(outdir+'tt'+param_sim.fname,timtabs)
     # block in non-interactive mode
 util.block_if_noninteractive()
-
-import ISI_anal
-spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
-
-if model.param_sim.save_txt:
-    np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict)
-#spikes=[st.vector for tabset in spiketab for st in tabset]
 
 if stimfreq>0:
     plt.figure()
