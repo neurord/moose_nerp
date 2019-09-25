@@ -37,14 +37,21 @@
 #python3 ep_net/multisim.py -c POST-HFSosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29  > POST-HFSosc_non_0_stp1_GPe29_strf1.8_f5.0.log
 
 #Test ability to transmit oscillations based on condition, and with only one nucleus oscillating
-python3 ep_net/multisim.py -c POST-HFS_GPeOsc -n 15 -syn non -stp 1 -f 0  > POST-HFS_GPeOsc_STNlognorm.log
-python3 ep_net/multisim.py -c GABA_GPeOsc -n 15 -syn non -stp 1 -f 0  > GABA_GPeOsc_STNlognorm.log
-python3 ep_net/multisim.py -c POST-NoDa_GPeOsc -n 15 -syn non -stp 1 -f 0  > GABA_GPeOsc_STNlognorm.log
+#oscillations in GPe, STN is lognorm
+#python3 ep_net/multisim.py -c POST-HFS_GPeOsc -n 15 -syn non -stp 1 -f 0  > POST-HFS_GPeOsc_STNlognorm.log
+#python3 ep_net/multisim.py -c GABA_GPeOsc -n 15 -syn non -stp 1 -f 0  > GABA_GPeOsc_STNlognorm.log
+#python3 ep_net/multisim.py -c POST-NoDa_GPeOsc -n 15 -syn non -stp 1 -f 0  > GABA_GPeOsc_STNlognorm.log
 
+#oscillations in STN, GPe is lognorm
 #python3 ep_net/multisim.py -c POST-HFS_STNosc -n 15 -syn non -stp 1 -f 0  > POST-HFS_STNosc_GPeLognorm.log
 #python3 ep_net/multisim.py -c GABA_STNosc -n 15 -syn non -stp 1 -f 0  > GABA_STNosc_GPeLognorm.log
 #python3 ep_net/multisim.py -c POST-NoDa_STNosc -n 15 -syn non -stp 1 -f 0  > GABA_STNosc_GPeLognorm.log
 
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18  > GABA_non_0_stp1_GPe18_str_DM_DL.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18  > POST-HFS_non_0_stp1_GPe18_str_DM_DL.log
+
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29  > GABA_non_0_stp1_GPe29_str_DM_DL.log
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29  > POST-HFS_non_0_stp1_GPe29_str_DM_DL.log
 ################
 #3. calculate correlation between str input and EP output
 #consider an additional GPe correlation depending on results

@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 def plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=0):
     mean_cc={};mean_cc_shuffle={};cc_shuffle_corrected={}
-    for key in pre_spikes.keys():
+    for key in pre_spikes.keys(): #key indexes the simulation condition, e.g. stpYN
         numtrials=len(pre_spikes[key])
         if maxtime==0:
             last_spike=[train[-1] for train in pre_spikes[key][0][presyn]]
@@ -44,6 +44,7 @@ def plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=0):
     #PLOT mean cc and shuffle corrected for each key on one figure
     xbins=np.linspace(-t_end,t_end,len(mean_cc[key]))
     fig,axes =plt.subplots(3,1,sharex=True)
+    fig.suptitle('cross correlograms '+presyn)
     for key in mean_cc.keys():
         axes[0].plot(xbins,mean_cc[key],label=key)
         axes[1].plot(xbins,mean_cc_shuffle[key],label=key)

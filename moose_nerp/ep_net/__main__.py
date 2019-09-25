@@ -125,7 +125,7 @@ if stimfreq>0:
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 #################### Actually run the simulation
-param_sim.simtime=1
+param_sim.simtime=.01
 print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),', simtime:', param_sim.simtime)
 #in case simtime was changed by setupStim, make sure injection width is long enough
 #param_sim.injection_width = param_sim.simtime-param_sim.injection_delay

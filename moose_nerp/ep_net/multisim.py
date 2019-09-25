@@ -60,17 +60,22 @@ def moose_main(p):
 
     #override time tables here - before creating model, e.g.
     fname_part=''
-    if ttGPe is not None:
+    if len(ttGPe):
         net.param_net.tt_GPe.filename=ttGPe
-        print ('!!!!!!! new tt file for GPe:',net.param_net.tt_GPe.filename)
+        print ('!!!!!!!!!!!!!! new tt file for GPe:',net.param_net.tt_GPe.filename, 'trial', trialnum)
         fname_part=fname_part+'_tg_'+os.path.basename(ttGPe)
-    if ttstr is not None:
+    else:
+        print ('$$$$$$$$$$$$$$ old tt file for GPe:',net.param_net.tt_GPe.filename, 'trial', trialnum)
+    if len(ttstr):
         net.param_net.tt_str.filename=ttstr
-        print ('!!!!!!! new tt file for str:',net.param_net.tt_str.filename)
+        print ('!!!!!!!!!!!!!! new tt file for str:',net.param_net.tt_str.filename, 'trial', trialnum)
         fname_part=fname_part+'_ts_'+os.path.basename(ttstr)
+    else:
+        print ('$$$$$$$$$$$$$$ old tt file for str:',net.param_net.tt_str1.filename, 'trial', trialnum)
     #################################-----------create the model: neurons, and synaptic inputs
     
     model=create_model_sim.setupNeurons(model,network=not net.single)
+    print('trialnum', trialnum)
     population,connections,plas=create_network.create_network(model, net, model.neurons)
 
     ####### Set up stimulation - could be current injection or plasticity protocol
@@ -88,13 +93,13 @@ def moose_main(p):
     elif presyn=='GPe':
         stp_params=net.param_net.GPe_plas
     else:
-        print('########### unknown synapse type')
+        print('########### unknown synapse type', 'trial', trialnum)
 
     param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
-    print('>>>> After setupStim, simtime:', param_sim.simtime) 
+    print('>>>> After setupStim, simtime:', param_sim.simtime, 'trial', trialnum) 
     ##############--------------output elements
     if net.single:
         create_model_sim.setupOutput(model)
@@ -127,8 +132,8 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-    param_sim.simtime=20.0
-    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime)
+    param_sim.simtime=0.01#20.0
+    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
@@ -178,15 +183,11 @@ def multi_main(p):
     import os
     
     max_pools=os.cpu_count()
-    #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix t1-t15
-    if p.ttstr and p.ttGPe:
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
-    elif p.ttstr:
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,None,p.ttstr+'_t'+str(trial)) for trial in range(p.trials)]
-    elif p.ttGPe:
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,None) for trial in range(p.trials)]
+    #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix _t1-_t15
+    if p.ttstr.endswith('_t'):
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+str(trial)) for trial in range(p.trials)]
     else:
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,None,None) for trial in range(p.trials)]
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr) for trial in range(p.trials)]
         
     num_pools=min(len(sim_params),max_pools)
     print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfile',p.ttstr)
@@ -205,8 +206,8 @@ def parse_args(commandline,do_exit):
     #could  change this to type list to provide a range of frequencies
     parser.add_argument("--trials",'-n', type=int, help="number of trials")
     parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
-    parser.add_argument("--ttGPe",'-tg', type=str, help="name of tt files for GPe")
-    parser.add_argument("--ttstr",'-ts', type=str, default=None,help="name of tt files for Str")
+    parser.add_argument("--ttGPe",'-tg', type=str, default='', help="name of tt files for GPe")
+    parser.add_argument("--ttstr",'-ts', type=str, default='',help="name of tt files for Str")
     try:
         args = parser.parse_args(commandline) # maps arguments (commandline) to choices, and checks for validity of choices.
     except SystemExit:
