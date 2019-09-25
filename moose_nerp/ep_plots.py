@@ -42,19 +42,19 @@ def file_pattern(fileroot,suffix,params,filetype):
 
 if networksim:
     #presyn_set overrides plasYN and presyn
-    condition=['POST-HFSosc', 'GABAosc'] #'POST-NoDaosc', 
-    #condition=['GABAoscStr']
+    condition=['POST-HFS', 'GABA'] #'POST-NoDaosc', 
+    #condition=['GABAosc']
     #tuples of (freq,syntype,plasYN,striatal correlation)
     #presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]
     #presyn_set=[(0,'non',1,'0.95'),(0,'non',1,'0.90'),(0,'non',1,'0.81'),(0,'non',1,'0.64'),(0,'non',1,'0.49')]
-    presyn_set=[(0,'non',1)]#(20,'str'),(40,'GPe')
+    presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe')
     #location of files to analyze, path relative to current directory
     filedir='ep_net/output/'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
     #may need to adjust fname pattern in file_pattern above depending on parameters and file naming convention
     inj='0.0'
-    #suffix='_inj'+inj
-    GPe_input='lognorm_freq18' #18 or 29
+    suffix='_inj'+inj
+    GPe_input='lognorm_freq29' #18 or 29
     suffix='_tg_GPe_'+GPe_input #+'_ts_str_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
@@ -86,7 +86,7 @@ else:
         sta_start=-40e-3
         sta_end=0
         #construct file name pattern
-        rootname='ep'+cond+'PSP_'# '_syn'
+        rootname='ep'+cond+ 'PSP_'#'_syn'#
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         mean_sta_vm[cond]={}
@@ -179,7 +179,7 @@ else:
                 pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
     #
     ##################### calculate cross-correlogram from input and output rate histograms #####################
-    presyn_types=['gabaextern3','gabaextern4']
+    presyn_types=['gabaextern3','gabaextern2','ampaextern1']
     #even better, get presyn_types from weights.keys, or pre_spikes[key][0].keys()
     for presyn in presyn_types:
         cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
@@ -197,6 +197,8 @@ else:
         for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
             if len(fft_set.keys())>1:
                 col_inc=(len(colors.colors)-1)/(len(fft_set.keys())-1)
+            else:
+                col_inc=0
             maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
             maxfreq=np.min(np.where(freqs[cond]>500))
             for j,(key,fft) in enumerate(fft_set.items()):
@@ -233,7 +235,10 @@ else:
             maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
             maxfreq=np.min(np.where(freqs[cond]>500))
             for i,(key,fft) in enumerate(mean_fft_phase[cond].items()):
-                axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean',color=colors[i])
+                col_inc=(len(colors.colors)-1)/(len(mean_fft_phase[cond].keys())-1)
+                color_index=int(i*col_inc*partial_scale)
+                mycolor=colors.__call__(color_index+offset[i])
+                axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean')#,color=mycolor)
             axes.set_xlabel('Frequency in Hertz [Hz]')
             axes.set_ylabel('FFT Magnitude')
             axes.set_xlim(0 , freqs[cond][maxfreq] )
