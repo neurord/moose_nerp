@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import moose
 from scipy import fftpack, signal
-
+from synth_trains import sig_filter as filt
 import detect
 
 def flatten(isiarray):
@@ -325,24 +325,30 @@ def input_fire_freq(pre_spikes,binsize):
     return inst_rate1,inst_rate2,xbins
 
 def fft_func(wave_array,ts,init_time,endtime):
-    fft_wave=[]
-    phase=[]
+    fft_wave=[]; phase=[]; fft_env=[]
     init_point=np.min(np.where(ts>init_time))
     endpoint=np.max(np.where(ts<endtime))
     for wave in wave_array:
         #wave is an analog signal - either Vm or binary spike signal.  Do not use spiketime
-        fft_wave.append(np.fft.rfft(wave[0][init_point:endpoint]))
-        #Note that maximum frequency for fft is fs/2; the frequency unit is cycles/time units.
-        #freqs is x axis. Two ways to obtain correct frequencies:
-        #specify sampling spacing as 2nd parameter, note that fs=1/ts
-        #freqs = np.fft.fftfreq(len(wave))*fs
-        #multiply by sample spacing by max frequency (=1/ts):
+        data=wave[0][init_point:endpoint]
+        fft_wave.append(np.fft.rfft(data))
         phase.append(np.arctan2(fft_wave[-1].imag,fft_wave[-1].real))
+        meandata=np.mean(data)
+        norm_data=np.abs(data-meandata)
+        fft_env.append(np.fft.rfft(norm_data))
+        cutoff=3
+        fft_lowpas=filt.butter_lowpass_filter(fft_env[-1], cutoff, 1/ts[1], order=6)
+        #fft_filt.append(fft_lowpass)
+    #Note that maximum frequency for fft is fs/2; the frequency unit is cycles/time units.
+    #freqs is x axis. Two ways to obtain correct frequencies:
+    #specify sampling spacing as 2nd parameter to rfftfreq, note that fs=1/ts
+    #     freqs = np.fft.fftfreq(len(wave))*fs
+    #multiply sample spacing by max frequency (=1/ts):
     freqs=np.fft.rfftfreq(len(wave[0][init_point:endpoint]),ts[1])
     mean_wave=np.mean(wave_array,axis=0)[0]
     mean_fft=np.fft.rfft(mean_wave[init_point:endpoint])
     mean_phase=np.arctan2(mean_fft.imag,mean_fft.real)
-    return fft_wave,phase,freqs,mean_wave,{'mag':mean_fft,'phase':mean_phase}
+    return fft_wave,phase,freqs,mean_wave,{'mag':mean_fft,'phase':mean_phase},fft_env
 
 ############# Call this from multisim, after import ISI_anal
 #  ISI_anal.save_tt(connections)
