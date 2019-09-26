@@ -12,7 +12,7 @@ parameters to specify from command line include:
 from __future__ import print_function, division
 
 def moose_main(p):
-    stimfreq,presyn,stpYN,trialnum,prefix,ttGPe,ttstr=p
+    stimfreq,presyn,stpYN,trialnum,prefix,ttGPe,ttstr,ttSTN=p
 
     import numpy as np
     import os
@@ -30,7 +30,7 @@ def moose_main(p):
     from moose_nerp import ep_net as net
     from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
-
+    np.random.seed()
     #additional, optional parameter overrides specified from with python terminal
     model.synYN = True
     model.stpYN = stpYN
@@ -71,7 +71,13 @@ def moose_main(p):
         print ('!!!!!!!!!!!!!! new tt file for str:',net.param_net.tt_str.filename, 'trial', trialnum)
         fname_part=fname_part+'_ts_'+os.path.basename(ttstr)
     else:
-        print ('$$$$$$$$$$$$$$ old tt file for str:',net.param_net.tt_str1.filename, 'trial', trialnum)
+        print ('$$$$$$$$$$$$$$ old tt file for str:',net.param_net.tt_str.filename, 'trial', trialnum)
+    if len(ttSTN):
+        net.param_net.tt_STN.filename=ttSTN
+        print ('!!!!!!!!!!!!!! new tt file for STN:',net.param_net.tt_STN.filename, 'trial', trialnum)
+        fname_part=fname_part+'_ts_'+os.path.basename(ttSTN)
+    else:
+        print ('$$$$$$$$$$$$$$ old tt file for STN:',net.param_net.tt_STN.filename, 'trial', trialnum)
     #################################-----------create the model: neurons, and synaptic inputs
     
     model=create_model_sim.setupNeurons(model,network=not net.single)
@@ -132,7 +138,7 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-    param_sim.simtime=0.01#20.0
+    param_sim.simtime=20.0
     print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
@@ -185,18 +191,18 @@ def multi_main(p):
     max_pools=os.cpu_count()
     #to use different ttstr for each trial, create 15 different files in "synth_trains\spike_trains.py" with suffix _t1-_t15
     if p.ttstr.endswith('_t'):
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+str(trial)) for trial in range(p.trials)]
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr+str(trial),p.ttSTN) for trial in range(p.trials)]
     else:
-        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr) for trial in range(p.trials)]
+        sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr,p.ttSTN) for trial in range(p.trials)]
         
     num_pools=min(len(sim_params),max_pools)
-    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfile',p.ttstr)
+    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfiles',p.ttGPe,p.ttstr,p.ttSTN)
     print(sim_params)
     p = Pool(num_pools,maxtasksperchild=1)
     #
     results = p.map(moose_main,sim_params)
 
-from moose_nerp.prototypes import standard_options 
+from moose_nerp.prototypes import standard_options
 def parse_args(commandline,do_exit):
     parser, _ = standard_options.standard_options()
     parser.add_argument("--cond",'-c', type=str, help = 'give exper name, for example: GABAosc')
@@ -208,6 +214,7 @@ def parse_args(commandline,do_exit):
     parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
     parser.add_argument("--ttGPe",'-tg', type=str, default='', help="name of tt files for GPe")
     parser.add_argument("--ttstr",'-ts', type=str, default='',help="name of tt files for Str")
+    parser.add_argument("--ttSTN",'-tn', type=str, default='',help="name of tt files for STN")
     try:
         args = parser.parse_args(commandline) # maps arguments (commandline) to choices, and checks for validity of choices.
     except SystemExit:
