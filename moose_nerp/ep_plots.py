@@ -19,7 +19,7 @@ numbins=10
 binsize_factor=10
 networksim=1
 spike_sta=0
-show_plots=1
+show_plots=0
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}# 'gabaextern4':-1,
 
@@ -211,31 +211,36 @@ else:
         cmap=[i%len(colors2D) for i in range(len(presyn_set))]
         color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
         color_tuple=[(cm,ci) for ci in color_index for cm in cmap]
-    else:
+        plot_set=1
+    elif len(presyn_set)>1:
         cmap=[i%len(colors2D) for i in range(len(condition))]
         color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
         color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
+        plot_set=1
         #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
-    fig,axes=plt.subplots(2,1,sharex=True)
-    fig.suptitle('Mean fft')
-    for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
-        maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
-        maxfreq=np.min(np.where(freqs[cond]>500))
-        for j,(key,fft) in enumerate(fft_set.items()):
-            ti=i*len(presyn_set)+j
-            mycolor=colors2D[color_tuple[ti][0]].__call__(color_tuple[ti][1]+offset[color_tuple[ti][0]])
-            #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
-            mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-            axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-            mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
-            axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-    axes[1].set_xlabel('Frequency in Hertz [Hz]')
-    axes[0].set_ylabel('FFT Magnitude')
-    axes[1].set_ylabel('FFT of envelope')
-    axes[0].set_xlim(0 , freqs[cond][maxfreq] )
-    axes[0].set_ylim(0,np.round(maxval) )
-    axes[1].set_ylim(0,np.round(maxval) )
-    axes[1].legend()
+    else:
+        plot_set=0
+    if plot_set:
+        fig,axes=plt.subplots(2,1,sharex=True)
+        fig.suptitle('Mean fft')
+        for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
+            maxfreq=np.min(np.where(freqs[cond]>500))
+            for j,(key,fft) in enumerate(fft_set.items()):
+                ti=i*len(presyn_set)+j
+                mycolor=colors2D[color_tuple[ti][0]].__call__(color_tuple[ti][1]+offset[color_tuple[ti][0]])
+                #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
+                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+                axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+                mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
+                axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+        axes[1].set_xlabel('Frequency in Hertz [Hz]')
+        axes[0].set_ylabel('FFT Magnitude')
+        axes[1].set_ylabel('FFT of envelope')
+        axes[0].set_xlim(0 , freqs[cond][maxfreq] )
+        axes[0].set_ylim(0,np.round(maxval) )
+        axes[1].set_ylim(0,np.round(maxval) )
+        axes[1].legend()
     ####### Output data for plotting #######
     for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
         for j,(key,fft) in enumerate(fft_set.items()):        #
@@ -250,10 +255,10 @@ else:
             output_data=np.column_stack((freqs[cond],mean_of_fft,mean_of_fft_env))
             f.write(header)
             np.savetxt(f,output_data,fmt='%.5f')
-    if len(lat_mean):
+    if len(lat_mean) and plot_set:
         pu.plot_ISI_cond(all_isi_mean,bins)
     #
-    if len(inst_rate1):
+    if len(inst_rate1) and plot_set:
         pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
     #
 
