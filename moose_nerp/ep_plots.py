@@ -21,11 +21,12 @@ networksim=1
 spike_sta=0
 show_plots=1
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
-weights={'gabaextern2':-2,'gabaextern3':-1,'gabaextern4':-1,'ampaextern1':1}
+weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}# 'gabaextern4':-1,
 
 #customize the following according to file naming convention and parameters
 def file_pattern(fileroot,suffix,params,filetype):
     #file pattern when using correlated trains
+    '''
     freq,syn,plasYN,corr=params
     key=corr 
     fname=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)+suffix
@@ -37,31 +38,30 @@ def file_pattern(fileroot,suffix,params,filetype):
     key=syn+'_'+'freq'+str(freq)+'_plas'+str(plasYN)
     fname=key+suffix
     pattern=fileroot+fname+filetype
-    '''
     return pattern,key,freq
 
 if networksim:
     #presyn_set overrides plasYN and presyn
-    condition=['POST-HFS', 'GABA'] #'POST-NoDaosc', 
-    #condition=['GABAosc']
+    condition=['POST-NoDaosc']#,'Post-NoDaosc']#,'POST-HFS_GPeOsc', 'GABA_GPeOsc'] #'POST-NoDaosc', 
+    #condition=['POST-HFS_DMDLam', 'GABA_DMDLam'] #'POST-NoDaosc', 
     #tuples of (freq,syntype,plasYN,striatal correlation)
     #presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]
     #presyn_set=[(0,'non',1,'0.95'),(0,'non',1,'0.90'),(0,'non',1,'0.81'),(0,'non',1,'0.64'),(0,'non',1,'0.49')]
-    presyn_set=[(0,'non',1,'0.49')]
-    #presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe')
+    #presyn_set=[(0,'non',1,'0.49'),(0,'non',1,'0.95'),(0,'non',1,'0.81')]
+    presyn_set=[(0,'non',1)]#,(0,'non',0)]#(20,'str'),(40,'GPe')
     #location of files to analyze, path relative to current directory
     filedir='ep_net/output/'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
     #may need to adjust fname pattern in file_pattern above depending on parameters and file naming convention
     inj='0.0'
-    suffix='_inj'+inj
-    GPe_input='lognorm_freq18' #18 or 29
-    suffix='_tg_GPe_'+GPe_input +'_ts_str_exp_corr'
+    suffix=''#'_inj'+inj
+    #GPe_input='lognorm_freq29' #18 or 29
+    #suffix='_tg_GPe_lognorm_ts_SPN_lognorm_ts_STN_lognorm'#'_tg_GPe_'#+GPe_input +'_ts_str_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
     condition=['-1e-11']#'0.0',
     presyn_set=[(freq,syn) for freq in stim_freqs for syn in presyn]
-    rootname='ep_PSP_'
+    rootname='ep_syn'
     filedir='ep/output/'
 ############################################################
 ####### plots for single neuron simulations, multiple frequencies, single trials:
@@ -146,7 +146,10 @@ else:
                 post_sta[key],mean_sta[key],post_xvals=ISI_anal.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
         if show_plots:
             pu.plot_sta_post_vm(pre_spikes,post_sta,mean_sta,post_xvals)
-            pu.plot_input_raster(pre_spikes,suffix,maxplots=1)
+            if len(suffix):
+                pu.plot_input_raster(pre_spikes,suffix,maxplots=1)
+            else:
+                pu.plot_input_raster(pre_spikes,cond,maxplots=1)
         #
         #3. use both pre-synaptic and post-synaptic spikes for spike triggered average input:
         #1st calculate instantaneous input firing frequency for each type of input
@@ -180,73 +183,100 @@ else:
                 pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
     #
     ##################### calculate cross-correlogram from input and output rate histograms #####################
-    presyn_types=['gabaextern3','gabaextern2','ampaextern1']
-    #even better, get presyn_types from weights.keys, or pre_spikes[key][0].keys()
+    presyn_types=weights.keys()
+    #even better, get presyn_types from pre_spikes[key][0].keys()
     for presyn in presyn_types:
         cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
     ################################### End cross correlogram ##################### 
     ##### Plots of means compared across conditions or across presyn_set
-    colors=plt.get_cmap('viridis')
-    colors2D=[plt.get_cmap('gist_heat'),plt.get_cmap('summer'),plt.get_cmap('Blues')]
-    offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
-    partial_scale=0.75 #avoid the very light colors.  Note that non-zero offset must be <= (1-partial_scale)*255
+    #1st STA
     if len(condition)>1:
         pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
-        #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
-        fig,axes=plt.subplots(2,1,sharex=True)
-        fig.suptitle('Mean fft')
-        for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
-            if len(fft_set.keys())>1:
-                col_inc=(len(colors.colors)-1)/(len(fft_set.keys())-1)
-            else:
-                col_inc=0
-            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
-            maxfreq=np.min(np.where(freqs[cond]>500))
-            for j,(key,fft) in enumerate(fft_set.items()):
-                color_index=int(j*col_inc*partial_scale)
-                mycolor=colors2D[i].__call__(color_index+offset[i])
-                #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
-                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-                axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-                mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
-                axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-        axes[1].set_xlabel('Frequency in Hertz [Hz]')
-        axes[0].set_ylabel('FFT Magnitude')
-        axes[1].set_ylabel('FFT of envelope')
-        axes[0].set_xlim(0 , freqs[cond][maxfreq] )
-        axes[0].set_ylim(0,np.round(maxval) )
-        axes[1].legend()
-        #
-        if len(lat_mean):
-            pu.plot_ISI_cond(all_isi_mean,bins)
-        #
-        if len(inst_rate1):
-            pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
-        #
+    elif len(presyn_set)>1:
+        cond=condition[0]
+        plt.figure()
+        plt.suptitle('mean sta vm')
+        for i,(key,mean_sta) in enumerate(mean_sta_vm[cond].items()):
+            plt.plot(pre_xvals,mean_sta,label=key)
+        plt.legend()
+        plt.xlabel('time (s)')
+        plt.ylabel('Vm (V)')
+    #else do nothing
+    #2nd FFT
+    colors=plt.get_cmap('viridis')
+    num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
+    colors2D=[colors,plt.get_cmap('magma'),plt.get_cmap('Blues'),plt.get_cmap('gist_heat')]
+    offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
+    if len(condition)>len(presyn_set):
+        cmap=[i%len(colors2D) for i in range(len(presyn_set))]
+        color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
+        color_tuple=[(cm,ci) for ci in color_index for cm in cmap]
     else:
-        if len(presyn_set)>1:
-            cond=condition[0]
-            plt.figure()
-            plt.suptitle('mean sta vm')
-            for i,(key,mean_sta) in enumerate(mean_sta_vm[cond].items()):
-                plt.plot(pre_xvals,mean_sta,label=key)
-            plt.legend()
-            plt.xlabel('time (s)')
-            plt.ylabel('Vm (V)')
-            #
-            fig,axes=plt.subplots(2,1,sharex=True)
-            fig.suptitle('Mean fft')
-            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
-            maxfreq=np.min(np.where(freqs[cond]>500))
-            for i,(key,fft) in enumerate(mean_fft_phase[cond].items()):
-                col_inc=(len(colors.colors)-1)/(len(mean_fft_phase[cond].keys())-1)
-                color_index=int(i*col_inc*partial_scale)
-                mycolor=colors.__call__(color_index+offset[i])
-                axes[0].plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean')#,color=mycolor)
-                axes[1].plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], label=cond+' '+key+' mean')#,color=mycolor)
-            axes[1].set_xlabel('Frequency in Hertz [Hz]')
-            axes[0].set_ylabel('FFT Magnitude')
-            axes[1].set_ylabel('FFT of envelope')
-            axes[0].set_xlim(0 , freqs[cond][maxfreq] )
-            axes[0].set_ylim(0,np.round(maxval) )
-            axes[1].legend()
+        cmap=[i%len(colors2D) for i in range(len(condition))]
+        color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
+        color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
+        #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
+    fig,axes=plt.subplots(2,1,sharex=True)
+    fig.suptitle('Mean fft')
+    for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+        maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
+        maxfreq=np.min(np.where(freqs[cond]>500))
+        for j,(key,fft) in enumerate(fft_set.items()):
+            ti=i*len(presyn_set)+j
+            mycolor=colors2D[color_tuple[ti][0]].__call__(color_tuple[ti][1]+offset[color_tuple[ti][0]])
+            #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
+            mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+            axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+            mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
+            axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+    axes[1].set_xlabel('Frequency in Hertz [Hz]')
+    axes[0].set_ylabel('FFT Magnitude')
+    axes[1].set_ylabel('FFT of envelope')
+    axes[0].set_xlim(0 , freqs[cond][maxfreq] )
+    axes[0].set_ylim(0,np.round(maxval) )
+    axes[1].set_ylim(0,np.round(maxval) )
+    axes[1].legend()
+    ####### Output data for plotting #######
+    for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+        for j,(key,fft) in enumerate(fft_set.items()):        #
+            if len(condition)>len(presyn_set):
+                colname=cond
+            else:
+                colname=key
+            mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+            mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
+            f=open(cond+key+"_fft_igor.txt",'w')
+            header="freq    "+colname+"fft    "+colname+"fft_env    \n"
+            output_data=np.column_stack((freqs[cond],mean_of_fft,mean_of_fft_env))
+            f.write(header)
+            np.savetxt(f,output_data,fmt='%.5f')
+    if len(lat_mean):
+        pu.plot_ISI_cond(all_isi_mean,bins)
+    #
+    if len(inst_rate1):
+        pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
+    #
+
+'''
+from matplotlib import pyplot as plt
+condition=['POST-HFS_STNosc', 'GABA_STNosc','POST-HFS_GPeOsc', 'GABA_GPeOsc']
+colors=plt.get_cmap('viridis')
+presyn_set=[(0,'non',1)]
+num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
+colors2D=[plt.get_cmap('gist_heat'),plt.get_cmap('summer'),plt.get_cmap('Blues')]
+offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
+if len(condition)>len(presyn_set):
+    cmap=[i%len(colors2D) for i in range(len(presyn_set))]
+    color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
+    color_tuple=[(cm,ci) for ci in color_index for cm in cmap ]
+    print ('cond>presyn',color_tuple)
+else:
+    cmap=[i%len(colors2D) for i in range(len(condition))]
+    color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
+    color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
+    print ('preyn>cond',color_tuple)
+for i,cond in enumerate(condition):
+    for j,presyn in enumerate(presyn_set):
+        ti=i*len(presyn_set)+j
+        print (cond,presyn,ti,color_tuple[ti][0],color_tuple[ti][1])
+'''
