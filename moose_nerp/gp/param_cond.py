@@ -18,7 +18,7 @@ ConcOut=2e-3     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
-morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p'}
+morph_file = {'proto':'GP1_41comp.p','arky':'GP_arky_41comp.p','Npas':'GP1_41comp.p'}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -66,8 +66,24 @@ _arky = _util.NamedDict(
     BKCa={prox: 200, dist: 200, axon: 0},
 )
 
+_Npas = _util.NamedDict(
+    'Npas',
+    KDr={prox: 300, dist: 58.2, axon: 580},
+    Kv3={prox: 266, dist: 46.6, axon: 466},
+    KvF={prox: 2.5, dist: 2.5, axon: 25},
+    KvS={prox: 0.75, dist: 0.75, axon: 7.5},
+    KCNQ={prox: 0.04, dist: 0.04, axon: 0.04},
+    NaF={prox: 40000, dist: 400, axon: 40000},
+    NaS={prox: 0.15, dist: 0.15, axon: 0.5},
+    Ca={prox: 0.1, dist: 0.06, axon: 0},
+    HCN1={prox: 0.2, dist: 0.2, axon: 0},
+    HCN2={prox: 0.25, dist: 0.25, axon: 0},
+    SKCa={prox: 35, dist: 3.5, axon: 0},
+    BKCa={prox: 200, dist: 200, axon: 0},
+)
 Condset  = _util.NamedDict(
     'Condset',
     proto = _proto,
     arky=_arky,
+    Npas=_Npas
 )
