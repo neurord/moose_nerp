@@ -58,6 +58,8 @@ create_model_sim.runAll(model)
 # available to any model, by adding new functions or expanding existing functions
 # with new options that do not alter the current state of the functions unless
 # the new options are explicitly called.
+import ISI_anal
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
 #dat=pickle.load(open('params.pickle','rb'))
 '''

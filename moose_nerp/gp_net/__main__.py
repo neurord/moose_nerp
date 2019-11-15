@@ -11,22 +11,20 @@ Spines are optional (spineYesNo=1), but not allowed for network
 The graphs won't work for multiple spines per compartment
 """
 from __future__ import print_function, division
-import logging
 
 import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
-from pprint import pprint
 import moose
 
-from moose_nerp.prototypes import (create_model_sim
+from moose_nerp.prototypes import (calcium,
+                                   create_model_sim,
                                    clocks,
                                    inject_func,
                                    create_network,
                                    tables,
                                    net_output,
-                                   logutil,
                                    util)
 from moose_nerp import gp as model
 from moose_nerp import gp_net as net
@@ -37,11 +35,19 @@ model.synYN = True
 model.stpYN = True
 net.single=False
 
+###alcohol injection--> Bk channel constant multiplier
+alcohol = 1#2.5
+for neurtype in model.param_cond.Condset:
+    for key in model.param_cond.Condset[neurtype]['BKCa']:
+        model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
+if alcohol > 1:
+    model.net.outfile = 'alcohol'+str(alcohol)
+
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.simtime=0.001
-if net.num_inject==0:
-    param_sim.injection_current=[0]
+param_sim.injection_current = [-0e-12]
+param_sim.save_txt = True
+#param_sim.simtime=0.001
 
 #################################-----------create the model: neurons, and synaptic inputs
 model=create_model_sim.setupNeurons(model,network=not net.single)
@@ -51,6 +57,8 @@ population,connections,plas=create_network.create_network(model, net, model.neur
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
     model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+    if net.num_inject==0:
+        param_sim.injection_current=[0]
 else:
     model.inject_pop=population['pop']
 
@@ -65,6 +73,7 @@ else:   #population of neurons
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
     clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+    # Fix calculation of B parameter in CaConc if using hsolve
     if model.param_sim.hsolve and model.calYN:
         calcium.fix_calcium(util.neurontypes(model.param_cond), model)
 
@@ -99,14 +108,16 @@ if net.single:
     # block in non-interactive mode
 util.block_if_noninteractive()
 
-import detect
-spike_time={key:[] for key in population['pop'].keys()}
-numspikes={key:[] for key in population['pop'].keys()}
-for neurtype, tabset in vmtab.items():
-    for tab in tabset:
-       spike_time[neurtype].append(detect.detect_peaks(tab.vector)*param_sim.plotdt)
-    numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
-    print(neurtype,'mean:',np.mean(numspikes[neurtype]),'rate',np.mean(numspikes[neurtype])/param_sim.simtime,'from',numspikes[neurtype])
+vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
+import ISI_anal
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+
+if model.param_sim.save_txt:
+    if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
+        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
+    else:
+        print('no spikes for',param_sim.fname, 'saving vm and parameters')
+        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmtab)
 #spikes=[st.vector for tabset in spiketab for st in tabset]    
 
 

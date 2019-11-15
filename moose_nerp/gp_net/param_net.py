@@ -19,10 +19,10 @@ grid[1]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
-neuron1pop=neur_distr(neuronname='proto', spacing=grid,percent=0.54) #Table 2 Hernandez Parvabinum+ Neurons and Npas1+ Neurons 2015
-#calculated from percent composition of PV+=proto, Npas1+/FoxP2+=arky
-neuron2pop=neur_distr(neuronname='arky', spacing=grid,percent=0.46)
-pop_dict={'proto':neuron1pop,'arky': neuron2pop}
+neuron1pop=neur_distr(neuronname='proto', spacing=grid,percent=0.64) #Table 2 Hernandez Parvabinum+ Neurons and arky Neurons 2015
+#calculated from percent composition of PV+=proto, Npas1+/FoxP2+=Npas, Lhx6=arky
+neuron2pop=neur_distr(neuronname='Npas', spacing=grid,percent=0.36)
+pop_dict={'proto':neuron1pop,'Npas': neuron2pop}
 
 #from arky140F - loc _0, unless CV close to 1
 chanSTD_arky = {
@@ -54,7 +54,7 @@ chanSTD_proto = {
     'BKCa': 0.0496,
     'SKCa': 0.2048,
 }
-chanvar={'proto':chanSTD_arky, 'arky':chanSTD_proto}
+chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky}
 
 ####################### Connections
 #for improved NetPyne correspondance: change synapse to synMech, change pre to source
@@ -81,46 +81,46 @@ chanvar={'proto':chanSTD_arky, 'arky':chanSTD_proto}
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
 
 #probability for intrinsic is the probability of connecting pre and post.
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None')
-ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None')
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None')
+ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-#tt_STN = TableSet('tt_STN', 'Ctx_4x4',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'gp_net/STN_lognorm',syn_per_tt=2)
 #tt_Str_SPN = TableSet('tt_Str', 'Thal_4x4',syn_per_tt=2)
 
 #description of intrinsic inputs
 ConnSpaceConst=500e-6
 neur1pre_neur1post=connect(synapse='gaba', pre='proto', post='proto', space_const=ConnSpaceConst)#internal post syn fraction in 10% Shink Smith 1995
-neur1pre_neur2post=connect(synapse='gaba', pre='proto', post='arky', space_const=ConnSpaceConst)
-neur2pre_neur1post=connect(synapse='gaba', pre='arky', post='proto', space_const=ConnSpaceConst)
-neur2pre_neur2post=connect(synapse='gaba', pre='arky', post='arky', space_const=ConnSpaceConst)
+neur1pre_neur2post=connect(synapse='gaba', pre='proto', post='Npas', space_const=ConnSpaceConst)
+neur2pre_neur1post=connect(synapse='gaba', pre='Npas', post='proto', space_const=ConnSpaceConst)
+neur2pre_neur2post=connect(synapse='gaba', pre='Npas', post='Npas', space_const=ConnSpaceConst)
 
 #description of synapse and dendritic location of extrinsic inputs
-STN_distr=dend_location(postsyn_fraction=0.25)
-#ext2_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='proto', dend_loc=STN_distr)# Corbit Whalen 2016 Table 2 connectivity parameters: Chumhma 2011, Shink Smith 1995, Miguelez 2012 
+STN_distr=dend_location(postsyn_fraction=0.5)
+ext2_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='proto', dend_loc=STN_distr)# Corbit Whalen 2016 Table 2 connectivity parameters: Chumhma 2011, Shink Smith 1995, Miguelez 2012 
 #ext1_neur1post=ext_connect(synapse='gaba',pre=tt_Str_SPN,post='proto', dend_loc=Str_distr)#ext1 = Str
-#ext2_neur2post=ext_connect(synapse='ampa',pre=tt_STN,post='arky', dend_loc=STN_distr)#ext2 STN
-#ext1_neur2post=ext_connect(synapse='gaba',pre=tt_Str_SPN,post='arky', dend_loc=Str_distr)
+ext2_neur2post=ext_connect(synapse='ampa',pre=tt_STN,post='Npas', dend_loc=STN_distr)#ext2 STN
+#ext1_neur2post=ext_connect(synapse='gaba',pre=tt_Str_SPN,post='Npas', dend_loc=Str_distr)
 
 #Collect all connection information into dictionaries
 #1st create one dictionary for each post-synaptic neuron class
 proto={}
-arky={}
+Npas={}
 #connections further organized by synapse type
 #the dictionary key for tt must have 'extern' in it
-proto['gaba']={'proto': neur1pre_neur1post, 'arky': neur2pre_neur1post}
-#proto['gaba']={'proto': neur1pre_neur1post, 'arky': neur2pre_neur1post, 'extern': ext1_neur1post}
-#proto['ampa']={'extern': ext2_neur1post}
-arky['gaba']={'proto': neur1pre_neur2post, 'arky': neur2pre_neur2post}
-#arky['gaba']={'proto': neur1pre_neur2post, 'arky': neur2pre_neur2post, 'extern': ext1_neur2post}
-#arky['ampa']={'extern': ext2_neur2post}
+proto['gaba']={'proto': neur1pre_neur1post, 'Npas': neur2pre_neur1post}
+#proto['gaba']={'proto': neur1pre_neur1post, 'Npas': neur2pre_neur1post, 'extern': ext1_neur1post}
+proto['ampa']={'extern': ext2_neur1post}
+Npas['gaba']={'proto': neur1pre_neur2post, 'Npas': neur2pre_neur2post}
+#Npas['gaba']={'proto': neur1pre_neur2post, 'Npas': neur2pre_neur2post, 'extern': ext1_neur2post}
+Npas['ampa']={'extern': ext2_neur2post}
 
 #Then, collect the post-synaptic dictionaries into a single dictionary.
 #for NetPyne correspondance: change connect_dict to connParams
 connect_dict={}
 connect_dict['proto']=proto
-connect_dict['arky']=arky
+connect_dict['Npas']=Npas
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel=0.8 #conduction velocity
