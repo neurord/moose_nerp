@@ -268,7 +268,7 @@ def connect_neurons(cells, netparams, postype, model):
                                 log.debug('{}',connect_list[postcell][syntype])
                                 #connect the synapse
                                 #print('** intrinsic synconn',i,syn,spikegen_conns[i][2],spikegen_conns[i][0].path)
-                                synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay,netparams.cond_vel,stp_params=stp)
+                                synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay,netparams.cond_vel,stp=stp)
                     else:
                         print('   no pre-synaptic cells selected for',postcell, 'from',pretype)
     tmp=[np.mean(intra_conns[syn])/len(cells[postype]) for syn in intra_conns.keys()]                                     
