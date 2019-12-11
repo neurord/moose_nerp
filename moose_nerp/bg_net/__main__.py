@@ -46,7 +46,7 @@ create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.injection_current = [-50e-12]
 param_sim.save_txt = False
-param_sim.simtime=0.5
+param_sim.simtime=0.05
 
 #################################-----------create the model: neurons, and synaptic inputs
 #### Do not setup hsolve yet, since there may be additional neuron_modules
@@ -55,7 +55,6 @@ model=create_model_sim.setupNeurons(model,network=True)
 #create dictionary of BufferCapacityDensity - only needed if hsolve, simple calcium dynamics
 if param_sim.hsolve and model.calYN:
     buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
-    model.param_syn.NumSyn={neur:model.param_syn.NumSyn for neur in model.neurons.keys()} #NOT NEEDED if change NumSyn
 
 #import additional neuron modules, add them to neurons and synapses
 for neur_module in neuron_modules:
@@ -68,28 +67,38 @@ for neur_module in neuron_modules:
         model.syn[new_neur]=syn[new_neur]
         model.neurons[new_neur]=neur[new_neur]
         buf_cap[new_neur]=neur_mod.param_ca_plas.BufferCapacityDensity
-        model.param_syn.NumSyn[new_neur]=neur_mod.param_syn.NumSyn #NOT NEEDED if change NumSyn
+        model.param_syn.NumSyn[new_neur]=neur_mod.param_syn.NumSyn[new_neur]
         
-########### Set up multiple populations
-network_pop={}
+########### Create Network. For multiple populations, send in net_modules ###########
+population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
+print(net.connect_dict)
+print(population['location'],population['pop'])
+'''
+connections={}
+all_networks={}
+locations={}
+print(net.connect_dict)
 for network in net_modules:
     net_params=importlib.import_module(network)
-    #Issue 1: create_network uses model.param_syn.NumSyn - this needs to be matched to network
-    #only used in check_connect
-    #Issue 2: don't break it for creating single network, BUT, single network could still have different NumSyn for different neurons!
-    # BEST SOLUTION: Change param_syn to make NumSyn a dictionary of dictionaries - one for each neuron
-    #population,connections,plas=create_network.create_network(model, net_mod, model.neurons)
-    network_pop[network] = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
-    #Issue 3: connections - how to specify between network connections
-    # a. same way as for within, but probably don't use distance dependent connections
-    # b, need to re-define some named lists if specify in param_net: test:from moose_nerp.gp_net import dend_location, connect 
-    # c. could even use plasticitiy - create new ones or re-use those specified in individual networks?
-    # problem - they are specified in param_net.  How to read those in? see b. above
-    #Issue 4: connections -how to resolve within versus between network connections
-    # unclear how to deal with not using up all potential synapses.
-    # currently, assign ALL connections going through once.  Single connect_dict for each neurons
-    # Solution is obvious! add to connect_dict, e.g.
-    #connect_dict['proto']['gaba']['D2']=net3_net1_A
-    #suggests need to specify these connections afer reading in module?
-    #e.g. ep.connect_dict['ep']['gaba']['proto']=bg_net.proto_to_ep_gaba
-    #need to call connect AFTER creating each population - rewrite create_network - loop over create_pop, and only then call connect
+    one_network_pop = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
+    all_networks.update(one_network_pop['pop'])
+    locations[network]=one_network_pop['location']
+    net.connect_dict=create_network.dict_of_dicts_merge(net.connect_dict,net_params.connect_dict)
+network_pop={'location':locations,'pop':all_networks}
+print(net.connect_dict)
+print(network_pop['location'])
+for ntype in network_pop['pop'].keys():
+    connections[ntype]=connect.connect_neurons(network_pop['pop'], net, ntype, model)
+'''
+'''
+debugging:
+add mindelay and conduction velocity to param_net (which one to choose?  Possibly make this cell type specific?)
+which time tables are being created? gp, ep or bg_net?  
+
+remaining issues
+1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
+2. all ion channels are created in same library.  That means that channels with same name are overwriting existing channels - could be problem
+3. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
+
+'''
+    

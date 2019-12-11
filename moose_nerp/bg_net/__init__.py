@@ -1,3 +1,8 @@
+from .param_net import (netname,
+                        confile,
+                        outfile,
+                        connect_dict)
+
 ###########plotting control
 #probably put these into param_sim?  similar to that in single neuron sims?
 plot_netvm=1
