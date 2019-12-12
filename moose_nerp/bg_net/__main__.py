@@ -90,10 +90,11 @@ print(network_pop['location'])
 for ntype in network_pop['pop'].keys():
     connections[ntype]=connect.connect_neurons(network_pop['pop'], net, ntype, model)
 '''
-'''
+''' 
 debugging:
-add mindelay and conduction velocity to param_net (which one to choose?  Possibly make this cell type specific?)
+4. deal with time tables - import ttables in netparam?  no need to specify ttables?
 which time tables are being created? gp, ep or bg_net?  
+3. commit and push
 
 remaining issues
 1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons

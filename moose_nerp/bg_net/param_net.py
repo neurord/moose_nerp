@@ -24,6 +24,7 @@ connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='e
 connect_dict['ep']['gaba']['Npas']=connect(synapse='gaba', pre='Npas', post='ep', probability=0.5,dend_loc=proximal_distr)
 
 #these are not used because not imported in init and not part of connect_dict
+#ADD these when connect to striatal network
 npas_to_FSI_gaba=connect(synapse='gaba', pre='Npas', post='FSI', probability=0.5,dend_loc=proximal_distr)
 lhx6_to_D1_gaba=connect(synapse='gaba', pre='Lhx6', post='D1', probability=0.5,dend_loc=proximal_distr)
 lhx6_to_D2_gaba=connect(synapse='gaba', pre='Lhx6', post='D2', probability=0.5,dend_loc=proximal_distr)
@@ -31,7 +32,9 @@ D2_to_proto_gaba=connect(synapse='gaba', pre='D2', post='proto', probability=0.5
 D2_to_lhx6_gaba=connect(synapse='gaba', pre='D2', post='Lhx6', probability=0.5,dend_loc=distal_distr)
 D2_to_npas_gaba=connect(synapse='gaba', pre='D2', post='Npas', probability=0.5,dend_loc=distal_distr)
 
-
+mindelay={}
+cond_vel={}
+'''
 ############## All of these inputs get created
 #tables of extrinsic inputs from gp_net
 #first string is name of the table in moose, and 2nd string is name of external file
@@ -46,3 +49,4 @@ tt_GPe = TableSet('tt_GPe', 'ep_net/GPe_InhomPoisson_freq29.3_osc2.0',syn_per_tt
 if TWO_STR_INPUTS:
     tt_str2 = TableSet('tt_str2', 'ep_net/str_InhomPoisson_freq4.0_osc0.2',syn_per_tt=2)
 
+'''

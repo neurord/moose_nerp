@@ -1,7 +1,9 @@
 from .param_net import (netname,
                         confile,
                         outfile,
-                        connect_dict)
+                        connect_dict,
+                        mindelay,
+                        cond_vel)
 
 ###########plotting control
 #probably put these into param_sim?  similar to that in single neuron sims?
