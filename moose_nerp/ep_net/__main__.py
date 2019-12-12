@@ -31,6 +31,9 @@ from moose_nerp import ep as model
 from moose_nerp import ep_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
+#empty array means using only the neurons in ep modulate
+#fill with other modules to create networks from multiple neurons
+neuron_modules=[]
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
@@ -68,7 +71,23 @@ if prefix.startswith('POST-NoDa'):
     net.connect_dict['ep']['gaba']['extern3'].weight=1.0 #str - no change
 
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=not net.single)
+model=create_model_sim.setupNeurons(model,network=True)
+#create dictionary of BufferCapacityDensity - only needed if hsolve, simple calcium dynamics
+if param_sim.hsolve and model.calYN:
+    buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
+
+#import additional neuron modules, add them to neurons and synapses
+for neur_module in neuron_modules:
+    nm=importlib.import_module(neur_module)
+    #probably a good idea to give synapses to all neurons (or no neurons)
+    nm.synYN = model.synYN
+    nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
+    syn,neur=cell_proto.neuronclasses(nm)
+    for new_neur in neur.keys():
+        model.syn[new_neur]=syn[new_neur]
+        model.neurons[new_neur]=neur[new_neur]
+        buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
+        model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
 population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
@@ -95,19 +114,24 @@ create_model_sim.setupStim(model)
 print('>>>> After setupStim, simtime:', param_sim.simtime) 
 ##############--------------output elements
 if net.single:
+    simpath=['/'+neurotype for neurotype in model.neurons.keys()]
     create_model_sim.setupOutput(model)
 else:   #population of neurons
-    spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
+ 
+    model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
-    clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
-    # Fix calculation of B parameter in CaConc if using hsolve
-    if model.param_sim.hsolve and model.calYN:
-        calcium.fix_calcium(util.neurontypes(model.param_cond), model)
+
+#### Set up hsolve and fix calcium
+clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+# Fix calculation of B parameter in CaConc if using hsolve
+######### Need to use CaPlasticityParams.BufferCapacityDensity from EACH neuron_module
+if model.param_sim.hsolve and model.calYN:
+    calcium.fix_calcium(model.neurons.keys(), model,buf_cap)
 
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
-    syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
+    model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
 
 #add short term plasticity to synapse as appropriate
 param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
@@ -145,31 +169,31 @@ for inj in param_sim.injection_current:
             traces.append(model.vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN:
-            net_graph.syn_graph(connections, syntab, param_sim,graph_title="Syn Chans, plasticity="+str(model.stpYN))
+            net_graph.syn_graph(connections, model.syntab, param_sim,graph_title="Syn Chans, plasticity="+str(model.stpYN))
             if model.stpYN:
-                net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity')
+                net_graph.syn_graph(connections, model.stp_tab,param_sim,graph_title='short term plasticity')
         if model.spineYN:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
         if net.plot_netvm:
-            net_graph.graphs(population['pop'], param_sim.simtime, vmtab,catab,plastab)
+            net_graph.graphs(population['pop'], param_sim.simtime, model.vmtab,model.catab,model.plastab)
         if model.synYN and param_sim.plot_synapse:
-            net_graph.syn_graph(connections, syntab, param_sim)
+            net_graph.syn_graph(connections, model.syntab, param_sim)
             if model.stpYN:
-                net_graph.syn_graph(connections, stp_tab,param_sim,graph_title='short term plasticity',factor=1)
-        net_output.writeOutput(model, net.outfile+str(inj),spiketab,vmtab,population)
+                net_graph.syn_graph(connections, model.stp_tab,param_sim,graph_title='short term plasticity',factor=1)
+        net_output.writeOutput(model, net.outfile+str(inj),model.spiketab,model.vmtab,population)
 
 #Save results: spike time, Vm, parameters, input time tables
-vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
 import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
 if model.param_sim.save_txt:
+    vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
-        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmout)
     else:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
-        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmout)
 #spikes=[st.vector for tabset in spiketab for st in tabset]
 
 if net.single:

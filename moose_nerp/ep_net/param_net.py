@@ -17,7 +17,7 @@ spacing=60e-6 #need value and reference
 grid={}
 grid[0]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
 grid[1]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
-grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
+grid[2]={'xyzmin':300e-6,'xyzmax':300e-6,'inc':0}
 
 #Do not include a neuron type in pop_dict if the the prototype does not exist
 #Change neuronname to cellType
@@ -67,7 +67,7 @@ chanvar={'ep':chanSTD}
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
 
 #probability for intrinsic is the probability of connecting pre and post.
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None')
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None weight=1')
 ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 TWO_STR_INPUTS=0 #Change value to 1 to add second set of striatal time tables
@@ -132,5 +132,5 @@ connect_dict={}
 connect_dict['ep']=ep
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
-cond_vel=0.8 #conduction velocity
-mindelay=1e-3
+cond_vel={'ep':0.8} #conduction velocity
+mindelay={'ep':1e-3}
