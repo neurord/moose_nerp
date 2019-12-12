@@ -79,15 +79,16 @@ if param_sim.hsolve and model.calYN:
 
 #import additional neuron modules, add them to neurons and synapses
 for neur_module in neuron_modules:
-    neur_mod=importlib.import_module(neur_module)
+    nm=importlib.import_module(neur_module)
     #probably a good idea to give synapses to all neurons (or no neurons)
-    neur_mod.synYN = model.synYN
-    neur_mod.param_cond.neurontypes = util.neurontypes(neur_mod.param_cond)
-    syn,neur=cell_proto.neuronclasses(neur_mod)
+    nm.synYN = model.synYN
+    nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
+    syn,neur=cell_proto.neuronclasses(nm)
     for new_neur in neur.keys():
         model.syn[new_neur]=syn[new_neur]
         model.neurons[new_neur]=neur[new_neur]
-        buf_cap[new_neur]=neur_mod.param_ca_plas.BufferCapacityDensity
+        buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
+        model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
 population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
@@ -141,7 +142,7 @@ for inj in param_sim.injection_current:
             net_graph.syn_graph(connections, model.syntab, param_sim)
             if model.stpYN:
                 net_graph.syn_graph(connections, model.stp_tab,param_sim,graph_title='stp',factor=1)
-        #net_output.writeOutput(model, net.outfile,spiketab,vmtab,population)
+        #net_output.writeOutput(model, net.outfile,model.spiketab,model.vmtab,population)
 
 if net.single:
     neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
@@ -158,7 +159,7 @@ if model.param_sim.save_txt:
     else:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
         np.savez(outdir+net.outfile,vm=vmout)
-#spikes=[st.vector for tabset in spiketab for st in tabset]    
+#spikes=[st.vector for tabset in model.spiketab for st in tabset]    
 
 
 '''

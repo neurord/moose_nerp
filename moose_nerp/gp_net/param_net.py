@@ -14,8 +14,8 @@ spacing=54e-6 #Fig. 2 Hernandez Parvabinum+ Neurons and Npas1+ Neurons 2015
 #pv+: 54e-6 n=41, npas1+: 60e-6 n=33, calculated by measuring distance between neuron pairs and calculating mean 
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
@@ -81,12 +81,12 @@ chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky}
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
 
 #probability for intrinsic is the probability of connecting pre and post.
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None')
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None weight=1')
 ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'gp_net/STN_lognorm',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=2)
 #tt_Str_SPN = TableSet('tt_Str', 'Thal_4x4',syn_per_tt=2)
 
 #description of intrinsic inputs
@@ -118,10 +118,8 @@ Npas['ampa']={'extern': ext2_neur2post}
 
 #Then, collect the post-synaptic dictionaries into a single dictionary.
 #for NetPyne correspondance: change connect_dict to connParams
-connect_dict={}
-connect_dict['proto']=proto
-connect_dict['Npas']=Npas
+connect_dict={'proto': proto,'Npas':Npas}
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
-cond_vel=0.8 #conduction velocity
-mindelay=1e-3
+cond_vel={'proto':0.8,'Npas':0.8} #conduction velocity
+mindelay={'proto':1e-3,'Npas':1e-3}
