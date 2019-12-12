@@ -73,5 +73,7 @@ NAME_NMDA='nmda'
 _gaba = {param_cond.prox:4, param_cond.med:4, param_cond.dist:4}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 
-NumSyn={'gaba':_gaba,
-        'ampa':_ampa}
+NumSyn={'D1':{'gaba':_gaba,
+              'ampa':_ampa},
+        'D2':{'gaba':_gaba,
+              'ampa':_ampa}}
