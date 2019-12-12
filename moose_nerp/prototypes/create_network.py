@@ -5,6 +5,8 @@ connects neurons to each other
 """
 from __future__ import print_function, division
 import numpy as np
+import importlib
+from copy import deepcopy
 import moose
 
 from moose_nerp.prototypes import (pop_funcs,
@@ -15,9 +17,26 @@ from moose_nerp.prototypes import (pop_funcs,
                                    logutil)
 log = logutil.Logger()
 
-def create_network(model, param_net,neur_protos={}):
+from copy import deepcopy
+#This works with 3 level dictionary, because it is recursive
+#move to utils.py or create_network.py
+def dict_of_dicts_merge(x, y):
+    z = {}
+    overlapping_keys = x.keys() & y.keys()
+    for key in overlapping_keys:
+        z[key] = dict_of_dicts_merge(x[key], y[key])
+    for key in x.keys() - overlapping_keys:
+        z[key] = deepcopy(x[key])
+    for key in y.keys() - overlapping_keys:
+        z[key] = deepcopy(y[key])
+    return z
+
+def create_network(model, param_net,neur_protos={},network_list=None):
     #create all timetables
     ttables.TableSet.create_all()
+    print(ttables.TableSet.ALL)
+    for tt in ttables.TableSet.ALL:
+        print(tt.filename)
     connections={}
     #
     if param_net.single:
@@ -26,23 +45,40 @@ def create_network(model, param_net,neur_protos={}):
         for ntype in neur_protos.keys():
             network_pop['pop'][ntype]=list([neur_protos[ntype].path])
         #subset of check_param_net
-        num_postsyn,num_postcells,allsyncomp_list=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,network_pop['pop'])
-        print("num synapses {} cells {}".format(num_postsyn, num_postcells))
-        tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells,allsyncomp_list,model.param_syn.NumSyn)
-        print("num time tables needed: per synapse type {} per ttfile {}".format(tt_per_syn, tt_per_ttfile))
+        #FIXME - update to work with NumSyn as cell type specific (dictionary of dictionaries)
+        #num_postsyn,num_postcells,allsyncomp_list=check_connect.count_postsyn(param_net,model.param_syn.NumSyn,network_pop['pop'])
+        #print("num synapses {} cells {}".format(num_postsyn, num_postcells))
+        #tt_per_syn,tt_per_ttfile=check_connect.count_total_tt(param_net,num_postsyn,num_postcells,allsyncomp_list,model.param_syn.NumSyn)
+        #print("num time tables needed: per synapse type {} per ttfile {}".format(tt_per_syn, tt_per_ttfile))
         #
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.timetable_input(network_pop['pop'], param_net, ntype, model )
         #
     else:
-        check_connect.check_netparams(param_net,model.param_syn.NumSyn)
-        #
-        #create population of neurons according to grid spacing and size using neuron prototypes
-        network_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net, model.param_cond.NAME_SOMA)
-        #
-        #check_connect syntax after creating population
-        check_connect.check_netparams(param_net,model.param_syn.NumSyn,network_pop['pop'])
-        #
+        if network_list is None:
+            #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
+            #
+            #create population of neurons according to grid spacing and size using neuron prototypes
+            network_pop = pop_funcs.create_population(moose.Neutral(param_net.netname), param_net, model.param_cond.NAME_SOMA)
+            #
+            #check_connect syntax after creating population
+            #check_connect.check_netparams(param_net,model.param_syn.NumSyn,network_pop['pop'])
+            #
+        else:
+            all_networks={}
+            locations={}
+            for network in network_list:
+                net_params=importlib.import_module(network)
+                one_network_pop = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
+                all_networks.update(one_network_pop['pop'])
+                locations[network]=one_network_pop['location']
+                param_net.connect_dict=dict_of_dicts_merge(param_net.connect_dict,net_params.connect_dict)
+                #FIXME - only using mindelay and cond_vel from last network
+                # recommendation - make mindelay and cond_vel dictionaries - one value for each neuron type
+                param_net.mindelay=dict_of_dicts_merge(param_net.mindelay,net_params.mindelay)
+                param_net.cond_vel=dict_of_dicts_merge(param_net.cond_vel,net_params.cond_vel)
+            network_pop={'location':locations,'pop':all_networks}
+        #Regardles of whether one or multiple populations,
         #loop over all post-synaptic neuron types and create connections:
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
