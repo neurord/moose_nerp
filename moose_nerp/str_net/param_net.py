@@ -48,16 +48,16 @@ chanvar={
 
 ####################### Connections
 dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None')
-ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None')
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None weight=1')
+ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 # add post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
 #list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
-tt_Ctx_SPN = TableSet('CtxSPN', 'FullTrialHigherVariability',syn_per_tt=2)
+tt_Ctx_SPN = TableSet('CtxSPN', 'str_net/FullTrialHigherVariability',syn_per_tt=2)
 #tt_Thal_SPN = TableSet('ThalSPN', 'Thal_4x4',syn_per_tt=2)
-tt_FSI_SPN = TableSet('FSISPN','FSITrains_n-30_f-11-Hz_tmax-25-s_corr-0',syn_per_tt=8)
-tt_LTSI_SPN = TableSet('LTSISPN','LTSITrains_n-100_f-8-Hz_tmax-25-s_corr-0',syn_per_tt=2)
+tt_FSI_SPN = TableSet('FSISPN','str_net/FSITrains_n-30_f-11-Hz_tmax-25-s_corr-0',syn_per_tt=8)
+tt_LTSI_SPN = TableSet('LTSISPN','str_net/LTSITrains_n-30_f-8-Hz_tmax-25-s_corr-0',syn_per_tt=2)
 
 
 distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.1)#,half_dist=50e-6,steep=1)
@@ -100,18 +100,18 @@ D1['ampa'] = {
               #'extern2': thal_D1post
              }
 D1['gaba'] = {
-              'FSIextern': FSIextern_D1post,
-              'LTSIextern': LTSIextern_D1post,
-             }
+    'FSIextern': FSIextern_D1post,
+    'LTSIextern': LTSIextern_D1post,
+}
 
 connect_dict['D1']=D1
-#D2['gaba']={'D1': D1pre_D2post, 'D2': D2pre_D2post}#, 'FSI': FSIpre_D2post}
-#D2['ampa']={'extern1': ctx_D2post, 'extern2': thal_D2post}
+D2['gaba']={'FSIextern': FSIextern_D1post,'LTSIextern': LTSIextern_D1post,'D1': D1pre_D2post, 'D2': D2pre_D2post}#, 'FSI': FSIpre_D2post}
+D2['ampa']={'extern1': ctx_D2post}
 #connect_dict['D2']=D2
 #FSI['gaba']={'FSI': FSIpre_FSIpost}
 #FSI['ampa']={'extern': glu_FSI}
 #connect_dict['FSI']=FSI
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
-cond_vel=0.8
-mindelay=0e-3
+cond_vel={'D1':0.8,'D2':0.8}
+mindelay={'D1':1e-3,'D2':1e-3}

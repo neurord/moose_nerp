@@ -19,9 +19,11 @@ plt.ion()
 
 from pprint import pprint
 import moose
+import importlib
 
 from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
+                                   calcium,
                                    clocks,
                                    inject_func,
                                    create_network,
@@ -34,11 +36,16 @@ from moose_nerp import d1opt as model
 from moose_nerp import str_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
+#names of additional neuron modules to import
+##### !!!!!!!!!!! CHANGE TO 'd2opt' WHEN THAT DIRECTORY AVAILABLE
+#neuron_modules=['d1d2']
+neuron_modules=[]
+
 #additional, optional parameter overrides specified from with python terminal
 #model.Condset.D1.NaF[model.param_cond.prox] /= 3
 #model.Condset.D1.KaS[model.param_cond.prox] *= 3
 net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction = 0.7
-net.param_net.tt_Ctx_SPN.filename = 'FullTrialLowVariability'
+net.param_net.tt_Ctx_SPN.filename = 'str_net/FullTrialLowVariability'
 model.synYN = True
 model.plasYN = True
 model.calYN = True
@@ -60,11 +67,25 @@ net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=not net.single)
-all_neur_types=model.neurons
-#FSIsyn,neuron = cell_proto.neuronclasses(FSI)
-#all_neur_types.update(neuron)
-population,connections,plas=create_network.create_network(model, net, all_neur_types)
+model=create_model_sim.setupNeurons(model,network=True) # Do not setup hsolve yet, since there may be additional neuron_modules
+#create dictionary of BufferCapacityDensity - only needed if hsolve & simple calcium dynamics
+if param_sim.hsolve and model.calYN:
+    buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
+
+#import additional neuron modules, add them to neurons and synapses
+######## this is skipped if neuron_modules is empty
+for neur_module in neuron_modules:
+    nm=importlib.import_module(neur_module)
+    #probably a good idea to give synapses to all neurons (or no neurons)
+    nm.synYN = model.synYN
+    nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
+    syn,neur=cell_proto.neuronclasses(nm)
+    for new_neur in neur.keys():
+        model.syn[new_neur]=syn[new_neur]
+        model.neurons[new_neur]=neur[new_neur]
+        buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
+        model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
+population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
@@ -72,7 +93,7 @@ if net.num_inject<np.inf :
     inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
 else:
     inject_pop=population['pop']
-#Does setupStim work for network?
+#Does setupStim work for network?  YES, see gp_net/__main__.py
 #create_model_sim.setupStim(model)
 pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
 moose.showmsg(pg)
@@ -81,18 +102,23 @@ moose.showmsg(pg)
 if net.single:
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
     #simpath used to set-up simulation dt and hsolver
-    simpath=['/'+neurotype for neurotype in all_neur_types]
+    simpath=['/'+neurotype for neurotype in model.neurons.keys()]
     create_model_sim.setupOutput(model)
 else:   #population of neurons
     spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
     simpath=[net.netname]
-    clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+
+clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
+# Fix calculation of B parameter in CaConc if using hsolve
+######### Need to use CaPlasticityParams.BufferCapacityDensity from EACH neuron_module
+if model.param_sim.hsolve and model.calYN:
+    calcium.fix_calcium(model.neurons.keys(), model, buf_cap)
+
 if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
     nonstim_plastab = tables.nonstimplastabs(plas)
-
 
 # Streamer to prevent Tables filling up memory on disk
 # This is a hack, should be better implemented
