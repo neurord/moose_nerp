@@ -61,13 +61,3 @@ create_model_sim.runAll(model)
 import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
-#dat=pickle.load(open('params.pickle','rb'))
-'''
-import numpy as np
-from matplotlib import pyplot as plt
-fildir='pfc_arky120_3297_8/tmpwbtsanb3'
-dat=np.load('/home/avrama/moose/opt_scripts/gp_opt/'+fildir+'/ivdata-0.0.npy','r')
-simtime=1.25
-ts=np.linspace(0,simtime,len(dat))
-plt.plot(ts[0:3000],dat[0:3000])
-'''

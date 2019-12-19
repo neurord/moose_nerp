@@ -73,28 +73,14 @@ for neur_module in neuron_modules:
 population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
 print(net.connect_dict)
 print(population['location'],population['pop'])
-'''
-connections={}
-all_networks={}
-locations={}
-print(net.connect_dict)
-for network in net_modules:
-    net_params=importlib.import_module(network)
-    one_network_pop = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
-    all_networks.update(one_network_pop['pop'])
-    locations[network]=one_network_pop['location']
-    net.connect_dict=create_network.dict_of_dicts_merge(net.connect_dict,net_params.connect_dict)
-network_pop={'location':locations,'pop':all_networks}
-print(net.connect_dict)
-print(network_pop['location'])
-for ntype in network_pop['pop'].keys():
-    connections[ntype]=connect.connect_neurons(network_pop['pop'], net, ntype, model)
-'''
 ''' 
 debugging:
 4. deal with time tables - import ttables in netparam?  no need to specify ttables?
 which time tables are being created? gp, ep or bg_net?  
-3. commit and push
+1. test with tt specified in param_net (better comments in create_network)
+if works:
+2. figure out whether could read in (and accumulate?) from importlib - would need to call TableSet.create_all again
+
 
 remaining issues
 1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons

@@ -50,3 +50,5 @@ if TWO_STR_INPUTS:
     tt_str2 = TableSet('tt_str2', 'ep_net/str_InhomPoisson_freq4.0_osc0.2',syn_per_tt=2)
 
 '''
+
+ 

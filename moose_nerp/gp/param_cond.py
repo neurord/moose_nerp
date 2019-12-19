@@ -86,5 +86,6 @@ _Npas = _util.NamedDict(
 Condset  = _util.NamedDict(
     'Condset',
     proto = _proto,
+    arky = _arky,
     Npas=_Npas
 )

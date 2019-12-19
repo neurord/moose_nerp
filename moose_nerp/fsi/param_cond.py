@@ -36,8 +36,8 @@ morph_file = {'FSI':'fs_morph.p'} # old_version.
 #CONDUCTANCES - UNITS of Siemens/meter squared
 _FSI = _util.NamedDict(
     'FSI',
-    Ka = {prox:333, med:90, dist:0},
-    Kv13 = {prox:1.46,  med: 0, dist: 0},
+    Ka = {prox:500, med:90, dist:0},
+    Kv13 = {prox:1460,  med: 0, dist: 0},
     Kv3132 = {prox:582, med: 0, dist: 0},
     NaF = {prox:1149, med:0, dist: 0},
 )
