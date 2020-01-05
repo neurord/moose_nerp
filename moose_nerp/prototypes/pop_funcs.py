@@ -71,8 +71,8 @@ def create_population(container, netparams, name_soma):
     for neurtype in netparams.chanvar.keys():
         for chan,var in netparams.chanvar[neurtype].items():
             #single multiplier for Gbar for all the channels compartments
-            if var>0:
-                log.debug('adding variability to {} soma {}, variance: {}', neurtype,chan, var)
+            if var>0 and len(neurXclass[neurtype]):
+                log.info('adding variability to {} soma {}, variance: {}', neurtype,chan, var)
                 GbarArray=abs(np.random.normal(1.0, var, len(neurXclass[neurtype])))
                 for ii,neurname in enumerate(neurXclass[neurtype]):
                     soma_chan_path=neurname+'/'+name_soma+'/'+chan

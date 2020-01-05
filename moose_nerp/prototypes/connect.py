@@ -205,6 +205,7 @@ def connect_neurons(cells, netparams, postype, model):
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             for pretype in post_connections[syntype].keys():
+                print('*********connect',syntype,pretype,post_connections[syntype][pretype])
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 print('CREATE_SYNPATH_ARRAY from connect_neurons, pre=', pretype)
