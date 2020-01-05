@@ -18,29 +18,33 @@ plt.ion()
 
 import moose
 import importlib
-from moose_nerp.prototypes import (calcium,
+from moose_nerp.prototypes import (create_model_sim,
                                    cell_proto,
-                                   create_model_sim,
+                                   calcium,
                                    clocks,
                                    inject_func,
                                    create_network,
                                    tables,
                                    net_output,
-                                   util)
-from moose_nerp import proto144 as model
+                                   logutil,
+                                   util,
+                                   standard_options)
+from moose_nerp import proto154_1compNoCal as model
 from moose_nerp import gp_net as net
 from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #names of additional neuron modules to import
-neuron_modules=['Npas2006']
+neuron_modules=['Npas2005_1compNoCal','arky140_1compNoCal']
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.stpYN = True
+model.calYN = False
+model.spinYN = False
 net.single=False
 
 ###alcohol injection--> Bk channel constant multiplier
-alcohol = 1#2.5
+'''alcohol = 1#2.5
 ampa_wt=1.0#0.7
 gaba_wt=1.0#0.8
 for neurtype in model.param_cond.Condset:
@@ -54,32 +58,35 @@ for neurtype in model.param_cond.Condset:
         net.connect_dict[neurtype]['gaba'][presyn].weight=gaba_wt
         gaba_fname='all'+str(net.connect_dict[neurtype]['gaba'][presyn].weight)
 #GABA; change proto only
-'''
+
 neurtype='proto';presyn='proto'
 net.connect_dict[neurtype]['gaba'][presyn].weight=gaba_wt
 gaba_fname='gabaproto'+str(net.connect_dict[neurtype]['gaba'][presyn].weight)
-'''
+
 #gaba_fname='0'
 net.outfile = 'alcohol'+str(alcohol)+'_gaba'+gaba_fname+'_ampa'+ampa_fname
 outdir="gp_net/output/"
 print('************ Output file name ***************', net.outfile)
-
+'''
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [-50e-12]
+param_sim.injection_current = [0e-12]
 param_sim.save_txt = False
 param_sim.simtime=0.5
+net.num_inject = 0
+if net.num_inject==0:
+    param_sim.injection_current=[0]
 
 #################################-----------create the model: neurons, and synaptic inputs
 #### Do not setup hsolve yet, since there may be additional neuron_modules
 model=create_model_sim.setupNeurons(model,network=True)
 #create dictionary of BufferCapacityDensity - only needed if hsolve, simple calcium dynamics
-if param_sim.hsolve and model.calYN:
-    buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
+buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
 
 #import additional neuron modules, add them to neurons and synapses
+######## this is skipped if neuron_modules is empty
 for neur_module in neuron_modules:
-    nm=importlib.import_module(neur_module)
+    nm=importlib.import_module('moose_nerp.'+neur_module)
     #probably a good idea to give synapses to all neurons (or no neurons)
     nm.synYN = model.synYN
     nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
@@ -104,8 +111,9 @@ create_model_sim.setupStim(model)
 
 ##############--------------output elements and simulation method----------########
 if net.single:
-    simpath=['/'+neurotype for neurotype in model.neurons.keys()]
     #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
+    #simpath used to set-up simulation dt and hsolver
+    simpath=['/'+neurotype for neurotype in model.neurons.keys()]
     create_model_sim.setupOutput(model)
 else:   #population of neurons
     model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
