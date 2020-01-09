@@ -28,13 +28,13 @@ from moose_nerp.prototypes import (create_model_sim,
                                    net_output,
                                    logutil,
                                    util,
-                                   standard_options)
+                                   multi_module,
+                                   net_sim_graph)
 from moose_nerp import proto154_1compNoCal as model
 from moose_nerp import gp_net as net
-from moose_nerp.graph import net_graph, neuron_graph, spine_graph
 
 #names of additional neuron modules to import
-neuron_modules=['Npas2005_1compNoCal','arky140_1compNoCal']
+neuron_modules=['arky140_1compNoCal','Npas2005_1compNoCal']
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
@@ -85,17 +85,8 @@ buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neuron
 
 #import additional neuron modules, add them to neurons and synapses
 ######## this is skipped if neuron_modules is empty
-for neur_module in neuron_modules:
-    nm=importlib.import_module('moose_nerp.'+neur_module)
-    #probably a good idea to give synapses to all neurons (or no neurons)
-    nm.synYN = model.synYN
-    nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
-    syn,neur=cell_proto.neuronclasses(nm)
-    for new_neur in neur.keys():
-        model.syn[new_neur]=syn[new_neur]
-        model.neurons[new_neur]=neur[new_neur]
-        buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
-        model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
+if len(neuron_modules):
+    buf_cap=multi_module.multi_modules(neuron_modules,model,buf_cap)
 population,connections,plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
@@ -131,31 +122,8 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     #overwrite plastab above, since it is empty
     model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
 
-################### Actually run the simulation
-traces, names = [], []
-for inj in param_sim.injection_current:
-    create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
-    if net.single and len(model.vmtab):
-        for neurnum,neurtype in enumerate(model.neurons.keys()):
-            traces.append(model.vmtab[neurtype][0].vector)
-            names.append('{} @ {}'.format(neurtype, inj))
-        if model.synYN:
-            net_graph.syn_graph(connections, model.syntab, param_sim)
-        if model.spineYN:
-            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
-    else:
-        if net.plot_netvm:
-            net_graph.graphs(population['pop'], param_sim.simtime, model.vmtab,model.catab,model.plastab)
-        if model.synYN and param_sim.plot_synapse:
-            net_graph.syn_graph(connections, model.syntab, param_sim)
-            if model.stpYN:
-                net_graph.syn_graph(connections, model.stp_tab,param_sim,graph_title='stp',factor=1)
-        #net_output.writeOutput(model, net.outfile,model.spiketab,model.vmtab,population)
-
-if net.single:
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
-    # block in non-interactive mode
-util.block_if_noninteractive()
+################### Actually run the simulation and produce graphs
+net_sim_graph.sim_plot(model,net,connections,population)
 
 import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
