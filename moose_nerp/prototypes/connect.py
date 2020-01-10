@@ -13,9 +13,39 @@ import moose
 from moose_nerp.prototypes import logutil, util
 from moose_nerp.prototypes.spines import NAME_HEAD
 from moose_nerp.prototypes import plasticity
+from moose_nerp.prototypes.util import NamedList
 
 log = logutil.Logger()
 CONNECT_SEPARATOR='_to_'
+
+####################### Connections
+#for improved NetPyne correspondance: change synapse to synMech, change pre to source
+#Two types of probabilities controlling the connections
+#A. probability of connecting two different neurons.  NamedList('connect') Parameters include
+#A1. constant probability
+#A2. space_const: allows distance dependent connection, where distance is measured between pre- and post-synaptic neuron's cell bodies
+#A3. num_conns allows a single pre-synaptic cell to make more than one connection on the post-synaptic cell
+#B. dend_loc, which controls the dendritic location of post-synaptic target as follows
+#mindist, maxdist, half_dist, steep  are alternatives to postsyn_fraction 
+#connect_prob=0 if dist<mindist
+#connect_prob=0 if dist>maxdist
+#connect_prob = probability if dist between mindist and maxdist, or
+#if half_dist is defined:
+#for steep>0: connect_prob=1 if dist>maxdist and 0 if dist<mindist 
+#connect_prob=(dist-mindist)^steep/((dist-mindist)^steep+half_dist^steep)
+#make steep<0 to switch slope and have connect_prob=1 if dist<mindist and 0 if dist>maxdist
+#do not use steep (or set to zero) to have constant connection probability between min and maxdist
+
+#Intrinsic (within network) connections specified using NamedList('connect')
+#Extrinsic (external time table) connections specified using NamedList('ext_connect')
+#post syn fraction: what fraction of synapse is contacted by time tables specified in pre
+#NOTE:, if multiple pre-synaptic populations, then the sum of those post syn fractions should be <= 1.0
+
+dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
+
+#probability for intrinsic is the probability of connecting pre and post.
+connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None weight=1')
+ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 def plain_synconn(syn,presyn,syn_delay,weight,simdt=None,stp_params=None):
     sh=moose.element(syn.path)
@@ -69,6 +99,7 @@ def dendritic_distance_dep_connect_prob(prob,dist):
         maxprob=1
     #if prob.steep:
     steep=prob.steep
+    #print('maxprob',maxprob,'steep',steep)
     if steep>0:
         if dist<prob.mindist:
             dist_prob=0
@@ -88,20 +119,21 @@ def dendritic_distance_dep_connect_prob(prob,dist):
             dist_prob=0
         else:
             dist_prob=maxprob
+        #print('steep==0, dist=', dist,'p=',dist_prob)
     return dist_prob
 
-def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
+def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None,soma_loc=[0,0,0]):
     #list of possible synapses with connection probability, which takes into account prior creation of synapses
     syncomps=[]
     totalsyns=0
-    print('CONNECT: syntype:', syntype, 'prob',prob)
+    #print('    CREATE_SYNPATH_ARRAY: syntype:', syntype, 'prob',prob,'soma_loc',soma_loc)
     for syncomp in allsyncomp_list:
-        dist,nm=util.get_dist_name(syncomp.parent)
+        dist,nm=util.get_dist_name(syncomp.parent,soma_loc)
         if prob: #calculate dendritic distance dependent connection probability to store with table
             dist_prob=dendritic_distance_dep_connect_prob(prob,dist)
         else:
             dist_prob=1
-        #print('syncomp',syncomp,'dist',dist,'prob',dist_prob)
+        #print('    syncomp',syncomp,'dist',dist,'prob',dist_prob)
         if dist_prob>0: #only add synchan to list if connection probability is non-zero
             sh=moose.element(syncomp.path+'/SH')
             # TODO: Fix for synapses on spines; there should only be 1 per spine
@@ -109,6 +141,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
                 SynPerComp = 1 #- sh.numSynapses
             else:
                 SynPerComp = util.distance_mapping(NumSyn[syntype], dist)#-sh.numSynapses
+            #print('   sh',sh.path,'numSynapses',sh.numSynapses,'synpercomp',SynPerComp,'NumSyn',NumSyn[syntype])
             for i in range(SynPerComp):
                 totalsyns+=dist_prob #totalsyns=total synapses to connect
                 if i < SynPerComp - sh.numSynapses:
@@ -116,7 +149,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None):
                     #print('{} synapses already connected of {} total synapses, adding 1 synapse with {} dist_prob to list'.format(sh.numSynapses,SynPerComp,dist_prob))
                 else:
                     syncomps.append([syncomp.path+'/SH',0])
-                    #print('{} synapses already connected of {} total synapses, adding 1 synapse with 0 dist_prob to list'.format(sh.numSynapses,SynPerComp))
+                    #print('   {} synapses already connected of {} total, adding 1 syn with 0 prob to list'.format(sh.numSynapses,SynPerComp))
 
     #normalize probability to pdf
     syncomp_sum = sum([p[1] for p in syncomps])
@@ -144,6 +177,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
         syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
         #randomly select subset of time-tables for spike train input
         #could do this in one line, but then meaningless error message
+        print('>>>>>>>>> num_choices',num_choices, 'tt remaining', len(tt_list))
         presyn_tt=[]
         for i,syn in enumerate(syn_choices):
             if len(tt_list)>0:
@@ -164,7 +198,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
         connections[postbranch]=tt.path
     return connections
 
-def timetable_input(cells, netparams, postype, model):
+def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
     #connect post-synaptic synapses to time tables
     #used for single neuron models only, since populations are connected in connect_neurons
     log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
@@ -174,18 +208,18 @@ def timetable_input(cells, netparams, postype, model):
     for syntype in post_connections.keys():
         connect_list[postcell][syntype]={}
         for pretype in post_connections[syntype].keys():
-            dend_prob=post_connections[syntype][pretype].dend_loc
-            print('################',postcell, 'synchan:',syntype,'pretype:',pretype)
-            allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
-            print('CREATE_SYNPATH_ARRAY from timetable_input, pre=', pretype)
-            syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob)
-            log.info('SYN TABLE for {} {} has {} compartments to make {} synapses', postcell,syntype, len(syncomps),totalsyn)
             if 'extern' in pretype:
+                dend_prob=post_connections[syntype][pretype].dend_loc
+                print('####### timetable input ######### to',postcell,'from', pretype, ', synchan=', syntype)
+                allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
+                syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=soma_loc)
+                print('SYN TABLE for {} {} has {} slots to make {} synapses'.format( postcell,syntype, len(syncomps),totalsyn))
                 print('## connect to tt',postcell,syntype,pretype)
                 connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
+    print('CONNECT_NEURONS, cells',cells[postype])
     log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     connect_list = {pc:{} for pc in cells[postype]}
@@ -205,11 +239,11 @@ def connect_neurons(cells, netparams, postype, model):
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             for pretype in post_connections[syntype].keys():
+                print('********* connect.py, postcell=',postcell,', syntype=',syntype,'pretype',pretype)
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
-                print('CREATE_SYNPATH_ARRAY from connect_neurons, pre=', pretype)
-                syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob)
-                log.info('SYN TABLE for {} {} {} has {} compartments and {} synapses', postsoma, syntype, pretype,len(syncomps),totalsyn)
+                syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=[xpost,ypost,zpost])
+                print('    SYN TABLE for {} {} {} has {} slots and {} synapses avail'.format( postsoma, syntype, pretype,len(syncomps),availsyns))
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype)
                     ####### connect to time tables instead of other neurons in network
@@ -252,7 +286,7 @@ def connect_neurons(cells, netparams, postype, model):
                                 spikegen_conns.insert(i,spikegen_conns[i])
                         num_choices=min(len(spikegen_conns),availsyns)
                         if len(spikegen_conns)>availsyns:
-                            print('>>>> uh oh, too few synapses on post-synaptic cell')
+                            print('>>>> uh oh, too few synapses on post-synaptic cell, need',len(spikegen_cons),'avail',availsyns)
                         #randomly select num_choices of synapses
                         if availsyns==0:
                             print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
@@ -261,7 +295,7 @@ def connect_neurons(cells, netparams, postype, model):
                             syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
                         log.debug('CONNECT: PRE {} POST {} ', spikegen_conns,syn_choices)
                         #connect the pre-synaptic spikegens to randomly chosen synapses
-                        print('** intrinsic synconn',pretype, 'one mindelay',netparams.mindelay[pretype],'all cond',netparams.cond_vel)
+                        print('** intrinsic synconns',pretype, 'one mindelay',netparams.mindelay[pretype],'all cond',netparams.cond_vel, 'num cons:',len(syn_choices))
                         for i,syn in enumerate(syn_choices):
                                 postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
                                 precell=spikegen_conns[i][0].parent.path.split('/')[2].split('[')[0]
@@ -271,7 +305,10 @@ def connect_neurons(cells, netparams, postype, model):
                                 #print('** intrinsic synconn',i,syn,spikegen_conns[i][2],spikegen_conns[i][0].path)
                                 synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay[pretype],netparams.cond_vel[pretype],stp=stp,weight=post_connections[syntype][pretype].weight)
                     else:
-                        print('   no pre-synaptic cells selected for',postcell, 'from',pretype)
+                        if len(cells[pretype]):
+                            print('   !!! no pre-synaptic cells selected for',postcell, 'from',pretype, 'connect=',connect,'>? prob=',prob,'or dist=0?',dist)
+                        else:
+                            print('   !!! no pre-synaptic cells selected for',postcell,' because no', pretype, 'in population')
     tmp=[np.mean(intra_conns[syn])/len(cells[postype]) for syn in intra_conns.keys()]                                     
     print('mean number of intra-network connections', intra_conns,tmp)
     return connect_list

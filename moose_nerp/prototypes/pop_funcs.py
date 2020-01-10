@@ -55,11 +55,10 @@ def create_population(container, netparams, name_soma):
                 tag = '{}_{}'.format(typename, neurnumber)
                 new_neuron=moose.copy(proto[neurtypenum],netpath, tag)
                 neurXclass[typename].append(container.path + '/' + tag)
+                #update all coordinates of the neuron - add same value to x,y,z,x0,y0,z0 of all compartments
+                util.move_neuron(i*xloc,j*yloc,k*zloc,new_neuron.path)
                 comp=moose.element(new_neuron.path + '/'+name_soma)
-                comp.x=i*xloc
-                comp.y=j*yloc
-                comp.z=k*zloc
-                log.debug("x,y,z={},{},{} {}", comp.x, comp.y, comp.z, new_neuron.path)
+                log.debug("x,y,z={},{},{} for {}", comp.x, comp.y, comp.z, new_neuron.path)
                 locationlist.append([new_neuron.name,comp.x,comp.y,comp.z])
                 #spike generator - can this be done to the neuron prototype?
                 spikegen = moose.SpikeGen(comp.path + '/spikegen')
@@ -71,8 +70,8 @@ def create_population(container, netparams, name_soma):
     for neurtype in netparams.chanvar.keys():
         for chan,var in netparams.chanvar[neurtype].items():
             #single multiplier for Gbar for all the channels compartments
-            if var>0:
-                log.debug('adding variability to {} soma {}, variance: {}', neurtype,chan, var)
+            if var>0 and len(neurXclass[neurtype]):
+                log.info('adding variability to {} soma {}, variance: {}', neurtype,chan, var)
                 GbarArray=abs(np.random.normal(1.0, var, len(neurXclass[neurtype])))
                 for ii,neurname in enumerate(neurXclass[neurtype]):
                     soma_chan_path=neurname+'/'+name_soma+'/'+chan

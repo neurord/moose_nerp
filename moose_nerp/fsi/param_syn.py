@@ -51,6 +51,9 @@ NAME_AMPA='ampa'
 # number of synapses at each distance
 _gaba = {param_cond.prox:3, param_cond.med:3, param_cond.dist:0}
 _ampa= {param_cond.prox:1, param_cond.med:1, param_cond.dist:3}
+######## if only 1 compartment neurons, need to specify total number of synapses
+_gaba = {param_cond.prox:30}
+_ampa = {param_cond.prox:20}
+NumSyn={'FSI':{'gaba':_gaba, 'ampa':_ampa}}
 
-NumSyn={'FSI':{'gaba':_gaba,
-              'ampa':_ampa}}
+

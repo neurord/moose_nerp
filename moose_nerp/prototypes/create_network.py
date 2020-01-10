@@ -17,26 +17,26 @@ from moose_nerp.prototypes import (pop_funcs,
                                    logutil)
 log = logutil.Logger()
 
-from copy import deepcopy
-#This works with 3 level dictionary, because it is recursive
-#move to utils.py or create_network.py
-def dict_of_dicts_merge(x, y):
-    z = {}
-    overlapping_keys = x.keys() & y.keys()
-    for key in overlapping_keys:
-        z[key] = dict_of_dicts_merge(x[key], y[key])
-    for key in x.keys() - overlapping_keys:
-        z[key] = deepcopy(x[key])
-    for key in y.keys() - overlapping_keys:
-        z[key] = deepcopy(y[key])
-    return z
+def merge(a, b, path=[]):
+    "merges b into a"
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass # same leaf value
+            else:
+                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
+        else:
+            a[key] = b[key]
+    return a
 
 def create_network(model, param_net,neur_protos={},network_list=None):
     #create all timetables
     ttables.TableSet.create_all()
-    print(ttables.TableSet.ALL)
+    #print(ttables.TableSet.ALL)
     for tt in ttables.TableSet.ALL:
-        print(tt.filename)
+        print('>>>>TIME TABLE', tt.filename)
     connections={}
     #
     if param_net.single:
@@ -72,11 +72,11 @@ def create_network(model, param_net,neur_protos={},network_list=None):
                 one_network_pop = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
                 all_networks.update(one_network_pop['pop'])
                 locations[network]=one_network_pop['location']
-                param_net.connect_dict=dict_of_dicts_merge(param_net.connect_dict,net_params.connect_dict)
+                param_net.connect_dict=merge(param_net.connect_dict,net_params.connect_dict)
                 #FIXME - only using mindelay and cond_vel from last network
                 # recommendation - make mindelay and cond_vel dictionaries - one value for each neuron type
-                param_net.mindelay=dict_of_dicts_merge(param_net.mindelay,net_params.mindelay)
-                param_net.cond_vel=dict_of_dicts_merge(param_net.cond_vel,net_params.cond_vel)
+                param_net.mindelay=merge(param_net.mindelay,net_params.mindelay)
+                param_net.cond_vel=merge(param_net.cond_vel,net_params.cond_vel)
             network_pop={'location':locations,'pop':all_networks}
         #Regardles of whether one or multiple populations,
         #loop over all post-synaptic neuron types and create connections:
