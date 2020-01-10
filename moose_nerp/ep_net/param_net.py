@@ -4,6 +4,7 @@ from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.ttables import TableSet
 from moose_nerp.prototypes import util as _util
 from moose_nerp.prototypes.syn_proto import ShortTermPlasParams,SpikePlasParams
+from moose_nerp.prototypes.connect import dend_location,connect,ext_connect 
 
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
@@ -31,44 +32,17 @@ chanSTD = {
     'Kv3': 0.0386,
     'KvS': 0.0743,
     'KvF': 0.0173,
-    'BKCa': 0.0238,
-    'SKCa': 0.145,
-    'HCN1': 0.1225,
+    #'BKCa': 0.0238,
+    #'SKCa': 0.145,
+    #'HCN1': 0.1225,
     'HCN2': 0.253,
-    'Ca': 0.0836,
+    #'Ca': 0.0836,
     'NaF': 0.0635,
-    'NaS': 0.115,
+    #'NaS': 0.115,
 }
 chanvar={'ep':chanSTD}
 
 ####################### Connections
-#for improved NetPyne correspondance: change synapse to synMech, change pre to source
-#Two types of probabilities controlling the connections
-#A. probability of connecting two different neurons.  NamedList('connect'Parameters include
-#A1. constant probability
-#A2. space_const: allows distance dependent connection, where distance is measured between pre- and post-synaptic neuron's cell bodies
-#A3. num_conns allows a single pre-synaptic cell to make more than one connection on the post-synaptic cell
-#B. dend_loc, which controls the dendritic location of post-synaptic target as follows
-#mindist, maxdist, half_dist, steep  are alternatives to postsyn_fraction 
-#connect_prob=0 if dist<mindist
-#connect_prob=0 if dist>maxdist
-#connect_prob = probability if dist between mindist and maxdist, or
-#if half_dist is defined:
-#for steep>0: connect_prob=1 if dist>maxdist and 0 if dist<mindist 
-#connect_prob=(dist-mindist)^steep/((dist-mindist)^steep+half_dist^steep)
-#make steep<0 to switch slope and have connect_prob=1 if dist<mindist and 0 if dist>maxdist
-#do not use steep (or set to zero) to have constant connection probability between min and maxdist
-
-#Intrinsic (within network) connections specified using NamedList('connect'
-#Extrinsic (external time table) connections specified using NamedList('ext_connect'
-#post syn fraction: what fraction of synapse is contacted by time tables specified in pre
-#if using multiple sets of time tables, these values should sum to 1
-
-dend_location=NamedList('dend_location','mindist=0 maxdist=1 maxprob=None half_dist=None steep=0 postsyn_fraction=None')
-
-#probability for intrinsic is the probability of connecting pre and post.
-connect=NamedList('connect','synapse pre post num_conns=2 space_const=None probability=None dend_loc=None stp=None weight=1')
-ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None weight=1')
 
 TWO_STR_INPUTS=0 #Change value to 1 to add second set of striatal time tables
 #tables of extrinsic inputs

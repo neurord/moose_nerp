@@ -3,9 +3,7 @@
 from moose_nerp.prototypes.ttables import TableSet
 from moose_nerp.prototypes.syn_proto import ShortTermPlasParams,SpikePlasParams
 from moose_nerp.prototypes.util import NamedList
-
-#need to put these Namedlists somewhere in prototypes
-from moose_nerp.gp_net.param_net import dend_location, connect
+from moose_nerp.prototypes.connect import dend_location,connect,ext_connect 
 
 netname='/bg'
 confile='bg_connect'
@@ -13,6 +11,7 @@ outfile='bg_out'
 
 ###############
 #three types of distributions
+####################### Connections
 even_distr=dend_location(postsyn_fraction=0.5)
 proximal_distr= dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=1)
 distal_distr=dend_location(mindist=50e-6,maxdist=400e-6,postsyn_fraction=.1)#,half_dist=50e-6,steep=1)
