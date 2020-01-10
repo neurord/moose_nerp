@@ -75,7 +75,7 @@ def isi_vs_time(spike_time,isi_vals,bins,binsize,isi_set):
 
 def set_up_bins(file0,freq,numbins,neurtype):
     bins={}
-    with np.load(file0,'r') as dat:
+    with np.load(file0,'r',allow_pickle=True) as dat:
         params=dat['params'].item()
         #'syn_tt' has one tuple (but could have multiple), 
         #1st [0] selects the 1st tuple
@@ -107,7 +107,7 @@ def latency(files,freq,neurtype,numbins):
     isi_set={'pre':{k:[] for k in bins['pre']},'post':{k:[] for k in bins['post']},'stim':{k:[] for k in bins['stim']}}
     pre_post_stim=setup_stimtimes(freq,stim_tt,isi,simtime)
     for fnum,fname in enumerate(files):
-        dat=np.load(fname,'r')
+        dat=np.load(fname,'r',allow_pickle=True)
         params=dat['params'].item()
         if 'spike_time' in dat.keys() and params['freq']==freq:
             spike_time=dat['spike_time'].item()[neurtype][0]
@@ -145,7 +145,7 @@ def freq_dependence(fileroot,presyn,suffix):
     results={freq:{} for freq in frequency_set}
     xval_set={freq:{} for freq in frequency_set}
     for fname in files:
-        dat=np.load(fname,'r')
+        dat=np.load(fname,'r',allow_pickle=True)
         params=dat['params'].item()
         if 'norm' in dat.keys():
             print ('freq dep fname', fname, dat.keys())
@@ -177,7 +177,7 @@ def get_spiketimes(files,neurtype):
     #creates list of spike times from set of trials
     if len(files)>0:
         for fname in files:
-            dat=np.load(fname,'r')
+            dat=np.load(fname,'r',allow_pickle=True)
             spiketimes.append(dat['spike_time'].item()[neurtype][0])
         #Get start and end of stimulation only from last file
         #'syn_tt' has one tuple (but could have multiple), 1st item is comp, 2nd item is array of spike times
@@ -196,7 +196,7 @@ def ISI_histogram(files,stim_freq,neurtype):
     isi_set={'pre':[],'post':[],'stim':[]}
     #read in ISI data and separate into 3 time frames
     for fname in files:
-        dat=np.load(fname,'r')
+        dat=np.load(fname,'r',allow_pickle=True)
         params=dat['params'].item()
         if 'spike_time' in dat.keys() and params['freq']==stim_freq:
             spike_time=dat['spike_time'].item()[neurtype][0]
@@ -235,7 +235,7 @@ def sta_set(files,spike_time,neurtype,sta_start,sta_end):
     vmdat=[]
     sta_list=[]
     for trial,fname in enumerate(files):
-        dat=np.load(fname,'r')
+        dat=np.load(fname,'r',allow_pickle=True)
         params=dat['params'].item()
         plotdt=params['dt']
         window=(int(sta_start/plotdt),int(sta_end/plotdt))
@@ -260,7 +260,7 @@ def input_raster(files):
     pre_spikes=[{} for f in files]
     for trial,infile in enumerate(files):
         ######### End temp stuff
-        tt=np.load(infile).item()
+        tt=np.load(infile,allow_pickle=True).item()
         for ax,syntype in enumerate(tt.keys()):
             for presyn in tt[syntype].keys():
                 spiketimes=[]
