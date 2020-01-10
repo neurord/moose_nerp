@@ -55,11 +55,10 @@ def create_population(container, netparams, name_soma):
                 tag = '{}_{}'.format(typename, neurnumber)
                 new_neuron=moose.copy(proto[neurtypenum],netpath, tag)
                 neurXclass[typename].append(container.path + '/' + tag)
+                #update all coordinates of the neuron - add same value to x,y,z,x0,y0,z0 of all compartments
+                util.move_neuron(i*xloc,j*yloc,k*zloc,new_neuron.path)
                 comp=moose.element(new_neuron.path + '/'+name_soma)
-                comp.x=i*xloc
-                comp.y=j*yloc
-                comp.z=k*zloc
-                log.debug("x,y,z={},{},{} {}", comp.x, comp.y, comp.z, new_neuron.path)
+                log.debug("x,y,z={},{},{} for {}", comp.x, comp.y, comp.z, new_neuron.path)
                 locationlist.append([new_neuron.name,comp.x,comp.y,comp.z])
                 #spike generator - can this be done to the neuron prototype?
                 spikegen = moose.SpikeGen(comp.path + '/spikegen')

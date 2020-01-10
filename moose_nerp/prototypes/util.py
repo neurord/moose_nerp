@@ -38,13 +38,23 @@ def inclusive_range(start, stop=None, step=None):
         step = stop - start
     return _np.arange(start, stop + step/2, step)
 
-def get_dist_name(comp):
+def get_dist_name(comp,soma_loc=[0,0,0]):
     name = comp.name
-    xloc = comp.x
-    yloc = comp.y
-    zloc = comp.z
+    xloc = comp.x-soma_loc[0]
+    yloc = comp.y-soma_loc[1]
+    zloc = comp.z-soma_loc[2]
     dist = _np.sqrt(xloc*xloc+yloc*yloc+zloc*zloc)
     return dist,name
+
+def move_neuron(dx,dy,dz,neurpath):
+    for comp in moose.wildcardFind(neurpath+'/##[ISA=Compartment]'):
+        comp.x=comp.x+dx
+        comp.x0=comp.x0+dx
+        comp.y=comp.y+dy
+        comp.y0=comp.y0+dy
+        comp.z=comp.z0+dz
+        comp.z0=comp.z0+dz
+    return
 
 def distance_mapping(mapping, where):
     #where is a location, either a compartment or string or moose.vec
