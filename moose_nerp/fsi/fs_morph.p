@@ -12,9 +12,9 @@
 *set_global CM 0.007 //farads/m^2
 *set_global RA 3  //ohm*m
 *set_global EREST_ACT -0.063 //?? relative to zero??
-*set_global ELEAK -0.063  // resting, Volts, was -65mV before
+*set_global ELEAK -0.053  // resting, Volts, was -65mV before
 
 *start_cell 
-   soma   none  20  0  0 30 
+   soma   none  40  0  0 20 
 
 

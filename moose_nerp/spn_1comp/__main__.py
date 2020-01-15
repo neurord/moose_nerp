@@ -17,7 +17,7 @@ do: model.spinesYN = True (Default is set in param_model_defaults).
 
 from __future__ import print_function, division
 
-from moose_nerp import fsi as model
+from moose_nerp import spn_1comp as model
 '''Evaluates moose_nerp/d1d2/__init__.py to load all the parameters, e.g.
 param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,
@@ -29,10 +29,6 @@ from moose_nerp.prototypes import create_model_sim
 namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
-
-# Parameter overrides can be specified:
-model.spineYN=False
-model.calYN=False
 
 # This function sets up the options specified in param_sim or passed from
 # command line:

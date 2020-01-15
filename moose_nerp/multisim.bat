@@ -18,41 +18,41 @@
 #~6 hours each. 4/day, 4 days
 #condition -n num_trials -syn syntype -stp stpYN -f stimfreq -ttGPe GPe_stim_file_root --ttstr str_stim_file_root
 #if stimfreq is 0 and syntype is non, that means no single synapse periodic stimulation
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.49_t > GABA_non_0_stp1_GPe18_str_0.49.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.49_t > POST-HFS_non_0_stp1_GPe18_str_0.49.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.64_t_t > GABA_non_0_stp1_GPe18_str_0.64.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.64_t > POST-HFS_non_0_stp1_GPe18_str_0.64.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.81_t > GABA_non_0_stp1_GPe18_str_0.81.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.81_t > POST-HFS_non_0_stp1_GPe18_str_0.81.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.90_t > GABA_non_0_stp1_GPe18_str_0.90.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.90_t > POST-HFS_non_0_stp1_GPe18_str_0.90.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.95_t > GABA_non_0_stp1_GPe18_str_0.95.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.95_t > POST-HFS_non_0_stp1_GPe18_str_0.95.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.49_t > GABA_non_0_stp1_GPe18_str_0.49.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.49_t > POST-HFS_non_0_stp1_GPe18_str_0.49.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.64_t_t > GABA_non_0_stp1_GPe18_str_0.64.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.64_t > POST-HFS_non_0_stp1_GPe18_str_0.64.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.81_t > GABA_non_0_stp1_GPe18_str_0.81.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.81_t > POST-HFS_non_0_stp1_GPe18_str_0.81.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.90_t > GABA_non_0_stp1_GPe18_str_0.90.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.90_t > POST-HFS_non_0_stp1_GPe18_str_0.90.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.95_t > GABA_non_0_stp1_GPe18_str_0.95.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq18 --ttstr ep_net/str_exp_corr0.95_t > POST-HFS_non_0_stp1_GPe18_str_0.95.log
 
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.49_t > GABA_non_0_stp1_GPe29_str_0.49.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.49_t > POST-HFS_non_0_stp1_GPe29_str_0.49.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.64_t > GABA_non_0_stp1_GPe29_str_0.64.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.64_t > POST-HFS_non_0_stp1_GPe29_str_0.64.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.81_t > GABA_non_0_stp1_GPe29_str_0.81.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.81_t > POST-HFS_non_0_stp1_GPe29_str_0.81.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.90_t > GABA_non_0_stp1_GPe29_str_0.90.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.90_t > POST-HFS_non_0_stp1_GPe29_str_0.90.log
-python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.95_t > GABA_non_0_stp1_GPe29_str_0.95.log
-python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.95_t > POST-HFS_non_0_stp1_GPe29_str_0.95.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.49_t > GABA_non_0_stp1_GPe29_str_0.49.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.49_t > POST-HFS_non_0_stp1_GPe29_str_0.49.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.64_t > GABA_non_0_stp1_GPe29_str_0.64.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.64_t > POST-HFS_non_0_stp1_GPe29_str_0.64.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.81_t > GABA_non_0_stp1_GPe29_str_0.81.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.81_t > POST-HFS_non_0_stp1_GPe29_str_0.81.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.90_t > GABA_non_0_stp1_GPe29_str_0.90.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.90_t > POST-HFS_non_0_stp1_GPe29_str_0.90.log
+#python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.95_t > GABA_non_0_stp1_GPe29_str_0.95.log
+#python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttstr ep_net/str_exp_corr0.95_t > POST-HFS_non_0_stp1_GPe29_str_0.95.log
 
 ################################################################################################
 # 3. Test ability to transmit oscillations based on condition, and with only one nucleus oscillating
 ### Better to do this with oscillation frequency adjusted according to measurements during Parkinson's, e.g. beta freq?  But less strong modulation
 #SINGLE STRIATAL INPUT - eliminate str2 before running
 #oscillations in GPe, STN is lognorm
-python3 ep_net/multisim.py -c POST-HFS_GPeOsc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > POST-HFS_GPeOsc_STNlognorm.log
-python3 ep_net/multisim.py -c GABA_GPeOsc -n 15 -syn non -stp 1 -f 0  --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > GABA_GPeOsc_STNlognorm.log
-python3 ep_net/multisim.py -c POST-NoDa_GPeOsc -n 15 -syn non -stp 1 -f 0  --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > GABA_GPeOsc_STNlognorm.log
+#python3 ep_net/multisim.py -c POST-HFS_GPeOsc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > POST-HFS_GPeOsc_STNlognorm.log
+#python3 ep_net/multisim.py -c GABA_GPeOsc -n 15 -syn non -stp 1 -f 0  --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > GABA_GPeOsc_STNlognorm.log
+#python3 ep_net/multisim.py -c POST-NoDa_GPeOsc -n 15 -syn non -stp 1 -f 0  --ttGPe ep_net/GPe_InhomPoisson.npz --ttSTN ep_net/STN_lognorm.npz > GABA_GPeOsc_STNlognorm.log
 
 #oscillations in STN, GPe is lognorm
-python3 ep_net/multisim.py -c POST-HFS_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > POST-HFS_STNosc_GPeLognorm.log
-python3 ep_net/multisim.py -c GABA_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > GABA_STNosc_GPeLognorm.log
-python3 ep_net/multisim.py -c POST-NoDa_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > GABA_STNosc_GPeLognorm.log
+#python3 ep_net/multisim.py -c POST-HFS_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > POST-HFS_STNosc_GPeLognorm.log
+#python3 ep_net/multisim.py -c GABA_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > GABA_STNosc_GPeLognorm.log
+#python3 ep_net/multisim.py -c POST-NoDa_STNosc -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm.npz --ttSTN ep_net/STN_InhomPoisson.npz > GABA_STNosc_GPeLognorm.log
 
 ################################################################################################
 #Test information processing with two striatal frequencies
@@ -66,4 +66,9 @@ python3 ep_net/multisim.py -c POST-NoDa_STNosc -n 15 -syn non -stp 1 -f 0 --ttGP
 ################
 #3. calculate correlation between str input and EP output
 #consider an additional GPe correlation depending on results
+
+################ All log norm inputs
+python3 ep_net/multisim.py -c POST-HFS -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttSTN ep_net/STN_lognorm --ttstr ep_net/SPN_lognorm> POST-HFS_alllognorm.log
+python3 ep_net/multisim.py -c GABA -n 15 -syn non -stp 1 -f 0 --ttGPe ep_net/GPe_lognorm_freq29 --ttSTN ep_net/STN_lognorm --ttstr ep_net/SPN_lognorm > POST-HFS_alllognorm.log
+python3 ep_net/multisim.py -c POST-NoDa -n 15 -syn non -stp 1 -f 0  --ttGPe ep_net/GPe_lognorm_freq29 --ttSTN ep_net/STN_lognorm --ttstr ep_net/SPN_lognorm> GABA_alllognorm.log
 

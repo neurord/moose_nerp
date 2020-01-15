@@ -19,9 +19,9 @@ numbins=10
 binsize_factor=10
 networksim=1
 spike_sta=0
-show_plots=0
+show_plots=1
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
-weights={'gabaextern2':-2,'gabaextern3':-1,'ampaextern1':1}# 'gabaextern4':-1,
+weights={'gabaextern2':-1,'gabaextern3':-1,'ampaextern1':1}#, 'gabaextern4':-1}
 
 #customize the following according to file naming convention and parameters
 def file_pattern(fileroot,suffix,params,filetype):
@@ -42,7 +42,7 @@ def file_pattern(fileroot,suffix,params,filetype):
 
 if networksim:
     #presyn_set overrides plasYN and presyn
-    condition=['POST-NoDaosc']#,'Post-NoDaosc']#,'POST-HFS_GPeOsc', 'GABA_GPeOsc'] #'POST-NoDaosc', 
+    condition=['GABA','POST-HFS','POST-NoDa']#,'Post-NoDaosc']#,'POST-HFS_GPeOsc', 'GABA_GPeOsc'] #'POST-NoDaosc', 
     #condition=['POST-HFS_DMDLam', 'GABA_DMDLam'] #'POST-NoDaosc', 
     #tuples of (freq,syntype,plasYN,striatal correlation)
     #presyn_set=[(0,'non',1,'010'),(0,'non',1,'030'),(0,'non',1,'100'),(0,'non',1,'300')]
@@ -56,7 +56,7 @@ if networksim:
     inj='0.0'
     suffix=''#'_inj'+inj
     #GPe_input='lognorm_freq29' #18 or 29
-    #suffix='_tg_GPe_lognorm_ts_SPN_lognorm_ts_STN_lognorm'#'_tg_GPe_'#+GPe_input +'_ts_str_exp_corr'
+    suffix='_tg_GPe_lognorm*_ts_SPN_lognorm_ts_STN_lognorm'#'_tg_GPe_'#+GPe_input +'_ts_str_exp_corr'
 else:
     stim_freqs=[5,10,20,40]
     condition=['-1e-11']#'0.0',
@@ -185,8 +185,8 @@ else:
     ##################### calculate cross-correlogram from input and output rate histograms #####################
     presyn_types=weights.keys()
     #even better, get presyn_types from pre_spikes[key][0].keys()
-    for presyn in presyn_types:
-        cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
+    #for presyn in presyn_types:
+    #    cc.plot_cross_corr(pre_spikes,spiketime_dict,presyn,binsize,maxtime=20)
     ################################### End cross correlogram ##################### 
     ##### Plots of means compared across conditions or across presyn_set
     #1st STA

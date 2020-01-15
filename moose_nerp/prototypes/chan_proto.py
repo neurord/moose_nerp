@@ -87,7 +87,7 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     idx =  abs(V-V_0).argmin()
     min_idx=max(idx-l,0)
     max_idx=min(idx+l,len(tabA)-1)
-    print('in interp, len of tabA',len(tabA),'V0',V_0,'idx',idx,'+l',idx+l,'min',min_idx,'max',max_idx)
+    #print('in interp, len of tabA',len(tabA),'V0',V_0,'idx',idx,'+l',idx+l,'min',min_idx,'max',max_idx)
     A_min = tabA[min_idx]
     V_min = V[min_idx]
     A_max = tabA[max_idx]
@@ -108,7 +108,7 @@ def  calc_V0(rate,B,C,vhalf,vslope,Params):
 def fix_singularities(model, Params, Gate):
     #This needs to be extended to work with standardMooseTauInfparams
     if Params.A_C < 0:
-        print('fix_sing for',Params,'len of table',len(Gate.tableA))
+        #print('fix_sing for',Params,'len of table',len(Gate.tableA))
         Params.A_rate,V_0=calc_V0(Params.A_rate,Params.A_B,Params.A_C,Params.A_vhalf,Params.A_vslope, Params)
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableA and tableB, because tableB contains sum of alpha and beta

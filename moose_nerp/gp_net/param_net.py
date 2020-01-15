@@ -61,7 +61,7 @@ chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky, 'Lhx6':chanSTD_arky}
 ####################### Connections
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'gp_net/STN_lognorm_freq18.0',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=2)
 
 #description of intrinsic inputs
 ConnSpaceConst=500e-6

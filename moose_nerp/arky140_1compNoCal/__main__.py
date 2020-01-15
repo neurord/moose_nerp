@@ -1,38 +1,31 @@
 # -*- coding:utf-8 -*-
-'''
-Main script to create and simulate two SP neuron classes from the package
-moose_nerp.d1d2 when run as module (python -m moose_nerp.d1d2)
-
-  -using dictionaries for channels and synapses
-  -calcium based learning rule/plasticity function, optional
-  -spines, optionally with ion channels and synpases
-  -Synapses to test the plasticity function, optional
-  -used to tune parameters and channel kinetics (but using larger morphology)
-
-Any of the parameters in param_sim, param_model_defaults, param_chan,
-param_cond, etc. can be overriden here. For example, to override simtime (set
-in parm_sim), do: model.param_sim.simtime = NEW_VALUE. Or to override spinesYN,
-do: model.spinesYN = True (Default is set in param_model_defaults).
-'''
+#1. repeat optimizations with fixed Buffer Capacity.
+#2. use helpers to copy parameters into param_cond
+#3. run single neuron simulations to verify
+#4. run network simulations (single = True, then False) with and without ethanol - prelim
+####################
+## Code to create two globus pallidus neurons
+##      using dictionaries for channels and synapses
+##      calcium based learning rule/plasticity function, optional
+##      spines, optionally with ion channels and synpases
+##      Synapses to test the plasticity function, optional
+##      used to tune parameters and channel kinetics (but using larger morphology)
 
 from __future__ import print_function, division
-
-from moose_nerp import fsi as model
-'''Evaluates moose_nerp/d1d2/__init__.py to load all the parameters, e.g.
+from moose_nerp import arky140_1compNoCal as model
+'''Evaluates moose_nerp/gp/__init__.py to load all the parameters, e.g.
 param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,
 `model.param_sim.fname`.
 '''
-
 from moose_nerp.prototypes import create_model_sim
 '''Imports functions for setting up and simulating model. These take the `model`
 namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
 
-# Parameter overrides can be specified:
-model.spineYN=False
-model.calYN=False
+# Parameter overrides can be specified below:
+
 
 # This function sets up the options specified in param_sim or passed from
 # command line:
@@ -65,3 +58,6 @@ create_model_sim.runAll(model)
 # available to any model, by adding new functions or expanding existing functions
 # with new options that do not alter the current state of the functions unless
 # the new options are explicitly called.
+import ISI_anal
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+
