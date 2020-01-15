@@ -38,7 +38,6 @@ from moose_nerp import spn1_net as net
 neuron_modules=['FSI01Aug2014']
 
 #additional, optional parameter overrides specified from with python terminal
-net.param_net.tt_Ctx_SPN.filename = 'str_net/FullTrialLowVariability'
 model.synYN = True
 model.plasYN = False
 model.calYN = False
@@ -98,25 +97,8 @@ if model.synYN and (param_sim.plot_synapse or net.single):
     model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
     nonstim_plastab = tables.nonstimplastabs(plas)
 
-# Streamer to prevent Tables filling up memory on disk
-# This is a hack, should be better implemented
-if param_sim.useStreamer==True:
-    allTables = moose.wildcardFind('/##[ISA=Table]')
-    streamer = moose.Streamer('/streamer')
-    streamer.outfile = 'plas_sim_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename)
-    moose.setClock(streamer.tick,0.1)
-    for t in allTables:
-        if any (s in t.path for s in ['plas','VmD1_0','extern','Shell_0']):
-            streamer.addTable(t)
-        else:
-            t.tick=-2
-
 ################### Actually run the simulation
 net_sim_graph.sim_plot(model,net,connections,population)
-
-if param_sim.useStreamer==True:
-    import atexit
-    atexit.register(moose.quit)
 
 from moose_nerp import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)

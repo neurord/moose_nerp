@@ -58,9 +58,9 @@ chanvar={
 # add post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
 #list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
-tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx_exp_freq10.0',syn_per_tt=2)
+tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx2000_exp_freq10.0',syn_per_tt=2)
 
-distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.5)#,half_dist=50e-6,steep=1)
+distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=1)#,half_dist=50e-6,steep=1)
 FSI_distr = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=1)
 
 MSNconnSpaceConst=250e-6
@@ -70,8 +70,8 @@ D1pre_D1post=connect(synapse='gaba', pre='D1', post='D1', space_const=MSNconnSpa
 D1pre_D2post=connect(synapse='gaba', pre='D1', post='D2', space_const=MSNconnSpaceConst)
 D2pre_D1post=connect(synapse='gaba', pre='D2', post='D1', space_const=MSNconnSpaceConst)
 D2pre_D2post=connect(synapse='gaba', pre='D2', post='D2', space_const=MSNconnSpaceConst)
-FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst)
-FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst)
+FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst,weight=3)
+FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst,weight=3)
 FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIconnSpaceConst)
 #time table input (extrinsic connections)
 ctx_D1post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D1', dend_loc = distr)
@@ -87,10 +87,8 @@ D2={}
 FSI={}
 connect_dict={}
 ##Collect the above connections into dictionaries organized by post-syn neuron, and synapse type
-D1['ampa'] = {
-    'extern1': ctx_D1post,
-    #'extern2': thal_D1post
-}
+D1['ampa'] = {'extern1': ctx_D1post}    #'extern2': thal_D1post }
+
 D1['gaba'] = {
     'D1':D1pre_D1post,
     'D2':D2pre_D2post,
@@ -98,7 +96,9 @@ D1['gaba'] = {
 }
 
 connect_dict['D1']=D1
-D2['gaba']={'D1': D1pre_D2post, 'D2': D2pre_D2post, 'FSI': FSIpre_D2post}
+D2['gaba']={'D1': D1pre_D2post, 'D2': D2pre_D2post,
+            'FSI': FSIpre_D2post
+}
 D2['ampa']={'extern1': ctx_D2post}
 connect_dict['D2']=D2
 FSI['gaba']={'FSI': FSIpre_FSIpost}
