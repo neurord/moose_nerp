@@ -21,16 +21,16 @@ __NMDA_MgParams = MgParams(A = 1/18.0,
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
 #Dieter Jaeger uses 0.25e-9 for gaba
 _SynGaba = SynChannelParams(Erev = -60e-3,
-                             tau1 = 1.33e-3,
-                             tau2 = 4e-3,
-                             Gbar = 0.5e-9,
-                             var=0.05)
+                            tau1 = 1.33e-3,
+                            tau2 = 4e-3,
+                            Gbar = 0.2e-9,
+                            var=0.05)
 _SynAMPA = SynChannelParams(Erev = 5e-3,
-                             tau1 = 1e-3,
-                             tau2 = 3e-3,
-                             Gbar = 0.8e-9,
-                             var=0.05,
-                             spinic = True)
+                            tau1 = 1e-3,
+                            tau2 = 3e-3,
+                            Gbar = 0.5e-9,
+                            var=0.05,
+                            spinic = True)
 
 
 #nmdaCaFra fraction of nmda current carried by calcium
@@ -49,8 +49,8 @@ NAME_AMPA='ampa'
 NAME_NMDA='nmda'
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:30}
-_ampa= {param_cond.prox:20}
+_gaba = {param_cond.prox:60}
+_ampa= {param_cond.prox:40}
 
 NumSyn={'FSI':{'gaba':_gaba, 'ampa':_ampa}}
 

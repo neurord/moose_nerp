@@ -35,7 +35,7 @@ morph_file = {'D1':'MScell-soma.p', 'D2': 'MScell-soma.p'} # old_version.
 #CONDUCTANCES - UNITS of Siemens/meter squared
 _D1 = _util.NamedDict(
     'D1',
-    KaF = {prox:1630.85},
+    KaF = {prox:1530.85},
     KaS = {prox:113.95},
     Kir = {prox:12.7875},
     CaL12 = {prox:29.868*ghKluge},
@@ -44,8 +44,8 @@ _D1 = _util.NamedDict(
 )
 _D2 = _util.NamedDict(
     'D2',
-    KaF = {prox:1241},
-    KaS = {prox:472},
+    KaF = {prox:1441},
+    KaS = {prox:672},
     Kir = {prox:8.2},
     CaL12 = {prox:4*ghKluge},
     CaR = {prox:10*ghKluge},

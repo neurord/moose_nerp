@@ -20,35 +20,28 @@ _NMDA_MgParams = MgParams(A = 1/18.0,
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
 _SynGaba = SynChannelParams(Erev = -60e-3,
-                             tau1 = 0.25e-3,
-                             tau2 = 3.75e-3,
-                             Gbar = 0.2e-9,
+                            tau1 = 0.25e-3,
+                            tau2 = 3.75e-3,
+                            Gbar = 0.2e-9,
                             nmdaCaFrac = 0.0,
-                             var=0.05)
-
-SynGabaNPY = SynChannelParams(Erev = -60e-3, #NPY
-                             tau1 = 0.25e-3,
-                             tau2 = 80.75e-3,
-                             Gbar = 0.5e-9,
-                              nmdaCaFrac = 0.0,
-                             var=0.05)
+                            var=0.05)
 
 _SynAMPA = SynChannelParams(Erev = 5e-3,
-                             tau1 = 1.1e-3,
-                             tau2 = 2.0e-3,
-                            Gbar = 2e-9,
+                            tau1 = 1.1e-3,
+                            tau2 = 2.0e-3,
+                            Gbar = 0.5e-9,
                             var=0.05,
                             nmdaCaFrac = 0.001,
-                             spinic = True)
+                            spinic = True)
 _SynNMDA = SynChannelParams(Erev = 5e-3,
-                             tau1 = 1.1e-3,
-                             tau2 = 37.5e-3,
-                             Gbar = 2e-9,
-                             var=0,#0.05,
-                             MgBlock = _NMDA_MgParams,
-                             spinic = True,
-                             NMDA=True,
-                             nmdaCaFrac = 0.05,
+                            tau1 = 1.1e-3,
+                            tau2 = 37.5e-3,
+                            Gbar = 0.5e-9,
+                            var=0,#0.05,
+                            MgBlock = _NMDA_MgParams,
+                            spinic = True,
+                            NMDA=True,
+                            nmdaCaFrac = 0.05,
 )
 
 #nmdaCaFra fraction of nmda current carried by calcium
@@ -72,8 +65,8 @@ NAME_NMDA='nmda'
 # number of synapses at each distance
 _gaba = {param_cond.prox:4, param_cond.med:4, param_cond.dist:4}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
+######## if only 1 compartment neurons, need to specify total number of synapses
+_gaba = {param_cond.prox:60}
+_ampa = {param_cond.prox:50}
 
-NumSyn={'D1':{'gaba':_gaba,
-              'ampa':_ampa},
-        'D2':{'gaba':_gaba,
-              'ampa':_ampa}}
+NumSyn={'D1':{'gaba':_gaba,'ampa':_ampa}, 'D2': {'gaba':_gaba,'ampa':_ampa}}
