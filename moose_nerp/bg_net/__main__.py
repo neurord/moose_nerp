@@ -5,9 +5,6 @@
 Model of entire basal ganglia
 Loads in all neuron modules and all network modules
 Adds in connections between network modules
-3. Test/Fix connections from external spike trains - bg_net
-5. Adjust synaptic strength to match data (use smal number of neurons)
-6. automatically replace external inputs used in single network simulations
 """
 from __future__ import print_function, division
 
@@ -33,7 +30,7 @@ from moose_nerp import spn_1comp as model
 from moose_nerp import bg_net as net
 
 #names of additional neuron modules to import
-neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_1compNoCal','fsi']
+neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_1compNoCal','FSI01Aug2014']
 ### By importing other modules, do not need to repeat all the information in param_net.py
 net_modules=['moose_nerp.gp_net','moose_nerp.ep_net', 'moose_nerp.spn1_net']
 
@@ -108,15 +105,10 @@ if model.param_sim.save_txt:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
         np.savez(outdir+net.outfile,vm=vmout)
 ''' 
-debugging:
-4. deal with time tables - import ttables in netparam?  no need to specify ttables?
-which time tables are being created? gp, ep or bg_net?  
-1. test with tt specified in param_net (better comments in create_network)
-if works:
-2. figure out whether could read in (and accumulate?) from importlib - would need to call TableSet.create_all again
-
-
 remaining issues
+1. Deal with connections from external spike trains specified in network modules
+     some will still be valid (e.g. AMPA) and some will not (e.g. GABA)
+     option: test whether ext train exists - if not, exclude that train
 1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
 2. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
 

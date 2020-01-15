@@ -40,16 +40,14 @@ connect_dict['D1']['gaba']['Npas']=connect(synapse='gaba', pre='Npas', post='D1'
 connect_dict['FSI']={'gaba':{}}
 connect_dict['FSI']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='FSI', probability=0.5)
 
-#
-#these are not used because not imported in init and not part of connect_dict
-#ADD these when connect to striatal network
-
 mindelay={}
 cond_vel={}
 ############## All of these inputs get created
-#tables of extrinsic inputs 
+#tables of extrinsic inputs
+#Note that extrinsic inputs in network packages do not get read in or created
+#Note that connect.py will try to create connections to extrinsic inputs listed in network packages!
 #first string is name of the table in moose, and 2nd string is name of external file
-#tt_STN = TableSet('tt_STN', 'gp_net/STN_lognorm_freq18.0',syn_per_tt=2)
-tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx_exp_freq10.0',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=2)
+tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx2000_exp_freq10.0',syn_per_tt=2)
 
  
