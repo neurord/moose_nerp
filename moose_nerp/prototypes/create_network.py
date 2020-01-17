@@ -31,15 +31,39 @@ def merge(a, b, path=[]):
             a[key] = b[key]
     return a
 
+def dict_delete(a, delete, path=[]):
+    "deletes dictionary with key b from a"
+    for ntype in delete:
+        if ntype in a:
+            for syntype in delete[ntype]:
+                if syntype in a[ntype]:
+                    print('dict delete',ntype,syntype,delete[ntype][syntype])
+                    if isinstance (delete[ntype][syntype],str):
+                        del a[ntype][syntype][delete[ntype][syntype]]
+                    elif isinstance (delete[ntype][syntype],list):
+                        for pre in delete[ntype][syntype]:
+                            del a[ntype][syntype][pre]
+                    else:
+                        print('>>>>>>>> dict_delete,', delete[ntype][syntype], 'is neither string nor list. Write more code to handle this')
+                else:
+                    pass
+        else:
+            pass
+    return a
+
+def print_connect_dict(connect_dict):
+    for key1,item1 in connect_dict.items():
+        for key2,item2 in item1.items():
+            for key3,item3 in item2.items():
+                print('***connect_dict after merge and delete:',key1,key2,key3,item3)
+    return
+
 def create_network(model, param_net,neur_protos={},network_list=None):
-    #create all timetables
-    ttables.TableSet.create_all()
-    #print(ttables.TableSet.ALL)
-    for tt in ttables.TableSet.ALL:
-        print('>>>>TIME TABLE', tt.filename)
     connections={}
     #
     if param_net.single:
+        #create all timetables
+        ttables.TableSet.create_all()
         network_pop={'pop':{},'location':{}}
         #network is equal to the list of neuron prototypes:
         for ntype in neur_protos.keys():
@@ -68,17 +92,26 @@ def create_network(model, param_net,neur_protos={},network_list=None):
             all_networks={}
             locations={}
             for network in network_list:
-                net_params=importlib.import_module(network)
-                one_network_pop = pop_funcs.create_population(moose.Neutral(net_params.netname), net_params, model.param_cond.NAME_SOMA)
+                other_net=importlib.import_module(network)
+                one_network_pop = pop_funcs.create_population(moose.Neutral(other_net.netname), other_net, model.param_cond.NAME_SOMA)
                 all_networks.update(one_network_pop['pop'])
                 locations[network]=one_network_pop['location']
-                param_net.connect_dict=merge(param_net.connect_dict,net_params.connect_dict)
+                #create one dictionary of all connections from other networks param_net
+                #print_connect_dict(other_net.connect_dict)
+                param_net.connect_dict=merge(param_net.connect_dict,other_net.connect_dict)
                 #FIXME - only using mindelay and cond_vel from last network
                 # recommendation - make mindelay and cond_vel dictionaries - one value for each neuron type
-                param_net.mindelay=merge(param_net.mindelay,net_params.mindelay)
-                param_net.cond_vel=merge(param_net.cond_vel,net_params.cond_vel)
+                param_net.mindelay=merge(param_net.mindelay,other_net.mindelay)
+                param_net.cond_vel=merge(param_net.cond_vel,other_net.cond_vel)
+            #delete connections, e.g. extrinsic, no longer needed since connecting to other networks
+            param_net.connect_dict=dict_delete(param_net.connect_dict,param_net.connect_delete)
+            #print_connect_dict(param_net.connect_dict)
             network_pop={'location':locations,'pop':all_networks}
-        #Regardles of whether one or multiple populations,
+            needed_ttabs=list(set([it3.pre for it1 in param_net.connect_dict.values() for it2 in it1.values() for it3 in it2.values() if isinstance(it3,connect.ext_connect)]))
+            print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
+            ttables.TableSet.ALL=needed_ttabs
+        #Regardles of whether one or multiple populations, create needed timetables
+        ttables.TableSet.create_all()
         #loop over all post-synaptic neuron types and create connections:
         for ntype in network_pop['pop'].keys():
             connections[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
