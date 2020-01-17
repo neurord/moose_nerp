@@ -12,7 +12,8 @@ class TableSet(object):
         self.syn_per_tt=syn_per_tt
         self.numtt=int(0)
         self.needed=int(0)
-        self.ALL.append(self)
+        if self not in self.ALL:
+            self.ALL.append(self)
 
     def create(self):
         path="/input"
