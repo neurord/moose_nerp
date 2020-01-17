@@ -67,11 +67,11 @@ population,connections,plas=create_network.create_network(model, net, model.neur
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
-    inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+    model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
     if net.num_inject==0:
         param_sim.injection_current=[0]
 else:
-    inject_pop=population['pop']
+    model.inject_pop=population['pop']
 
 create_model_sim.setupStim(model)
 

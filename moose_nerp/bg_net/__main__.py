@@ -58,8 +58,8 @@ if len(neuron_modules):
 
 ########### Create Network. For multiple populations, send in net_modules ###########
 population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
-print(net.connect_dict)
-print(population['location'],population['pop'])
+#print(net.connect_dict)
+print('populations created and connected!!!',population['pop'],'\n',population['netnames'])
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
@@ -68,10 +68,8 @@ if net.num_inject<np.inf :
         param_sim.injection_current=[0]
 else:
     inject_pop=population['pop']
-#Does setupStim work for network?  YES, see gp_net/__main__.py
-#create_model_sim.setupStim(model)
-pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
-moose.showmsg(pg)
+
+create_model_sim.setupStim(model)
 
 ##############--------------output elements
 if net.single:
@@ -82,7 +80,8 @@ if net.single:
 else:   #population of neurons
     model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
-    simpath=[net.netname]
+    simpath=[netname for netname in population['netnames']]
+    print('simpath',simpath)
 
 clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 # Fix calculation of B parameter in CaConc if using hsolve and calcium
