@@ -21,7 +21,6 @@ distal_distr=dend_location(mindist=50e-6,maxdist=400e-6,postsyn_fraction=.1)#,ha
 connect_dict={'ep':{'gaba':{}}}
 connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.5)
 connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.5)
-connect_dict['ep']={'gaba':{}}
 connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=0.5)
 
 #Inputs from striatum to GPe
@@ -40,14 +39,16 @@ connect_dict['D1']['gaba']['Npas']=connect(synapse='gaba', pre='Npas', post='D1'
 connect_dict['FSI']={'gaba':{}}
 connect_dict['FSI']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='FSI', probability=0.5)
 
+########## Delete these connections that are defined in the other net_modules
+# e.g., extrinsic connections that are now replaced by other network connections
+connect_delete={'ep':{'gaba':['extern2','extern3']}}
+#once STN neurons provided:
+#connect_delete['ep']['ampa']='extern'
+#connect_delete['proto']={'ampa':'extern'}
+#connect_delete['Lhx6']={'ampa':'extern'}
+#connect_delete['Npas']={'ampa':'extern'}
+
 mindelay={}
 cond_vel={}
-############## All of these inputs get created
-#tables of extrinsic inputs
-#Note that extrinsic inputs in network packages do not get read in or created
-#Note that connect.py will try to create connections to extrinsic inputs listed in network packages!
-#first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=2)
-tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx2000_exp_freq10.0',syn_per_tt=2)
 
  

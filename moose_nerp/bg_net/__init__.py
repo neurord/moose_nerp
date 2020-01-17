@@ -2,6 +2,7 @@ from .param_net import (netname,
                         confile,
                         outfile,
                         connect_dict,
+                        connect_delete,
                         mindelay,
                         cond_vel)
 

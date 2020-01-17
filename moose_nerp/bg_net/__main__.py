@@ -106,11 +106,9 @@ if model.param_sim.save_txt:
         np.savez(outdir+net.outfile,vm=vmout)
 ''' 
 remaining issues
-1. Deal with connections from external spike trains specified in network modules
-     some will still be valid (e.g. AMPA) and some will not (e.g. GABA)
-     option: test whether ext train exists - if not, exclude that train
-1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
-2. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
+1. running out of synapses in connect.py
+2. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
+3. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
 
 '''
     
