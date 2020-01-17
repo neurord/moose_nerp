@@ -153,9 +153,12 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None,soma_loc=[0,0,
 
     #normalize probability to pdf
     syncomp_sum = sum([p[1] for p in syncomps])
-    print('CONNECT: totsyns:',totalsyns,'syncomp_sum',syncomp_sum)
-    for syn in syncomps:
-        syn[1]=float(syn[1])/syncomp_sum
+    #print('CONNECT: totsyns:',totalsyns,'syncomp_sum',syncomp_sum)
+    if syncomp_sum >0:
+        for syn in syncomps:
+            syn[1]=float(syn[1])/syncomp_sum
+    else:
+        print('&&&&&&&&& Un Oh, no synapes remaining on post-synaptic neurons, syncom_sum=', syncomp_sum)
     avail_syns=np.int(np.round(syncomp_sum))
     return syncomps,totalsyns,avail_syns
 
@@ -245,7 +248,7 @@ def connect_neurons(cells, netparams, postype, model):
                 syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=[xpost,ypost,zpost])
                 print('    SYN TABLE for {} {} {} has {} slots and {} synapses avail'.format( postsoma, syntype, pretype,len(syncomps),availsyns))
                 if 'extern' in pretype:
-                    print('## connect to tt',postcell,syntype,pretype)
+                    print('## connect to tt',postcell,syntype,pretype,'from',post_connections[syntype][pretype].pre.filename)
                     ####### connect to time tables instead of other neurons in network
                     connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
                     intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
@@ -286,7 +289,7 @@ def connect_neurons(cells, netparams, postype, model):
                                 spikegen_conns.insert(i,spikegen_conns[i])
                         num_choices=min(len(spikegen_conns),availsyns)
                         if len(spikegen_conns)>availsyns:
-                            print('>>>> uh oh, too few synapses on post-synaptic cell, need',len(spikegen_cons),'avail',availsyns)
+                            print('>>>> uh oh, too few synapses on post-synaptic cell, need',len(spikegen_conns),'avail',availsyns)
                         #randomly select num_choices of synapses
                         if availsyns==0:
                             print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
@@ -295,7 +298,7 @@ def connect_neurons(cells, netparams, postype, model):
                             syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
                         log.debug('CONNECT: PRE {} POST {} ', spikegen_conns,syn_choices)
                         #connect the pre-synaptic spikegens to randomly chosen synapses
-                        print('** intrinsic synconns',pretype, 'one mindelay',netparams.mindelay[pretype],'all cond',netparams.cond_vel, 'num cons:',len(syn_choices))
+                        #print('** intrinsic synconns',pretype, 'one mindelay',netparams.mindelay[pretype],'all cond',netparams.cond_vel, 'num cons:',len(syn_choices))
                         for i,syn in enumerate(syn_choices):
                                 postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
                                 precell=spikegen_conns[i][0].parent.path.split('/')[2].split('[')[0]
