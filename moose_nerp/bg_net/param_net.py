@@ -5,7 +5,6 @@ from moose_nerp.prototypes.syn_proto import ShortTermPlasParams,SpikePlasParams
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.connect import dend_location,connect,ext_connect 
 
-netname='/bg'
 confile='bg_connect'
 outfile='bg_out'
 
@@ -19,8 +18,8 @@ distal_distr=dend_location(mindist=50e-6,maxdist=400e-6,postsyn_fraction=.1)#,ha
 ##connections between regions
 #Inputs to ep/SNr from Striatum/D1 and GPe/proto
 connect_dict={'ep':{'gaba':{}}}
-connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.5)
-connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.5)
+connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.2)
+connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.2)
 connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=0.5)
 
 #Inputs from striatum to GPe
@@ -41,6 +40,7 @@ connect_dict['FSI']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='FS
 
 ########## Delete these connections that are defined in the other net_modules
 # e.g., extrinsic connections that are now replaced by other network connections
+connect_delete={}
 connect_delete={'ep':{'gaba':['extern2','extern3']}}
 #once STN neurons provided:
 #connect_delete['ep']['ampa']='extern'
