@@ -52,10 +52,10 @@ def create_neuron(model, ntype, ghkYN):
 
     return cellproto
 
-def neuronclasses(model):
+def neuronclasses(model,module=None):
     ##create channels in the library
     chan_proto.chanlib(model)
-    syn_proto.synchanlib(model)
+    syn_proto.synchanlib(model,module)
     ##now create the neuron prototypes
     neuron={}
     synArray={}
@@ -71,7 +71,7 @@ def neuronclasses(model):
             headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN, model.param_cond.NAME_SOMA)
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
-            synArray[ntype] = syn_proto.add_synchans(model, ntype)
+            synArray[ntype] = syn_proto.add_synchans(model, ntype,module)
         #Calcium concentration - also optional
         #   0: none
         #   1: single tau
