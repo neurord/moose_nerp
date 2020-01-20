@@ -1,5 +1,4 @@
-from .param_net import (netname,
-                        confile,
+from .param_net import (confile,
                         outfile,
                         connect_dict,
                         connect_delete,

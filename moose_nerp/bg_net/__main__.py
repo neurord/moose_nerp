@@ -32,7 +32,7 @@ from moose_nerp import bg_net as net
 #names of additional neuron modules to import
 neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_1compNoCal','FSI01Aug2014']
 ### By importing other modules, do not need to repeat all the information in param_net.py
-net_modules=['moose_nerp.gp_net','moose_nerp.ep_net', 'moose_nerp.spn1_net']
+net_modules=['moose_nerp.ep_net','moose_nerp.gp_net', 'moose_nerp.spn1_net']
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
@@ -40,9 +40,9 @@ net.single=False
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [-50e-12]
+param_sim.injection_current = [0]#-50e-12]
 param_sim.save_txt = False
-param_sim.simtime=0.05
+param_sim.simtime=0.5
 
 #################################-----------create the model: neurons, and synaptic inputs
 #### Do not setup hsolve yet, since there may be additional neuron_modules
@@ -58,8 +58,8 @@ if len(neuron_modules):
 
 ########### Create Network. For multiple populations, send in net_modules ###########
 population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
-print(net.connect_dict)
-print(population['location'],population['pop'])
+#print(net.connect_dict)
+print('populations created and connected!!!',population['pop'],'\n',population['netnames'])
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
@@ -68,10 +68,8 @@ if net.num_inject<np.inf :
         param_sim.injection_current=[0]
 else:
     inject_pop=population['pop']
-#Does setupStim work for network?  YES, see gp_net/__main__.py
-#create_model_sim.setupStim(model)
-pg=inject_func.setupinj(model, param_sim.injection_delay,param_sim.injection_width,inject_pop)
-moose.showmsg(pg)
+
+create_model_sim.setupStim(model)
 
 ##############--------------output elements
 if net.single:
@@ -82,7 +80,8 @@ if net.single:
 else:   #population of neurons
     model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
     #simpath used to set-up simulation dt and hsolver
-    simpath=[net.netname]
+    simpath=[netname for netname in population['netnames']]
+    print('simpath',simpath)
 
 clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 # Fix calculation of B parameter in CaConc if using hsolve and calcium
@@ -96,6 +95,10 @@ if model.synYN and (param_sim.plot_synapse or net.single):
 
 ################### Actually run the simulation
 net_sim_graph.sim_plot(model,net,connections,population)
+from moose_nerp import ISI_anal
+spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+for neurtype in isis:
+    print(neurtype,': mean rate of ',np.nanmean([len(st) for st in spike_time[neurtype]])/param_sim.simtime,'from', len(spike_time[neurtype]),'neurons')
 
 if model.param_sim.save_txt:
     vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
@@ -105,10 +108,18 @@ if model.param_sim.save_txt:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
         np.savez(outdir+net.outfile,vm=vmout)
 ''' 
+NEXT:
+1. adjust connection strength to achieve in vivo like firing rates.  
+   Need higher STN inputs to GPe, 
+   OR, create STN network - Make STN cells like ep or protos?  
+   Introduce asymmetry in connection strength in striatum
+2. Use oscillatory or ramp inputs (inhomogeneous Poisson)
+   - need input to both STN and Ctx
+   - simulate larger network
+3. Test effect of GPe feedback to striatum on EP response with fast or slow Ctx ramps
 remaining issues
-1. running out of synapses in connect.py
-2. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
-3. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
+1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
+2. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
 
 '''
     

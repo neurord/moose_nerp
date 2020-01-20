@@ -91,8 +91,10 @@ def create_network(model, param_net,neur_protos={},network_list=None):
         else:
             all_networks={}
             locations={}
+            net_names=[]
             for network in network_list:
                 other_net=importlib.import_module(network)
+                net_names.append(other_net.netname)
                 one_network_pop = pop_funcs.create_population(moose.Neutral(other_net.netname), other_net, model.param_cond.NAME_SOMA)
                 all_networks.update(one_network_pop['pop'])
                 locations[network]=one_network_pop['location']
@@ -106,7 +108,7 @@ def create_network(model, param_net,neur_protos={},network_list=None):
             #delete connections, e.g. extrinsic, no longer needed since connecting to other networks
             param_net.connect_dict=dict_delete(param_net.connect_dict,param_net.connect_delete)
             #print_connect_dict(param_net.connect_dict)
-            network_pop={'location':locations,'pop':all_networks}
+            network_pop={'location':locations,'pop':all_networks,'netnames':net_names}
             needed_ttabs=list(set([it3.pre for it1 in param_net.connect_dict.values() for it2 in it1.values() for it3 in it2.values() if isinstance(it3,connect.ext_connect)]))
             print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
             ttables.TableSet.ALL=needed_ttabs

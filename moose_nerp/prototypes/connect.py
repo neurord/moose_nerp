@@ -54,7 +54,7 @@ def plain_synconn(syn,presyn,syn_delay,weight,simdt=None,stp_params=None):
     sh.synapse[jj].delay=syn_delay
     sh.synapse[jj].weight=weight
     if weight!=1:
-        print('SYNAPSE: {} index {} num {} delay {} weight {} tt {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay, sh.synapse[jj].weight,presyn.path))
+        log.info('SYNAPSE: {} index {} num {} delay {} weight {} tt {}'.format( syn.path, jj, sh.synapse.num, sh.synapse[jj].delay, sh.synapse[jj].weight,presyn.path))
     #It is possible to set the synaptic weight here.
     if presyn.className=='TimeTable':
         msg='eventOut'
@@ -158,7 +158,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None,soma_loc=[0,0,
         for syn in syncomps:
             syn[1]=float(syn[1])/syncomp_sum
     else:
-        print('&&&&&&&&& Un Oh, no synapes remaining on post-synaptic neurons, syncom_sum=', syncomp_sum)
+        log.info('&&&&&&&&& Un Oh, no synapes remaining on post-synaptic neurons, syncom_sum='.format(syncomp_sum))
     avail_syns=np.int(np.round(syncomp_sum))
     return syncomps,totalsyns,avail_syns
 
@@ -180,7 +180,7 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
         syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
         #randomly select subset of time-tables for spike train input
         #could do this in one line, but then meaningless error message
-        print('>>>>>>>>> num_choices',num_choices, 'tt remaining', len(tt_list))
+        print('>>>>>>>>> num_choices',num_choices, 'tt remaining', len(tt_list), 'from', post_connection.pre.tablename)
         presyn_tt=[]
         for i,syn in enumerate(syn_choices):
             if len(tt_list)>0:
@@ -188,17 +188,19 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
             else:
                 print('table empty',i,syn,tt_list)
         #presyn_tt=[select_entry(tt_list) for syn in syn_choices]
-        print('## connect from tt',post_connection.pre.tablename,', number of connections',len(presyn_tt))
     else:
         syn_choices=[];presyn_tt=[]
-        print('&& no connectons from time tables',post_connection.pre.tablename)
+        log.info('&&&&&&&&&&&&&& no connectons from time tables'.format(post_connection.pre.tablename))
     #connect the time-table to the synapse with mindelay (set dist=0)
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
         log.debug('CONNECT: TT {} POST {}', tt.path,syn)
         synconn(syn,dist,tt,syn_params,mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
-        #save the connection in a dictionary for inspection later
-        connections[postbranch]=tt.path
+        #save the connection in a dictionary for inspection later.
+        if postbranch in connections.keys():
+            connections[postbranch].append(tt.path)
+        else:
+            connections[postbranch]=[tt.path]
     return connections
 
 def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
@@ -216,8 +218,7 @@ def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
                 print('####### timetable input ######### to',postcell,'from', pretype, ', synchan=', syntype)
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=soma_loc)
-                print('SYN TABLE for {} {} has {} slots to make {} synapses'.format( postcell,syntype, len(syncomps),totalsyn))
-                print('## connect to tt',postcell,syntype,pretype)
+                print('  SYN TABLE for {} {} has {} slots to make {} synapses from {} '.format( postcell,syntype, len(syncomps),totalsyn,pretype))
                 connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
     return connect_list
                     
@@ -226,7 +227,7 @@ def connect_neurons(cells, netparams, postype, model):
     log.info('CONNECT set: {} {} {}', postype, cells[postype],netparams.connect_dict[postype])
     post_connections=netparams.connect_dict[postype]
     connect_list = {pc:{} for pc in cells[postype]}
-    intra_conns={key:[] for key in post_connections.keys()} #accumulate number of connections of each type to calculate mean
+    intra_conns={key:{k:[] for k in post_connections[key].keys()} for key in post_connections.keys()} #accumulate number of connections of each type to calculate mean
     #loop over post-synaptic neurons - convert to list if only singe instance of any type
     if not isinstance(cells[postype],list):
         temp=cells[postype]
@@ -242,7 +243,6 @@ def connect_neurons(cells, netparams, postype, model):
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             for pretype in post_connections[syntype].keys():
-                print('********* connect.py, postcell=',postcell,', syntype=',syntype,'pretype',pretype)
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=[xpost,ypost,zpost])
@@ -251,7 +251,7 @@ def connect_neurons(cells, netparams, postype, model):
                     print('## connect to tt',postcell,syntype,pretype,'from',post_connections[syntype][pretype].pre.filename)
                     ####### connect to time tables instead of other neurons in network
                     connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
-                    intra_conns[syntype].append(len(connect_list[postcell][syntype][pretype]))
+                    intra_conns[syntype][pretype].append(np.sum([len(item) for item in connect_list[postcell][syntype][pretype].values()]))
                 else:
                     if getattr(model,'stpYN',False):
                         stp=post_connections[syntype][pretype].stp
@@ -282,7 +282,7 @@ def connect_neurons(cells, netparams, postype, model):
                     if len(spikegen_conns):
                         num_conn=[max(np.random.poisson(post_connections[syntype][pretype].num_conns),1) for n in spikegen_conns]
                         print('&& connect to neuron', postcell,syntype,'from',pretype,'num conns',num_conn)
-                        intra_conns[syntype].append(np.sum(num_conn))
+                        intra_conns[syntype][pretype].append(np.sum(num_conn))
                         #duplicate spikegens in list to match the length of the list syn_choices to be generated
                         for i in range(len(num_conn)-1,-1,-1):
                             for n in range(num_conn[i]-1):
@@ -312,7 +312,8 @@ def connect_neurons(cells, netparams, postype, model):
                             print('   !!! no pre-synaptic cells selected for',postcell, 'from',pretype, 'connect=',connect,'>? prob=',prob,'or dist=0?',dist)
                         else:
                             print('   !!! no pre-synaptic cells selected for',postcell,' because no', pretype, 'in population')
-    tmp=[np.mean(intra_conns[syn])/len(cells[postype]) for syn in intra_conns.keys()]                                     
-    print('mean number of intra-network connections', intra_conns,tmp)
+    for syn in intra_conns.keys():
+        tmp=[np.mean(intra_conns[syn][pre])/len(cells[postype]) for pre in intra_conns[syn].keys()]                                     
+        print('*************** mean number of intra-network connections to',postype, syn,'from',intra_conns[syn],tmp)
     return connect_list
 

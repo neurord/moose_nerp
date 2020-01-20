@@ -17,7 +17,7 @@ def multi_modules(neuron_modules,model,buf_cap):
         #probably a good idea to give synapses to all neurons (or no neurons)
         nm.synYN = model.synYN
         nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
-        syn,neur=cell_proto.neuronclasses(nm)
+        syn,neur=cell_proto.neuronclasses(nm,module=neur_module)
         for new_neur in neur.keys():
             model.syn[new_neur]=syn[new_neur]
             model.neurons[new_neur]=neur[new_neur]
