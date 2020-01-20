@@ -36,7 +36,8 @@ def plot_ISI(rootname,isi_mean_dict,isi_std_dict,bins,filesuffix):
         axis[i].legend()
 
 def plot_ISI_cond(all_isi_mean,bins):
-    fig,axes =plt.subplots(len(all_isi_mean[cond]),1,sharex=True)
+    num_rows=np.max([len(d) for d in all_isi_mean.values()])
+    fig,axes =plt.subplots(num_rows,1,sharex=True)
     axis=fig.axes
     fig.suptitle('ISI mean: all conditions')
     for j,cond in enumerate(all_isi_mean.keys()): 
@@ -239,3 +240,15 @@ def plot_isi_hist(rootname,isi_set_dict,numbins,suffix):
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
 
+columns={2:'soma',3:'p0b1',4:'p0b1b1',5:'p0b1b1a'}
+
+mean_cal={}
+for f in filenames:
+    dat=np.loadtxt(f)
+    plt.figure()
+    for i in range(2,6):
+        plt.plot(dat[:,0],dat[:,i],label=f+'_'+columns[i])
+    plt.legend()
+    calcium={columns[i]:(np.max(dat[5000:,i]),np.min(dat[5000:,i])) for i in columns.keys()}
+    mean_cal[f]={col:np.mean(cal_tuple) for col,cal_tuple in calcium.items()}
+      
