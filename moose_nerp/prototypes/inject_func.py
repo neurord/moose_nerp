@@ -231,17 +231,18 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
 
     stimtabs = {};stim_syn_set={};#synchans={}
     #ISSUE WITH THIS LOOP: potentially creating independent but identical timetables for multiple dendrites
-    for dend in model.Stimulation.StimLoc.stim_dendrites:
-        name_dend = '/'+ntype+'/'+dend
-        dendrite = moose.element(name_dend)
-        stimtab,synchan,stim_syn = HookUpDend(model,dendrite,container)
-        max_time=[np.max(st.vector) for st in stimtab.values()]
-        exp_dur= np.max(max_time)+model.Stimulation.stim_delay
-        #print('EXP DUR',max_time,'max time:',exp_dur,'AP',exp_duration)
-        exp_duration=(exp_dur if exp_dur>exp_duration else exp_duration)
-        stimtabs.update(stimtab)
-        #synchans.update(synchan)
-        stim_syn_set.update(stim_syn)
+    if SP.n_train*SP.n_burst*SP.n_pulse>0:
+        for dend in model.Stimulation.StimLoc.stim_dendrites:
+            name_dend = '/'+ntype+'/'+dend
+            dendrite = moose.element(name_dend)
+            stimtab,synchan,stim_syn = HookUpDend(model,dendrite,container)
+            max_time=[np.max(st.vector) for st in stimtab.values()]
+            exp_dur= np.max(max_time)+model.Stimulation.stim_delay
+            print('EXP DUR',max_time,'max time:',exp_dur,'AP',exp_duration)
+            exp_duration=(exp_dur if exp_dur>exp_duration else exp_duration)
+            stimtabs.update(stimtab)
+            #synchans.update(synchan)
+            stim_syn_set.update(stim_syn)
 
     if SP.A_inject:
         return exp_duration,stimtabs,stim_syn_set, pg
