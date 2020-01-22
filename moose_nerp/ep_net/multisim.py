@@ -110,7 +110,7 @@ def moose_main(p):
     if net.single:
         create_model_sim.setupOutput(model)
     else:   #population of neurons
-        spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
+        model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
         #simpath used to set-up simulation dt and hsolver
         simpath=[net.netname]
         clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
@@ -120,7 +120,7 @@ def moose_main(p):
     #
     if model.synYN and (param_sim.plot_synapse or net.single):
         #overwrite plastab above, since it is empty
-        syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
+        model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
     #
     #add short term plasticity to synapse as appropriate
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime, 'trial': trialnum,'dt':param_sim.plotdt}
@@ -138,8 +138,8 @@ def moose_main(p):
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-    param_sim.simtime=20.0
-    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum)
+    param_sim.simtime=5.0
+    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum,'fname',outdir+param_sim.fname)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
@@ -149,17 +149,17 @@ def moose_main(p):
         for inj in model.param_sim.injection_current:
             create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
 
-    #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
+    #net_output.writeOutput(model, param_sim.fname+'vm',model.spiketab,model.vmtab,population)
     #
     #Save results: spike time, Vm, parameters, input time tables
-    vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
-    import ISI_anal
+    from moose_nerp import ISI_anal
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+    vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
-        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmout)
     else:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
-        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmout)
     if net.single:
         #save spiketime of all input time tables
         timtabs={}
@@ -169,9 +169,10 @@ def moose_main(p):
                     timtabs[syn]={}
                     for pretype,pre_dict in syn_dict.items():
                         timtabs[syn][pretype]={}
-                        for branch,presyns in pre_dict.items():
-                            if 'TimTab' in presyns:
-                                timtabs[syn][pretype][branch]=moose.element(presyns).vector
+                        for branch,presyn in pre_dict.items():
+                            for i,possible_tt in enumerate(presyn):
+                                if 'TimTab' in possible_tt:
+                                    timtabs[syn][pretype][branch+'_syn'+str(i)]=moose.element(possible_tt).vector
         np.save(outdir+'tt'+param_sim.fname,timtabs)
 
     #create dictionary with the output (vectors) from test plasticity
