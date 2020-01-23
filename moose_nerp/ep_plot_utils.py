@@ -236,19 +236,8 @@ def plot_isi_hist(rootname,isi_set_dict,numbins,suffix):
         axis[i].set_ylabel(synstim+' events')
     axis[-1].legend()
     axis[-1].set_xlabel('ISI')
+    return histbins,plot_bins
 
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
 
-columns={2:'soma',3:'p0b1',4:'p0b1b1',5:'p0b1b1a'}
-
-mean_cal={}
-for f in filenames:
-    dat=np.loadtxt(f)
-    plt.figure()
-    for i in range(2,6):
-        plt.plot(dat[:,0],dat[:,i],label=f+'_'+columns[i])
-    plt.legend()
-    calcium={columns[i]:(np.max(dat[5000:,i]),np.min(dat[5000:,i])) for i in columns.keys()}
-    mean_cal[f]={col:np.mean(cal_tuple) for col,cal_tuple in calcium.items()}
-      
