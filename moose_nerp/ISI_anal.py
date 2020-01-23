@@ -81,13 +81,13 @@ def set_up_bins(file0,freq,numbins,neurtype):
         #1st [0] selects the 1st tuple
         #2nd [1] selects stim_times (array of spike times) from tuple (synapse,stim_times), 
         stim_tt=params[neurtype]['syn_tt'][0][1]
-        #simtime=params[simtime]
-        simtime=4.0
+        simtime=params['simtime']
+        #simtime=4.0
     bin_size=(stim_tt[-1]+1/float(freq)-stim_tt[0])/numbins
     #bins['stim']={stim_tt[0]+i*bin_size : stim_tt[0]+(i+1)*bin_size for i in range(numbins)}
     bins['stim']=[stim_tt[0]+i*bin_size for i in range(numbins)]
     num_bins=min(numbins,int(stim_tt[0]/bin_size))
-    bins['pre']=[bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)]
+    bins['pre']=sorted([bins['stim'][0]-(i+1)*bin_size for i in range(num_bins)])
     bins['post']=[bins['stim'][-1]+(i+1)*bin_size for i in range(num_bins)]
     return bins,bin_size,stim_tt,simtime
 
@@ -134,7 +134,7 @@ def latency(files,freq,neurtype,numbins):
         isi_mean[pre_post]=[np.mean(isis) for isis in isi_set[pre_post].values()]
         isi_std[pre_post]=[np.std(isis) for isis in isi_set[pre_post].values()]
         #print('isi {}: mean {} \n std {}'.format(pre_post,isi_mean[pre_post],isi_std[pre_post]))
-    return lat_mean,lat_std,isi_mean,isi_std,bins
+    return lat_mean,lat_std,isi_mean,isi_std,bins,bin_size
 
 def freq_dependence(fileroot,presyn,suffix):
     pattern=fileroot+presyn+'*'+suffix
