@@ -105,7 +105,7 @@ def moose_main(p):
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
-    print('>>>> After setupStim, simtime:', param_sim.simtime, 'trial', trialnum) 
+    print('>>>> After setupStim, simtime:', param_sim.simtime, 'trial', trialnum, 'stpYN',model.stpYN) 
     ##############--------------output elements
     if net.single:
         create_model_sim.setupOutput(model)
@@ -133,8 +133,10 @@ def moose_main(p):
                 if model.stpYN:
                     extra_syntab[ntype],extra_plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                             simdt=model.param_sim.simdt,stp_params=stp_params)
+                    print('!!!!!!!!!!!!! setting up plasticity, stpYN',model.stpYN)
                 else:
                     extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+                    print('!!!!!!!!!!!!! NO plasticity, stpYN',model.stpYN)
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
@@ -183,7 +185,7 @@ def moose_main(p):
             'tt': {ntype+'_'+pt:tab.vector for pt,tab in model.tt[ntype].items()}}
             if model.stpYN:
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
-    return param_dict,tab_dict,vmtab,spike_time,isis
+    return param_dict,tab_dict,vmout,spike_time,isis
 
 def multi_main(p):
     from multiprocessing.pool import Pool
@@ -197,7 +199,7 @@ def multi_main(p):
         sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr,p.ttSTN) for trial in range(p.trials)]
         
     num_pools=min(len(sim_params),max_pools)
-    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfiles',p.ttGPe,p.ttstr,p.ttSTN)
+    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfiles',p.ttGPe,p.ttstr,p.ttSTN,'plas',p.stpYN)
     print(sim_params)
     p = Pool(num_pools,maxtasksperchild=1)
     #
@@ -212,7 +214,7 @@ def parse_args(commandline,do_exit):
     parser.add_argument("--freq",'-f', type=int, default=0, help="optional: frequency of special input, omit or 0 for non")
     #could  change this to type list to provide a range of frequencies
     parser.add_argument("--trials",'-n', type=int, help="number of trials")
-    parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
+    parser.add_argument("--stpYN",'-stp', type=int, choices=[1, 0],help="1 for yes, 0 for no short term plas")
     parser.add_argument("--ttGPe",'-tg', type=str, default='', help="name of tt files for GPe")
     parser.add_argument("--ttstr",'-ts', type=str, default='',help="name of tt files for Str")
     parser.add_argument("--ttSTN",'-tn', type=str, default='',help="name of tt files for STN")
