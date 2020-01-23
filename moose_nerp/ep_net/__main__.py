@@ -37,15 +37,15 @@ neuron_modules=[]
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
-model.stpYN = True
+model.stpYN = False
 net.single=True
 
 #these parameters passed are passed into function in multisim.py
 stimtype='PSP_' #choose from AP and PSP
-presyn='non' #choose from 'str', 'GPe', or 'non' to provide no additional input
-stimfreq=0 #choose from 1,5,10,20,40
+presyn='str' #choose from 'str', 'GPe', or 'non' to provide no additional input
+stimfreq=20 #choose from 1,5,10,20,40
 outdir="ep_net/output/"
-prefix='GABAoscStr'
+prefix='GABA'
 ############## if stim_freq>0, stim_paradigm adds regular input and synaptic plasticity at specified synapse ####################
 if stimfreq>0:
     model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
@@ -59,7 +59,7 @@ param_sim.injection_current = [-0e-12]
 param_sim.injection_delay = 0.0
 param_sim.injection_width = param_sim.simtime
 param_sim.plot_synapse=True
-param_sim.save_txt = False
+param_sim.save_txt = True
 
 if prefix.startswith('POST-HFS'):
     net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
@@ -142,10 +142,12 @@ if stimfreq>0:
     for ntype in model.neurons.keys():
         for tt_syn_tuple in model.tuples[ntype].values():
             if model.stpYN:
+                print('!!!!!!!!!!!!! setting up plasticity', model.stpYN)
                 extra_syntab[ntype],extra_plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                         simdt=model.param_sim.simdt,stp_params=stp_params)
             else:
                 extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+                print('!!!!!!!!!!!!! NO plasticity', model.stpYN)
         param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
 #################### Actually run the simulation
@@ -184,7 +186,7 @@ for inj in param_sim.injection_current:
         net_output.writeOutput(model, net.outfile+str(inj),model.spiketab,model.vmtab,population)
 
 #Save results: spike time, Vm, parameters, input time tables
-import ISI_anal
+from moose_nerp import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
 if model.param_sim.save_txt:
@@ -206,9 +208,10 @@ if net.single:
                 timtabs[syn]={}
                 for pretype,pre_dict in syn_dict.items():
                     timtabs[syn][pretype]={}
-                    for branch,presyn in pre_dict.items():
-                        if 'TimTab' in presyn:
-                            timtabs[syn][pretype][branch]=moose.element(presyn).vector
+                    for branch,presyn in pre_dict.items(): #presyn is list
+                        for i,possible_tt in enumerate(presyn):
+                            if 'TimTab' in possible_tt:
+                                timtabs[syn][pretype][branch+'_syn'+str(i)]=moose.element(possible_tt).vector
     np.save(outdir+'tt'+param_sim.fname,timtabs)
     # block in non-interactive mode
 util.block_if_noninteractive()
