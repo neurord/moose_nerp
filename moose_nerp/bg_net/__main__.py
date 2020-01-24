@@ -40,7 +40,10 @@ net.single=False
 
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [0]#-50e-12]
+param_sim.injection_current = [-20e-12]
+net.num_inject=4
+param_sim.injection_width=0.3
+param_sim.injection_delay=0.2
 param_sim.save_txt = False
 param_sim.simtime=0.5
 
@@ -63,17 +66,16 @@ print('populations created and connected!!!',population['pop'],'\n',population['
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
-    inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
+    model.inject_pop=inject_func.inject_pop(population['pop'],net.num_inject)
     if net.num_inject==0:
         param_sim.injection_current=[0]
 else:
-    inject_pop=population['pop']
+    model.inject_pop=population['pop']
 
 create_model_sim.setupStim(model)
 
 ##############--------------output elements
 if net.single:
-    #fname=model.param_stim.Stimulation.Paradigm.name+'_'+model.param_stim.location.stim_dendrites[0]+'.npz'
     #simpath used to set-up simulation dt and hsolver
     simpath=['/'+neurotype for neurotype in model.neurons.keys()]
     create_model_sim.setupOutput(model)
@@ -83,6 +85,7 @@ else:   #population of neurons
     simpath=[netname for netname in population['netnames']]
     print('simpath',simpath)
 
+#### Set up hsolve and fix calcium
 clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
 # Fix calculation of B parameter in CaConc if using hsolve and calcium
 ######### Need to use CaPlasticityParams.BufferCapacityDensity from EACH neuron_module
@@ -110,13 +113,16 @@ if model.param_sim.save_txt:
 ''' 
 NEXT:
 1. adjust connection strength to achieve in vivo like firing rates.  
-   Need higher STN inputs to GPe, 
+   a. >>>Need higher STN inputs to GPe, 
    OR, create STN network - Make STN cells like ep or protos?  
-   Introduce asymmetry in connection strength in striatum
+   b. Introduce asymmetry in connection strength in striatum
+
 2. Use oscillatory or ramp inputs (inhomogeneous Poisson)
-   - need input to both STN and Ctx
-   - simulate larger network
+   a. uses synth_spikes to create input trains to both STN and Ctx - see brian for rates
+   b. simulate larger network - with and without GPe feedback
+
 3. Test effect of GPe feedback to striatum on EP response with fast or slow Ctx ramps
+
 remaining issues
 1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
 2. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
