@@ -231,11 +231,18 @@ def make_channel(model, chanpath, params):
     func = _FUNCTIONS[params.__class__]
     return func(model, chanpath, params)
 
-def chanlib(model):
+def chanlib(model,module=None):
     if not moose.exists('/library'):
-        moose.Neutral('/library')
+        lib = moose.Neutral('/library')
+    else:
+        lib=moose.element('/library')
+
+    if module is not None and not moose.exists('/library/'+module):
+        lib=moose.Neutral('/library/'+module)
+        print('new chan library for',module, lib.path)
     #Adding all the channels to the library.
-    chan = [make_channel(model, '/library/'+key, value) for key, value in model.Channels.items()]
+    
+    chan = [make_channel(model, lib.path + '/'+key, value) for key, value in model.Channels.items()]
     if model.ghkYN:
         ghk = moose.GHK('/library/ghk')
         ghk.T = model.Temp

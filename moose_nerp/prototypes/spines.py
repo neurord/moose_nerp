@@ -220,7 +220,7 @@ def getChildren(parentname,childrenlist):
             childrenlist.append(child.name)
             getChildren(child,childrenlist)
 
-def addSpines(model, container,ghkYN,name_soma):
+def addSpines(model, container,ghkYN,name_soma,module=None):
     distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
     headarray=[]
     # Sets Spine Params to global values for RM, CM, etc. if value is None:
@@ -287,7 +287,7 @@ def addSpines(model, container,ghkYN,name_soma):
                         if cond > 0:
                             log.debug('Testing Cond If {} {}', chanpath, cond)
                             calciumPermeable = model.Channels[chanpath].calciumPermeable
-                            addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
+                            addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable,module=module)
             #end for index
     #end for comp
 

@@ -80,9 +80,13 @@ def synchanlib(model,module=None):
     else:
         lib=moose.element('/library')
 
-    if module is not None and not moose.exists('/library/'+module):
-        lib=moose.Neutral('/library/'+module)
-        print('new synchan library for',module, lib.path)
+    if module is not None:
+        if moose.exists('/library/'+module):
+            lib=moose.element('/library/'+module)
+            print('using existing module library for synchans',lib.path)
+        else:
+            lib=moose.Neutral('/library/'+module)
+            print('new synchan library for',module, lib.path)
     
     for name, params in model.SYNAPSE_TYPES.items():
         synchan = make_synchan(model,
