@@ -79,10 +79,16 @@ def moose_main(p):
     else:
         print ('$$$$$$$$$$$$$$ old tt file for STN:',net.param_net.tt_STN.filename, 'trial', trialnum)
     #################################-----------create the model: neurons, and synaptic inputs
-    
+    if model.stpYN==True:
+        remember_stpYN=True
+        model.stpYN=False
+    else:
+        remember_stpYN=False
+
     model=create_model_sim.setupNeurons(model,network=not net.single)
     print('trialnum', trialnum)
     population,connections,plas=create_network.create_network(model, net, model.neurons)
+    model.stpYN=remember_stpYN
 
     ####### Set up stimulation - could be current injection or plasticity protocol
     # set num_inject=0 to avoid current injection

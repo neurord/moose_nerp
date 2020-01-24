@@ -19,14 +19,12 @@ plt.ion()
 import moose
 import importlib
 from moose_nerp.prototypes import (create_model_sim,
-                                   cell_proto,
                                    calcium,
                                    clocks,
                                    inject_func,
                                    create_network,
                                    tables,
                                    net_output,
-                                   logutil,
                                    util,
                                    multi_module,
                                    net_sim_graph)
