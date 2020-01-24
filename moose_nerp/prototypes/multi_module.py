@@ -15,7 +15,8 @@ def multi_modules(neuron_modules,model,buf_cap):
         nm.param_cond.neurontypes = util.neurontypes(nm.param_cond)
         syn,neur=cell_proto.neuronclasses(nm,module=neur_module)
         for new_neur in neur.keys():
-            model.syn[new_neur]=syn[new_neur]
+            if nm.synYN:
+                model.syn[new_neur]=syn[new_neur]
             model.neurons[new_neur]=neur[new_neur]
             buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
             model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
