@@ -23,7 +23,7 @@ __NMDA_MgParams = MgParams(A = 1/18.0,
 _SynGaba = SynChannelParams(Erev = -60e-3,
                             tau1 = 1.33e-3,
                             tau2 = 4e-3,
-                            Gbar = 0.2e-9,
+                            Gbar = 0.4e-9, #larger than SPN to compensate for larger soma/lower input resistance
                             var=0.05)
 _SynAMPA = SynChannelParams(Erev = 5e-3,
                             tau1 = 1e-3,

@@ -15,6 +15,6 @@
 *set_global ELEAK -0.03887  // resting, Volts, was -65mV before
 
 *start_cell 
-   soma   none  40  0  0 20 
+   soma   none  30  0  0 20 
 
 
