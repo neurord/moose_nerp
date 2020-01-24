@@ -32,14 +32,14 @@ chanSTD_arky = {
     'Kv3': 0.0386,
     'KvS': 0.0743,
     'KvF': 0.0173,
-    #'KCNQ': 0.0267,
-    #'BKCa': 0.0238,
-    #'SKCa': 0.295,
-    #'HCN1': 0.2454,
+    'KCNQ': 0.0267,
+    'BKCa': 0.0238,
+    'SKCa': 0.295,
+    'HCN1': 0.2454,
     'HCN2': 0.253,
-    #'Ca': 0.1671,
+    'Ca': 0.1671,
     'NaF': 0.0635,
-    #'NaS': 0.215,
+    'NaS': 0.215,
 }
 #from proto154 - loc _0, unless CV close to 1
 chanSTD_proto = {
@@ -47,14 +47,14 @@ chanSTD_proto = {
     'Kv3': 0.0177,
     'KvS': 0.0306,
     'KvF': 0.0114,
-    #'HCN1': 0.139,
+    'HCN1': 0.139,
     'HCN2': 0.175,
-    #'KCNQ': 0.068,
-    #'Ca': .0384,
+    'KCNQ': 0.068,
+    'Ca': .0384,
     'NaF': 0.0302,
-    #'NaS': 0.1308,
-    #'BKCa': 0.0496,
-    #'SKCa': 0.2048,
+    'NaS': 0.1308,
+    'BKCa': 0.0496,
+    'SKCa': 0.2048,
 }
 chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky, 'Lhx6':chanSTD_arky}
 
@@ -76,7 +76,7 @@ neur3pre_neur2post=connect(synapse='gaba', pre='Lhx6', post='Npas', space_const=
 neur3pre_neur3post=connect(synapse='gaba', pre='Lhx6', post='Lhx6', space_const=ConnSpaceConst)
 
 #description of synapse and dendritic location of extrinsic inputs
-STN_distr=dend_location(postsyn_fraction=0.5)
+STN_distr=dend_location(postsyn_fraction=1)
 ext2_neur1post=ext_connect(synapse='ampa',pre=tt_STN,post='proto', dend_loc=STN_distr)# Corbit Whalen 2016 Table 2 connectivity parameters: Chumhma 2011, Shink Smith 1995, Miguelez 2012 
 #ext1_neur1post=ext_connect(synapse='gaba',pre=tt_Str_SPN,post='proto', dend_loc=Str_distr)#ext1 = Str
 ext2_neur2post=ext_connect(synapse='ampa',pre=tt_STN,post='Npas', dend_loc=STN_distr)#ext2 STN
