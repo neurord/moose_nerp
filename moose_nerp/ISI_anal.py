@@ -2,7 +2,7 @@
 import glob
 import numpy as np
 import moose
-from scipy import fftpack, signal
+from scipy import fftpack, signal,stats
 from synth_trains import sig_filter as filt
 import detect
 
@@ -100,7 +100,24 @@ def setup_stimtimes(freq,stim_tt,isi,simtime):
     pre_post_stim['post']=[stim_tt[-1]+(i+1)*isi for i in range(min(num_post-1,freq))]
     return pre_post_stim
 
-def latency(files,freq,neurtype,numbins):
+def calc_lat_shift(lat,stimTimes,numBinsForEnt,freq):
+    entropy={}
+    for numBins_perStim in numBinsForEnt:
+        binSize_ent=1/(freq*numBins_perStim) #units are sec
+        nStim=np.sum([len(st) for st in stimTimes.values()])
+        spikeMat=np.zeros((nStim,numBins_perStim))
+        stim_num=0
+        for jj,pre_post in enumerate(lat.keys()):
+            for i,latency_set in enumerate(lat[pre_post]):
+                spikeBin=[np.floor(lat/binSize_ent) for lat in latency_set]
+                for binnum in range(numBins_perStim):
+                    spikeMat[stim_num,binnum]=spikeBin.count(binnum)
+                stim_num=stim_num+1
+        p_for_entropy=np.array([sm/np.sum(sm) for sm in spikeMat])
+        entropy[numBins_perStim]=[stats.entropy(ent) for ent in p_for_entropy]
+    return entropy
+            
+def latency(files,freq,neurtype,numbins,numBinsForEnt=[]):
     isi=1.0/freq
     latency={'pre':np.zeros((freq,len(files))),'post':np.zeros((freq,len(files))), 'stim':np.zeros((freq,len(files)))}
     bins,bin_size,stim_tt,simtime=set_up_bins(files[0],freq,numbins,neurtype)
@@ -114,16 +131,23 @@ def latency(files,freq,neurtype,numbins):
             for pre_post in pre_post_stim.keys():
                 for i,time in enumerate(pre_post_stim[pre_post]):
                     next_spike=np.min(spike_time[np.where(spike_time>time)])
-                    latency[pre_post][i,fnum]=next_spike-time
+                    latency[pre_post][i,fnum]=(next_spike-time) if next_spike<(time+isi) else np.nan
             isi_vals=dat['isi'].item()[neurtype][0]
             isi_set=isi_vs_time(spike_time,isi_vals,bins,bin_size,isi_set)
         else:
             print('whoops, wrong file',fname,'for freq', freq,'file contains', dat.keys())
+    if len(numBinsForEnt):
+        entropy=calc_lat_shift(latency,pre_post_stim,numBinsForEnt,freq)
+    else:
+        entropy=[]
     lat_mean={}
     lat_std={}
+    latency_phase={}
     for pre_post in latency.keys():
-        lat_mean[pre_post]=np.mean(latency[pre_post],axis=1)
-        lat_std[pre_post]=np.std(latency[pre_post],axis=1)
+        #print('latency',np.shape(latency[pre_post]))
+        latency_phase[pre_post]=[ lat % isi for lat in latency[pre_post]]
+        lat_mean[pre_post]=np.nanmean(latency[pre_post],axis=1)
+        lat_std[pre_post]=np.nanstd(latency[pre_post],axis=1)
         #print('latency {}: mean {} \n std {}'.format(pre_post,lat_mean[pre_post],lat_std[pre_post]))
     isi_mean={}
     isi_std={}
@@ -134,7 +158,7 @@ def latency(files,freq,neurtype,numbins):
         isi_mean[pre_post]=[np.mean(isis) for isis in isi_set[pre_post].values()]
         isi_std[pre_post]=[np.std(isis) for isis in isi_set[pre_post].values()]
         #print('isi {}: mean {} \n std {}'.format(pre_post,isi_mean[pre_post],isi_std[pre_post]))
-    return lat_mean,lat_std,isi_mean,isi_std,bins,bin_size
+    return lat_mean,lat_std,isi_mean,isi_std,bins,bin_size,latency_phase,entropy
 
 def freq_dependence(fileroot,presyn,suffix):
     pattern=fileroot+presyn+'*'+suffix

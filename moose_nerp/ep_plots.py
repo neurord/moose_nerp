@@ -47,7 +47,7 @@ if networksim:
     condition=['GABA']#,'POST-HFS','POST-NoDa']
     #condition=['POST-HFS_DMDLam', 'GABA_DMDLam'] #'POST-NoDaosc', 
     #tuples of (freq,syntype,plasYN,striatal correlation) for some synaptic input
-    presyn_set=[(20,'str',1),(20,'GPe',1)]#,(20,'str',0),(20,'GPe',0)]#(20,'str'),(40,'GPe')
+    presyn_set=[(20,'str',10),(20,'GPe',10),(20,'str',11),(20,'GPe',11)]#(20,'str'),(40,'GPe')
     #location of files to analyze
     filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
@@ -75,12 +75,16 @@ else:
     #Network simulations
     #set up some dictionaries to hold results
     mean_prespike_sta1={};mean_prespike_sta2={}
-    mean_sta_vm={};vmdat={};sta_list={}
+    mean_sta_vm={cond:{} for cond in condition};vmdat={};sta_list={}
     spiketime_dict={};syntt_info={}
     lat_mean={};lat_std={}
     isi_mean={};isi_std={}
     isi_set={};all_isi_mean={}
-    fft_wave={};phase={};freqs={};mean_fft_phase={};fft_env={}
+    freqs={};latency_phase={};entropy={}
+    fft_wave={cond:{} for cond in condition}
+    phase={cond:{} for cond in condition}
+    mean_fft_phase={cond:{} for cond in condition}
+    fft_env={cond:{} for cond in condition}
     for cond in condition:
         #time points for spike triggered average
         sta_start=-40e-3
@@ -89,20 +93,21 @@ else:
         rootname='ep'+cond+ 'PSP_'#'_syn'#
         fileroot=filedir+rootname
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
-        mean_sta_vm[cond]={}
-        fft_wave[cond]={};phase[cond]={};mean_fft_phase[cond]={};fft_env[cond]={}
         for params in presyn_set:
             pattern,key,freq=file_pattern(fileroot,suffix,params,'*.npz')
             files=ISI_anal.file_set(pattern)
-            numtrials=len(files)
+            ###################### stuff for entropy ######################
+            entropy_bin_size=0.01 #Lavian J Neurosci used 10 ms bins
+            numBinsForEnt=[int((1./freq)/entropy_bin_size)]#[2, 5, 10, 25] #set to [] to avoid calculating 
+            latFactor=40 #4 ms UNUSED?
             if len(files):
                 spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
-                max_time= np.max([np.max(spikes) for spikes in spiketime_dict[key]])
+                max_time= syntt_info[key]['maxt']
                 if freq>0:
                     #latency: time from simulation of specific synapse to spike
                     #not defined if no regular (periodic) stimulation
                     #isi in these two functions is separated into pre and post stimulation - requires regular stimulation
-                    lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], isibins,isi_binsize=ISI_anal.latency(files,freq,neurtype,numbins)
+                    lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], isibins,isi_binsize,latency_phase[key],entropy[key]=ISI_anal.latency(files,freq,neurtype,numbins,numBinsForEnt)
                     isi_set[key]=ISI_anal.ISI_histogram(files,freq,neurtype)
                 if sta_start != sta_end:
                     #ep spike triggered average of vm before the spike (the standard sta)
@@ -134,11 +139,11 @@ else:
                 for pre_post,ISIs in isi_set[synstim].items():
                     hist1,tmp=np.histogram(pu.flatten(ISIs),bins=histbins)
                     hist=np.column_stack((hist,hist1))
-                    header=header+pre_post+'      '
-                f=open(cond+synstim+"_isi_hist.txt",'w')
-                f.write(header+'\n')
-                np.savetxt(f,hist,fmt='%.5f')
-                f.close()
+                    header=header+synstim+'_'+pre_post+' '
+            f=open(cond+"_isi_hist.txt",'w')
+            f.write(header+'\n')
+            np.savetxt(f,hist,fmt='%.5f')
+            f.close()
     #
         ################## additional spike triggered averages and raster plot of input spike times,
         ######## This next set of analyses requires the input spikes
@@ -330,7 +335,16 @@ for key,rate_set in spike_rate.items():
         spike_freq_mean[key][pre_post]=np.mean(spike_freq[key][pre_post],axis=0)
         spike_freq_std[key][pre_post]=np.std(spike_freq[key][pre_post],axis=0)
 
-#create spike_freq_plot function that is called once per condition
+fig,axes =plt.subplots(len(entropy),1,sharex=True)
+for i,key1 in enumerate(entropy.keys()):
+    for key2 in entropy[key1].keys():
+        axes[i].plot(entropy[key1][key2],label=key2)
+    axes[i].set_ylabel(key1)
+axes[-1].set_xlabel('stim')
+axes[0].legend()
+fig.suptitle('entropy')
+
+    #create spike_freq_plot function that is called once per condition
 fig,axes =plt.subplots(len(spike_rate),1,sharex=True)
 for i,key1 in enumerate(spike_rate.keys()):
     axes[i].plot(ratebins,spike_rate_mean[key1],label='eleph')
@@ -341,9 +355,22 @@ axes[0].set_xlim([1,max_time-1])
 axes[-1].set_xlabel('time')
 axes[0].legend()
 fig.suptitle('firing rate')
+
+#create latency_phase_plot function that is called once per condition
+fig,axes =plt.subplots(len(latency_phase),1,sharex=True)
+for i,key1 in enumerate(latency_phase.keys()):
+    for key2 in latency_phase[key1].keys():
+        flat_array=np.array(pu.flatten(latency_phase[key1][key2]))
+        phase_hist,tmpbins=np.histogram(flat_array[~np.isnan(flat_array)],bins=12)
+        phase_hist_bins=[(tmpbins[i]+tmpbins[i+1])/2 for i in range(len(tmpbins)-1)]
+        axes[i].plot(phase_hist_bins,phase_hist,label=key2)
+    axes[i].set_ylabel(key1)
+axes[-1].set_xlabel('latency (ms)')
+axes[0].legend()
+fig.suptitle('latency phase histogram')
 #this shows that std increases during stim with str
 #data good for bar plot
-f=open("spike_rate_stats.txt",'w')
+f=open("ep_freq20_spike_rate_stats.txt",'w')
 header='spike frequencies: condition, epoch mean, std, CV\n'
 f.write(header)
 print(header)
@@ -351,37 +378,50 @@ for k1 in spike_freq_mean.keys():
     for k2 in spike_freq_mean[k1].keys():
         mean_firing=np.mean(spike_freq_mean[k1][k2])
         std_firing=np.std(np.mean(spike_freq[k1][k2],axis=1))
-        summary='   '.join([k1,k2,str(np.round(mean_firing,3)),str(np.round(std_firing,3))])+'\n'
-        f.write(summary)
+        summary='   '.join([k1,k2,str(np.round(mean_firing,3)),str(np.round(std_firing,3))])
+        f.write(summary+'\n')
         print(summary)
 f.close()
 #for stat analysis, output all values of spike_freq_mean for each condition, read into SAS
 
 #to plot spike rate vs time, with error bars
-f=open('spike_rate.txt','w')
+f=open('ep_freq20_spike_rate.txt','w')
 header='time'
 outputdata=ratebins
 for key in spike_rate_mean.keys():
     outputdata=np.column_stack((outputdata,spike_rate_mean[key],spike_rate_std[key]))
     header=header+'   mean_'+key+'   std_'+key
-f.write(header)
+f.write(header+'\n')
 np.savetxt(f,outputdata,fmt='%.5f')
 '''
 to plot changes in ISI and firing frequency, need to smooth the results or use sliding window?
 
-mean ISI:
-str_freq20_plas1 pre : ISI mean, std= 0.0518993031358885 0.018427844015360285  CV= 0.35506919942856385
-str_freq20_plas1 post : ISI mean, std= 0.05157269624573378 0.02108436503773002  CV= 0.40882805384591797
-str_freq20_plas1 stim : ISI mean, std= 0.06322468085106382 0.02890873363219657  CV= 0.4572381108620519
-GPe_freq20_plas1 pre : ISI mean, std= 0.05002173913043478 0.020325038407665655  CV= 0.4063241054987485
-GPe_freq20_plas1 post : ISI mean, std= 0.05011362126245847 0.0194870733330019  CV= 0.38885781633985045
-GPe_freq20_plas1 stim : ISI mean, std= 0.05332419928825622 0.019155711026434277  CV= 0.3592311048663605
+mean ISI: effects are small
+str_freq20_plas10 pre : ISI mean, std= 0.05091883561643835 0.019703007767408687  CV= 0.38694929938751155
+str_freq20_plas10 post : ISI mean, std= 0.049357755775577564 0.020231532692692126  CV= 0.4098957169909005
+str_freq20_plas10 stim : ISI mean, std= 0.05061717171717171 0.01767893060360302  CV= 0.3492674522074393
+GPe_freq20_plas10 pre : ISI mean, std= 0.052381597222222215 0.021988662835247946  CV= 0.4197783954919103
+GPe_freq20_plas10 post : ISI mean, std= 0.052277543859649125 0.019535568665646298  CV= 0.373689489278493
+*GPe_freq20_plas10 stim : ISI mean, std= 0.05782054263565891 0.026701862514084122  CV= 0.4618058097852688
+str_freq20_plas11 pre : ISI mean, std= 0.04948039867109634 0.016822950858531617  CV= 0.33999222541346735
+str_freq20_plas11 post : ISI mean, std= 0.05113872053872053 0.021151655753721056  CV= 0.41361331552489133
+*str_freq20_plas11 stim : ISI mean, std= 0.05913705179282868 0.03184500595159434  CV= 0.5384949872569749
+GPe_freq20_plas11 pre : ISI mean, std= 0.04984900662251655 0.018639333428769136  CV= 0.3739158449017084
+GPe_freq20_plas11 post : ISI mean, std= 0.05130440677966101 0.020298681953636023  CV= 0.39565182072591826
+GPe_freq20_plas11 stim : ISI mean, std= 0.05282071428571428 0.019814920411608195  CV= 0.37513541192242594
 
 firing frequency          mean     std
-str_freq20_plas1   stim   15.981   1.728
-str_freq20_plas1   pre   19.338   1.581
-str_freq20_plas1   post   19.123   1.796
-GPe_freq20_plas1   stim   18.86   1.751
-GPe_freq20_plas1   pre   20.114   2.194
-GPe_freq20_plas1   post   19.932   1.987
+str_freq20_plas10   stim   19.773   2.277
+str_freq20_plas10   pre   19.812   1.862
+str_freq20_plas10   post   20.284   2.354
+*GPe_freq20_plas10   stim   17.493   1.61
+GPe_freq20_plas10   pre   19.28   1.836
+GPe_freq20_plas10   post   18.904   1.842
+*str_freq20_plas11   stim   17.249   2.795
+str_freq20_plas11   pre   20.109   1.503
+str_freq20_plas11   post   19.449   2.309
+GPe_freq20_plas11   stim   19.134   1.567
+GPe_freq20_plas11   pre   20.048   1.476
+GPe_freq20_plas11   post   19.458   2.107
+effects are small
 '''
