@@ -134,6 +134,11 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None,soma_loc=[0,0,
         else:
             dist_prob=1
         #print('    syncomp',syncomp,'dist',dist,'prob',dist_prob)
+        #length of syncomps is the number of synapses available for connections
+        #this is the number of synchans * number of synapses per synchan
+        #optionally multiply by probably of connecting to that synchan, e.g. based on distance dependence
+        #since there may be multiple types of pre-synaptic neurons, reduce length of syncomps if synapses already made
+        #
         if dist_prob>0: #only add synchan to list if connection probability is non-zero
             sh=moose.element(syncomp.path+'/SH')
             # TODO: Fix for synapses on spines; there should only be 1 per spine
@@ -232,7 +237,9 @@ def connect_neurons(cells, netparams, postype, model):
     if not isinstance(cells[postype],list):
         temp=cells[postype]
         cells[postype]=list([temp])
+    synchan_shortage={}
     for postcell in cells[postype]:
+        synchan_shortage[postcell]=0
         postsoma=postcell+'/'+model.param_cond.NAME_SOMA
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
@@ -281,7 +288,7 @@ def connect_neurons(cells, netparams, postype, model):
                             spikegen_conns.append([moose.wildcardFind(presoma+'/#[TYPE=SpikeGen]')[0],(xpre,ypre,zpre),dist])
                     if len(spikegen_conns):
                         num_conn=[max(np.random.poisson(post_connections[syntype][pretype].num_conns),1) for n in spikegen_conns]
-                        print('&& connect to neuron', postcell,syntype,'from',pretype,'num conns',num_conn)
+                        #print('&& connect to neuron', postcell,syntype,'from',pretype,'num conns',num_conn)
                         intra_conns[syntype][pretype].append(np.sum(num_conn))
                         #duplicate spikegens in list to match the length of the list syn_choices to be generated
                         for i in range(len(num_conn)-1,-1,-1):
@@ -289,10 +296,11 @@ def connect_neurons(cells, netparams, postype, model):
                                 spikegen_conns.insert(i,spikegen_conns[i])
                         num_choices=min(len(spikegen_conns),availsyns)
                         if len(spikegen_conns)>availsyns:
-                            print('>>>> uh oh, too few synapses on post-synaptic cell, need',len(spikegen_conns),'avail',availsyns)
+                            print('$$$$$$ uh oh, too few synapses on post-synaptic cell, need',len(spikegen_conns),'avail',availsyns)
+                            synchan_shortage[postcell]=synchan_shortage[postcell]+len(spikegen_conns)-availsyns
                         #randomly select num_choices of synapses
                         if availsyns==0:
-                            print('>>>>>>>>>>> uh oh, no available synapses on post-synaptic cell')
+                            print('$$$$$$$$$$$$$$$$ even worse, no available synapses on post-synaptic cell')
                             syn_choices=[]
                         else:
                             syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
@@ -313,7 +321,9 @@ def connect_neurons(cells, netparams, postype, model):
                         else:
                             print('   !!! no pre-synaptic cells selected for',postcell,' because no', pretype, 'in population')
     for syn in intra_conns.keys():
-        tmp=[np.mean(intra_conns[syn][pre])/len(cells[postype]) for pre in intra_conns[syn].keys()]                                     
-        print('*************** mean number of intra-network connections to',postype, syn,'from',intra_conns[syn],tmp)
+        tmp=[np.sum(intra_conns[syn][pre])/float(len(cells[postype])) for pre in intra_conns[syn].keys()]
+        print('*************** number of intra-network connections to',postype, syn,'from',intra_conns[syn],'mean',tmp)
+    if np.sum(list(synchan_shortage.values()))>0:
+        print('@@@@@@@@@@@@@@@@@@ summary of synchan shortage',synchan_shortage)
     return connect_list
 
