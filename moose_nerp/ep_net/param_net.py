@@ -16,8 +16,8 @@ spacing=60e-6 #need value and reference
 #
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':100e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':300e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':300e-6,'inc':spacing}
 grid[2]={'xyzmin':300e-6,'xyzmax':300e-6,'inc':0}
 
 #Do not include a neuron type in pop_dict if the the prototype does not exist

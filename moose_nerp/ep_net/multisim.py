@@ -79,11 +79,13 @@ def moose_main(p):
     else:
         print ('$$$$$$$$$$$$$$ old tt file for STN:',net.param_net.tt_STN.filename, 'trial', trialnum)
     #################################-----------create the model: neurons, and synaptic inputs
-    if model.stpYN==True:
-        remember_stpYN=True
-        model.stpYN=False
-    else:
+    if model.stpYN==False:
         remember_stpYN=False
+        model.stpYN=True
+        #create network with stp, and then turn it off for extra synapse (if model.stpYN is False)
+    else:
+        remember_stpYN=True
+    fname_stp=str(1 if model.stpYN else 0)+str(1 if remember_stpYN else 0)
 
     model=create_model_sim.setupNeurons(model,network=not net.single)
     print('trialnum', trialnum)
@@ -107,7 +109,7 @@ def moose_main(p):
     else:
         print('########### unknown synapse type', 'trial', trialnum)
 
-    param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
+    param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+fname_stp+fname_part+'t'+str(trialnum)
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
