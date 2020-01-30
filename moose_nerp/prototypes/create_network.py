@@ -51,6 +51,20 @@ def dict_delete(a, delete, path=[]):
             pass
     return a
 
+def change_connect(change_dict,connect_dict):
+    for neurtype in change_dict:
+        for syntype in change_dict[neurtype]:
+            for presyn in change_dict[neurtype][syntype]:
+                print('>>>>>> old connect, change',change_dict[neurtype][syntype][presyn][0],'---', connect_dict[neurtype][syntype][presyn])
+                if change_dict[neurtype][syntype][presyn][0]=='prob':
+                    connect_dict[neurtype][syntype][presyn].probability=change_dict[neurtype][syntype][presyn][1]
+                elif change_dict[neurtype][syntype][presyn][0]=='space':
+                    connect_dict[neurtype][syntype][presyn].space_const*=change_dict[neurtype][syntype][presyn][1]
+                elif change_dict[neurtype][syntype][presyn][0]=='weight':
+                    connect_dict[neurtype][syntype][presyn].weight*=change_dict[neurtype][syntype][presyn][1]
+                print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
+    return connect_dict
+
 def print_connect_dict(connect_dict):
     for key1,item1 in connect_dict.items():
         for key2,item2 in item1.items():
@@ -105,6 +119,10 @@ def create_network(model, param_net,neur_protos={},network_list=None):
                 # recommendation - make mindelay and cond_vel dictionaries - one value for each neuron type
                 param_net.mindelay=merge(param_net.mindelay,other_net.mindelay)
                 param_net.cond_vel=merge(param_net.cond_vel,other_net.cond_vel)
+            #change weight of connections
+            param_net.connect_dict=change_connect(param_net.change_weight,param_net.connect_dict)
+            #change connection probabilities for intrinsic connectins
+            param_net.connect_dict=change_connect(param_net.change_prob,param_net.connect_dict)
             #delete connections, e.g. extrinsic, no longer needed since connecting to other networks
             param_net.connect_dict=dict_delete(param_net.connect_dict,param_net.connect_delete)
             #print_connect_dict(param_net.connect_dict)
