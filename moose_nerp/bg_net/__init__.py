@@ -2,6 +2,9 @@ from .param_net import (confile,
                         outfile,
                         connect_dict,
                         connect_delete,
+                        change_syn,
+                        change_weight,
+                        change_prob,
                         mindelay,
                         cond_vel)
 
