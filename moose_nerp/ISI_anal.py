@@ -269,12 +269,6 @@ def sta_set(files,spike_time,neurtype,sta_start,sta_end):
             trace=np.shape(vmdat)[1]-1
             xvals,sta=calc_sta(spike_time[trial],window,vmdat[trial][trace],plotdt)
             sta_list.append(sta)
-            '''
-            vmsignal=AnalogSignal(vmdat[trial][1],units='V',sampling_rate=plotdt*q.Hz)
-            spikes=SpikeTrain(spike_time*q.s,t_stop=vmsignal.times[-1])
-            e_sta=elephant.sta.spike_triggered_average(vmsignal,spikes,(-window*q.s,0*q.s))
-            plt.plot(xvals,e_sta.magnitude,label='e_sta') 
-            '''
         else:
             print('wrong spike file')
     #calculate mean over trials
@@ -347,6 +341,35 @@ def input_fire_freq(pre_spikes,binsize):
             for i,binmin in enumerate(xbins):
                 inst_rate2[trial][key][i]=len([st for st in spikes if st>=binmin and st<binmin+binsize])/binsize
     return inst_rate1,inst_rate2,xbins
+
+#Need to move these spike_freq calulations into function that is called once per condition
+def output_fire_freq(spiketime_dict,isi_binsize,isibins,max_time):
+    import elephant
+    from neo.core import AnalogSignal,SpikeTrain
+    import quantities as q
+    ratebins=np.arange(0,np.ceil(max_time),isi_binsize)
+    #spike_rate: across entire time
+    spike_rate={key:np.zeros((len(spike_set),len(ratebins))) for key,spike_set in spiketime_dict.items()}
+    spike_rate_vs_time_mean={};spike_rate_vs_time_std={}
+    #spike_freq: segmented into pre,stim,post
+    spike_freq={key:{} for key in spiketime_dict.keys()}
+    spike_freq_mean={key:{} for key in spiketime_dict.keys()}
+    spike_freq_std={key:{} for key in spiketime_dict.keys()}
+    for key,spike_set in spiketime_dict.items(): #iterate over different stimulation conditions
+        for i in range(len(spike_set)): #iterate over trials
+            train=SpikeTrain(spike_set[i]*q.s,t_stop=np.ceil(max_time)*q.s)
+            spike_rate[key][i]=elephant.statistics.instantaneous_rate(train,isi_binsize*q.s).magnitude[:,0]#/len(spike_set)
+    for key,rate_set in spike_rate.items(): #separate out the spike_rate into pre, post, and stimulation time frames
+        for pre_post,binlist in isibins.items():
+            binmin_idx=np.abs(ratebins-binlist[0]).argmin()
+            binmax_idx=np.abs(ratebins-(binlist[-1]+isi_binsize)).argmin()
+            spike_freq[key][pre_post]=spike_rate[key][:,binmin_idx:binmax_idx]
+        spike_rate_vs_time_mean[key]=np.mean(spike_rate[key],axis=0) #average across trials
+        spike_rate_vs_time_std[key]=np.std(spike_rate[key],axis=0) #std across trials
+        for pre_post,binlist in isibins.items():
+            spike_freq_mean[key][pre_post]=np.mean(spike_freq[key][pre_post],axis=0)
+            spike_freq_std[key][pre_post]=np.std(spike_freq[key][pre_post],axis=0)
+    return spike_freq_mean,spike_freq_std,spike_rate_vs_time_mean,spike_rate_vs_time_std,ratebins
 
 def fft_func(wave_array,ts,init_time,endtime):
     fft_wave=[]; phase=[]; fft_env=[]

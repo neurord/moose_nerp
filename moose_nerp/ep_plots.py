@@ -21,6 +21,7 @@ networksim=1
 spike_sta=0
 show_sta=0
 show_plots=1
+plot_across_condition=1
 savetxt=True
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-1,'gabaextern3':-1,'ampaextern1':1}#, 'gabaextern4':-1}
@@ -47,7 +48,7 @@ if networksim:
     condition=['GABA']#,'POST-HFS','POST-NoDa']
     #condition=['POST-HFS_DMDLam', 'GABA_DMDLam'] #'POST-NoDaosc', 
     #tuples of (freq,syntype,plasYN,striatal correlation) for some synaptic input
-    presyn_set=[(20,'str',10),(20,'GPe',10),(20,'str',11),(20,'GPe',11)]#(20,'str'),(40,'GPe')
+    presyn_set=[(20,'GPe',10),(20,'GPe',11)]#,(20,'str',11),(20,'str',10)]#(20,'str'),(40,'GPe')
     #location of files to analyze
     filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
@@ -99,7 +100,6 @@ else:
             ###################### stuff for entropy ######################
             entropy_bin_size=0.01 #Lavian J Neurosci used 10 ms bins
             numBinsForEnt=[int((1./freq)/entropy_bin_size)]#[2, 5, 10, 25] #set to [] to avoid calculating 
-            latFactor=40 #4 ms UNUSED?
             if len(files):
                 spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
                 max_time= syntt_info[key]['maxt']
@@ -116,20 +116,23 @@ else:
                     time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
                     fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key],fft_env[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=time_wave[-1]-0.5)
                     max_time=max(max_time,time_wave[-1])
+        spike_freq_mean,spike_freq_std,spike_rate_vs_time_mean,spike_rate_vs_time_std,ratebins=ISI_anal.output_fire_freq(spiketime_dict,isi_binsize,isibins,max_time)
         all_isi_mean[cond]=isi_mean
         #
         #####1st set of graphs
         if show_plots:
             pu.plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info)
             if len(lat_mean):
-                pu.plot_latency(rootname,lat_mean,lat_std,suffix)
+                pu.plot_dict_of_dicts(rootname,lat_mean,suffix,'Latency',std_dict=lat_std,xlabel='stim number')
                 #latency not too meaningful if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
-                pu.plot_ISI(rootname,isi_mean,isi_std,isibins,suffix)
+                pu.plot_dict_of_dicts(rootname,isi_mean,suffix,'ISI',std_dict=isi_std,xarray=isibins)
+                pu.plot_dict_of_dicts(rootname,entropy,suffix,'entropy',xlabel='stim number')
+                pu.plot_dict_of_lists(rootname,spike_rate_vs_time_mean,suffix,'firing rate',ratebins,std_dict=spike_rate_vs_time_std)
                 #ISI histogram
                 histbins,plotbins=pu.plot_isi_hist(rootname,isi_set,numbins,suffix)
             if sta_start != sta_end and show_sta:
                 #ep spike triggered average of vm before the spike (the standard sta)
-                pu.plot_sta_vm(pre_xvals,sta_list,fileroot,suffix)
+                pu.plot_dict_of_lists(rootname,sta_list,suffix,'STA', pre_xvals)
             for key in vmdat.keys():
                 fft_plot(time_wave,vmdat[key],freqs[cond],fft_wave[cond][key],phase=phase[cond][key],title=cond+key)#,mean_fft=mean_fft_phase[cond])
         if savetxt:
@@ -144,7 +147,28 @@ else:
             f.write(header+'\n')
             np.savetxt(f,hist,fmt='%.5f')
             f.close()
-    #
+            ############ data for bar plot
+            f=open(cond+"spike_rate_stats.txt",'w')
+            header='spike frequencies: condition, epoch mean, std, CV\n'
+            f.write(header)
+            for k1 in spike_freq_mean.keys():
+                for k2 in spike_freq_mean[k1].keys():
+                    mean_firing=np.mean(spike_freq_mean[k1][k2]) #average across epochs (i.e., stim events)
+                    std_firing=np.mean(spike_freq_std[k1][k2]) #average across epoch stdevs to get estimate of stdev of firing
+                    summary='   '.join([k1,k2,str(np.round(mean_firing,3)),str(np.round(std_firing,3))])
+                    f.write(summary+'\n')
+                    print(summary)
+            f.close()
+            ############# to plot spike rate vs time, with error bars
+            f=open(cond+'spike_rate.txt','w')
+            header='time'
+            outputdata=ratebins
+            for key in spike_rate_vs_time_mean.keys():
+                outputdata=np.column_stack((outputdata,spike_rate_vs_time_mean[key],spike_rate_vs_time_std[key]))
+                header=header+'   mean_'+key+'   std_'+key
+            f.write(header+'\n')
+            np.savetxt(f,outputdata,fmt='%.5f')
+            #
         ################## additional spike triggered averages and raster plot of input spike times,
         ######## This next set of analyses requires the input spikes
         #2. spike triggered Vm after an input spike
@@ -190,7 +214,8 @@ else:
         mean_pre_sta1={}; mean_pre_sta2={}
         if spike_sta:
             for key in pre_spikes:
-                inst_rate1[key],inst_rate2[key],xbins=ISI_anal.input_fire_freq(pre_spikes[key],binsize)
+                #rate1 - calculated with elephant (smoothed), rate2 - calculated by hand, no smoothing
+                inst_rate1[key],inst_rate2[key],xbins=ISI_anal.input_fire_freq(pre_spikes[key],binsize) 
                 prespike_sta1[key],mean_pre_sta1[key],bins1=ISI_anal.sta_fire_freq(inst_rate1[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
                 prespike_sta2[key],mean_pre_sta2[key],bins2=ISI_anal.sta_fire_freq(inst_rate2[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
             mean_prespike_sta1[cond]=mean_pre_sta1
@@ -198,11 +223,12 @@ else:
             ######## second set of graphs
         if show_plots and spike_sta:
             for key in inst_rate1:
-                pu.plot_inst_firing(inst_rate1[key],xbins,title=cond+key+' smoothed')
+                pu.plot_list_of_dict(inst_rate1[key],xbins,title='instaneous pre-syn firing rate '+cond+key+' smoothed')
                 #pu.plot_inst_firing(inst_rate2[key],xbins,title=cond+key)
-                pu.plot_prespike_sta(prespike_sta1[key],mean_pre_sta1[key],bins1,title=cond+key+' smoothed')
-                pu.plot_prespike_sta(prespike_sta2[key],mean_pre_sta2[key],bins2,title=cond+key)
+                pu.plot_list_of_dict(prespike_sta1[key],bins1,mean_values=mean_pre_sta1[key],title='prespike sta '+cond+key+' smoothed')
+                pu.plot_list_of_dict(prespike_sta2[key],bins2,mean_values=mean_pre_sta2[key],title='prespike sta '+cond+key)
     #
+    ############################## More analyses and graphs after looping over all conditions
     ##################### calculate cross-correlogram from input and output rate histograms #####################
     presyn_types=weights.keys()
     #even better, get presyn_types from pre_spikes[key][0].keys()
@@ -223,45 +249,15 @@ else:
         plt.xlabel('time (s)')
         plt.ylabel('Vm (V)')
     #else do nothing
-    #2nd FFT
-    colors=plt.get_cmap('viridis')
-    num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
-    colors2D=[colors,plt.get_cmap('magma'),plt.get_cmap('Blues'),plt.get_cmap('gist_heat')]
-    offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
-    if len(condition)>len(presyn_set):
-        cmap=[i%len(colors2D) for i in range(len(presyn_set))]
-        color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
-        color_tuple=[(cm,ci) for ci in color_index for cm in cmap]
-        plot_set=1
-    elif len(presyn_set)>1:
-        cmap=[i%len(colors2D) for i in range(len(condition))]
-        color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
-        color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
-        plot_set=1
-        #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
-    else:
-        plot_set=0
-    if plot_set:
-        fig,axes=plt.subplots(2,1,sharex=True)
-        fig.suptitle('Mean fft')
-        for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
-            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
-            maxfreq=np.min(np.where(freqs[cond]>500))
-            for j,(key,fft) in enumerate(fft_set.items()):
-                ti=i*len(presyn_set)+j
-                mycolor=colors2D[color_tuple[ti][0]].__call__(color_tuple[ti][1]+offset[color_tuple[ti][0]])
-                #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
-                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
-                axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-                mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
-                axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
-        axes[1].set_xlabel('Frequency in Hertz [Hz]')
-        axes[0].set_ylabel('FFT Magnitude')
-        axes[1].set_ylabel('FFT of envelope')
-        axes[0].set_xlim(0 , freqs[cond][maxfreq] )
-        axes[0].set_ylim(0,np.round(maxval) )
-        axes[1].set_ylim(0,np.round(maxval) )
-        axes[1].legend()
+    if plot_across_condition:
+        # fft, ISI and sta across conditions
+        pu.plot_fft(condition,presyn_set,mean_fft_phase,freqs,fft_wave,fft_env)
+        if len(lat_mean):
+            pu.plot_ISI_cond(all_isi_mean,isibins)
+        #
+        if len(inst_rate1):
+            pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
+        #
     ####### Output data for plotting #######
     if savetxt:
         for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
@@ -278,83 +274,6 @@ else:
                 f.write(header)
                 np.savetxt(f,output_data,fmt='%.5f')
                 f.close()
-    if len(lat_mean) and plot_set:
-        pu.plot_ISI_cond(all_isi_mean,isibins)
-    #
-    if len(inst_rate1) and plot_set:
-        pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
-    #
-
-'''
-from matplotlib import pyplot as plt
-condition=['POST-HFS_STNosc', 'GABA_STNosc','POST-HFS_GPeOsc', 'GABA_GPeOsc']
-colors=plt.get_cmap('viridis')
-presyn_set=[(0,'non',1)]
-num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
-colors2D=[plt.get_cmap('gist_heat'),plt.get_cmap('summer'),plt.get_cmap('Blues')]
-offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
-if len(condition)>len(presyn_set):
-    cmap=[i%len(colors2D) for i in range(len(presyn_set))]
-    color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
-    color_tuple=[(cm,ci) for ci in color_index for cm in cmap ]
-    print ('cond>presyn',color_tuple)
-else:
-    cmap=[i%len(colors2D) for i in range(len(condition))]
-    color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
-    color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
-    print ('preyn>cond',color_tuple)
-for i,cond in enumerate(condition):
-    for j,presyn in enumerate(presyn_set):
-        ti=i*len(presyn_set)+j
-        print (cond,presyn,ti,color_tuple[ti][0],color_tuple[ti][1])
-
-'''
-#Need to move these spike_freq calulations into function that is called once per condition
-from neo.core import AnalogSignal,SpikeTrain
-import quantities as q
-ratebins=np.arange(0,np.ceil(max_time),isi_binsize)
-#spike_rate: across entire time
-spike_rate={key:np.zeros((len(spike_set),len(ratebins))) for key,spike_set in spiketime_dict.items()}
-spike_rate_mean={};spike_rate_std={}
-#spike_freq: segmented into pre,stim,post
-spike_freq={key:{} for key in spiketime_dict.keys()}
-spike_freq_mean={key:{} for key in spiketime_dict.keys()}
-spike_freq_std={key:{} for key in spiketime_dict.keys()}
-for key,spike_set in spiketime_dict.items():
-    for i in range(len(spike_set)):
-        train=SpikeTrain(spike_set[i]*q.s,t_stop=np.ceil(max_time)*q.s)
-        spike_rate[key][i]=elephant.statistics.instantaneous_rate(train,isi_binsize*q.s).magnitude[:,0]#/len(spike_set)
-for key,rate_set in spike_rate.items():
-    for pre_post,binlist in isibins.items():
-        binmin_idx=np.abs(ratebins-binlist[0]).argmin()
-        binmax_idx=np.abs(ratebins-(binlist[-1]+isi_binsize)).argmin()
-        spike_freq[key][pre_post]=spike_rate[key][:,binmin_idx:binmax_idx]
-    spike_rate_mean[key]=np.mean(spike_rate[key],axis=0)
-    spike_rate_std[key]=np.std(spike_rate[key],axis=0)
-    for pre_post,binlist in isibins.items():
-        spike_freq_mean[key][pre_post]=np.mean(spike_freq[key][pre_post],axis=0)
-        spike_freq_std[key][pre_post]=np.std(spike_freq[key][pre_post],axis=0)
-
-fig,axes =plt.subplots(len(entropy),1,sharex=True)
-for i,key1 in enumerate(entropy.keys()):
-    for key2 in entropy[key1].keys():
-        axes[i].plot(entropy[key1][key2],label=key2)
-    axes[i].set_ylabel(key1)
-axes[-1].set_xlabel('stim')
-axes[0].legend()
-fig.suptitle('entropy')
-
-    #create spike_freq_plot function that is called once per condition
-fig,axes =plt.subplots(len(spike_rate),1,sharex=True)
-for i,key1 in enumerate(spike_rate.keys()):
-    axes[i].plot(ratebins,spike_rate_mean[key1],label='eleph')
-    for key2 in spike_freq_mean[key1].keys():
-        axes[i].plot(isibins[key2],spike_freq_mean[key1][key2],label=key2)
-    axes[i].set_ylabel(key1)
-axes[0].set_xlim([1,max_time-1])
-axes[-1].set_xlabel('time')
-axes[0].legend()
-fig.suptitle('firing rate')
 
 #create latency_phase_plot function that is called once per condition
 fig,axes =plt.subplots(len(latency_phase),1,sharex=True)
@@ -368,60 +287,4 @@ for i,key1 in enumerate(latency_phase.keys()):
 axes[-1].set_xlabel('latency (ms)')
 axes[0].legend()
 fig.suptitle('latency phase histogram')
-#this shows that std increases during stim with str
-#data good for bar plot
-f=open("ep_freq20_spike_rate_stats.txt",'w')
-header='spike frequencies: condition, epoch mean, std, CV\n'
-f.write(header)
-print(header)
-for k1 in spike_freq_mean.keys():
-    for k2 in spike_freq_mean[k1].keys():
-        mean_firing=np.mean(spike_freq_mean[k1][k2])
-        std_firing=np.std(np.mean(spike_freq[k1][k2],axis=1))
-        summary='   '.join([k1,k2,str(np.round(mean_firing,3)),str(np.round(std_firing,3))])
-        f.write(summary+'\n')
-        print(summary)
-f.close()
-#for stat analysis, output all values of spike_freq_mean for each condition, read into SAS
 
-#to plot spike rate vs time, with error bars
-f=open('ep_freq20_spike_rate.txt','w')
-header='time'
-outputdata=ratebins
-for key in spike_rate_mean.keys():
-    outputdata=np.column_stack((outputdata,spike_rate_mean[key],spike_rate_std[key]))
-    header=header+'   mean_'+key+'   std_'+key
-f.write(header+'\n')
-np.savetxt(f,outputdata,fmt='%.5f')
-'''
-to plot changes in ISI and firing frequency, need to smooth the results or use sliding window?
-
-mean ISI: effects are small
-str_freq20_plas10 pre : ISI mean, std= 0.05091883561643835 0.019703007767408687  CV= 0.38694929938751155
-str_freq20_plas10 post : ISI mean, std= 0.049357755775577564 0.020231532692692126  CV= 0.4098957169909005
-str_freq20_plas10 stim : ISI mean, std= 0.05061717171717171 0.01767893060360302  CV= 0.3492674522074393
-GPe_freq20_plas10 pre : ISI mean, std= 0.052381597222222215 0.021988662835247946  CV= 0.4197783954919103
-GPe_freq20_plas10 post : ISI mean, std= 0.052277543859649125 0.019535568665646298  CV= 0.373689489278493
-*GPe_freq20_plas10 stim : ISI mean, std= 0.05782054263565891 0.026701862514084122  CV= 0.4618058097852688
-str_freq20_plas11 pre : ISI mean, std= 0.04948039867109634 0.016822950858531617  CV= 0.33999222541346735
-str_freq20_plas11 post : ISI mean, std= 0.05113872053872053 0.021151655753721056  CV= 0.41361331552489133
-*str_freq20_plas11 stim : ISI mean, std= 0.05913705179282868 0.03184500595159434  CV= 0.5384949872569749
-GPe_freq20_plas11 pre : ISI mean, std= 0.04984900662251655 0.018639333428769136  CV= 0.3739158449017084
-GPe_freq20_plas11 post : ISI mean, std= 0.05130440677966101 0.020298681953636023  CV= 0.39565182072591826
-GPe_freq20_plas11 stim : ISI mean, std= 0.05282071428571428 0.019814920411608195  CV= 0.37513541192242594
-
-firing frequency          mean     std
-str_freq20_plas10   stim   19.773   2.277
-str_freq20_plas10   pre   19.812   1.862
-str_freq20_plas10   post   20.284   2.354
-*GPe_freq20_plas10   stim   17.493   1.61
-GPe_freq20_plas10   pre   19.28   1.836
-GPe_freq20_plas10   post   18.904   1.842
-*str_freq20_plas11   stim   17.249   2.795
-str_freq20_plas11   pre   20.109   1.503
-str_freq20_plas11   post   19.449   2.309
-GPe_freq20_plas11   stim   19.134   1.567
-GPe_freq20_plas11   pre   20.048   1.476
-GPe_freq20_plas11   post   19.458   2.107
-effects are small
-'''
