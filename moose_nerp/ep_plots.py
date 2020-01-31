@@ -21,7 +21,6 @@ networksim=1
 spike_sta=0
 show_sta=0
 show_plots=1
-plot_across_condition=1
 savetxt=True
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-1,'gabaextern3':-1,'ampaextern1':1}#, 'gabaextern4':-1}
@@ -48,7 +47,7 @@ if networksim:
     condition=['GABA']#,'POST-HFS','POST-NoDa']
     #condition=['POST-HFS_DMDLam', 'GABA_DMDLam'] #'POST-NoDaosc', 
     #tuples of (freq,syntype,plasYN,striatal correlation) for some synaptic input
-    presyn_set=[(20,'GPe',10),(20,'GPe',11)]#,(20,'str',11),(20,'str',10)]#(20,'str'),(40,'GPe')
+    presyn_set=[(20,'GPe',10),(20,'GPe',11),(20,'str',11),(20,'str',10)]#(20,'str'),(40,'GPe')
     #location of files to analyze
     filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/'
     #filenames constructed from pattern constructed from presyn_set and the suffix below
@@ -124,7 +123,6 @@ else:
             pu.plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info)
             if len(lat_mean):
                 pu.plot_dict_of_dicts(rootname,lat_mean,suffix,'Latency',std_dict=lat_std,xlabel='stim number')
-                #latency not too meaningful if spikes occur only every few IPSPs, e.g. with 40 Hz stimulation
                 pu.plot_dict_of_dicts(rootname,isi_mean,suffix,'ISI',std_dict=isi_std,xarray=isibins)
                 pu.plot_dict_of_dicts(rootname,entropy,suffix,'entropy',xlabel='stim number')
                 pu.plot_dict_of_lists(rootname,spike_rate_vs_time_mean,suffix,'firing rate',ratebins,std_dict=spike_rate_vs_time_std)
@@ -136,16 +134,35 @@ else:
             for key in vmdat.keys():
                 fft_plot(time_wave,vmdat[key],freqs[cond],fft_wave[cond][key],phase=phase[cond][key],title=cond+key)#,mean_fft=mean_fft_phase[cond])
         if savetxt:
+            hist=plotbins
+            out_lat=range(freq)
+            histheader="ISIbins     "
+            lat_header=""
             for synstim in isi_set.keys():
-                hist=plotbins
-                header="bins     "
                 for pre_post,ISIs in isi_set[synstim].items():
                     hist1,tmp=np.histogram(pu.flatten(ISIs),bins=histbins)
                     hist=np.column_stack((hist,hist1))
-                    header=header+synstim+'_'+pre_post+' '
+                    histheader=histheader+'isi_'+synstim+'_'+pre_post+' '
+                    out_lat=np.column_stack((out_lat,lat_mean[synstim][pre_post],lat_std[synstim][pre_post]))
+                    lat_header=lat_header+'latmean_'+synstim+'_'+pre_post+' '+'latstd_'+synstim+'_'+pre_post+' '
             f=open(cond+"_isi_hist.txt",'w')
-            f.write(header+'\n')
+            f.write(histheader+'\n')
             np.savetxt(f,hist,fmt='%.5f')
+            f.close()
+            f=open(cond+'latency.txt','w')
+            f.write(lat_header+'\n')
+            np.savetxt(f,out_lat,fmt='%.5f')
+            f.close()
+            ############ entropy
+            ent_header=""
+            out_entropy=range(3*freq)
+            for synstim in entropy.keys():
+                for entbin in entropy[synstim].keys():
+                    out_entropy=np.column_stack((out_entropy,entropy[synstim][entbin]))
+                    ent_header=ent_header+'ent_'+synstim+'_'+str(entbin)+' '
+            f=open(cond+'entropy.txt','w')
+            f.write(ent_header+'\n')
+            np.savetxt(f,out_entropy,fmt='%.5f')
             f.close()
             ############ data for bar plot
             f=open(cond+"spike_rate_stats.txt",'w')
@@ -239,6 +256,7 @@ else:
     #1st STA
     if len(condition)>1:
         pu.plot_sta_vm_cond(pre_xvals,sta_list,mean_sta_vm)
+        group_plot_by_presyn_set=0
     elif len(presyn_set)>1:
         cond=condition[0]
         plt.figure()
@@ -248,16 +266,15 @@ else:
         plt.legend()
         plt.xlabel('time (s)')
         plt.ylabel('Vm (V)')
-    #else do nothing
-    if plot_across_condition:
-        # fft, ISI and sta across conditions
-        pu.plot_fft(condition,presyn_set,mean_fft_phase,freqs,fft_wave,fft_env)
-        if len(lat_mean):
-            pu.plot_ISI_cond(all_isi_mean,isibins)
-        #
-        if len(inst_rate1):
-            pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
-        #
+        group_plot_by_presyn_set=1 if len(presyn_set)>len(condition) else 0
+    # fft, ISI and sta across conditions
+    pu.plot_fft(condition,presyn_set,mean_fft_phase,freqs,fft_wave,fft_env)
+    if len(lat_mean):
+        pu.plot_ISI_cond(all_isi_mean,isibins,group_plot_by_presyn_set)
+    #
+    if len(inst_rate1):
+        pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
+    #
     ####### Output data for plotting #######
     if savetxt:
         for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
