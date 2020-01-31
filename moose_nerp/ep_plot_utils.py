@@ -2,7 +2,14 @@ import numpy as np
 import os
 from matplotlib import pyplot as plt
 import ISI_anal
-colors=['r','k','b']
+#colors=['r','k','b','m']
+colors=plt.get_cmap('viridis')
+num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
+colors2D=[colors,plt.get_cmap('magma'),plt.get_cmap('Blues'),plt.get_cmap('gist_heat')]
+offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
+
+def colornum(list_index,whole_list):
+    return int(list_index*(colors.N/len(whole_list)))
 
 def plot_dict_of_dicts(rootname,mean_dict,filesuffix,ylabel,std_dict={},xarray=[],xlabel='time (sec)'):
     fig,axes =plt.subplots(len(mean_dict),1,sharex=True)
@@ -13,16 +20,19 @@ def plot_dict_of_dicts(rootname,mean_dict,filesuffix,ylabel,std_dict={},xarray=[
                 xvals=xarray[key]
             else:
                 xvals=range(len(mean_dict[synstim][key]))
-            axis[i].plot(xvals,mean_dict[synstim][key],label=str(key)+' mean',color=colors[k])
+            axis[i].plot(xvals,mean_dict[synstim][key],label=str(key)+' mean',color=colors.__call__(colornum(k,mean_dict[synstim].keys())))
             if len(std_dict):
-                axis[i].plot(xvals,std_dict[synstim][key],label=str(key)+' std',linestyle='dashed',color=colors[k])
+                axis[i].plot(xvals,std_dict[synstim][key],label=str(key)+' std',linestyle='dashed',color=colors.__call__(colornum(k,mean_dict[synstim].keys())))
         axis[i].set_xlabel(xlabel)
         axis[i].set_ylabel(synstim+' sec')
         fig.suptitle(ylabel+' '+rootname+filesuffix.split('.')[0][0:30])
         axis[i].legend()
 
-def plot_ISI_cond(all_isi_mean,bins):
-    num_rows=np.max([len(d) for d in all_isi_mean.values()])
+def plot_ISI_cond(all_isi_mean,bins,group_by_presyn_set):
+    if group_by_presyn_set:
+        num_rows=len(all_isi_mean.keys())
+    else:
+        num_rows=np.max([len(d) for d in all_isi_mean.values()])
     fig,axes =plt.subplots(num_rows,1,sharex=True)
     axis=fig.axes
     fig.suptitle('ISI mean: all conditions')
@@ -30,12 +40,20 @@ def plot_ISI_cond(all_isi_mean,bins):
         for i,synstim in enumerate(all_isi_mean[cond].keys()):
             presyn=synstim.split('_')[0]
             freq=synstim.split('_')[1]
+            if group_by_presyn_set:
+                ax=j
+                color_index=i;all_items=all_isi_mean[cond].keys()
+                plotlabel=synstim
+            else:
+                ax=i
+                color_index=j;all_items=all_isi_mean.keys()
+                plotlabel=cond
             for k,key in enumerate(bins.keys()):
-                label=cond if k==0 else ""
-                axis[i].plot(bins[key],all_isi_mean[cond][synstim][key],label=label,color=colors[j])
-            axis[i].set_xlabel('time (sec)')
-            axis[i].set_ylabel(presyn+' input, isi (sec)')
-    axis[i].legend(loc='lower left')
+                label=plotlabel if k==0 else ""
+                axis[ax].plot(bins[key],all_isi_mean[cond][synstim][key],label=label,color=colors.__call__(colornum(color_index,all_items)))
+            axis[ax].set_xlabel('time (sec)')
+            axis[ax].set_ylabel(presyn+' input, isi (sec)')
+    axis[ax].legend(loc='lower left')
     
 def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
     ####### Raster plot of spikes in post-synaptic neuron #############
@@ -118,7 +136,7 @@ def plot_input_raster(pre_spike_set,suffix,maxplots=None):
             fig.suptitle('input raster '+suffix+'_'+param+'_'+str(trial))
             axis=fig.axes
             for ax,(key,spikes) in enumerate(pre_spikes[trial].items()):
-                color_num=[int(cellnum*(colors.N/len(spikes))) for cellnum in range(len(spikes))]
+                color_num=[colornum(cellnum,spikes) for cellnum in range(len(spikes))]
                 color_set=np.array([colors.__call__(color) for color in color_num])
                 axis[ax].eventplot(spikes,color=color_set)
                 axis[ax].set_ylabel(key)
@@ -142,7 +160,7 @@ def plot_dict_of_lists(fileroot,list_dict,suffix,title,pre_xvals,std_dict=[]):
     axis=fig.axes
     fig.suptitle(title+' '+os.path.basename(fileroot+suffix).split('_')[0])
     for i,(synstim,trial_list) in enumerate(list_dict.items()):
-        if np.shape(trial_list)==2:
+        if np.ndim(trial_list)==2:
             for trial in range(len(trial_list)):
                 axis[i].plot(pre_xvals,trial_list[trial],label='sta'+str(trial))
         else:
