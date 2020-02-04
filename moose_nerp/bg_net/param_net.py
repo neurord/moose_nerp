@@ -8,19 +8,22 @@ from moose_nerp.prototypes.connect import dend_location,connect,ext_connect
 confile='bg_connect'
 outfile='bg_out'
 
-#changes to number of synapses; multiply by NumSyn 
-change_syn={'proto':{'ampa':1.2,'gaba':1.5},'Lhx6':{'ampa':1.0,'gaba':1.2},'Npas':{'gaba':1.2},'ep':{'ampa':2.0}}
-#change weight of synapses, e.g. to add asymmetry as measured in striatum,
-#also to prevent proto from preventing all firing
-change_weight={'D1':{'gaba':{'D2':('weight',1.2),'D1':('weight',0.8)}},
-               'D2':{'gaba':{'D2':('weight',1.0),'D1':('weight',1.0)}},
-               'ep':{'ampa':{'extern1':('weight',2.0)}}}
-#example of tuples needed to change connection probability between neurons
-#not sure whether to use multiplicative factor for space constant, since those are such small numbers
-#>1 would decrease connections, <1 would increase connections
-#example:
-change_prob={'D1':{'gaba':{'D2':('prob',0.8),'D1':('space',2)}}}
-
+#changes to number of synapses; multiply by NumSyn
+#  - increases number of external inputs
+# - increases available synapses (fixes synchan_shortage) for intrinsic connections
+change_syn={'proto':{'ampa':1.0,'gaba':1.5},'Lhx6':{'ampa':1.0,'gaba':1.2},'Npas':{'gaba':1.2},'ep':{'ampa':2.0}}
+merge_connect=True
+##########################
+'''
+Two methods for merging different networks
+A. use connect_dict from other populations(moose_nerp network packages), but with modifications
+    set merge_connect = True
+    update change_weight to update the synaptic strength of connections
+    update change_prob to update the connection probability
+B. do not use connect_dict from other populations (moose_nerp network packages)
+   set merge_connect = False
+   all connections must be specified in connect_dict
+'''
 ###############
 #three types of distributions
 ####################### Connections
@@ -30,6 +33,8 @@ distal_distr=dend_location(mindist=50e-6,maxdist=400e-6,postsyn_fraction=.1)#,ha
 
 ##connections between regions
 #Inputs to ep/SNr from Striatum/D1 and GPe/proto.  Weight = 0.33 because Gbar=1.5 nA for multi-comp model
+connect_dict={}
+
 connect_dict={'ep':{'gaba':{}}}
 connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.1,weight=1)
 #PSP amp proto to ep: 2.5 mV
@@ -37,7 +42,7 @@ connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep'
 #PSP amp 2.8, 6.3 mV
 connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=0.5,weight=1)
 #PSP amp D1 to ep: 3.1, 4.5 mV - still too big?
-
+'''
 #Inputs from striatum to GPe
 #Input resistance.  Npas: 360 MOhm, proto: 280 Mohm, Lhx6: 300 Mohm
 connect_dict['Npas']={'gaba':{}}
@@ -61,8 +66,10 @@ connect_dict['D1']={'gaba':{}}
 connect_dict['D1']['gaba']['Npas']=connect(synapse='gaba', pre='Npas', post='D1', probability=0.5)
 connect_dict['FSI']={'gaba':{}}
 connect_dict['FSI']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='FSI', probability=0.5,weight=3)
-
+'''
 #Note: AMPA strength=2.2-2.4 (SPN), 2.5-3 (EP), 1.2 (Npas),1.6-1.8(Lhx6), 1.2 (proto during firing)
+
+##################### These are only used if connect_merge==True ##################
 ########## Delete these connections that are defined in the other net_modules
 # e.g., extrinsic connections that are now replaced by other network connections
 connect_delete={}
@@ -81,6 +88,22 @@ connect_delete['proto']={'gaba':['proto','Npas','Lhx6']}
 connect_delete['Npas']={'gaba':['proto','Npas','Lhx6']}
 connect_delete['Lhx6']={'gaba':['proto','Npas','Lhx6']}
 '''
+
+######### change weight of synapses, e.g. to add asymmetry as measured in striatum,
+#also to prevent proto from preventing all firing
+change_weight={'D1':{'gaba':{'D2':('weight',1.2),'D1':('weight',0.8)}},
+               'D2':{'gaba':{'D2':('weight',1.0),'D1':('weight',1.0)}},
+               'ep':{'ampa':{'extern1':('weight',2.0)}}}
+                
+############ change connection probability 
+#example of tuples needed to change connection probability between neurons
+#use multiplicative factor for space constant, since those are such small numbers
+#>1 would decrease connections, <1 would increase connections
+#use actual value for probability of connection
+#The following compensate for very high firing frequency when increasing network size
+#could also decrease weight of ampa synapses
+change_prob={'proto':{'gaba':{'proto':('space',1.2),'Lhx6':('space',1.2)}},
+             'Lhx6':{'gaba':{'proto':('space',1.2),'Lhx6':('space',1.2)}}}
 mindelay={}
 cond_vel={}
 
