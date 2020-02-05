@@ -19,7 +19,8 @@ def find_somatabs(tabset,soma_name,tt=None):
     #find the table(s) with vm from the soma
     comp_names=[tab.neighbors['requestOut'][0].name for tab in tabset]
     soma_tabs=[tab for tab in tabset if tab.neighbors['requestOut'][0].name==soma_name]
-    print ('ISI_ANAL: vm tables {}, soma vmtab={}, comp={}'.format(comp_names,soma_tabs,[st.neighbors['requestOut'][0].path for st in soma_tabs]))
+    if len(comp_names)<10:
+        print ('ISI_ANAL: vm tables {}, soma vmtab={}, comp={}'.format(comp_names,soma_tabs,[st.neighbors['requestOut'][0].path for st in soma_tabs]))
     #if no soma tables found (perhaps wrong name) use the last one, which might be soma
     #or send back number of tables equal to number of time tables 
     ######## Needs more debugging for network simulation #################3
