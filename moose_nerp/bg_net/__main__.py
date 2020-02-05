@@ -31,6 +31,7 @@ from moose_nerp import bg_net as net
 
 #names of additional neuron modules to import
 neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_1compNoCal','FSI01Aug2014']
+
 ### By importing network modules, no need to repeat all the information in param_net.py
 net_modules=['moose_nerp.ep_net','moose_nerp.gp_net', 'moose_nerp.spn1_net']
 
@@ -44,7 +45,7 @@ net.single=False
 outdir="bg_net/"
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
-param_sim.injection_current = [-20e-12]
+param_sim.injection_current = [0e-12]
 net.num_inject=0
 param_sim.injection_width=0.3
 param_sim.injection_delay=0.2
@@ -66,7 +67,11 @@ if len(neuron_modules):
 ########### Create Network. For multiple populations, send in net_modules ###########
 population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
 #print(net.connect_dict)
-print('populations created and connected!!!',population['pop'],'\n',population['netnames'])
+total_neurons=np.sum([len(pop) for pop in population['pop'].values()])
+if total_neurons<too_many_neurons:
+    print('populations created and connected!!!',population['pop'],'\n',population['netnames'])
+else:
+    print('populations created and connected!!!',[(key,len(pop)) for key,pop in population['pop'].items()])
 ###### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
 if net.num_inject<np.inf :
@@ -113,7 +118,6 @@ for neurtype in isis:
         print(neurtype,': no neurons')
 
 if model.param_sim.save_txt:
-    total_neurons=np.sum([len(pop) for pop in population['pop'].values()])
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(outdir+net.outfile,spike_time=spike_time,isi=isis)
     elif total_neurons<too_many_neurons:
@@ -140,6 +144,13 @@ if model.param_sim.save_txt:
 
 NEXT:
 4. adjust connections and train frequency for reasonable firing rates (using oscillatory trains or exp)
+results
+with connection prob from str to GP = 0.5, and NumSyn=45, and current space constant - running out of post-syn slots on GP neurons.  Probably should decrease str to GP with bigger network, possibly make smaller space constant
+
+str: Ctx10000_exp_freq10.0; ep & gp: STN2000_lognorm_freq18.0.npz
+
+str: Ctx10000_osc_freq10.0_osc0.7.npz; ep & gp: STN2000_lognorm_freq18.0.npz
+
 5. Then, try countermanding task!!! using ramps and pulses
 6. Test effect of GPe feedback to striatum on EP response with fast or slow Ctx ramps
 Talk to Karina about 
@@ -150,5 +161,6 @@ remaining issues
 3. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
 4. cond_delay and min_delay are the same for all networks
 5. change grid size (i.e., population size) from bg_net/param_net, instead of network modules
+6. replace spiketrains specified in connect dict
 '''
     

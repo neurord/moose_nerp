@@ -7,7 +7,8 @@ from .param_net import (confile,
                         change_prob,
                         mindelay,
                         cond_vel,
-                        merge_connect)
+                        merge_connect,
+                        ttable_replace)
 
 ###########plotting control
 #probably put these into param_sim?  similar to that in single neuron sims?
