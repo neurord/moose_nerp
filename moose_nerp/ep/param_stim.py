@@ -46,8 +46,8 @@ paradigm_dict={'inject':inject,
 #spine_density units: fraction of spines connected in specified compartments
 #if zero, will connect directly to dendrite, but must specify syntype
 location={}
-location['str']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1b1b2','p1_2a'],syntype='gaba')
-location['GPe']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1'],syntype='gaba',weight=2)
+location['str']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1b1b2','p1_2a','p2b2b2','p2b2b1'],syntype='gaba')
+location['GPe']=StimLocParams(which_spines='all',spine_density = 0.0, pulse_sequence=None,  stim_dendrites=['p0b1','p1_1a','p2b2a'],syntype='gaba',weight=2)
 
 #stim_delay units: sec
 Stimulation = StimParams(Paradigm = PSP_100Hz,stim_delay = 2.0,StimLoc=location['GPe'])
