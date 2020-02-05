@@ -223,7 +223,7 @@ def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
                 print('####### timetable input ######### to',postcell,'from', pretype, ', synchan=', syntype)
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=soma_loc)
-                print('  SYN TABLE for {} {} has {} slots to make {} synapses from {} '.format( postcell,syntype, len(syncomps),totalsyn,pretype))
+                #print('  SYN TABLE for {} {} has {} slots to make {} synapses from {} '.format( postcell,syntype, len(syncomps),totalsyn,pretype))
                 connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
     return connect_list
                     
@@ -253,7 +253,7 @@ def connect_neurons(cells, netparams, postype, model):
                 dend_prob=post_connections[syntype][pretype].dend_loc
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyns=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=[xpost,ypost,zpost])
-                print('    SYN TABLE for {} {} {} has {} slots and {} synapses avail'.format( postsoma, syntype, pretype,len(syncomps),availsyns))
+                print('    SYN TABLE for {} {} from {} has {} slots and {} synapses avail'.format( postsoma, syntype, pretype,len(syncomps),availsyns))
                 if 'extern' in pretype:
                     print('## connect to tt',postcell,syntype,pretype,'from',post_connections[syntype][pretype].pre.filename)
                     ####### connect to time tables instead of other neurons in network
@@ -316,6 +316,7 @@ def connect_neurons(cells, netparams, postype, model):
                                 #print('** intrinsic synconn',i,syn,spikegen_conns[i][2],spikegen_conns[i][0].path)
                                 synconn(syn,spikegen_conns[i][2], spikegen_conns[i][0],model.param_syn,netparams.mindelay[pretype],netparams.cond_vel[pretype],stp=stp,weight=post_connections[syntype][pretype].weight)
                     else:
+                        intra_conns[syntype][pretype].append(0)
                         if len(cells[pretype]):
                             print('   !!! no pre-synaptic cells selected for',postcell, 'from',pretype, 'connect=',connect,'>? prob=',prob,'or dist=0?',dist)
                         else:
@@ -324,6 +325,6 @@ def connect_neurons(cells, netparams, postype, model):
         tmp=[np.sum(intra_conns[syn][pre])/float(len(cells[postype])) for pre in intra_conns[syn].keys()]
         print('*************** number of intra-network connections to',postype, syn,'from',intra_conns[syn],'mean',tmp)
     if np.sum(list(synchan_shortage.values()))>0:
-        print('@@@@@@@@@@@@@@@@@@ summary of synchan shortage',synchan_shortage)
-    return connect_list
+        print('@@@@@@@@@@@@@@@@@@ summary of synchan shortage',[short for short in synchan_shortage.values()])
+    return connect_list,{'intra':intra_conns,'shortage':synchan_shortage}
 
