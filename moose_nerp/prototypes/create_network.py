@@ -51,7 +51,7 @@ def dict_delete(a, delete, path=[]):
             pass
     return a
 
-def change_connect(change_dict,connect_dict):
+def change_connect(connect_dict,change_dict):
     for neurtype in change_dict:
         for syntype in change_dict[neurtype]:
             for presyn in change_dict[neurtype][syntype]:
@@ -62,6 +62,15 @@ def change_connect(change_dict,connect_dict):
                     connect_dict[neurtype][syntype][presyn].space_const*=change_dict[neurtype][syntype][presyn][1]
                 elif change_dict[neurtype][syntype][presyn][0]=='weight':
                     connect_dict[neurtype][syntype][presyn].weight*=change_dict[neurtype][syntype][presyn][1]
+                print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
+    return connect_dict
+
+def change_extern_files(connect_dict,ttables):
+    for neurtype in ttables:
+        for syntype in ttables[neurtype]:
+            for presyn in ttables[neurtype][syntype]:
+                connect_dict[neurtype][syntype][presyn].pre.filename=ttables[neurtype][syntype][presyn][0]
+                connect_dict[neurtype][syntype][presyn].pre.syn_per_tt=ttables[neurtype][syntype][presyn][1]
                 print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
     return connect_dict
 
@@ -93,6 +102,7 @@ def create_network(model, param_net,neur_protos={},network_list=None):
             connections[ntype]=connect.timetable_input(network_pop['pop'], param_net, ntype, model )
         #
     else:
+        conn_summary={}
         if network_list is None:
             #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
             #
@@ -122,24 +132,31 @@ def create_network(model, param_net,neur_protos={},network_list=None):
                 param_net.cond_vel=merge(param_net.cond_vel,other_net.cond_vel)
             if param_net.merge_connect:
                 #change weight of connections
-                param_net.connect_dict=change_connect(param_net.change_weight,param_net.connect_dict)
+                param_net.connect_dict=change_connect(param_net.connect_dict, param_net.change_weight)
                 #change connection probabilities for intrinsic connectins
-                param_net.connect_dict=change_connect(param_net.change_prob,param_net.connect_dict)
+                param_net.connect_dict=change_connect(param_net.connect_dict,param_net.change_prob)
                 #delete connections, e.g. extrinsic, no longer needed since connecting to other networks
                 param_net.connect_dict=dict_delete(param_net.connect_dict,param_net.connect_delete)
                 #print_connect_dict(param_net.connect_dict)
+                param_net.connect_dict=change_extern_files(param_net.connect_dict,param_net.ttable_replace)
             network_pop={'location':locations,'pop':all_networks,'netnames':net_names}
             needed_ttabs=list(set([it3.pre for it1 in param_net.connect_dict.values() for it2 in it1.values() for it3 in it2.values() if isinstance(it3,connect.ext_connect)]))
-            print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
             ttables.TableSet.ALL=needed_ttabs
         #Regardles of whether one or multiple populations, create needed timetables
         ttables.TableSet.create_all()
         #loop over all post-synaptic neuron types and create connections:
         for ntype in network_pop['pop'].keys():
-            connections[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
+            connections[ntype],conn_summary[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
+        for ntype in conn_summary.keys():
+            print('@@@@@@@@@@@@@@@@@@ neuron',ntype,', mean shortage=',np.mean([short for short in conn_summary[ntype]['shortage'].values()]),', has inputs:')
+            for syn in conn_summary[ntype]['intra'].keys():
+                print('      ',syn,':::',conn_summary[ntype]['intra'][syn])
+        if network_list is not None:
+            print('TTABLES',[tt.filename for tt in ttables.TableSet.ALL])
+            print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
         #
     #save/write out the list of connections and location of each neuron
-    np.savez(param_net.confile,conn=connections,loc=network_pop['location'])
+    np.savez(param_net.confile,conn=connections,loc=network_pop['location'],summary=conn_summary)
     #
     ##### add Synaptic Plasticity if specified, requires calcium
     plascum={}
