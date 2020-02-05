@@ -125,7 +125,10 @@ net_sim_graph.sim_plot(model,net,connections,population)
 
 import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
-
+#print summary of spike rate
+for neurtype in model.neurons.keys():
+    numspikes=[len(tabset) for tabset in spike_time[neurtype]]
+    print(neurtype,'mean:',np.mean(numspikes),'rate',np.mean(numspikes)/param_sim.simtime)
 if model.param_sim.save_txt:
     vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):

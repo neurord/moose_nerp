@@ -15,8 +15,8 @@ spacing=54e-6 #Fig. 2 Hernandez Parvabinum+ Neurons and Npas1+ Neurons 2015
 #pv+: 54e-6 n=41, npas1+: 60e-6 n=33, calculated by measuring distance between neuron pairs and calculating mean 
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':340e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':340e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
@@ -61,10 +61,10 @@ chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky, 'Lhx6':chanSTD_arky}
 ####################### Connections
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=2)
+tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=3)
 
 #description of intrinsic inputs
-ConnSpaceConst=500e-6
+ConnSpaceConst=400e-6
 neur1pre_neur1post=connect(synapse='gaba', pre='proto', post='proto', space_const=ConnSpaceConst)#internal post syn fraction in 10% Shink Smith 1995
 neur1pre_neur2post=connect(synapse='gaba', pre='proto', post='Npas', space_const=ConnSpaceConst)
 neur1pre_neur3post=connect(synapse='gaba', pre='proto', post='Lhx6', space_const=ConnSpaceConst)

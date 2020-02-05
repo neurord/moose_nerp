@@ -14,8 +14,8 @@ outfile='striatum_out'
 spacing=25e-6
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':300e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':300e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':500e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':500e-6,'inc':spacing}
 grid[2]={'xyzmin':-300e-6,'xyzmax':-300e-6,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
@@ -52,25 +52,25 @@ chanvar={
 # add post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
 #list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
-tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx2000_exp_freq10.0',syn_per_tt=2)
+tt_Ctx_SPN = TableSet('CtxSPN', 'spn1_net/Ctx10000_exp_freq10.0',syn_per_tt=4)
 
 #postsyn_fraction, when summed over all external time tables to a neuron type should <= 1
 #to reduce number of inputs, can reduce postsyn_fraction
 distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=1)#,half_dist=50e-6,steep=1)
 FSI_distr = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=1)
 
-MSNconnSpaceConst=250e-6
-FSIconnSpaceConst=400e-6
+MSNconnSpaceConst=100e-6 #Czubakyko & Plenz PNAS: 37% connected at 10 um distance
+FSIconnSpaceConst=1000e-6
 #connectins between network neurons (intrinsic connections)
 #number of connections is controled by space constant, or probability
 #thus, as network size increases, may run out of post-synaptic neurons for connections
 #can either change space constant, grid spacing, or increase NumSyn
-D1pre_D1post=connect(synapse='gaba', pre='D1', post='D1', space_const=MSNconnSpaceConst)
-D1pre_D2post=connect(synapse='gaba', pre='D1', post='D2', space_const=MSNconnSpaceConst)
-D2pre_D1post=connect(synapse='gaba', pre='D2', post='D1', space_const=MSNconnSpaceConst)
-D2pre_D2post=connect(synapse='gaba', pre='D2', post='D2', space_const=MSNconnSpaceConst)
-FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', space_const=FSIconnSpaceConst,weight=3)
-FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', space_const=FSIconnSpaceConst,weight=3)
+D1pre_D1post=connect(synapse='gaba', pre='D1', post='D1', num_conns=1, space_const=MSNconnSpaceConst)
+D1pre_D2post=connect(synapse='gaba', pre='D1', post='D2', num_conns=1, space_const=MSNconnSpaceConst)
+D2pre_D1post=connect(synapse='gaba', pre='D2', post='D1', num_conns=1, space_const=MSNconnSpaceConst)
+D2pre_D2post=connect(synapse='gaba', pre='D2', post='D2', num_conns=1, space_const=MSNconnSpaceConst)
+FSIpre_D1post=connect(synapse='gaba', pre='FSI', post='D1', num_conns=2, space_const=FSIconnSpaceConst,weight=3)
+FSIpre_D2post=connect(synapse='gaba', pre='FSI', post='D2', num_conns=2, space_const=FSIconnSpaceConst,weight=3)
 FSIpre_FSIpost=connect(synapse='gaba', pre='FSI', post='FSI', space_const=FSIconnSpaceConst)
 #time table input (extrinsic connections)
 ctx_D1post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D1', dend_loc = distr)
