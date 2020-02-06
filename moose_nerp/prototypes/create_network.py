@@ -69,8 +69,8 @@ def change_extern_files(connect_dict,ttables):
     for neurtype in ttables:
         for syntype in ttables[neurtype]:
             for presyn in ttables[neurtype][syntype]:
-                connect_dict[neurtype][syntype][presyn].pre.filename=ttables[neurtype][syntype][presyn][0]
-                connect_dict[neurtype][syntype][presyn].pre.syn_per_tt=ttables[neurtype][syntype][presyn][1]
+                connect_dict[neurtype][syntype][presyn].pre=ttables[neurtype][syntype][presyn]
+                #connect_dict[neurtype][syntype][presyn].pre.syn_per_tt=ttables[neurtype][syntype][presyn][1]
                 print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
     return connect_dict
 
@@ -140,6 +140,7 @@ def create_network(model, param_net,neur_protos={},network_list=None):
                 #print_connect_dict(param_net.connect_dict)
                 param_net.connect_dict=change_extern_files(param_net.connect_dict,param_net.ttable_replace)
             network_pop={'location':locations,'pop':all_networks,'netnames':net_names}
+            #identify needed timtables and only create unique ones (no duplicates)
             needed_ttabs=list(set([it3.pre for it1 in param_net.connect_dict.values() for it2 in it1.values() for it3 in it2.values() if isinstance(it3,connect.ext_connect)]))
             ttables.TableSet.ALL=needed_ttabs
         #Regardles of whether one or multiple populations, create needed timetables
