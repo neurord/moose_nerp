@@ -20,8 +20,8 @@ def multi_modules(neuron_modules,model,buf_cap,change_syn={}):
             model.neurons[new_neur]=neur[new_neur]
             buf_cap[new_neur]=nm.param_ca_plas.BufferCapacityDensity
             model.param_syn.NumSyn[new_neur]=nm.param_syn.NumSyn[new_neur]
-            if new_neur in change_syn.keys():
-                for syntype,factor in change_syn[new_neur].items():
-                    model.param_syn.NumSyn[new_neur][syntype]={k:int(v*factor) for k,v in nm.param_syn.NumSyn[new_neur][syntype].items()}
-                print ('>>>>>> update NumSyn for',new_neur,model.param_syn.NumSyn[new_neur])
+    for neur in list(set(model.neurons.keys())&set(change_syn.keys())):
+        for syntype,factor in change_syn[neur].items():
+            model.param_syn.NumSyn[neur][syntype]={k:int(v*factor) for k,v in model.param_syn.NumSyn[neur][syntype].items()}
+        print ('>>>>>> updated NumSyn for',neur,model.param_syn.NumSyn[neur])
     return buf_cap
