@@ -113,7 +113,7 @@ from moose_nerp import ISI_anal
 spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 for neurtype in isis:
     if len(isis):
-        print(neurtype,': mean rate of ',np.nanmean([len(st) for st in spike_time[neurtype]])/param_sim.simtime,'from', len(spike_time[neurtype]),'neurons')
+        print(neurtype,': mean rate of ',np.round(np.nanmean([len(st) for st in spike_time[neurtype]])/param_sim.simtime,3),'from', len(spike_time[neurtype]),'neurons')
     else:
         print(neurtype,': no neurons')
 
@@ -142,12 +142,17 @@ if model.param_sim.save_txt:
       GPi: 46 - 6% proto, 25% Npas, 15% lhx6 - 300 um2 gives 49 neurons
       EP: 29 - 300um2 gives 25 neurons 
 
-NEXT:
-4. adjust connections and train frequency for reasonable firing rates (using oscillatory trains or exp)
-results
-with connection prob from str to GP = 0.5, and NumSyn=45, and current space constant - running out of post-syn slots on GP neurons.  Probably should decrease str to GP with bigger network, possibly make smaller space constant
-
+4. adjust connections, synaptic strength and train frequency for reasonable firing rates (using oscillatory trains or exp)
+FSI gaba=0.6, FSI ampa=0.3, SPN gaba=0.5, SPN ampa=0.2; inputs from GP to str
 str: Ctx10000_exp_freq10.0; ep & gp: STN2000_lognorm_freq18.0.npz
+            trial1                                trial2       trial3
+ep : mean rate of  73.28 from 25 neurons         66.96      59.44
+proto : mean rate of  23.867 from 30 neurons     29.077     20.114 
+Npas : mean rate of  13.077 from 13 neurons      2.875      6.0   
+Lhx6 : mean rate of  4.0 from 6 neurons          23.143     16.25       
+D1 : mean rate of  1.084 from 179 neurons        0          0.882
+D2 : mean rate of  3.725 from 204 neurons        0          5.525
+FSI : mean rate of  16.941 from 17 neurons       15.143     27.0      
 
 str: Ctx10000_osc_freq10.0_osc0.7.npz; ep & gp: STN2000_lognorm_freq18.0.npz
 
@@ -161,6 +166,5 @@ remaining issues
 3. network['location'] is now a dictionary of lists, instead of just a list; BUT, this is not used, so OK
 4. cond_delay and min_delay are the same for all networks
 5. change grid size (i.e., population size) from bg_net/param_net, instead of network modules
-6. replace spiketrains specified in connect dict
 '''
     

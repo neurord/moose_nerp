@@ -11,7 +11,7 @@ outfile='bg_out'
 #changes to number of synapses; multiply by NumSyn
 #  - increases number of external inputs
 # - increases available synapses (fixes synchan_shortage) for intrinsic connections
-change_syn={'proto':{'gaba':1.5},'Lhx6':{'gaba':1.5},'Npas':{'gaba':1.5},'ep':{'ampa':2.0,'gaba':1.5},'D1':{'gaba':2.0},'D2':{'gaba':2.0}}
+change_syn={'proto':{'gaba':3},'Lhx6':{'gaba':3},'Npas':{'gaba':3},'ep':{'ampa':2.0,'gaba':3},'D1':{'gaba':3},'D2':{'gaba':3}}
 merge_connect=True
 ##########################
 '''
@@ -26,18 +26,21 @@ B. do not use connect_dict from other populations (moose_nerp network packages)
 Possibly A should be replaced with C: read in and update network modules here?
 '''
 
-#New external time tables - filename and syn_per_tt
+#New external time tables - (filename, syn_per_tt)
+tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_exp_freq10.0',syn_per_tt=4)
+tt_STN=TableSet('tt_STN','bg_net/STN2000_lognorm_freq18.0',syn_per_tt=4)
+
 ttable_replace={}
 
-ttable_replace={'ep': {'ampa':{'extern1':('bg_net/STN2000_lognorm_freq18.0',3)}}}
+ttable_replace={'ep': {'ampa':{'extern1':tt_STN}}}
 
-ttable_replace['proto']={'ampa':{'extern':('bg_net/STN2000_lognorm_freq18.0',3)}}
-ttable_replace['Npas']={'ampa':{'extern':('bg_net/STN2000_lognorm_freq18.0',3)}}
-ttable_replace['Lhx6']={'ampa':{'extern':('bg_net/STN2000_lognorm_freq18.0',3)}}
+ttable_replace['proto']={'ampa':{'extern':tt_STN}}
+ttable_replace['Npas']={'ampa':{'extern':tt_STN}}
+ttable_replace['Lhx6']={'ampa':{'extern':tt_STN}}
 
-ttable_replace['D1']={'ampa':{'extern1':('spn1_net/Ctx10000_osc_freq10.0_osc0.7',4)}}
-ttable_replace['D2']={'ampa':{'extern1':('spn1_net/Ctx10000_osc_freq10.0_osc0.7',4)}}
-ttable_replace['FSI']={'ampa':{'extern':('spn1_net/Ctx10000_osc_freq10.0_osc0.7',4)}}
+ttable_replace['D1']={'ampa':{'extern1':tt_Ctx}}
+ttable_replace['D2']={'ampa':{'extern1':tt_Ctx}}
+ttable_replace['FSI']={'ampa':{'extern':tt_Ctx}}
 
 #######################################
 #three types of distributions
@@ -57,11 +60,11 @@ connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='e
 #PSP amp proto to ep: 2.5 mV
 connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.2,weight=1)
 #PSP amp 2.8, 6.3 mV
-connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=0.1,weight=1)
+connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=0.2,weight=1)
 #PSP amp D1 to ep: 3.1, 4.5 mV - still too big?
 
 #Inputs from striatum to GPe
-D2_to_GPe=0.03
+D2_to_GPe=0.02
 #Input resistance.  Npas: 360 MOhm, proto: 280 Mohm, Lhx6: 300 Mohm
 connect_dict['Npas']={'gaba':{}}
 connect_dict['Npas']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Npas', probability=D2_to_GPe)
@@ -73,7 +76,6 @@ connect_dict['proto']={'gaba':{}}
 connect_dict['proto']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='proto', probability=D2_to_GPe)
 #PSP amp d2 to proto: -6.7, 4, 4 mV at ~-51
 
-'''
 #Inputs from GPe back to Striatum
 #PSP ranges from 0.5-1.3 mV to SPNs; Gsyn=0.2 nS.  If vclamp in Corbit was at rest, e.g. ~-80 mV with ~20 mV driving potential, that yields 4 pA current
 #Corbit values: 0 +/0 40 pA (possibly with optogenetic activation of multiple synapses?)
@@ -85,7 +87,7 @@ connect_dict['D1']={'gaba':{}}
 connect_dict['D1']['gaba']['Npas']=connect(synapse='gaba', pre='Npas', post='D1', probability=0.5)
 connect_dict['FSI']={'gaba':{}}
 connect_dict['FSI']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='FSI', probability=0.5,weight=3)
-'''
+
 #Note: AMPA strength=2.2-2.4 (SPN), 2.5-3 (EP), 1.2 (Npas),1.6-1.8(Lhx6), 1.2 (proto during firing)
 
 ##################### These are only used if connect_merge==True ##################
