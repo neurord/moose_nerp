@@ -6,12 +6,13 @@ from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.connect import dend_location,connect,ext_connect 
 
 confile='bg_connect'
-outfile='bg_out'
+outfile='bg_osc'
 
-#changes to number of synapses; multiply by NumSyn
+#changes to number of synapses; multiply by NumSyn, alternative:
+#    just specify value here?  Would be more clear, but then need to specify value for each sistance
 #  - increases number of external inputs
 # - increases available synapses (fixes synchan_shortage) for intrinsic connections
-change_syn={'proto':{'gaba':3},'Lhx6':{'gaba':3},'Npas':{'gaba':3},'ep':{'ampa':2.0,'gaba':3},'D1':{'gaba':3},'D2':{'gaba':3}}
+change_syn={'proto':{'gaba':3},'Lhx6':{'gaba':3},'Npas':{'gaba':3},'ep':{'ampa':2.0,'gaba':4},'D1':{'gaba':3},'D2':{'gaba':3}}
 merge_connect=True
 ##########################
 '''
@@ -27,7 +28,7 @@ Possibly A should be replaced with C: read in and update network modules here?
 '''
 
 #New external time tables - (filename, syn_per_tt)
-tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_exp_freq10.0',syn_per_tt=4)
+tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_osc_freq10.0_osc0.7',syn_per_tt=4)
 tt_STN=TableSet('tt_STN','bg_net/STN2000_lognorm_freq18.0',syn_per_tt=4)
 
 ttable_replace={}
