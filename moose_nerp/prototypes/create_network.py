@@ -152,6 +152,11 @@ def create_network(model, param_net,neur_protos={},network_list=None):
             print('@@@@@@@@@@@@@@@@@@ neuron',ntype,', mean shortage=',np.mean([short for short in conn_summary[ntype]['shortage'].values()]),', has inputs:')
             for syn in conn_summary[ntype]['intra'].keys():
                 print('      ',syn,':::',conn_summary[ntype]['intra'][syn])
+                if len(conn_summary[ntype]['intra'][syn])>1: #if more than one type of input to each cell
+                    allconns=np.zeros(len(network_pop['pop'][ntype]))
+                    for v in conn_summary[ntype]['intra'][syn].values():
+                        allconns+=np.array(v)
+                    print('         mean number of inputs for ',syn,' = ',np.mean(allconns))
         if network_list is not None:
             print('TTABLES',[tt.filename for tt in ttables.TableSet.ALL])
             print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
