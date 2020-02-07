@@ -17,12 +17,11 @@ _NMDA_MgParams = MgParams(A = 1/6.0,
                            B = 1/80.0,
                            C = 1.4)
 
-#Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
 #Dieter Jaeger uses 0.25e-9 for gaba
 _SynGaba = SynChannelParams(Erev = -80e-3,
                              tau1 = 1e-3,
                              tau2 = 12e-3,
-                             Gbar = 0.5e-9,
+                             Gbar = 0.25e-9,
                              var=0.05)
 _SynAMPA = SynChannelParams(Erev = 0,
                              tau1 = 1e-3,
@@ -33,7 +32,7 @@ _SynAMPA = SynChannelParams(Erev = 0,
 _SynNMDA = SynChannelParams(Erev = 0,
                              tau1 = 10e-3,
                              tau2 = 30e-3,
-                             Gbar = 0.252e-9,
+                             Gbar = 0.25e-9,
                              var=0.05,
                              MgBlock = _NMDA_MgParams,
                              spinic = True,
@@ -42,7 +41,7 @@ _SynNMDA = SynChannelParams(Erev = 0,
 )
 
 #these glutmate Gbar produce 1-2 mV EPSPs (depending on Vm, ~1 mV at -70)
-#gaba Gbars produce 1-2 mV IPSPs
+#gaba Gbar of 0.5e-9 produces 1-2 mV IPSPs
 #nmdaCaFra fraction of nmda current carried by calcium
 #Note that since Ca reversal produces ~2x driving potential,
 #need to make this half of typical value.  Default is 0.02 in Moose
@@ -53,15 +52,14 @@ SYNAPSE_TYPES = NamedDict(
     gaba = _SynGaba,
     nmda = _SynNMDA,
 )
-
 #These will be used by synconn in connect.py, since AMPA and NMDA synapses usually go together
 #for same reason, the next lines only list ampa and gaba, and nmda are created the same as ampa
 NAME_AMPA='ampa'
 NAME_NMDA='nmda'
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:60}
-_ampa= {param_cond.prox:30}
+_gaba = {param_cond.prox:30}
+_ampa= {param_cond.prox:60}
 
 NumSyn={'proto':{'gaba':_gaba,
         'ampa':_ampa}}
