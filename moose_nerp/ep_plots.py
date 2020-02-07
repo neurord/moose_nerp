@@ -1,7 +1,7 @@
 import numpy as np
 import elephant
 #must import elephant prior to matplotlib else plt.ion() doesn't work properly
-import ISI_anal
+import network_analysis as na
 import ep_plot_utils as pu
 import cross_corr as cc
 exec(open('/home/avrama/ephys_anal/fft_utils.py').read())
@@ -20,8 +20,8 @@ binsize_factor=10
 networksim=1
 spike_sta=0
 show_sta=0
-show_plots=1
-savetxt=True
+show_plots=0
+savetxt=False
 #key in weights dictionary must equal names of inputs in connect_dict in param_net.py
 weights={'gabaextern2':-1,'gabaextern3':-1,'ampaextern1':1}#, 'gabaextern4':-1}
 
@@ -95,27 +95,39 @@ else:
         ##### 1st set of analyses ignores the input spikes; most analyses,except for sta, assume multiple trials
         for params in presyn_set:
             pattern,key,freq=file_pattern(fileroot,suffix,params,'*.npz')
-            files=ISI_anal.file_set(pattern)
+            files=na.file_set(pattern)
             ###################### stuff for entropy ######################
             entropy_bin_size=0.01 #Lavian J Neurosci used 10 ms bins
             numBinsForEnt=[int((1./freq)/entropy_bin_size)]#[2, 5, 10, 25] #set to [] to avoid calculating 
             if len(files):
-                spiketime_dict[key],syntt_info[key]=ISI_anal.get_spiketimes(files,neurtype)
+                spiketime_dict[key],syntt_info[key]=na.get_spiketimes(files,neurtype)
                 max_time= syntt_info[key]['maxt']
                 if freq>0:
                     #latency: time from simulation of specific synapse to spike
                     #not defined if no regular (periodic) stimulation
                     #isi in these two functions is separated into pre and post stimulation - requires regular stimulation
-                    lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], isibins,isi_binsize,latency_phase[key],entropy[key]=ISI_anal.latency(files,freq,neurtype,numbins,numBinsForEnt)
-                    isi_set[key]=ISI_anal.ISI_histogram(files,freq,neurtype)
+                    lat_mean[key],lat_std[key],isi_mean[key],isi_std[key], isibins,isi_binsize,latency_phase[key],entropy[key]=na.latency(files,freq,neurtype,numbins,syntt_info[key],numBinsForEnt)
+                    isi_set[key]=na.ISI_histogram(files,freq,neurtype)
                 if sta_start != sta_end:
                     #ep spike triggered average of vm before the spike (the standard sta)
-                    sta_list[key],pre_xvals,plotdt,vmdat[key]=ISI_anal.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
+                    sta_list[key],pre_xvals,plotdt,vmdat[key]=na.sta_set(files,spiketime_dict[key],neurtype,sta_start,sta_end)
                     mean_sta_vm[cond][key]=np.mean(sta_list[key],axis=0)
                     time_wave=np.linspace(0,plotdt*len(vmdat[key][0][0]),len(vmdat[key][0][0]),endpoint=False)
-                    fft_wave[cond][key],phase[cond][key],freqs[cond],mean_vm,mean_fft_phase[cond][key],fft_env[cond][key]=ISI_anal.fft_func(vmdat[key],time_wave,init_time=1.0,endtime=time_wave[-1]-0.5)
+                    ##### fft_wave[cond][key] is overwritten each epoch.  If make dict, need to fix plots ###
+                    # option: make initt either list or value, and deal with that in fft_func
+                    # other option: do it here
+                    # still need to fix fft_plots
+                    if freq>0:
+                        for epoch in isibins.keys():
+                            initt=isibins[epoch][0]
+                            endt=isibins[epoch][-1]+isi_binsize
+                            fft_wave[cond][key],phase[cond][key],freqs[cond],mean_fft_phase[cond][key],fft_env[cond][key]=na.fft_func(vmdat[key],time_wave,init_time=initt,endtime=endt)
+                    else:
+                        initt=0.5
+                        endt=time_wave[-1]-0.5
+                        fft_wave[cond][key],phase[cond][key],freqs[cond],mean_fft_phase[cond][key],fft_env[cond][key]=na.fft_func(vmdat[key],time_wave,init_time=initt,endtime=endt)
                     max_time=max(max_time,time_wave[-1])
-        spike_freq_mean,spike_freq_std,spike_rate_vs_time_mean,spike_rate_vs_time_std,ratebins=ISI_anal.output_fire_freq(spiketime_dict,isi_binsize,isibins,max_time)
+        spike_freq_mean,spike_freq_std,spike_rate_vs_time_mean,spike_rate_vs_time_std,ratebins=na.output_fire_freq(spiketime_dict,isi_binsize,isibins,max_time)
         all_isi_mean[cond]=isi_mean
         #
         #####1st set of graphs
@@ -198,13 +210,13 @@ else:
         fileroot=filedir+'tt'+rootname
         for params in presyn_set:
             pattern,key,freq=file_pattern(fileroot,suffix,params, '*.npy')
-            files=ISI_anal.file_set(pattern)
+            files=na.file_set(pattern)
             print('tt files',pattern, 'num files',len(files))
             if len(files):
                 #calculate raster of pre-synaptic spikes
-                pre_spikes[key]=ISI_anal.input_raster(files)
+                pre_spikes[key]=na.input_raster(files)
                 # input Spike triggered average Vm after the spike
-                post_sta[key],mean_sta[key],post_xvals=ISI_anal.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
+                post_sta[key],mean_sta[key],post_xvals=na.post_sta_set(pre_spikes[key],sta_start,sta_end,plotdt,vmdat[key])
         if show_plots:
             if len(suffix):
                 pu.plot_input_raster(pre_spikes,suffix,maxplots=1)
@@ -232,9 +244,9 @@ else:
         if spike_sta:
             for key in pre_spikes:
                 #rate1 - calculated with elephant (smoothed), rate2 - calculated by hand, no smoothing
-                inst_rate1[key],inst_rate2[key],xbins=ISI_anal.input_fire_freq(pre_spikes[key],binsize) 
-                prespike_sta1[key],mean_pre_sta1[key],bins1=ISI_anal.sta_fire_freq(inst_rate1[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
-                prespike_sta2[key],mean_pre_sta2[key],bins2=ISI_anal.sta_fire_freq(inst_rate2[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
+                inst_rate1[key],inst_rate2[key],xbins=na.input_fire_freq(pre_spikes[key],binsize) 
+                prespike_sta1[key],mean_pre_sta1[key],bins1=na.sta_fire_freq(inst_rate1[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
+                prespike_sta2[key],mean_pre_sta2[key],bins2=na.sta_fire_freq(inst_rate2[key],spiketime_dict[key],sta_start,sta_end,weights,xbins)
             mean_prespike_sta1[cond]=mean_pre_sta1
             mean_prespike_sta2[cond]=mean_pre_sta2
             ######## second set of graphs
@@ -276,6 +288,7 @@ else:
         pu.plot_prespike_sta_cond(mean_prespike_sta1,bins1)
     #
     ####### Output data for plotting #######
+    #if savetxt:
     if savetxt:
         for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
             for j,(key,fft) in enumerate(fft_set.items()):        #
