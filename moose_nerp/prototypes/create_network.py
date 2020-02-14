@@ -52,17 +52,16 @@ def dict_delete(a, delete, path=[]):
     return a
 
 def change_connect(connect_dict,change_dict):
-    for neurtype in change_dict:
-        for syntype in change_dict[neurtype]:
-            for presyn in change_dict[neurtype][syntype]:
-                print('>>>>>> old connect, change',change_dict[neurtype][syntype][presyn][0],'---', connect_dict[neurtype][syntype][presyn])
-                if change_dict[neurtype][syntype][presyn][0]=='prob':
-                    connect_dict[neurtype][syntype][presyn].probability=change_dict[neurtype][syntype][presyn][1]
-                elif change_dict[neurtype][syntype][presyn][0]=='space':
-                    connect_dict[neurtype][syntype][presyn].space_const*=change_dict[neurtype][syntype][presyn][1]
-                elif change_dict[neurtype][syntype][presyn][0]=='weight':
-                    connect_dict[neurtype][syntype][presyn].weight*=change_dict[neurtype][syntype][presyn][1]
-                print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
+    for neurtype in change_dict.keys():
+        for syntype in change_dict[neurtype].keys():
+            for presyn,change_tuple in change_dict[neurtype][syntype].items():
+                #print('>>>>>> old connect ',connect_dict[neurtype][syntype][presyn])
+                if change_tuple[0]=='space_const' or change_tuple[0]=='weight':
+                    oldvalue=connect_dict[neurtype][syntype][presyn].__getattribute__(change_tuple[0])
+                    connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1]*oldvalue)
+                else:
+                    connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1])
+                print('>>>>>> change connect, type= ', change_dict[neurtype][syntype][presyn][0],' :::',connect_dict[neurtype][syntype][presyn])
     return connect_dict
 
 def change_extern_files(connect_dict,ttables):
@@ -70,7 +69,6 @@ def change_extern_files(connect_dict,ttables):
         for syntype in ttables[neurtype]:
             for presyn in ttables[neurtype][syntype]:
                 connect_dict[neurtype][syntype][presyn].pre=ttables[neurtype][syntype][presyn]
-                #connect_dict[neurtype][syntype][presyn].pre.syn_per_tt=ttables[neurtype][syntype][presyn][1]
                 print('>>>>>>      new connect          ', connect_dict[neurtype][syntype][presyn])
     return connect_dict
 
@@ -160,14 +158,11 @@ def create_network(model, param_net,neur_protos={},network_list=None):
         if network_list is not None:
             print('TTABLES',[tt.filename for tt in ttables.TableSet.ALL])
             print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
-        #
-    #save/write out the list of connections and location of each neuron
-    np.savez(param_net.confile,conn=connections,loc=network_pop['location'],summary=conn_summary)
     #
     ##### add Synaptic Plasticity if specified, requires calcium
     plascum={}
     if model.calYN and model.plasYN:
         for ntype in network_pop['pop'].keys():
             plascum[ntype]=plasticity.addPlasticity(network_pop['pop'][ntype],model.CaPlasticityParams)
-    return network_pop, connections, plascum
+    return network_pop, [connections, conn_summary],plascum
 
