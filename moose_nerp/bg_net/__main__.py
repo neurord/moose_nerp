@@ -36,9 +36,11 @@ neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_
 net_modules=['moose_nerp.ep_net','moose_nerp.gp_net', 'moose_nerp.spn1_net']
 
 #only save vm trace from save_num neurons of each type if there are more than too_many_neurons
+#consider putting this stuff into param_net
 too_many_neurons=30
 save_num=2
 savett=True
+save_conn=False
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
@@ -51,7 +53,7 @@ net.num_inject=0
 param_sim.injection_width=0.3
 param_sim.injection_delay=0.2
 param_sim.save_txt = True
-param_sim.simtime=5
+param_sim.simtime=4.0
 
 #################################-----------create the model: neurons, and synaptic inputs
 #### Do not setup hsolve yet, since there may be additional neuron_modules
@@ -66,7 +68,7 @@ if len(neuron_modules):
     buf_cap=multi_module.multi_modules(neuron_modules,model,buf_cap,net.change_syn)
 
 ########### Create Network. For multiple populations, send in net_modules ###########
-population,connections,plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
+population,[connections,conn_summary],plas=create_network.create_network(model, net, model.neurons,network_list=net_modules)
 #print(net.connect_dict)
 total_neurons=np.sum([len(pop) for pop in population['pop'].values()])
 if total_neurons<too_many_neurons:
@@ -119,6 +121,7 @@ for neurtype in isis:
     else:
         print(neurtype,': no neurons')
 
+####### conn_dict is summary of number of connections
 from moose_nerp.prototypes.ttables import TableSet
 conn_dict=[]
 for ntype in net.connect_dict.keys():
@@ -130,6 +133,23 @@ for ntype in net.connect_dict.keys():
                 conn_dict.append({'neur':ntype,'syn':syntype,'pre':pretype,'params':{'nc':info.num_conns,'prob':info.probability,'sc':info.space_const,'wt':info.weight}})
 
 params={'simtime':model.param_sim.simtime,'numSyn':model.NumSyn,'connect_dict':conn_dict}
+##### output file naming ####
+import os
+ctx_input=os.path.basename(net.ttable_replace['D1']['ampa']['extern1'].filename)
+STN_input=os.path.basename(net.ttable_replace['proto']['ampa']['extern'].filename)
+if 'extern2' in connect_dict['proto']['ampa'].keys():
+    STN_input=os.path.basename(connect_dict['proto']['ampa']['extern2'].pre.filename)
+if 'Npas' in net.connect_dict['D2']['gaba'].keys():
+    fb='Npas-'+str(net.connect_dict['D2']['gaba']['Npas'].weight)
+else:
+    fb='Npas-0'
+if  'Lhx6' in net.connect_dict['FSI']['gaba'].keys():
+    fb=fb+'_Lhx6-'+str(net.connect_dict['FSI']['gaba']['Lhx6'].weight)
+else:
+    fb=fb+'_Lhx6-0'
+net.outfile=net.outfile+'_'+ctx_input+'_'+STN_input+'_feedback'+fb
+net.confile=net.confile+'_'+ctx_input+'_'+STN_input+'_feedback'+fb
+######### Actually save data - just spikes if they occur.  also conn_dict
 if model.param_sim.save_txt:
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(outdir+net.outfile,spike_time=spike_time,isi=isis,params=params)
@@ -141,64 +161,16 @@ if model.param_sim.save_txt:
         print('no spikes for',param_sim.fname,'and too many neurons. Saving vm for',save_num,' neurons of each population')
         vmout={ntype:[tab.vector for tab in tabset[0:save_num]] for ntype,tabset in model.vmtab.items()}
         np.savez(outdir+net.outfile,vm=vmout)
+        
+    #save/write out the list of connections and location of each neuron
+    
+    if save_conn:
+        np.savez(net.confile,conn=connections,loc=network_pop['location'],summary=conn_summary)
+    else:
+        np.savez(net.confile,summary=conn_summary)
+    #
 
 ''' 
-1. adjust connection strength to achieve in vivo like firing rates.  
-
-2. Use oscillatory or ramp inputs (inhomogeneous Poisson) 
-      Ctx to STN, go: 2 Hz background, 30 Hz for 50 ms (e.g. starting at 1 sec)
-                stop: 2 hz background, 50 Hz for 50 ms starting 200 ms after go signal
-      Ctx to Str: fast and slow ramps.  16hz for ramp, 14 hz for ramp plateau
-                  oscillations (for upstates): 6 hz for peak rate
-
-3. simulate larger network - with and without GPe feedback - change grid size in param net?
-      str: 2790 - 48% D1,D2, 4% FSI  - 300um2 gives 144 neurons; 500um2 gives 400 neurons; 1000um2 gives 1600 neurons
-      GPi: 46 - 6% proto, 25% Npas, 15% lhx6 - 300 um2 gives 49 neurons
-      EP: 29 - 300um2 gives 25 neurons 
-
-4. adjust connections, synaptic strength and train frequency for reasonable firing rates (using oscillatory trains or exp)
-neuron  gabaG  ampaG  num gaba   num ampa  gaba_wt      ampa_wt
-FSI     0.6,   0.3,              40        
-SPN     0.5,    0.2     180      50        3(fsi->SPN)
-GP      0.25   0.25     90       60
-ep      0.5    0.25     90       60                      2
-
-str: Ctx10000_exp_freq10.0; ep & gp: STN2000_lognorm_freq18.0.npz
-            trial1                                trial2       trial3
-ep : mean rate of  73.28 from 25 neurons         66.96      59.44
-proto : mean rate of  23.867 from 30 neurons     29.077     20.114 
-Npas : mean rate of  13.077 from 13 neurons      2.875      6.0   
-Lhx6 : mean rate of  4.0 from 6 neurons          23.143     16.25       
-D1 : mean rate of  1.084 from 179 neurons        0          0.882
-D2 : mean rate of  3.725 from 204 neurons        0          5.525
-FSI : mean rate of  16.941 from 17 neurons       15.143     27.0      
-
-str: Ctx10000_osc_freq10.0_osc0.7.npz; ep & gp: STN2000_lognorm_freq18.0.npz
-a. adjust connections to achieve higher GP firing - may need larger AMPA or smaller GABA?  Possibly slightly fewer gaba iputs?
-ep : mean rate of  38.512 from 25 neurons       45.208
-proto : mean rate of  22.78 from 30 neurons     20.586  
-Npas : mean rate of  9.415 from 13 neurons      4.34 
-Lhx6 : mean rate of  4.733 from 6 neurons       17.109
-D1 : mean rate of  9.029 from 190 neurons       8.806 
-D2 : mean rate of  10.467 from 194 neurons      10.523 
-FSI : mean rate of  20.012 from 16 neurons      26.8 
-
-A: increase number of connections between pairs of SPNs - No effect
-ep : mean rate of  43.776 from 25 neurons
-proto : mean rate of  21.171 from 28 neurons
-Npas : mean rate of  8.0 from 13 neurons
-Lhx6 : mean rate of  15.05 from 8 neurons
-D1 : mean rate of  8.127 from 192 neurons
-D2 : mean rate of  10.816 from 193 neurons
-FSI : mean rate of  23.627 from 15 neurons
-
-B: ALTERNATIVE create ctx trains with lower firing frequency
-b. test effect of GPe feedback
-
-5. Then, try countermanding task!!! using ramps and pulses
-a. Test effect of GPe feedback to striatum on EP response with fast or slow Ctx ramps
-Talk to Karina about 
-
 remaining issues
 1. model.param_cond.NAME_SOMA needs to be dictionary, to allow different soma names for different neurons
 2. possibly injection current could be different for different networks
