@@ -42,6 +42,8 @@ save_num=2
 savett=True
 save_conn=False
 
+net.connect_dict=net.feedback(net.connect_dict,net.param_net.fb_npas,net.param_net.fb_lhx)
+
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 net.single=False
@@ -121,7 +123,7 @@ for neurtype in isis:
     else:
         print(neurtype,': no neurons')
 
-####### conn_dict is summary of number of connections
+####### conn_dict is summary of number of connection properties
 from moose_nerp.prototypes.ttables import TableSet
 conn_dict=[]
 for ntype in net.connect_dict.keys():
@@ -133,22 +135,7 @@ for ntype in net.connect_dict.keys():
                 conn_dict.append({'neur':ntype,'syn':syntype,'pre':pretype,'params':{'nc':info.num_conns,'prob':info.probability,'sc':info.space_const,'wt':info.weight}})
 
 params={'simtime':model.param_sim.simtime,'numSyn':model.NumSyn,'connect_dict':conn_dict}
-##### output file naming ####
-import os
-ctx_input=os.path.basename(net.ttable_replace['D1']['ampa']['extern1'].filename)
-STN_input=os.path.basename(net.ttable_replace['proto']['ampa']['extern'].filename)
-if 'extern2' in connect_dict['proto']['ampa'].keys():
-    STN_input=os.path.basename(connect_dict['proto']['ampa']['extern2'].pre.filename)
-if 'Npas' in net.connect_dict['D2']['gaba'].keys():
-    fb='Npas-'+str(net.connect_dict['D2']['gaba']['Npas'].weight)
-else:
-    fb='Npas-0'
-if  'Lhx6' in net.connect_dict['FSI']['gaba'].keys():
-    fb=fb+'_Lhx6-'+str(net.connect_dict['FSI']['gaba']['Lhx6'].weight)
-else:
-    fb=fb+'_Lhx6-0'
-net.outfile=net.outfile+'_'+ctx_input+'_'+STN_input+'_feedback'+fb
-net.confile=net.confile+'_'+ctx_input+'_'+STN_input+'_feedback'+fb
+
 ######### Actually save data - just spikes if they occur.  also conn_dict
 if model.param_sim.save_txt:
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
@@ -165,7 +152,7 @@ if model.param_sim.save_txt:
     #save/write out the list of connections and location of each neuron
     
     if save_conn:
-        np.savez(net.confile,conn=connections,loc=network_pop['location'],summary=conn_summary)
+        np.savez(net.confile,conn=connections,loc=population['location'],summary=conn_summary)
     else:
         np.savez(net.confile,summary=conn_summary)
     #
