@@ -28,17 +28,17 @@ neuron1pop=neur_distr(neuronname='ep', spacing=grid,percent=1.0)
 pop_dict={'ep':neuron1pop}
 
 chanSTD = {
-    'KDr': 0.0397,
-    'Kv3': 0.0386,
-    'KvS': 0.0743,
-    'KvF': 0.0173,
-    'BKCa': 0.0238,
-    'SKCa': 0.145,
-    'HCN1': 0.1225,
-    'HCN2': 0.253,
-    'Ca': 0.0836,
-    'NaF': 0.0635,
-    'NaS': 0.115,
+    'KDr': 0.02,
+    'Kv3': 0.0196,
+    'KvS': 0.0373,
+    'KvF': 0.0083,
+    'BKCa': 0.012,
+    'SKCa': 0.075,
+    'HCN1': 0.0625,
+    'HCN2': 0.123,
+    'Ca': 0.0436,
+    'NaF': 0.0335,
+    'NaS': 0.055,
 }
 chanvar={'ep':chanSTD}
 

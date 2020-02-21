@@ -28,43 +28,43 @@ pop_dict={'proto':neuron1pop,'Npas': neuron2pop,'Lhx6':neuron3pop}
 
 #from arky140F - loc _0, unless CV close to 1
 chanSTD_arky = {
-    'KDr': 0.0397,
-    'Kv3': 0.0386,
-    'KvS': 0.0743,
-    'KvF': 0.0173,
-    'KCNQ': 0.0267,
-    'BKCa': 0.0238,
-    'SKCa': 0.295,
-    'HCN1': 0.2454,
-    'HCN2': 0.253,
-    'Ca': 0.1671,
-    'NaF': 0.0635,
-    'NaS': 0.215,
+    'KDr': 0.02,
+    'Kv3': 0.0196,
+    'KvS': 0.0373,
+    'KvF': 0.0083,
+    'KCNQ': 0.0137,
+    'BKCa': 0.012,
+    'SKCa': 0.15,
+    'HCN1': 0.1254,
+    'HCN2': 0.125,
+    'Ca': 0.0835,
+    'NaF': 0.0335,
+    'NaS': 0.115,
 }
 #from proto154 - loc _0, unless CV close to 1
 chanSTD_proto = {
-    'KDr': 0.0487,
-    'Kv3': 0.0177,
-    'KvS': 0.0306,
-    'KvF': 0.0114,
-    'HCN1': 0.139,
-    'HCN2': 0.175,
-    'KCNQ': 0.068,
-    'Ca': .0384,
-    'NaF': 0.0302,
-    'NaS': 0.1308,
-    'BKCa': 0.0496,
-    'SKCa': 0.2048,
+    'KDr': 0.0247,
+    'Kv3': 0.009,
+    'KvS': 0.0153,
+    'KvF': 0.0059,
+    'HCN1': 0.07,
+    'HCN2': 0.087,
+    'KCNQ': 0.034,
+    'Ca': .0294,
+    'NaF': 0.0152,
+    'NaS': 0.0654,
+    'BKCa': 0.025,
+    'SKCa': 0.1024,
 }
 chanvar={'proto':chanSTD_proto, 'Npas':chanSTD_arky, 'Lhx6':chanSTD_arky}
 
 ####################### Connections
 #tables of extrinsic inputs
 #first string is name of the table in moose, and 2nd string is name of external file
-tt_STN = TableSet('tt_STN', 'gp_net/STN2000_lognorm_freq18.0',syn_per_tt=3)
+tt_STN = TableSet('tt_STN', 'gp_net/STN_lognorm',syn_per_tt=3)
 
 #description of intrinsic inputs
-ConnSpaceConst=400e-6
+ConnSpaceConst=300e-6
 neur1pre_neur1post=connect(synapse='gaba', pre='proto', post='proto', space_const=ConnSpaceConst)#internal post syn fraction in 10% Shink Smith 1995
 neur1pre_neur2post=connect(synapse='gaba', pre='proto', post='Npas', space_const=ConnSpaceConst)
 neur1pre_neur3post=connect(synapse='gaba', pre='proto', post='Lhx6', space_const=ConnSpaceConst)
