@@ -22,21 +22,28 @@ _NMDA_MgParams = MgParams(A = 1/18.0,
 _SynGaba = SynChannelParams(Erev = -60e-3,
                             tau1 = 0.25e-3,
                             tau2 = 3.75e-3,
-                            Gbar = 0.5e-9,
+                            Gbar = 0.25e-9,
+                            nmdaCaFrac = 0.0,
+                            var=0.05)
+
+_SynGaba2 = SynChannelParams(Erev = -80e-3,
+                            tau1 = 0.25e-3,
+                            tau2 = 3.75e-3,
+                            Gbar = 0.25e-9,
                             nmdaCaFrac = 0.0,
                             var=0.05)
 
 _SynAMPA = SynChannelParams(Erev = 5e-3,
                             tau1 = 1.1e-3,
                             tau2 = 2.0e-3,
-                            Gbar = 0.2e-9,
+                            Gbar = 0.15e-9,
                             var=0.05,
                             nmdaCaFrac = 0.001,
                             spinic = True)
 _SynNMDA = SynChannelParams(Erev = 5e-3,
                             tau1 = 1.1e-3,
                             tau2 = 37.5e-3,
-                            Gbar = 0.2e-9,
+                            Gbar = 0.15e-9,
                             var=0,#0.05,
                             MgBlock = _NMDA_MgParams,
                             spinic = True,
@@ -53,6 +60,7 @@ SYNAPSE_TYPES = NamedDict(
     ampa = _SynAMPA,
     gaba = _SynGaba,
     nmda = _SynNMDA,
+    gaba2=_SynGaba2
 )
 DesensitizationParams = NamedDict('Synapse_desensitization',gaba = None, nmda=None, ampa=DesensitizationParams(dep_per_spike=0.39,dep_tau=0.8))
 
@@ -67,6 +75,7 @@ _gaba = {param_cond.prox:4, param_cond.med:4, param_cond.dist:4}
 _ampa= {param_cond.prox:1, param_cond.med:2, param_cond.dist:3}
 ######## if only 1 compartment neurons, need to specify total number of synapses
 _gaba = {param_cond.prox:60}
+_gaba2={param_cond.prox:30}
 _ampa = {param_cond.prox:50}
 
-NumSyn={'D1':{'gaba':_gaba,'ampa':_ampa}, 'D2': {'gaba':_gaba,'ampa':_ampa}}
+NumSyn={'D1':{'gaba':_gaba,'ampa':_ampa,'gaba2':_gaba2}, 'D2': {'gaba':_gaba,'ampa':_ampa,'gaba2':_gaba2}}

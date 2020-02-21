@@ -20,15 +20,15 @@ __NMDA_MgParams = MgParams(A = 1/18.0,
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
 #Dieter Jaeger uses 0.25e-9 for gaba
-_SynGaba = SynChannelParams(Erev = -60e-3,
+_SynGaba = SynChannelParams(Erev = -70e-3,
                             tau1 = 1.33e-3,
                             tau2 = 4e-3,
-                            Gbar = 0.6e-9, #larger than SPN to compensate for larger soma/lower input resistance
+                            Gbar = 0.25e-9, #larger than SPN to compensate for larger soma/lower input resistance
                             var=0.05)
 _SynAMPA = SynChannelParams(Erev = 5e-3,
                             tau1 = 1e-3,
                             tau2 = 3e-3,
-                            Gbar = 0.3e-9,
+                            Gbar = 0.15e-9,
                             var=0.05,
                             spinic = True)
 
