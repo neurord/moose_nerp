@@ -18,7 +18,7 @@ save_txt=True
 
 #root='EPampa1.5_ramp*pulsedur0.05*ep88*' #'Ctx_*pulsedur0.1_freq73*'
 root='Ctx_ramp*dur0.05_freq73-fb_npas3_lhx5*umt*' 
-#root='Ctx_osc*umt*' 
+root='Ctx_osc*umt*'
 files=sorted(glob.glob('bg_net/output/bg_'+root+'.npz')) #list of files with output spikes
 #files=['bg_net/output/bg_Ctx10000_ramp_freq5.0_30dur0.5_STN2000_lognorm_freq28.0_feedbackNpas-2_Lhx6-4.npz']
 inputs=['bg_net/STN500_pulse_freq1.0_73dur0.05',
@@ -86,8 +86,9 @@ def save_output(spike_rate,plot_bins,spike_std={}):
         matrix=np.concatenate([np.array(vals)[:,None] for vals in spike_rate[cond].values()],axis=1)
         if len(spike_std):
             std_matrix=np.concatenate([np.array(vals)[:,None] for vals in spike_std[cond].values()],axis=1)
+            matrix=np.column_stack((matrix,std_matrix))
             header=header+' std_'.join(spike_std[cond].keys())
-        np.savetxt(outfname,np.column_stack((plot_bins,matrix,std_matrix)),header=header)
+        np.savetxt(outfname,np.column_stack((plot_bins,matrix)),header=header)
 
 all_spike_rate={}
 titlelist,loc,conditions=find_fig_title(files,trial_ending=trial_end)
@@ -167,7 +168,9 @@ if print_con:
             for syn in conns['intra']:
                 for presyn in conns['intra'][syn].keys():
                     print(ntype,syn,'presyn=',presyn,'mean inputs=',np.round(np.mean(conns['intra'][syn][presyn]),2) )
-            print('shortage',data['summary'].item()[ntype]['shortage'].values())
+                    short=[y for y in conns['shortage'][syn].values()]
+                    print_short=np.mean(short) if np.mean(short)==0 else short
+                    print('shortage',print_short)
 '''
 for fname in files:
     dat=np.load(fname,'r',allow_pickle=True)
