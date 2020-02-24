@@ -5,7 +5,7 @@ from moose_nerp.prototypes.syn_proto import ShortTermPlasParams,SpikePlasParams
 from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.connect import dend_location,connect,ext_connect 
 
-stop_signal=True  #controls which external inputs are used ramp/pulse vs oscillatory (and lognorm)
+stop_signal=False  #controls which external inputs are used ramp/pulse vs oscillatory (and lognorm)
 merge_connect=True
 '''
 Two methods for merging different networks
@@ -26,7 +26,8 @@ pulsefreq='73'
 oscfreq='10.0'
 stnfreq='28.0'
 fb_npas=3 #3
-fb_lhx=5 #4
+fb_lhx=5 #5
+FSI_inputs=0
 size_factor=1 #(change from 500x500 str network)
 
 #filename from parameters governing time table inputs, used here and in multisim.py
@@ -49,7 +50,10 @@ if stop_signal==True:
     confile,outfile=fname(stop_signal,rampfreq,pulsefreq,pulsedur,rampdur,fb_npas,fb_lhx)
 else:
     confile,outfile=fname(stop_signal,oscfreq,stnfreq,pulsedur,rampdur,fb_npas,fb_lhx)
-    
+if FSI_inputs==0:
+    outfile=outfile+'noFSI'
+    confile=confile+'noFSI'
+
 ########### size dependent parameters ####################
 #  str network    500umx500um     1mmx1m    700um x 700 um
 #syn_per_tt           4            16         8
@@ -62,8 +66,8 @@ else:
 #changes to number of synapses; multiply by NumSyn, 
 # - increases number of external inputs
 # - increases available synapses (fixes synchan_shortage) for intrinsic connections
-change_syn={'proto':{'gaba':4,'ampa':1.2},'Lhx6':{'gaba':4},'Npas':{'gaba':4},'ep':{'ampa':2,'gaba':5},
-            'D1':{'gaba':5,'ampa':1.5},'D2':{'gaba':5,'ampa':1.5},'FSI':{'gaba':2,'ampa':1.6}}
+change_syn={'proto':{'gaba':4,'ampa':1.2},'Lhx6':{'gaba':4},'Npas':{'gaba':4},'ep':{'ampa':2,'gaba':6},
+            'D1':{'gaba':6,'gaba2':3,'ampa':1.5},'D2':{'gaba':6,'gaba2':3,'ampa':1.5},'FSI':{'gaba':2,'ampa':1.6}}
 
 ####################################################################
 #New external time tables - (filename, syn_per_tt)
@@ -110,9 +114,9 @@ def add_connect(connect_dict,change_prob):
         connect_dict['ep']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNep,post='ep', dend_loc=dend_location(postsyn_fraction=0.25),weight=1.5)} 
     connect_dict['Npas']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNp,post='Npas', dend_loc=dend_location(postsyn_fraction=0.25),weight=1.2)}
     connect_dict['Lhx6']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNp,post='Lhx6', dend_loc=dend_location(postsyn_fraction=0.25),weight=1.2)}
-    connect_dict['proto']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNp,post='proto', dend_loc=dend_location(postsyn_fraction=0.1),weight=1.2)}
+    connect_dict['proto']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNp,post='proto', dend_loc=dend_location(postsyn_fraction=0.15),weight=1.2)}
     connect_dict['ep']['ampa']={'extern2':ext_connect(synapse='ampa',pre=tt_STNp,post='ep', dend_loc=dend_location(postsyn_fraction=0.25),weight=1.5)}
-    change_prob['proto']['ampa']= {'extern':('dend_loc',dend_location(postsyn_fraction=0.9))}
+    change_prob['proto']['ampa']= {'extern':('dend_loc',dend_location(postsyn_fraction=0.85))}
     change_prob['Lhx6']['ampa']= {'extern':('dend_loc',dend_location(postsyn_fraction=0.75))}
     change_prob['Npas']['ampa']= {'extern':('dend_loc',dend_location(postsyn_fraction=0.75))}
     change_prob['ep']={'ampa':{'extern1':('dend_loc',dend_location(postsyn_fraction=0.75))}}
@@ -138,18 +142,18 @@ connect_dict={}
 ##### Note that number of inputs = probability * number of presyn neurons. Thus,
 ## if increase presyn neurons, will increase inputs
 connect_dict={'ep':{'gaba':{}}}
-connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.3,weight=1.2)
-connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.3,weight=1.2)
+connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.3,weight=1.0)
+connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.3,weight=1.0)
 connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=D1_to_ep,weight=1.2)
 
 #Inputs from striatum to GPe
 #Input resistance.  Npas: 360 MOhm, proto: 280 Mohm, Lhx6: 300 Mohm
 connect_dict['Npas']={'gaba':{}}
-connect_dict['Npas']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Npas', probability=D2_to_GPe,weight=0.8)
+connect_dict['Npas']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Npas', probability=D2_to_GPe,weight=1)
 connect_dict['Lhx6']={'gaba':{}}
-connect_dict['Lhx6']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Lhx6', probability=D2_to_GPe,weight=0.8)
+connect_dict['Lhx6']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Lhx6', probability=D2_to_GPe,weight=1)
 connect_dict['proto']={'gaba':{}}
-connect_dict['proto']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='proto', probability=D2_to_GPe,weight=0.8)
+connect_dict['proto']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='proto', probability=D2_to_GPe,weight=1)
 
 ############ change connection probability #####################
 #example of tuples needed to change connection probability between neurons
@@ -173,6 +177,11 @@ if stop_signal:
 connect_delete={}
 
 connect_delete={'ep':{'gaba':['extern2','extern3']}}
+if FSI_inputs==0:
+    #test effect of FSI input
+    connect_delete['D1']= {'gaba2':['FSI']}
+    connect_delete['D2']= {'gaba2':['FSI']}
+
 #once STN neurons provided:
 #connect_delete['ep']['ampa']='extern'
 #connect_delete['proto']={'ampa':'extern'}
@@ -199,8 +208,8 @@ SPN     0.25,   0.15
 GP      0.25    0.15  
 ep      0.25    0.15  
 '''
-change_weight={'D1':{'gaba':{'D2':('weight',0.9),'D1':('weight',0.6)},'ampa':{'extern1':('weight',1.2)}},
-               'D2':{'gaba':{'D2':('weight',0.75),'D1':('weight',0.75)},'ampa':{'extern1':('weight',1.2)}},
+change_weight={'D1':{'gaba':{'D2':('weight',0.85),'D1':('weight',0.65)},'ampa':{'extern1':('weight',1.4)}},
+               'D2':{'gaba':{'D2':('weight',0.75),'D1':('weight',0.75)},'ampa':{'extern1':('weight',1.4)}},
                'FSI':{'ampa':{'extern':('weight',1.3)}},
                'proto':{'gaba':{'proto':('weight',0.7),'Npas':('weight',0.7),'Lhx6':('weight',0.7)}},
                'Npas':{'gaba':{'proto':('weight',1.2),'Npas':('weight',1.2),'Lhx6':('weight',1.2)}},
