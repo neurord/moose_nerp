@@ -9,14 +9,16 @@ from matplotlib import pyplot as plt
 plt.ion()
 colors=plt.get_cmap('viridis')
 
-print_con=False
+print_con=True
 binsize=0.02 #sec; subdivide time into bins to calculate spike frequency
 overlap=0.2 #sliding window moves this fraction of binsize, show be 1/integer
-max_rasters=500
+max_rasters=0
+trial_end='umt' #would have been better to use -tr or _tr in file naming
 save_txt=True
 
 #root='EPampa1.5_ramp*pulsedur0.05*ep88*' #'Ctx_*pulsedur0.1_freq73*'
-root='Ctx_osc*' 
+root='Ctx_ramp*dur0.05_freq73-fb_npas3_lhx5*umt*' 
+#root='Ctx_osc*umt*' 
 files=sorted(glob.glob('bg_net/output/bg_'+root+'.npz')) #list of files with output spikes
 #files=['bg_net/output/bg_Ctx10000_ramp_freq5.0_30dur0.5_STN2000_lognorm_freq28.0_feedbackNpas-2_Lhx6-4.npz']
 inputs=['bg_net/STN500_pulse_freq1.0_73dur0.05',
@@ -25,8 +27,13 @@ inputs=['bg_net/STN500_pulse_freq1.0_73dur0.05',
 inputs=[]
 
 #since filenames are long, find the pieces that are different to use as labels and titles
-def find_fig_title(filenames):
-    files=[f.split('.npz')[0] for f in filenames]
+def find_fig_title(filenames,trial_ending=None):
+    if trial_ending:
+        splitword=trial_ending
+    else:
+        splitword='.npz'
+    files=[f.split(splitword)[0] for f in filenames]
+    cond=np.unique(files)
     if len(files)>1:
         diffs=[]
         for i in range(len(files)):
@@ -42,7 +49,7 @@ def find_fig_title(filenames):
     else:
         titlelist=files
         locations=[]
-    return titlelist,locations
+    return titlelist,locations,cond
 
 def simple_raster(spikes,max_time,max_rasters=np.inf,ftitle=''):
     fig,axes =plt.subplots(len(spikes), 1,sharex=True)
@@ -57,8 +64,33 @@ def simple_raster(spikes,max_time,max_rasters=np.inf,ftitle=''):
     axis[-1].set_xlim([0,max_time])
     axis[-1].set_xlabel('time (s)')
 
+def plot_hist_dict(hist_dict,plot_bins,num_neur,title,max_time,std_dict={}):
+    fig,axes =plt.subplots(num_neur, 1,sharex=True)
+    fig.suptitle('firing rate')
+    axis=fig.axes
+    for cond,spike_rate in hist_dict.items():
+        fig.suptitle('firing rate '+title)
+        for i,ntype in enumerate(spike_rate.keys()):
+            axis[i].plot(plot_bins,spike_rate[ntype],label=cond)
+            if len(std_dict):
+                axis[i].plot(plot_bins,std_dict[cond][ntype]+spike_rate[ntype],linestyle='dashed')
+            axis[i].set_ylabel(ntype)
+    axis[-1].set_xlabel('time (sec)')
+    axis[-1].set_xlim(0.0,max_time)
+    axis[-1].legend()
+
+def save_output(spike_rate,plot_bins,spike_std={}):
+    for cond in spike_rate.keys():
+        outfname=cond+'hist.txt'
+        header='time   '+'   '.join(spike_rate[cond].keys())
+        matrix=np.concatenate([np.array(vals)[:,None] for vals in spike_rate[cond].values()],axis=1)
+        if len(spike_std):
+            std_matrix=np.concatenate([np.array(vals)[:,None] for vals in spike_std[cond].values()],axis=1)
+            header=header+' std_'.join(spike_std[cond].keys())
+        np.savetxt(outfname,np.column_stack((plot_bins,matrix,std_matrix)),header=header)
+
 all_spike_rate={}
-titlelist,loc=find_fig_title(files)
+titlelist,loc,conditions=find_fig_title(files,trial_ending=trial_end)
 if len(loc):
     i=0
     common_name=''
@@ -66,11 +98,13 @@ if len(loc):
         common_name+=files[i][loc[i][j][0]+loc[i][j][1]:loc[i][j+1][0]]
 else:
     common_name=files[0].split('/')[-1]
+
 for ff,fname in enumerate(files):
     dat= np.load(fname,'r',allow_pickle=True)
     spiketime_dict=dat['spike_time'].item()
     max_time=dat['params'].item()['simtime']
-    simple_raster(spiketime_dict,max_time,ftitle=titlelist[ff]) #plot rasters of inputs
+    if max_rasters:
+        simple_raster(spiketime_dict,max_time,ftitle=titlelist[ff]) #plot rasters of inputs
     numbins=int(max_time/binsize/overlap-(1./overlap-1))
     binlow=[i*binsize*overlap for i in range(numbins)]
     binhigh=[bl+binsize for bl in binlow]
@@ -81,38 +115,51 @@ for ff,fname in enumerate(files):
         #spike_rate[ntype]=time_hist/numneurs
         for bb,(bl,bh) in enumerate(zip(binlow,binhigh)):
             spike_rate[ntype][bb]=len([st for st in  na.flatten(spiketime_dict[ntype]) if st>bl and st<bh])/binsize/numneurs
-    all_spike_rate[titlelist[ff]]=spike_rate
+    if len(titlelist)>len(conditions): #numerous trials per condition
+        #convert the items in dictionary into list of arrays
+        if titlelist[ff] in all_spike_rate.keys():
+            for ntype in all_spike_rate[titlelist[ff]]:
+                all_spike_rate[titlelist[ff]][ntype].append(spike_rate[ntype])
+        else:
+            spike_hist={ntype:[hist] for ntype,hist in spike_rate.items()}
+        all_spike_rate[titlelist[ff]]=spike_hist
+    else:
+        all_spike_rate[titlelist[ff]]=spike_rate
+
+#### calculate mean and std over the set of trials
+if len(files)>len(conditions):
+    spike_rate_mean={c:{} for c in all_spike_rate.keys()}
+    spike_rate_std={c:{} for c in all_spike_rate.keys()}
+    for cond in all_spike_rate.keys():
+        for ntype in all_spike_rate[cond].keys():
+            spike_rate_mean[cond][ntype]=np.mean(all_spike_rate[cond][ntype],axis=0)
+            spike_rate_std[cond][ntype]=np.std(all_spike_rate[cond][ntype],axis=0)
 
 #plot spike rate for each neuron type and each input file
+numneurs=len(spiketime_dict.keys())
 plot_bins=[(binlow[i]+binhigh[i])/2 for i in range(numbins)]
-fig,axes =plt.subplots(len(spiketime_dict.keys()), 1,sharex=True)
-fig.suptitle('firing rate')
-axis=fig.axes
-for cond,spike_rate in all_spike_rate.items():
-    fig.suptitle('firing rate '+common_name)
-    for i,ntype in enumerate(spike_rate.keys()):
-        axis[i].plot(plot_bins,spike_rate[ntype],label=cond)
-        axis[i].set_ylabel(ntype+ ' Hz')
-axis[-1].set_xlabel('time (sec)')
-axis[-1].set_xlim(0.0,max_time)
-axis[-1].legend()
+if len(files)>len(conditions):
+    #plot_hist_dict(spike_rate_mean,plot_bins,numneurs,common_name,max_time,spike_rate_std)
+    plot_hist_dict(spike_rate_mean,plot_bins,numneurs,common_name,max_time)
+else:
+    plot_hist_dict(all_spike_rate,plot_bins,numneurs,common_name,max_time)
 
 #plot raster of input spikes-update to work with different sets of inputs, e.g. slow and fast ramp
 pre_spikes={}
 for f in inputs:
     pre_spikes[os.path.basename(f)]=np.load(f+'.npz','r',allow_pickle=True)['spikeTime']
-if len(inputs):
+if len(inputs) and max_rasters:
     simple_raster(pre_spikes,max_time,max_rasters=max_rasters)
 
+##### fix this to save mean and std as appropriate
 if save_txt:
-    for cond in all_spike_rate.keys():
-        outfname=cond+'hist.txt'
-        header='time   '+'   '.join(all_spike_rate[cond].keys())
-        matrix=np.concatenate([np.array(vals)[:,None] for vals in all_spike_rate[cond].values()],axis=1)
-        np.savetxt(outfname,np.column_stack((plot_bins,matrix)),header=header)
+    if len(files)>len(conditions):
+        save_output(spike_rate_mean,plot_bins,spike_rate_std)
+    else:
+        save_output(all_spike_rate,plot_bins)
 
 if print_con:
-    confiles=glob.glob('bg_connect'+root+'*.npz')
+    confiles=glob.glob('bg_connect'+root.split(trial_end)[0]+'*.npz')
     for f in confiles:
         data=np.load(f,'r',allow_pickle=True)
         print ('########### ', f,' ##############')
@@ -120,7 +167,7 @@ if print_con:
             for syn in conns['intra']:
                 for presyn in conns['intra'][syn].keys():
                     print(ntype,syn,'presyn=',presyn,'mean inputs=',np.round(np.mean(conns['intra'][syn][presyn]),2) )
-            print('shortarge',data['summary'].item()[ntype]['shortage'].values())
+            print('shortage',data['summary'].item()[ntype]['shortage'].values())
 '''
 for fname in files:
     dat=np.load(fname,'r',allow_pickle=True)
