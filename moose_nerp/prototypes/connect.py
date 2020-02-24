@@ -240,9 +240,8 @@ def connect_neurons(cells, netparams, postype, model):
     if not isinstance(cells[postype],list):
         temp=cells[postype]
         cells[postype]=list([temp])
-    synchan_shortage={}
+    synchan_shortage={k:{} for k in post_connections.keys()}
     for ix,postcell in enumerate(cells[postype]):
-        synchan_shortage[postcell]=0
         postsoma=postcell+'/'+model.param_cond.NAME_SOMA
         xpost=moose.element(postsoma).x
         ypost=moose.element(postsoma).y
@@ -250,6 +249,7 @@ def connect_neurons(cells, netparams, postype, model):
         connect_list[postcell]['postsoma_loc']=(xpost,ypost,zpost)
         #set-up array of post-synapse compartments/synchans
         for syntype in post_connections.keys():
+            synchan_shortage[syntype][postcell]=0
             connect_list[postcell][syntype]={}
             #make a table of possible post-synaptic connections
             for pretype in post_connections[syntype].keys():
@@ -304,7 +304,7 @@ def connect_neurons(cells, netparams, postype, model):
                         if len(spikegen_conns)>availsyns:
                             if ix<print_cells:
                                 print('$$$$$$ uh oh, too few synapses on post-synaptic cell, need',len(spikegen_conns),', avail',availsyns)
-                            synchan_shortage[postcell]=synchan_shortage[postcell]+len(spikegen_conns)-availsyns
+                            synchan_shortage[syntype][postcell]=synchan_shortage[syntype][postcell]+len(spikegen_conns)-availsyns
                         #randomly select num_choices of synapses
                         if availsyns==0:
                             if ix<print_cells:
@@ -330,9 +330,13 @@ def connect_neurons(cells, netparams, postype, model):
                         else:
                             print('   !!! no pre-synaptic cells selected for',postcell,' because no', pretype, 'in population')
     for syn in intra_conns.keys():
-        tmp=[np.sum(intra_conns[syn][pre])/float(len(cells[postype])) for pre in intra_conns[syn].keys()]
-        print('*************** number of intra-network connections to',postype, syn,'from',intra_conns[syn],'mean',tmp)
-    if np.sum(list(synchan_shortage.values()))>0:
-        print('@@@@@@@@@@@@@@@@@@ summary of synchan shortage',[short for short in synchan_shortage.values()])
+        tmp=[(pre,np.sum(intra_conns[syn][pre])/float(len(cells[postype]))) for pre in intra_conns[syn].keys()]
+        print('*************** number of intra-network connections to',postype, syn,'from\n',intra_conns[syn],'\nmean',tmp)
+    print('@@@@@@@@@@@@@@@@@@ summary of synchan shortage for', postype)
+    for syn,syn_short in synchan_shortage.items():
+        if np.sum(list(syn_short.values()))>0: 
+            print(syn,':::',[short for short in syn_short.values()],'mean',np.mean([short for short in syn_short.values()]))
+        else:
+            print(syn,'::: shortage=0')
     return connect_list,{'intra':intra_conns,'shortage':synchan_shortage}
 

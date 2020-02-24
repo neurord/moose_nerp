@@ -147,9 +147,10 @@ def create_network(model, param_net,neur_protos={},network_list=None):
         for ntype in network_pop['pop'].keys():
             connections[ntype],conn_summary[ntype]=connect.connect_neurons(network_pop['pop'], param_net, ntype, model)
         for ntype in conn_summary.keys():
-            print('@@@@@@@@@@@@@@@@@@ neuron',ntype,', mean shortage=',np.mean([short for short in conn_summary[ntype]['shortage'].values()]),', has inputs:')
+            print('@@@@@@@@@@@@@@@@@@ neuron',ntype)
             for syn in conn_summary[ntype]['intra'].keys():
-                print('      ',syn,':::',conn_summary[ntype]['intra'][syn])
+                print('      syn=', syn, ', mean shortage=',np.mean([short for short in conn_summary[ntype]['shortage'][syn].values()]),', has inputs:')
+                print(conn_summary[ntype]['intra'][syn])
                 if len(conn_summary[ntype]['intra'][syn])>1: #if more than one type of input to each cell
                     allconns=np.zeros(len(network_pop['pop'][ntype]))
                     for v in conn_summary[ntype]['intra'][syn].values():
