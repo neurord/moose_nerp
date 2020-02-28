@@ -13,13 +13,18 @@ print_con=True
 binsize=0.02 #sec; subdivide time into bins to calculate spike frequency
 overlap=0.2 #sliding window moves this fraction of binsize, show be 1/integer
 max_rasters=0
-trial_end='umt' #would have been better to use -tr or _tr in file naming
+trial_end='umt' #or None; would have been better to use -tr or _tr in file naming
 save_txt=True
 
-#root='EPampa1.5_ramp*pulsedur0.05*ep88*' #'Ctx_*pulsedur0.1_freq73*'
-root='Ctx_ramp*dur0.05_freq73-fb_npas3_lhx5*umt*' 
-root='Ctx_osc*umt*'
+#root='EPampa1.5_ramp*puls edur0.05*ep88*' #'Ctx_*pulsedur0.1_freq73*'
+root='Ctx_ramp*dur0.05_freq73-fb_npas?_lhx?*umt*'
+#root='Ctx_osc*lhx0*umt*'
+if 'ramp' in root:
+    start_plot=1.0
+else:
+    start_plot=0
 files=sorted(glob.glob('bg_net/output/bg_'+root+'.npz')) #list of files with output spikes
+
 #files=['bg_net/output/bg_Ctx10000_ramp_freq5.0_30dur0.5_STN2000_lognorm_freq28.0_feedbackNpas-2_Lhx6-4.npz']
 inputs=['bg_net/STN500_pulse_freq1.0_73dur0.05',
         'bg_net/Ctx10000_ramp_freq5.0_50dur0.3',
@@ -64,7 +69,7 @@ def simple_raster(spikes,max_time,max_rasters=np.inf,ftitle=''):
     axis[-1].set_xlim([0,max_time])
     axis[-1].set_xlabel('time (s)')
 
-def plot_hist_dict(hist_dict,plot_bins,num_neur,title,max_time,std_dict={}):
+def plot_hist_dict(hist_dict,plot_bins,num_neur,title,max_time,std_dict={},start=0):
     fig,axes =plt.subplots(num_neur, 1,sharex=True)
     fig.suptitle('firing rate')
     axis=fig.axes
@@ -76,7 +81,7 @@ def plot_hist_dict(hist_dict,plot_bins,num_neur,title,max_time,std_dict={}):
                 axis[i].plot(plot_bins,std_dict[cond][ntype]+spike_rate[ntype],linestyle='dashed')
             axis[i].set_ylabel(ntype)
     axis[-1].set_xlabel('time (sec)')
-    axis[-1].set_xlim(0.0,max_time)
+    axis[-1].set_xlim(start,max_time)
     axis[-1].legend()
 
 def save_output(spike_rate,plot_bins,spike_std={}):
@@ -141,9 +146,9 @@ numneurs=len(spiketime_dict.keys())
 plot_bins=[(binlow[i]+binhigh[i])/2 for i in range(numbins)]
 if len(files)>len(conditions):
     #plot_hist_dict(spike_rate_mean,plot_bins,numneurs,common_name,max_time,spike_rate_std)
-    plot_hist_dict(spike_rate_mean,plot_bins,numneurs,common_name,max_time)
+    plot_hist_dict(spike_rate_mean,plot_bins,numneurs,common_name,max_time,start=start_plot)
 else:
-    plot_hist_dict(all_spike_rate,plot_bins,numneurs,common_name,max_time)
+    plot_hist_dict(all_spike_rate,plot_bins,numneurs,common_name,max_time,start=start_plot)
 
 #plot raster of input spikes-update to work with different sets of inputs, e.g. slow and fast ramp
 pre_spikes={}
