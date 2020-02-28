@@ -19,7 +19,8 @@ _NMDA_MgParams = MgParams(A = 1/18.0,
                            C = 1.4)
 
 #Sriram uses 0.109e-9 for AMPA and 0.9e-9 for Gaba
-_SynGaba = SynChannelParams(Erev = -65e-3,
+#-70e-3 is 10 mV lower than measured, accounting for junction potential
+_SynGaba = SynChannelParams(Erev = -70e-3,
                             tau1 = 0.25e-3,
                             tau2 = 3.75e-3,
                             Gbar = 0.25e-9,
@@ -33,14 +34,14 @@ _SynGaba2 = SynChannelParams(Erev = -75e-3,
                             nmdaCaFrac = 0.0,
                             var=0.05)
 
-_SynAMPA = SynChannelParams(Erev = 5e-3,
+_SynAMPA = SynChannelParams(Erev = 0e-3,
                             tau1 = 1.1e-3,
                             tau2 = 2.0e-3,
                             Gbar = 0.15e-9,
                             var=0.05,
                             nmdaCaFrac = 0.001,
                             spinic = True)
-_SynNMDA = SynChannelParams(Erev = 5e-3,
+_SynNMDA = SynChannelParams(Erev = 0e-3,
                             tau1 = 1.1e-3,
                             tau2 = 37.5e-3,
                             Gbar = 0.15e-9,

@@ -20,10 +20,10 @@ grid[1]={'xyzmin':0,'xyzmax':340e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
-neuron1pop=neur_distr(neuronname='proto', spacing=grid,percent=0.60) #Table 2 Hernandez Parvabinum+ Neurons and arky Neurons 2015
+neuron1pop=neur_distr(neuronname='proto', spacing=grid,percent=0.55) #Table 2 Hernandez Parvabinum+ Neurons and arky Neurons 2015
 #calculated from percent composition of PV+=proto, Npas1+/FoxP2+=Npas, Lhx6=arky
 neuron2pop=neur_distr(neuronname='Npas', spacing=grid,percent=0.25)
-neuron3pop=neur_distr(neuronname='Lhx6', spacing=grid,percent=0.15)
+neuron3pop=neur_distr(neuronname='Lhx6', spacing=grid,percent=0.20)
 pop_dict={'proto':neuron1pop,'Npas': neuron2pop,'Lhx6':neuron3pop}
 
 #from arky140F - loc _0, unless CV close to 1
