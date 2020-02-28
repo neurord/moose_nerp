@@ -1,6 +1,4 @@
-from .param_net import (confile,
-                        outfile,
-                        connect_dict,
+from .param_net import (connect_dict,
                         connect_delete,
                         change_syn,
                         change_weight,
@@ -11,7 +9,9 @@ from .param_net import (confile,
                         ttable_replace,
                         fname,
                         feedback,
-                        add_connect)
+                        add_connect,
+                        change_FSI,
+                        p)
 
 ###########plotting control
 #probably put these into param_sim?  similar to that in single neuron sims?

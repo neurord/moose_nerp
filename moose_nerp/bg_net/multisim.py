@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 def moose_main(p):
-    stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,trial=p
+    stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_input,simtime,trial=p
     import numpy as np
     import moose
     import importlib
@@ -21,7 +21,7 @@ def moose_main(p):
     from moose_nerp import bg_net as net
 
     #output file names and time table inputs depend on input parameters
-    net.confile,net.outfile=net.fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx)
+    net.confile,net.outfile=net.fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_input)
     net.outfile=net.outfile+'t'+str(trial)
     if stop_signal: #regardless, STN2000_lognorm_freq28.0.npz is used
         print('if stop signal',stop_signal,'param_net',net.param_net.tt_Ctx)
@@ -31,9 +31,10 @@ def moose_main(p):
         net.param_net.tt_Ctx.filename='bg_net/Ctx10000_osc_freq'+freqCtx+'_osc0.7'
    
     if stop_signal: #add in second "pulse" time table, change postyn fraction for the log normal inpput
-        net.connect_dict,net.change_prob=net.add_connect(net.connect_dict,net.change_prob) 
+        net.connect_dict,net.change_prob=net.add_connect(net.connect_dict,net.change_prob,freqStn) 
     
     net.connect_dict=net.feedback(net.connect_dict,fb_npas,fb_lhx)
+    net.connect_delete=net.change_FSI(net.connect_delete,net.p['FSI_input'])
 
     np.random.seed()
     #names of additional neuron modules to import
@@ -60,7 +61,7 @@ def moose_main(p):
     param_sim.injection_width=0.3
     param_sim.injection_delay=0.2
     param_sim.save_txt = True
-    param_sim.simtime=4.0
+    param_sim.simtime=simtime
     
     #################################-----------create the model: neurons, and synaptic inputs
     #### Do not setup hsolve yet, since there may be additional neuron_modules
@@ -145,6 +146,7 @@ def moose_main(p):
     params={'simtime':model.param_sim.simtime,'numSyn':model.NumSyn,'connect_dict':conn_dict}
 
     ######### Actually save data - just spikes if they occur.  also conn_dict
+    print('************ output file name',net.outfile)
     if model.param_sim.save_txt:
         if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
             np.savez(outdir+net.outfile,spike_time=spike_time,isi=isis,params=params)
@@ -170,12 +172,12 @@ def multi_main(p):
     from multiprocessing.pool import Pool
     import os
     # Apply main simulation varying cortical fractions:
-    params=[(p.stoptask,p.ctxfreq,p.stnfreq,p.pulsedur,p.rampdur,p.fb_npas,p.fb_lhx,i) for i in range(p.trials)]
+    params=[(p.stoptask,p.ctxfreq,p.stnfreq,p.pulsedur,p.rampdur,p.fb_npas,p.fb_lhx,p.FSI,p.simtime,i) for i in range(p.trials)]
     max_pools=os.cpu_count()
     num_pools=min(len(params),max_pools)
     print('************* number of processors',num_pools,' params',len(params),params)
-    p = Pool(num_pools,maxtasksperchild=1)
-    results = p.map(moose_main,params)
+    pp = Pool(num_pools,maxtasksperchild=1)
+    results = pp.map(moose_main,params)
     return dict(zip(range(p.trials),results))
     
 from moose_nerp.prototypes import standard_options
@@ -189,6 +191,7 @@ def parse_args(commandline,do_exit):
     parser.add_argument("--stnfreq",'-stn', type=str, help="frequency of stn inputs to GPe")
     parser.add_argument("--rampdur",'-ramp', type=float, default=0,help="duration of ctx ramp inputs to striatum")
     parser.add_argument("--ctxfreq",'-ctx', type=str, help="frequency of ctx inputs to striatum")
+    parser.add_argument("--FSI",'-FSI', type=str, default='11', help="2 bit string controlling FSI inputs, first bit=0 deletes inputs to FSI, 2nd bit=0 deletes inputs to SPNs")
     try:
         args = parser.parse_args(commandline) # maps arguments (commandline) to choices, and checks for validity of choices.
     except SystemExit:

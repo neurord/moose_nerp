@@ -42,7 +42,14 @@ save_num=2
 savett=True
 save_conn=False
 
-net.connect_dict=net.feedback(net.connect_dict,net.param_net.fb_npas,net.param_net.fb_lhx)
+if net.param_net.stop_signal==True:
+    net.confile,net.outfile=net.fname(net.param_net.stop_signal,net.p['rampfreq'],net.p['pulsefreq'],net.p['pulsedur'],net.p['rampdur'],net.p['fb_npas'],net.p['fb_lhx'],net.p['FSI_input'])
+    net.connect_dict,net.change_prob=net.add_connect(net.connect_dict,net.change_prob,net.p['pulsefreq'])
+else:
+    net.confile,net.outfile=net.fname(net.param_net.stop_signal,net.p['oscfreq'],net.p['stnfreq'],net.p['pulsedur'],net.p['rampdur'],net.p['fb_npas'],net.p['fb_lhx'],net.p['FSI_input'])
+
+net.connect_dict=net.feedback(net.connect_dict,net.p['fb_npas'],net.p['fb_lhx'])
+net.connect_delete=net.change_FSI(net.connect_delete,net.p['FSI_input'])
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
@@ -55,7 +62,7 @@ net.num_inject=0
 param_sim.injection_width=0.3
 param_sim.injection_delay=0.2
 param_sim.save_txt = True
-param_sim.simtime=4.0
+param_sim.simtime=1.2#4.0
 
 #################################-----------create the model: neurons, and synaptic inputs
 #### Do not setup hsolve yet, since there may be additional neuron_modules
