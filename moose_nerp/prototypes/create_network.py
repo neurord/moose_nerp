@@ -56,12 +56,16 @@ def change_connect(connect_dict,change_dict):
         for syntype in change_dict[neurtype].keys():
             for presyn,change_tuple in change_dict[neurtype][syntype].items():
                 #print('>>>>>> old connect ',connect_dict[neurtype][syntype][presyn])
-                if change_tuple[0]=='space_const' or change_tuple[0]=='weight':
-                    oldvalue=connect_dict[neurtype][syntype][presyn].__getattribute__(change_tuple[0])
-                    connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1]*oldvalue)
+                if presyn in connect_dict[neurtype][syntype]:
+                    if change_tuple[0]=='space_const' or change_tuple[0]=='weight':
+                        oldvalue=connect_dict[neurtype][syntype][presyn].__getattribute__(change_tuple[0])
+                        connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1]*oldvalue)
+                    else:
+                        connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1])
+                    print('>>>>>> change connect, type= ', change_dict[neurtype][syntype][presyn][0],' :::',connect_dict[neurtype][syntype][presyn])
                 else:
-                    connect_dict[neurtype][syntype][presyn].__setattr__(change_tuple[0],change_tuple[1])
-                print('>>>>>> change connect, type= ', change_dict[neurtype][syntype][presyn][0],' :::',connect_dict[neurtype][syntype][presyn])
+                    print('***** connection not found for ', neurtype,syntype,presyn,' other connections=',connect_dict[neurtype][syntype])
+                    
     return connect_dict
 
 def change_extern_files(connect_dict,ttables):
