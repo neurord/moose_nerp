@@ -25,7 +25,7 @@ _SynGaba = SynChannelParams(Erev = -70e-3,
                             tau2 = 4e-3,
                             Gbar = 0.25e-9, 
                             var=0.05)
-_SynAMPA = SynChannelParams(Erev = 0e-3,
+_SynAMPA = SynChannelParams(Erev = 5e-3,
                             tau1 = 1e-3,
                             tau2 = 3e-3,
                             Gbar = 0.15e-9,
