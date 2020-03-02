@@ -17,13 +17,13 @@ trial_end='umt' #or None; would have been better to use -tr or _tr in file namin
 save_txt=True
 
 #root='EPampa1.5_ramp*puls edur0.05*ep88*' #'Ctx_*pulsedur0.1_freq73*'
-root='Ctx_ramp*dur0.05_freq73-fb_npas?_lhx?*umt*'
-#root='Ctx_osc*lhx0*umt*'
+root='ep1.4_Ctx_ramp*dur0.05_freq73-fb_npas*_lhx?*umt*'
+#root='bg_Ctx_osc*umt*'
 if 'ramp' in root:
     start_plot=1.0
 else:
     start_plot=0
-files=sorted(glob.glob('bg_net/output/bg_'+root+'.npz')) #list of files with output spikes
+files=sorted(glob.glob('bg_net/output/'+root+'.npz')) #list of files with output spikes
 
 #files=['bg_net/output/bg_Ctx10000_ramp_freq5.0_30dur0.5_STN2000_lognorm_freq28.0_feedbackNpas-2_Lhx6-4.npz']
 inputs=['bg_net/STN500_pulse_freq1.0_73dur0.05',

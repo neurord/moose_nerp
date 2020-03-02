@@ -26,7 +26,7 @@ p={'rampdur':'0.5',
    'oscfreq':'10.0',
    'stnfreq':'28.0',
    'fb_npas':3, #3
-   'fb_lhx':0, #5
+   'fb_lhx':5, #5
    'FSI_input':'11'}
 size_factor=1 #(change from 500x500 str network)
 
@@ -51,8 +51,8 @@ def fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_in,siz
     if  FSI_in[1]=='0':
         fname+='_FS2SPN0'
     print ('********************', fname)
-    confile='bg_connect'+fname+'-'+str(size_factor*500)+'um'  #saves complete list of connections
-    outfile='bg_'+fname+'-'+str(size_factor*500)+'um' #saves spikes
+    confile='ep1.4_connect'+fname+'-'+str(size_factor*500)+'um'  #saves complete list of connections
+    outfile='ep1.4_'+fname+'-'+str(size_factor*500)+'um' #saves spikes
     return confile,outfile
 
 ########### size dependent parameters ####################
@@ -69,15 +69,15 @@ def fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_in,siz
 # - increases available synapses (fixes synchan_shortage) for intrinsic connections
 # ************ These increases are likely not needed for multi-compartmental neurons
 change_syn={'proto':{'gaba':4,'ampa':1.2},'Lhx6':{'gaba':4},'Npas':{'gaba':4},'ep':{'ampa':2,'gaba':6},
-            'D1':{'gaba':6,'gaba2':3,'ampa':2.1},'D2':{'gaba':6,'gaba2':3,'ampa':2.1},'FSI':{'gaba':2,'ampa':1.5}}
+            'D1':{'gaba':6,'gaba2':3,'ampa':2.1},'D2':{'gaba':6,'gaba2':3,'ampa':2.1},'FSI':{'gaba':2,'ampa':1.6}}
 
 ####################################################################
 #New external time tables - (filename, syn_per_tt)
 #only get created if they are specified in connect_dict
 if stop_signal:
-    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_ramp_freq5.0_'+p['rampfreq']+'dur'+p['rampdur'],syn_per_tt=4*size_factor)
+    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_ramp_freq5.0_'+p['rampfreq']+'dur'+p['rampdur'],syn_per_tt=5*size_factor)
 else: 
-    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_osc_freq'+p['oscfreq']+'_osc0.7',syn_per_tt=4*size_factor)
+    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_osc_freq'+p['oscfreq']+'_osc0.7',syn_per_tt=5*size_factor)
 
 tt_STN=TableSet('tt_STN','bg_net/STN2000_lognorm_freq'+p['stnfreq'],syn_per_tt=4)
 tt_STNp=TableSet('tt_STNp','bg_net/STN500_pulse_freq1.0_'+p['pulsefreq']+'dur'+p['pulsedur'],syn_per_tt=4)
@@ -158,7 +158,7 @@ connect_dict={}
 connect_dict={'ep':{'gaba':{}}}
 connect_dict['ep']['gaba']['proto']=connect(synapse='gaba', pre='proto', post='ep', probability=0.3,weight=1.0)
 connect_dict['ep']['gaba']['Lhx6']=connect(synapse='gaba', pre='Lhx6', post='ep', probability=0.5,weight=1.0)
-connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=D1_to_ep,weight=1.2)
+connect_dict['ep']['gaba']['D1']=connect(synapse='gaba', pre='D1', post='ep', probability=D1_to_ep,weight=1.4)
 
 #Inputs from striatum to GPe
 #Input resistance.  Npas: 360 MOhm, proto: 280 Mohm, Lhx6: 300 Mohm
@@ -167,8 +167,14 @@ connect_dict['Npas']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Npas'
 connect_dict['Lhx6']={'gaba':{}}
 connect_dict['Lhx6']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='Lhx6', probability=D2_to_GPe,weight=1)
 connect_dict['proto']={'gaba':{}}
-connect_dict['proto']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='proto', probability=D2_to_GPe,weight=1)
+connect_dict['proto']['gaba']['D2']=connect(synapse='gaba', pre='D2', post='proto', probability=D2_to_GPe,weight=0.8)
 
+'''
+prefix bg:
+D1 to ep =1.2, D2 to proto=1, D2 to D1: 0.48, D1 to D1: 0.42
+prefix ep1.4
+D1 to ep=1.4, D2 to proto=0.8, D2 to D1: 0.45, D1 to D1: 0.45
+'''
 ############ change connection probability #####################
 #example of tuples needed to change connection probability between neurons
 #use multiplicative factor for space constant, since those are such small numbers
@@ -226,9 +232,6 @@ change_weight={'D1':{'gaba':{'D2':('weight',0.45),'D1':('weight',0.45)},'gaba2':
                'Npas':{'gaba':{'proto':('weight',1.2),'Npas':('weight',1.2),'Lhx6':('weight',1.2)}},
                'Lhx6':{'gaba':{'proto':('weight',1.2),'Npas':('weight',1.2),'Lhx6':('weight',1.2)}},
                'ep':{'ampa':{'extern1':('weight',1.5)}}}
-'''
-possibly repeat simulations with asymmetry in weights from D1 and D2 to D1, e.g. 0.48 and 0.42?
-'''
 mindelay={}
 cond_vel={}
 
