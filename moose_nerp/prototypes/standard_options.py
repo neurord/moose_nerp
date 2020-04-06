@@ -20,10 +20,10 @@ def comma_seperated_list(float):
         return [float(x) for x in arg.split(',')]
 
 def parse_boolean(s):
-    if s in {"1", "true", "yes"}:
+    if s in {"1", "true", "True", "yes"}:
         return True
 
-    if s in {"0", "false", "no"}:
+    if s in {"0", "false", "False", "no"}:
         return False
 
     raise ValueError("Invalid literal for bool(): {!r}".format(s))

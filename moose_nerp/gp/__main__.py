@@ -61,6 +61,7 @@ create_model_sim.runAll(model)
 #import ISI_anal
 #spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
+
 #dat=pickle.load(open('params.pickle','rb'))
 import numpy as np
 from matplotlib import pyplot as plt
@@ -72,4 +73,5 @@ for f in files:
     simtime=2
     ts=np.linspace(0,simtime,len(dat))
     plt.plot(ts[0:3000],dat[0:3000])
+
 

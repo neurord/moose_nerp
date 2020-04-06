@@ -79,10 +79,18 @@ def moose_main(p):
     else:
         print ('$$$$$$$$$$$$$$ old tt file for STN:',net.param_net.tt_STN.filename, 'trial', trialnum)
     #################################-----------create the model: neurons, and synaptic inputs
-    
+    if model.stpYN==False:
+        remember_stpYN=False
+        model.stpYN=True
+        #create network with stp, and then turn it off for extra synapse (if model.stpYN is False)
+    else:
+        remember_stpYN=True
+    fname_stp=str(1 if model.stpYN else 0)+str(1 if remember_stpYN else 0)
+
     model=create_model_sim.setupNeurons(model,network=not net.single)
     print('trialnum', trialnum)
     population,connections,plas=create_network.create_network(model, net, model.neurons)
+    model.stpYN=remember_stpYN
 
     ####### Set up stimulation - could be current injection or plasticity protocol
     # set num_inject=0 to avoid current injection
@@ -101,16 +109,16 @@ def moose_main(p):
     else:
         print('########### unknown synapse type', 'trial', trialnum)
 
-    param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+fname_part+'t'+str(trialnum)
+    param_sim.fname='ep'+prefix+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+fname_stp+fname_part+'t'+str(trialnum)
     print('>>>>>>>>>> moose_main, presyn {} stpYN {} stimfreq {} simtime {} trial {} plotcomps {} tt {} {}'.format(presyn,model.stpYN,stimfreq, param_sim.simtime,trialnum, param_sim.plotcomps,ttGPe,ttstr))
 
     create_model_sim.setupStim(model)
-    print('>>>> After setupStim, simtime:', param_sim.simtime, 'trial', trialnum) 
+    print('>>>> After setupStim, simtime:', param_sim.simtime, 'trial', trialnum, 'stpYN',model.stpYN) 
     ##############--------------output elements
     if net.single:
         create_model_sim.setupOutput(model)
     else:   #population of neurons
-        spiketab,vmtab,plastab,catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
+        model.spiketab,model.vmtab,model.plastab,model.catab=net_output.SpikeTables(model, population['pop'], net.plot_netvm, plas, net.plots_per_neur)
         #simpath used to set-up simulation dt and hsolver
         simpath=[net.netname]
         clocks.assign_clocks(simpath, param_sim.simdt, param_sim.plotdt, param_sim.hsolve,model.param_cond.NAME_SOMA)
@@ -120,7 +128,7 @@ def moose_main(p):
     #
     if model.synYN and (param_sim.plot_synapse or net.single):
         #overwrite plastab above, since it is empty
-        syntab, plastab, stp_tab=tables.syn_plastabs(connections,model)
+        model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
     #
     #add short term plasticity to synapse as appropriate
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime, 'trial': trialnum,'dt':param_sim.plotdt}
@@ -133,13 +141,15 @@ def moose_main(p):
                 if model.stpYN:
                     extra_syntab[ntype],extra_plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
                                                                             simdt=model.param_sim.simdt,stp_params=stp_params)
+                    print('!!!!!!!!!!!!! setting up plasticity, stpYN',model.stpYN)
                 else:
                     extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+                    print('!!!!!!!!!!!!! NO plasticity, stpYN',model.stpYN)
             param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
     #
     #################### Actually run the simulation
-    param_sim.simtime=20.0
-    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum)
+    param_sim.simtime=5.0
+    print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum,'fname',outdir+param_sim.fname)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
         inj=[i for i in param_sim.injection_current if i !=0]
@@ -149,17 +159,17 @@ def moose_main(p):
         for inj in model.param_sim.injection_current:
             create_model_sim.runOneSim(model, simtime=model.param_sim.simtime, injection_current=inj)
 
-    #net_output.writeOutput(model, param_sim.fname+'vm',spiketab,vmtab,population)
+    #net_output.writeOutput(model, param_sim.fname+'vm',model.spiketab,model.vmtab,population)
     #
     #Save results: spike time, Vm, parameters, input time tables
-    vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
-    import ISI_anal
+    from moose_nerp import ISI_anal
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+    vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
-        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmout)
     else:
         print('no spikes for',param_sim.fname, 'saving vm and parameters')
-        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmtab)
+        np.savez(outdir+param_sim.fname,params=param_dict,vm=vmout)
     if net.single:
         #save spiketime of all input time tables
         timtabs={}
@@ -169,9 +179,10 @@ def moose_main(p):
                     timtabs[syn]={}
                     for pretype,pre_dict in syn_dict.items():
                         timtabs[syn][pretype]={}
-                        for branch,presyns in pre_dict.items():
-                            if 'TimTab' in presyns:
-                                timtabs[syn][pretype][branch]=moose.element(presyns).vector
+                        for branch,presyn in pre_dict.items():
+                            for i,possible_tt in enumerate(presyn):
+                                if 'TimTab' in possible_tt:
+                                    timtabs[syn][pretype][branch+'_syn'+str(i)]=moose.element(possible_tt).vector
         np.save(outdir+'tt'+param_sim.fname,timtabs)
 
     #create dictionary with the output (vectors) from test plasticity
@@ -182,7 +193,7 @@ def moose_main(p):
             'tt': {ntype+'_'+pt:tab.vector for pt,tab in model.tt[ntype].items()}}
             if model.stpYN:
                 tab_dict[ntype]['plas']={tab.name:tab.vector for tab in extra_plastabset[ntype]}
-    return param_dict,tab_dict,vmtab,spike_time,isis
+    return param_dict,tab_dict,vmout,spike_time,isis
 
 def multi_main(p):
     from multiprocessing.pool import Pool
@@ -196,7 +207,7 @@ def multi_main(p):
         sim_params=[(p.freq,p.syn,p.stpYN,trial,p.cond,p.ttGPe,p.ttstr,p.ttSTN) for trial in range(p.trials)]
         
     num_pools=min(len(sim_params),max_pools)
-    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfiles',p.ttGPe,p.ttstr,p.ttSTN)
+    print('************* number of processors',max_pools,' num params',len(sim_params), 'pools', num_pools,'syn', p.syn,'freq', p.freq,'ttfiles',p.ttGPe,p.ttstr,p.ttSTN,'plas',p.stpYN)
     print(sim_params)
     p = Pool(num_pools,maxtasksperchild=1)
     #
@@ -211,7 +222,7 @@ def parse_args(commandline,do_exit):
     parser.add_argument("--freq",'-f', type=int, default=0, help="optional: frequency of special input, omit or 0 for non")
     #could  change this to type list to provide a range of frequencies
     parser.add_argument("--trials",'-n', type=int, help="number of trials")
-    parser.add_argument("--stpYN",'-stp', type=str, choices=["1", "0"],help="1 for yes, 0 for no short term plas")
+    parser.add_argument("--stpYN",'-stp', type=int, choices=[1, 0],help="1 for yes, 0 for no short term plas")
     parser.add_argument("--ttGPe",'-tg', type=str, default='', help="name of tt files for GPe")
     parser.add_argument("--ttstr",'-ts', type=str, default='',help="name of tt files for Str")
     parser.add_argument("--ttSTN",'-tn', type=str, default='',help="name of tt files for STN")

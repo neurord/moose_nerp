@@ -10,17 +10,25 @@ def moose_main(p):
     model.synYN = True
     model.stpYN = stpYN
     outdir="ep/output/"
-    stimtype='PSP_' #choose from AP and PSP
-    model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
+    stimtype='AP_' #choose from AP and PSP
+    if stimfreq>0:
+        model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
+        print(model.param_sim.stim_paradigm,presyn)
+        if presyn != 'none':
+            model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
+    else:
+        model.param_sim.stim_paradigm='inject'
+
     create_model_sim.setupOptions(model)
     # Parameter overrides can be specified:
 
     param_sim = model.param_sim
     param_sim.injection_current= [inj] 
-    param_sim.injection_delay = 0.0
+    #param_sim.injection_delay = 1.0
     param_sim.save_txt=True
     param_sim.plot_synapse=False
     param_sim.plot_calcium=False
+    param_sim.plotcomps = list(set(param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1a','p0b1b1c','p0b1b1_1']))
 
     # this is only needed if adding short term plasticity to synapse
     from moose_nerp import ep_net as net
@@ -44,21 +52,22 @@ def moose_main(p):
     # This function sets up the stimulation in Moose, e.g. pulsegen for current
     # injection or synaptic stimulation:
     create_model_sim.setupStim(model)
+    param_sim.simtime=4.0
 
      #add short term plasticity to synapse as appropriate
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
-    from moose_nerp.prototypes import plasticity_test as plas_test
-    syntab={ntype:[] for ntype in  model.neurons.keys()}
-    plastabset={ntype:[] for ntype in  model.neurons.keys()}
-    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime}
-    for ntype in model.neurons.keys():
-        for tt_syn_tuple in model.tuples[ntype].values():
-            if model.stpYN:
-                syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
-                                                                                     simdt=model.param_sim.simdt,stp_params=stp_params)
-            else:
-                syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
-        param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
+    if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
+        from moose_nerp.prototypes import plasticity_test as plas_test
+        syntab={ntype:[] for ntype in  model.neurons.keys()}
+        plastabset={ntype:[] for ntype in  model.neurons.keys()}
+        for ntype in model.neurons.keys():
+            for tt_syn_tuple in model.tuples[ntype].values():
+                if model.stpYN:
+                    syntab[ntype],plastabset[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0,
+                                                                                         simdt=model.param_sim.simdt,stp_params=stp_params)
+                else:
+                    syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
+            param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
 
     #simulate the model
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([ij==0 for ij in param_sim.injection_current]):
@@ -78,25 +87,27 @@ def moose_main(p):
     #Extract spike times and calculate ISI if spikes occur
     vmtab={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
     import numpy as np
-    import ISI_anal
+    from moose_nerp import ISI_anal
     #stim_spikes are spikes that occur during stimulation - they prevent correct psp_amp calculation
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
-    stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt,soma=model.param_cond.NAME_SOMA)
-    if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
-        psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt,soma=model.param_cond.NAME_SOMA)
-        np.savez(outdir+param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict,vm=vmtab)
-        print('&&&&&&&&&&&&&&&&& Saving PSP amplitude &&&&&&&&&&&&&&&&&&&', param_sim.fname)
-    if np.any([len(st) for tabset in stim_spikes.values() for st in tabset]):
+    if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmtab)
         print('&&&&&&&&&&&&&&&&& Saving spike times &&&&&&&&&&&&&&&&&&&', param_sim.fname)
+    if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
+        stim_spikes=ISI_anal.stim_spikes(spike_time,model.tt,soma=model.param_cond.NAME_SOMA)
+        if not np.all([len(st) for tabset in stim_spikes.values() for st in tabset]):
+            psp_amp,psp_norm=ISI_anal.psp_amp(model.vmtab,model.tt,soma=model.param_cond.NAME_SOMA)
+            np.savez(outdir+param_sim.fname,amp=psp_amp,norm=psp_norm,params=param_dict,vm=vmtab)
+            print('&&&&&&&&&&&&&&&&& Saving PSP amplitude &&&&&&&&&&&&&&&&&&&', param_sim.fname)
     #
     #create dictionary with the output (vectors) from tables 
     tab_dict={}
-    for ntype,tabset in syntab.items():
-        tab_dict[ntype]={'syn':tabset.vector,'syndt':tabset.dt, 
-        'tt': {ntype+'_'+pt:tab.vector for pt,tab in model.tt[ntype].items()}}#,'tt_dt':tabset.dt}
-        if model.stpYN:
-            tab_dict[ntype]['plas']={tab.name:tab.vector for tab in plastabset[ntype]}
+    if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
+        for ntype,tabset in syntab.items():
+            tab_dict[ntype]={'syn':tabset.vector,'syndt':tabset.dt, 
+                             'tt': {ntype+'_'+pt:tab.vector for pt,tab in model.tt[ntype].items()}}#,'tt_dt':tabset.dt}
+            if model.stpYN:
+                tab_dict[ntype]['plas']={tab.name:tab.vector for tab in plastabset[ntype]}
 
     return param_dict,tab_dict,vmtab,spike_time,isis
 
@@ -128,8 +139,8 @@ if __name__ == "__main__":
         do_exit = True
     inj=float(args[0]) #choose from 0 or -15e-12 (15 pA)
     stpYN=int(args[1]) #either 0 or 1
-    synset=['GPe','str']
-    stimfreqs=[5,10,20,40]
+    synset=['none']#['GPe','str']#
+    stimfreqs=[10,20,40,50]#[20]#
     results = multi_main(synset,stpYN,inj,stimfreqs)
 
     if plot_stuff:

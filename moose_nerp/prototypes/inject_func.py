@@ -115,6 +115,7 @@ def MakeTimeTables(Stimulation,spine_no):
     StimParams = Stimulation.Paradigm
     delay = Stimulation.stim_delay
     location=Stimulation.StimLoc
+    print('maketimetab location',location)
 
     time_tables = {}
     if location.spine_density==0.0:
@@ -183,13 +184,13 @@ def enumerate_spine_synchans(model,dendrite):
 
     return num_spines,synapses    
 
-def HookUpDend(model,dendrite,container):
+def HookUpDend(model,dendrites,container,dendpath):
     if model.Stimulation.StimLoc.spine_density>0:
-        num_spines,synchans=enumerate_spine_synchans(model,dendrite)
+        num_spines,synchans=enumerate_spine_synchans(model,dendrites)
         tt_root_name=container.path+'/TimTab'+dendrite.name
     else:
         num_spines=1
-        synchans={dendrite.name:[dendrite.path+'/'+model.Stimulation.StimLoc.syntype]}
+        synchans={dend:[dendpath+dend+'/'+model.Stimulation.StimLoc.syntype] for dend in dendrites}
         tt_root_name=container.path+'/TimTab'
         print('HookUpDend, syn:', synchans,num_spines)
     if getattr(model.Stimulation.StimLoc,'weight',None):
@@ -201,18 +202,17 @@ def HookUpDend(model,dendrite,container):
     print('HookUpDend, tt:', time_tables)
     stimtab = {}
     stim_syn = {}
-    for spine in time_tables:
+    for spine in time_tables.keys():
         stimtab[spine] = moose.TimeTable('%s_%s_%s' % (tt_root_name,str(spine),str(int(freq))))
         stimtab[spine].vector = np.array(time_tables[spine])
         stimtab[spine].tick=7#moose.element(synchans[spine][0]).tick
-        print('HUD,stimtab {} '.format(stimtab),'tick',stimtab[spine].tick)
+        print('HUD, stimtab {} tick {} synchans {}'.format(stimtab,stimtab[spine].tick,synchans[spine]))
 
-        for synchan in synchans[spine]:
-            synapse = moose.element(synchan+'/SH')
-            print('**** ready to connect',synapse.path,stimtab[spine].vector,model.Stimulation.Paradigm.name,model.Stimulation.StimLoc.stim_dendrites,'weight=',weight)
-            #connect.plain_synconn(synapse,stimtab[spine],0)
-            connect.synconn(synapse.path,0,stimtab[spine],model.param_syn,weight=weight)
-            stim_syn[synchan]=(stimtab[spine],synapse,synapse.synapse.num-1)
+        for synchan in synchans[spine]:  #if neuron has spines, is this syntax needed?
+              synapse = moose.element(synchan+'/SH')
+              print('**** ready to connect',synapse.path,stimtab[spine].vector,model.Stimulation.Paradigm.name,'weight=',weight)
+              connect.synconn(synapse.path,0,stimtab[spine],model.param_syn,weight=weight)
+              stim_syn[synchan]=(stimtab[spine],synapse,synapse.synapse.num-1)
             
     return stimtab,synchans,stim_syn
 
@@ -231,16 +231,15 @@ def ConnectPreSynapticPostSynapticStimulation(model,ntype):
 
     stimtabs = {};stim_syn_set={};#synchans={}
     #ISSUE WITH THIS LOOP: potentially creating independent but identical timetables for multiple dendrites
-    for dend in model.Stimulation.StimLoc.stim_dendrites:
-        name_dend = '/'+ntype+'/'+dend
-        dendrite = moose.element(name_dend)
-        stimtab,synchan,stim_syn = HookUpDend(model,dendrite,container)
+    if SP.n_train*SP.n_burst*SP.n_pulse>0:
+        print('CPSPSS: dends',model.Stimulation.StimLoc.stim_dendrites)
+        dendpath='/'+ntype+'/'
+        stimtab,synchan,stim_syn = HookUpDend(model,model.Stimulation.StimLoc.stim_dendrites,container,dendpath)
         max_time=[np.max(st.vector) for st in stimtab.values()]
         exp_dur= np.max(max_time)+model.Stimulation.stim_delay
-        #print('EXP DUR',max_time,'max time:',exp_dur,'AP',exp_duration)
+        print('EXP DUR',max_time,'max time:',exp_dur,'AP',exp_duration)
         exp_duration=(exp_dur if exp_dur>exp_duration else exp_duration)
         stimtabs.update(stimtab)
-        #synchans.update(synchan)
         stim_syn_set.update(stim_syn)
 
     if SP.A_inject:

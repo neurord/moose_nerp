@@ -85,13 +85,16 @@ def interpolate_values_in_table(model, tabA, V_0, l=40):
     around tabA[V_0]. '''
     V = np.linspace(model.VMIN, model.VMAX, len(tabA))
     idx =  abs(V-V_0).argmin()
-    A_min = tabA[idx-l]
-    V_min = V[idx-l]
-    A_max = tabA[idx+l]
-    V_max = V[idx+l]
+    min_idx=max(idx-l,0)
+    max_idx=min(idx+l,len(tabA)-1)
+    #print('in interp, len of tabA',len(tabA),'V0',V_0,'idx',idx,'+l',idx+l,'min',min_idx,'max',max_idx)
+    A_min = tabA[min_idx]
+    V_min = V[min_idx]
+    A_max = tabA[max_idx]
+    V_max = V[max_idx]
     a = (A_max-A_min)/(V_max-V_min)
     b = A_max - a*V_max
-    tabA[idx-l:idx+l] = V[idx-l:idx+l]*a+b
+    tabA[min_idx:max_idx] = V[min_idx:max_idx]*a+b
     return tabA
 
 def  calc_V0(rate,B,C,vhalf,vslope,Params):
@@ -105,6 +108,7 @@ def  calc_V0(rate,B,C,vhalf,vslope,Params):
 def fix_singularities(model, Params, Gate):
     #This needs to be extended to work with standardMooseTauInfparams
     if Params.A_C < 0:
+        #print('fix_sing for',Params,'len of table',len(Gate.tableA))
         Params.A_rate,V_0=calc_V0(Params.A_rate,Params.A_B,Params.A_C,Params.A_vhalf,Params.A_vslope, Params)
         if model.VMIN < V_0 < model.VMAX:
             #change values in tableA and tableB, because tableB contains sum of alpha and beta
@@ -227,11 +231,18 @@ def make_channel(model, chanpath, params):
     func = _FUNCTIONS[params.__class__]
     return func(model, chanpath, params)
 
-def chanlib(model):
+def chanlib(model,module=None):
     if not moose.exists('/library'):
-        moose.Neutral('/library')
+        lib = moose.Neutral('/library')
+    else:
+        lib=moose.element('/library')
+
+    if module is not None and not moose.exists('/library/'+module):
+        lib=moose.Neutral('/library/'+module)
+        print('new chan library for',module, lib.path)
     #Adding all the channels to the library.
-    chan = [make_channel(model, '/library/'+key, value) for key, value in model.Channels.items()]
+    
+    chan = [make_channel(model, lib.path + '/'+key, value) for key, value in model.Channels.items()]
     if model.ghkYN:
         ghk = moose.GHK('/library/ghk')
         ghk.T = model.Temp

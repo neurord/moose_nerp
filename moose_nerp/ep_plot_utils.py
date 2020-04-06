@@ -2,53 +2,58 @@ import numpy as np
 import os
 from matplotlib import pyplot as plt
 import ISI_anal
-colors=['r','k','b']
+#colors=['r','k','b','m']
+colors=plt.get_cmap('viridis')
+num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
+colors2D=[colors,plt.get_cmap('magma'),plt.get_cmap('Blues'),plt.get_cmap('gist_heat')]
+offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
 
-def plot_latency(rootname,lat_mean_dict,lat_std_dict,filesuffix):
-    #plot the latency from network neuron simulations with one regular input train, multiple trials
-    fig,axes =plt.subplots(len(lat_mean_dict),1,sharex=True)
+def colornum(list_index,whole_list):
+    return int(list_index*(colors.N/len(whole_list)))
+
+def plot_dict_of_dicts(rootname,mean_dict,filesuffix,ylabel,std_dict={},xarray=[],xlabel='time (sec)'):
+    fig,axes =plt.subplots(len(mean_dict),1,sharex=True)
     axis=fig.axes
-    for i,synstim in enumerate(lat_mean_dict.keys()):
-        presyn=synstim.split('_')[0]
-        freq=synstim.split('_')[1]
-        for k,key in enumerate(lat_mean_dict[synstim].keys()):
-            xvals=range(len(lat_mean_dict[synstim][key]))
-            axis[i].plot(xvals,lat_mean_dict[synstim][key],label=key+' mean',color=colors[k])
-            axis[i].plot(xvals,lat_std_dict[synstim][key],label=key+' std',linestyle='dashed',color=colors[k])
-        axis[i].set_xlabel('stim number')
-        axis[i].set_ylabel(presyn+' input, latency (sec)')
-        fig.suptitle('Latency: '+rootname+filesuffix.split('.')[0])
+    for i,synstim in enumerate(mean_dict.keys()):
+        for k,key in enumerate(mean_dict[synstim].keys()):
+            if len(xarray):
+                xvals=xarray[key]
+            else:
+                xvals=range(len(mean_dict[synstim][key]))
+            axis[i].plot(xvals,mean_dict[synstim][key],label=str(key)+' mean',color=colors.__call__(colornum(k,mean_dict[synstim].keys())))
+            if len(std_dict):
+                axis[i].plot(xvals,std_dict[synstim][key],label=str(key)+' std',linestyle='dashed',color=colors.__call__(colornum(k,mean_dict[synstim].keys())))
+        axis[i].set_xlabel(xlabel)
+        axis[i].set_ylabel(synstim+' sec')
+        fig.suptitle(ylabel+' '+rootname+filesuffix.split('.')[0][0:30])
         axis[i].legend()
 
-def plot_ISI(rootname,isi_mean_dict,isi_std_dict,bins,filesuffix):
-    #plot the ISI from network neuron simulations, one regular input train, multiple trials
-    fig,axes =plt.subplots(len(isi_mean_dict),1,sharex=True)
-    axis=fig.axes
-    for i,synstim in enumerate(isi_mean_dict.keys()):
-        presyn=synstim.split('_')[0]
-        freq=synstim.split('_')[1]
-        for k,key in enumerate(bins.keys()):
-            axis[i].plot(bins[key],isi_mean_dict[synstim][key],label=key+' mean',color=colors[k])
-            axis[i].plot(bins[key],isi_std_dict[synstim][key],label=key+' std',linestyle='dashed',color=colors[k])
-        axis[i].set_xlabel('time (sec)')
-        axis[i].set_ylabel(presyn+' input, isi (sec)')
-        fig.suptitle('ISI: '+rootname+filesuffix.split('.')[0])
-        axis[i].legend()
-
-def plot_ISI_cond(all_isi_mean,bins):
-    fig,axes =plt.subplots(len(all_isi_mean[cond]),1,sharex=True)
+def plot_ISI_cond(all_isi_mean,bins,group_by_presyn_set):
+    if group_by_presyn_set:
+        num_rows=len(all_isi_mean.keys())
+    else:
+        num_rows=np.max([len(d) for d in all_isi_mean.values()])
+    fig,axes =plt.subplots(num_rows,1,sharex=True)
     axis=fig.axes
     fig.suptitle('ISI mean: all conditions')
     for j,cond in enumerate(all_isi_mean.keys()): 
         for i,synstim in enumerate(all_isi_mean[cond].keys()):
             presyn=synstim.split('_')[0]
             freq=synstim.split('_')[1]
+            if group_by_presyn_set:
+                ax=j
+                color_index=i;all_items=all_isi_mean[cond].keys()
+                plotlabel=synstim
+            else:
+                ax=i
+                color_index=j;all_items=all_isi_mean.keys()
+                plotlabel=cond
             for k,key in enumerate(bins.keys()):
-                label=cond if k==0 else ""
-                axis[i].plot(bins[key],all_isi_mean[cond][synstim][key],label=label,color=colors[j])
-            axis[i].set_xlabel('time (sec)')
-            axis[i].set_ylabel(presyn+' input, isi (sec)')
-    axis[i].legend(loc='lower left')
+                label=plotlabel if k==0 else ""
+                axis[ax].plot(bins[key],all_isi_mean[cond][synstim][key],label=label,color=colors.__call__(colornum(color_index,all_items)))
+            axis[ax].set_xlabel('time (sec)')
+            axis[ax].set_ylabel(presyn+' input, isi (sec)')
+    axis[ax].legend(loc='lower left')
     
 def plot_postsyn_raster(rootname,suffix,spiketime_dict,syntt_info):
     ####### Raster plot of spikes in post-synaptic neuron #############
@@ -131,7 +136,7 @@ def plot_input_raster(pre_spike_set,suffix,maxplots=None):
             fig.suptitle('input raster '+suffix+'_'+param+'_'+str(trial))
             axis=fig.axes
             for ax,(key,spikes) in enumerate(pre_spikes[trial].items()):
-                color_num=[int(cellnum*(colors.N/len(spikes))) for cellnum in range(len(spikes))]
+                color_num=[colornum(cellnum,spikes) for cellnum in range(len(spikes))]
                 color_set=np.array([colors.__call__(color) for color in color_num])
                 axis[ax].eventplot(spikes,color=color_set)
                 axis[ax].set_ylabel(key)
@@ -150,39 +155,38 @@ def plot_sta_post_vm(pre_spikes,post_sta_dict,mean_sta_dict,post_xvals):
         axis[-1].set_xlabel('time (s)')
         #fig.tight_layout()
 
-def plot_sta_vm(pre_xvals,sta_list_dict,fileroot,suffix):
-    fig,axes =plt.subplots(len(sta_list_dict),1,sharex=True)
+def plot_dict_of_lists(fileroot,list_dict,suffix,title,pre_xvals,std_dict=[]):
+    fig,axes =plt.subplots(len(list_dict),1,sharex=True)
     axis=fig.axes
-    fig.suptitle('ep STA '+os.path.basename(fileroot+suffix).split('_')[0])
-    for i,(synstim,sta_list) in enumerate(sta_list_dict.items()):
-        for trial in range(len(sta_list)):
-            axis[i].plot(pre_xvals,sta_list[trial],label='sta'+str(trial))
-        axis[i].plot(pre_xvals,np.mean(sta_list,axis=0),'k--',lw=2)
-        axis[i].set_ylabel(synstim+' Vm (V)')
+    fig.suptitle(title+' '+os.path.basename(fileroot+suffix).split('_')[0])
+    for i,(synstim,trial_list) in enumerate(list_dict.items()):
+        if np.ndim(trial_list)==2:
+            for trial in range(len(trial_list)):
+                axis[i].plot(pre_xvals,trial_list[trial],label='sta'+str(trial))
+        else:
+            axis[i].plot(pre_xvals,trial_list,label='spike_freq, Hz')
+        if len(std_dict):
+            summary=std_dict[synstim]
+            label='std'
+        else:
+            summary=np.mean(trial_list,axis=0)
+            label='mean'
+        axis[i].plot(pre_xvals,summary,'k--',lw=2,label=label)
+        axis[i].set_ylabel(synstim)
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
 
-def plot_sta_vm_cond(pre_xvals,sta_list_dict,mean_sta_vm):
-    fig,axes=plt.subplots(len(sta_list_dict.keys()),sharex=True) 
+def plot_list_of_dict(yvalues,xvalues,mean_values=[],title=''):
+    fig,axes=plt.subplots(len(yvalues[0].keys()),1) 
+    fig.suptitle(title)
     axis=fig.axes
-    fig.suptitle('mean sta vm')
-    for cond in mean_sta_vm.keys():
-        for i,(synfreq,mean_sta) in enumerate(mean_sta_vm[cond].items()):
-            axis[i].plot(pre_xvals,mean_sta,label=cond)
-            axis[i].set_ylabel(synfreq+' Vm (V)')
-    axis[-1].set_xlabel('time (s)')
-    axis[-1].legend()
-    
-def plot_prespike_sta(prespike_sta,mean_sta,pre_xvals,title=''):
-    fig,axes=plt.subplots(len(prespike_sta[0].keys()),1) 
-    fig.suptitle('prespike sta '+title)
-    axis=fig.axes
-    for trial in range(len(prespike_sta)):
-        for ax,(key,sta) in enumerate(prespike_sta[trial].items()):
-            axis[ax].plot(pre_xvals,sta,label=str(trial))
+    for trial in range(len(yvalues)):
+        for ax,(key,frate) in enumerate(yvalues[trial].items()):
+            axis[ax].plot(xvalues,frate,label=str(trial))
             axis[ax].set_ylabel(key)
-    for ax,(key,sta) in enumerate(mean_sta.items()):
-        axis[ax].plot(pre_xvals,sta,'k--',lw=3)
+    if len(mean_values):
+        for ax,(key,sta) in enumerate(mean_values.items()):
+            axis[ax].plot(xvals,sta,'k--',lw=3)
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
 
@@ -199,17 +203,17 @@ def plot_prespike_sta_cond(mean_prespike_sta,bins):
             axis[0,axy].title.set_text(synfreq)
         axis[0,0].legend()
     
-def plot_inst_firing(inst_rate,xbins,title=''):
-    fig,axes=plt.subplots(len(inst_rate[0].keys()),1) 
-    fig.suptitle('instaneous pre-syn firing rate '+title)
+def plot_sta_vm_cond(pre_xvals,sta_list_dict,mean_sta_vm):
+    fig,axes=plt.subplots(len(sta_list_dict.keys()),sharex=True) 
     axis=fig.axes
-    for trial in range(len(inst_rate)):
-        for ax,(key,frate) in enumerate(inst_rate[trial].items()):
-            axis[ax].plot(xbins,frate,label=str(trial))
-            axis[ax].set_ylabel(key)
+    fig.suptitle('mean sta vm')
+    for cond in mean_sta_vm.keys():
+        for i,(synfreq,mean_sta) in enumerate(mean_sta_vm[cond].items()):
+            axis[i].plot(pre_xvals,mean_sta,label=cond)
+            axis[i].set_ylabel(synfreq+' Vm (V)')
     axis[-1].set_xlabel('time (s)')
     axis[-1].legend()
-
+    
 #Calculate and plot histograms
 def plot_isi_hist(rootname,isi_set_dict,numbins,suffix):
     fig,axes =plt.subplots(len(isi_set_dict),1,sharex=True)
@@ -235,7 +239,49 @@ def plot_isi_hist(rootname,isi_set_dict,numbins,suffix):
         axis[i].set_ylabel(synstim+' events')
     axis[-1].legend()
     axis[-1].set_xlabel('ISI')
+    return histbins,plot_bins
 
 def flatten(isiarray):
     return [item for sublist in isiarray for item in sublist]
+
+def plot_fft(condition,presyn_set,mean_fft_phase,freqs,fft_wave,fft_env):
+    #2nd FFT
+    colors=plt.get_cmap('viridis')
+    num_colors=(len(colors.colors)-1)*0.75 #avoid the light colors by using only partial scale
+    colors2D=[colors,plt.get_cmap('magma'),plt.get_cmap('Blues'),plt.get_cmap('gist_heat')]
+    offset=[0,0,63]  #avoid the light colors in low indices for the 'Blues' map
+    if len(condition)>len(presyn_set):
+        cmap=[i%len(colors2D) for i in range(len(presyn_set))]
+        color_index=[int(j*num_colors/(len(condition)-1)) for j in range(len(condition))]
+        color_tuple=[(cm,ci) for ci in color_index for cm in cmap]
+        plot_set=1
+    elif len(presyn_set)>1:
+        cmap=[i%len(colors2D) for i in range(len(condition))]
+        color_index=[int(j*num_colors/(len(presyn_set)-1)) for j in range(len(presyn_set))]
+        color_tuple=[(cm,ci) for cm in cmap for ci in color_index]
+        plot_set=1
+        #pu.plot_fft_cond(freqs,fft_mean,fft_wave)
+    else:
+        plot_set=0
+    if plot_set:
+        fig,axes=plt.subplots(2,1,sharex=True)
+        fig.suptitle('Mean fft')
+        for i,(cond,fft_set) in enumerate(mean_fft_phase.items()):
+            maxval=np.max([np.max(np.abs(f['mag'][1:])) for f in mean_fft_phase[cond].values()])
+            maxfreq=np.min(np.where(freqs[cond]>500))
+            for j,(key,fft) in enumerate(fft_set.items()):
+                ti=i*len(presyn_set)+j
+                mycolor=colors2D[color_tuple[ti][0]].__call__(color_tuple[ti][1]+offset[color_tuple[ti][0]])
+                #axes.plot(freqs[cond][0:maxfreq], np.abs(fft['mag'])[0:maxfreq], '--', label=cond+' '+key+' mean',color=colors[i])
+                mean_of_fft=np.mean([np.abs(fft) for fft in fft_wave[cond][key]],axis=0)
+                axes[0].plot(freqs[cond][0:maxfreq], mean_of_fft[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+                mean_of_fft_env=np.mean([np.abs(fft) for fft in fft_env[cond][key]],axis=0)
+                axes[1].plot(freqs[cond][0:maxfreq], mean_of_fft_env[0:maxfreq],label='mean of '+cond+' '+key,color=mycolor)
+        axes[1].set_xlabel('Frequency in Hertz [Hz]')
+        axes[0].set_ylabel('FFT Magnitude')
+        axes[1].set_ylabel('FFT of envelope')
+        axes[0].set_xlim(0 , freqs[cond][maxfreq] )
+        axes[0].set_ylim(0,np.round(maxval) )
+        axes[1].set_ylim(0,np.round(maxval) )
+        axes[1].legend()
 

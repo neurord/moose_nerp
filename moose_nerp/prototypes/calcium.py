@@ -434,7 +434,7 @@ def addCalcium(model,ntype):
 
     return capool
 
-def fix_calcium(neurontypes, model):
+def fix_calcium(neurontypes, model,buf_cap=None):
     """kluge to fix buffer capacity in CaPool
 
     Initiating hsolve calculates CaConc.B from thickness, length,
@@ -443,17 +443,22 @@ def fix_calcium(neurontypes, model):
 
     comptype = 'ZombieCompartment'
     cacomptype = 'ZombieCaConc'
-    ca_elem_suffix = model.CaPlasticityParams.CalciumParams.CaName
-    buffer_capacity_density = model.CaPlasticityParams.BufferCapacityDensity
-
-    log.info('Fixing calcium buffer capacity for {} elements'.format(comptype))
-
+         
     for ntype in neurontypes:
+        ### if neurons come from different packages, they may have different buffer_capacity_densities
+        ### if so, use the dictionary of those values in this function
+        if buf_cap:
+            buffer_density=buf_cap[ntype]
+            log.info('Fixing calcium buffer capacity for {} elements, using {}'.format(comptype,list(buffer_density.values())))
+        else:
+            buffer_density=model.CaPlasticityParams.BufferCapacityDensity
+            log.info('Fixing calcium buffer capacity for {} elements'.format(comptype))
+            
         for comp in moose.wildcardFind('{}/#[TYPE={}]'.format(ntype, comptype)):
             cacomps = [m for m in moose.element(comp).children if m.className==cacomptype]
             for cacomp in cacomps:
 
-                buf_capacity = distance_mapping(buffer_capacity_density, comp)
+                buf_capacity = distance_mapping(buffer_density, comp)
                 radius = cacomp.diameter/2.
                 if cacomp.thick > radius:
                     cacomp.thick = radius
