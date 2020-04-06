@@ -58,16 +58,18 @@ create_model_sim.runAll(model)
 # available to any model, by adding new functions or expanding existing functions
 # with new options that do not alter the current state of the functions unless
 # the new options are explicitly called.
-import ISI_anal
-spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
+#import ISI_anal
+#spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,model.param_sim.simtime,soma=model.param_cond.NAME_SOMA)
 
 #dat=pickle.load(open('params.pickle','rb'))
-'''
 import numpy as np
 from matplotlib import pyplot as plt
-fildir='pfc_arky120_3297_8/tmpwbtsanb3'
-dat=np.load('/home/avrama/moose/opt_scripts/gp_opt/'+fildir+'/ivdata-0.0.npy','r')
-simtime=1.25
-ts=np.linspace(0,simtime,len(dat))
-plt.plot(ts[0:3000],dat[0:3000])
-'''
+import glob
+fildir='tmp*'
+files=glob.glob(fildir+'*/ivdata*.npy')
+for f in files:
+    dat=np.load(f+'/ivdata-0.0.npy','r')
+    simtime=2
+    ts=np.linspace(0,simtime,len(dat))
+    plt.plot(ts[0:3000],dat[0:3000])
+
