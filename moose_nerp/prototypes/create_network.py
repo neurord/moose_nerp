@@ -86,6 +86,7 @@ def print_connect_dict(connect_dict):
 def create_network(model, param_net,neur_protos={},network_list=None):
     connections={}
     #
+    conn_summary={}
     if param_net.single:
         #create all timetables
         ttables.TableSet.create_all()
@@ -104,7 +105,6 @@ def create_network(model, param_net,neur_protos={},network_list=None):
             connections[ntype]=connect.timetable_input(network_pop['pop'], param_net, ntype, model )
         #
     else:
-        conn_summary={}
         if network_list is None:
             #check_connect.check_netparams(param_net,model.param_syn.NumSyn)
             #
