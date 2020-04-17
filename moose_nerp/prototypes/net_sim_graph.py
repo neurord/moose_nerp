@@ -19,14 +19,14 @@ def sim_plot(model,net,connections,population,pg=None):
             if model.synYN:
                 net_graph.syn_graph(connections, model.syntab, model.param_sim)
                 if model.stpYN and len(model.stp_tab):
-                    net_graph.syn_graph(connections, model.stp_tab,param_sim,graph_title='short term plasticity')
+                    net_graph.syn_graph(connections, model.stp_tab,model.param_sim,graph_title='short term plasticity')
             if model.spineYN:
                 spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, model.param_sim.simtime)
         else:
             if net.plot_netvm:
                 net_graph.graphs(population['pop'], model.param_sim.simtime, model.vmtab,model.catab,model.plastab)
             if model.synYN and model.param_sim.plot_synapse:
-                net_graph.syn_graph(connections, model.syntab, param_sim)
+                net_graph.syn_graph(connections, model.syntab, model.param_sim)
                 if model.stpYN and len(model.stp_tab):
                     net_graph.syn_graph(connections, model.stp_tab,model.param_sim,graph_title='stp',factor=1)
             #net_output.writeOutput(model, net.outfile,model.spiketab,model.vmtab,population)
