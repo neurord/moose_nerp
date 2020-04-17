@@ -181,6 +181,9 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
     connections={}
     num_choices=np.int(np.round(totalsyn))
     if num_choices>0:
+        #if len([sc[0] for sc in syncomps if sc[1]==0.0])<num_choices:
+        #    print('@@@@@@@@@@@ connect tt - NEED TO ADJUST POST-SYNAPTIC CONNECTION DISTRIBUTION', len([sc[0] for sc in syncomps if sc[1]==0.0]), 'synapses have 0 connect probability')
+        #EDIT: use [sc[0] for sc in syncomps if sc[1]>0.0] if num_choices > those syncomps?
         #randomly select num_choices of synapses without replacement from the entire set
         syn_choices=np.random.choice([sc[0] for sc in syncomps],size=num_choices,replace=False,p=[sc[1] for sc in syncomps])
         #randomly select subset of time-tables for spike train input
@@ -226,7 +229,7 @@ def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=soma_loc)
                 log.info('  SYN TABLE for {} {} has {} slots to make {} synapses from {} ', postcell,syntype, len(syncomps),totalsyn,pretype)
-                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
+                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyn,model)
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
@@ -262,7 +265,7 @@ def connect_neurons(cells, netparams, postype, model):
                     if ix<print_cells:
                         print('## connect to tt',postcell,syntype,pretype,'from',post_connections[syntype][pretype].pre.filename)
                     ####### connect to time tables instead of other neurons in network
-                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,totalsyn,model)
+                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyns,model)
                     intra_conns[syntype][pretype].append(np.sum([len(item) for item in connect_list[postcell][syntype][pretype].values()]))
                 else:
                     if getattr(model,'stpYN',False):
