@@ -10,7 +10,7 @@ def moose_main(p):
     model.synYN = True
     model.stpYN = stpYN
     outdir="ep/output/"
-    stimtype='AP_' #choose from AP and PSP
+    stimtype='PSP_' #choose from AP and PSP
     if stimfreq>0:
         model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
         print(model.param_sim.stim_paradigm,presyn)
@@ -37,7 +37,7 @@ def moose_main(p):
     elif presyn=='GPe' and model.stpYN:
         stp_params=net.param_net.GPe_plas
     else:
-        print('########### unknown synapse type', presyn)
+        print('########### unknown synapse type', presyn, 'or no STP')
 
     param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
     print('>>>>>>>>>> moose_main, stimfreq {} presyn {} stpYN {} plot comps {}'.format(stimfreq,presyn,stpYN,param_sim.plotcomps))
@@ -60,6 +60,7 @@ def moose_main(p):
         from moose_nerp.prototypes import plasticity_test as plas_test
         syntab={ntype:[] for ntype in  model.neurons.keys()}
         plastabset={ntype:[] for ntype in  model.neurons.keys()}
+        param_dict['syn_tt']={}
         for ntype in model.neurons.keys():
             for tt_syn_tuple in model.tuples[ntype].values():
                 if model.stpYN:
@@ -67,11 +68,11 @@ def moose_main(p):
                                                                                          simdt=model.param_sim.simdt,stp_params=stp_params)
                 else:
                     syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
-            param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
+            param_dict['syn_tt'][ntype]=[(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]
 
     #simulate the model
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([ij==0 for ij in param_sim.injection_current]):
-        print('$$$$$$$$$$$$$$ stim paradigm',model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
+        print('$$$$$$$$$$$$$$ stim paradigm' ,model.param_stim.Stimulation.Paradigm.name, 'inject', param_sim.injection_current)
         neuron_pop = {ntype:[neur.path] for ntype, neur in model.neurons.items()}
         #set injection width to simulation time
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,neuron_pop)
@@ -139,8 +140,8 @@ if __name__ == "__main__":
         do_exit = True
     inj=float(args[0]) #choose from 0 or -15e-12 (15 pA)
     stpYN=int(args[1]) #either 0 or 1
-    synset=['none']#['GPe','str']#
-    stimfreqs=[10,20,40,50]#[20]#
+    synset=['GPe','str']#['none']#
+    stimfreqs=[10,20,40]#[20]#
     results = multi_main(synset,stpYN,inj,stimfreqs)
 
     if plot_stuff:
@@ -152,11 +153,11 @@ if __name__ == "__main__":
             numplots=3
         else:
             numplots=1
-        fig,axes =plt.subplots(numplots, len(syn),sharex=True)
-        fig.canvas.set_window_title(syn)
+        fig,axes =plt.subplots(numplots, len(synset),sharex=True)
+        fig.canvas.set_window_title(synset)
         axis=fig.axes
         for (stimfreq,syntype),tabset in results.items():
-            synindex=syn.index(syntype)#0 or 1
+            synindex=synset.index(syntype)#0 or 1
             param_dict,syntab_dict,vmtab,spike_time,isis=tabset
             for ntype,syntabs in syntab_dict.items():
                 dt=syntabs['syndt'] 
@@ -166,16 +167,16 @@ if __name__ == "__main__":
                 if stpYN:
                     for tabname,tab in syntabs['plas'].items():
                         if 'stp' in tabname:
-                            axisnum=2*len(syn)
+                            axisnum=2*len(synset)
                             ylabel=syntype+' plas'
                         else:
-                            axisnum=1*len(syn)
+                            axisnum=1*len(synset)
                             ylabel=syntype+' dep or fac'
                         labl=ntype+'_'+tabname[-4:-1]+str(stimfreq)
                         axis[synindex+axisnum].plot(time[0:numpts],tab,label=labl)
                         axis[synindex+axisnum].set_ylabel(ylabel)
             axis[synindex].plot(time[0:numpts],syntabs['syn']*1e9,label=ntype+' freq='+str(stimfreq))
-            axis[synindex+(numplots-1)*len(syn)].set_xlabel('time, sec')
+            axis[synindex+(numplots-1)*len(synset)].set_xlabel('time, sec')
             axis[synindex].set_ylabel(syntype+' Gk*1e9')
             axis[synindex].legend()
 

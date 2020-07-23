@@ -89,7 +89,7 @@ def moose_main(p):
 
     model=create_model_sim.setupNeurons(model,network=not net.single)
     print('trialnum', trialnum)
-    population,connections,plas=create_network.create_network(model, net, model.neurons)
+    population,[connections,conn_summary],plas=create_network.create_network(model, net, model.neurons)
     model.stpYN=remember_stpYN
 
     ####### Set up stimulation - could be current injection or plasticity protocol
@@ -131,8 +131,9 @@ def moose_main(p):
         model.syntab, model.plastab, model.stp_tab=tables.syn_plastabs(connections,model)
     #
     #add short term plasticity to synapse as appropriate
-    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime, 'trial': trialnum,'dt':param_sim.plotdt}
+    param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'trial': trialnum,'dt':param_sim.plotdt}
     if stimfreq>0:
+        param_dict['syn_tt']={}
         from moose_nerp.prototypes import plasticity_test as plas_test
         extra_syntab={ntype:[] for ntype in  model.neurons.keys()}
         extra_plastabset={ntype:[] for ntype in  model.neurons.keys()}
@@ -145,10 +146,10 @@ def moose_main(p):
                 else:
                     extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
                     print('!!!!!!!!!!!!! NO plasticity, stpYN',model.stpYN)
-            param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
+            param_dict['syn_tt'][ntype]=[(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]
     #
+    param_dict['simtime']=param_sim.simtime
     #################### Actually run the simulation
-    param_sim.simtime=5.0
     print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),'simtime:', param_sim.simtime, 'trial', trialnum,'fname',outdir+param_sim.fname)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([inj==0 for inj in param_sim.injection_current]):
         pg=inject_func.setupinj(model, param_sim.injection_delay,model.param_sim.simtime,model.inject_pop)
@@ -164,7 +165,7 @@ def moose_main(p):
     #Save results: spike time, Vm, parameters, input time tables
     from moose_nerp import ISI_anal
     spike_time,isis=ISI_anal.spike_isi_from_vm(model.vmtab,param_sim.simtime,soma=model.param_cond.NAME_SOMA)
-    vmout={ntype:[tab.vector for tab in tabset] for ntype,tabset in model.vmtab.items()}
+    vmout={ntype:[tab.vector for tab in tabset for ntype,tabset in model.vmtab.items()]}
     if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
         np.savez(outdir+param_sim.fname,spike_time=spike_time,isi=isis,params=param_dict,vm=vmout)
     else:

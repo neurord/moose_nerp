@@ -61,7 +61,7 @@ param_sim.injection_current = [-0e-12]
 param_sim.injection_delay = 0.0
 param_sim.injection_width = param_sim.simtime
 param_sim.plot_synapse=True
-param_sim.save_txt = True
+param_sim.save_txt = False
 
 if prefix.startswith('POST-HFS'):
     net.connect_dict['ep']['ampa']['extern1'].weight=0.6 #STN - weaker
@@ -81,7 +81,7 @@ buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neuron
 #import additional neuron modules, add them to neurons and synapses
 if len(neuron_modules):
     buf_cap=multi_module.multi_modules(neuron_modules,model,buf_cap)
-population,connections,plas=create_network.create_network(model, net, model.neurons)
+population,[connections,conn_summary],plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
@@ -129,6 +129,7 @@ if model.synYN and (param_sim.plot_synapse or net.single):
 #add short term plasticity to synapse as appropriate
 param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
 if stimfreq>0:
+    param_dict['syn_tt']={}
     from moose_nerp.prototypes import plasticity_test as plas_test
     extra_syntab={ntype:[] for ntype in  model.neurons.keys()}
     extra_plastabset={ntype:[] for ntype in  model.neurons.keys()}
@@ -141,10 +142,10 @@ if stimfreq>0:
             else:
                 extra_syntab[ntype]=plas_test.short_term_plasticity_test(tt_syn_tuple,syn_delay=0)
                 print('!!!!!!!!!!!!! NO plasticity', model.stpYN)
-        param_dict[ntype]={'syn_tt': [(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]}
+        param_dict['syn_tt'][ntype]=[(k,tt[0].vector) for k,tt in model.tuples[ntype].items()]
 
 #################### Actually run the simulation
-param_sim.simtime=.01
+param_sim.simtime=0.5
 print('$$$$$$$$$$$$$$ paradigm=', model.param_stim.Stimulation.Paradigm.name,' inj=0? ',np.all([inj==0 for inj in param_sim.injection_current]),', simtime:', param_sim.simtime)
 #in case simtime was changed by setupStim, make sure injection width is long enough
 #param_sim.injection_width = param_sim.simtime-param_sim.injection_delay
@@ -182,7 +183,7 @@ if net.single:
                             if 'TimTab' in possible_tt:
                                 timtabs[syn][pretype][branch+'_syn'+str(i)]=moose.element(possible_tt).vector
     np.save(outdir+'tt'+param_sim.fname,timtabs)
-
+'''
 if stimfreq>0:
     plt.figure()
     plt.title('synapse')
@@ -196,7 +197,7 @@ if stimfreq>0:
                 plt.plot(time[0:numpts],tab.vector+offset,label=labl)
     plt.plot(time[0:numpts],extra_syntab[ntype].vector*1e9,label='Gk*1e9')
     plt.legend()
-
+'''
 
 '''
 for neurtype,neurtype_dict in connections.items():
