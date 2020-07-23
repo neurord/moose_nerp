@@ -24,8 +24,8 @@ def moose_main(p):
     net.confile,net.outfile=net.fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_input)
     net.outfile=net.outfile+'t'+str(trial)
     if stop_signal: #regardless, STN2000_lognorm_freq28.0.npz is used
-        print('if stop signal',stop_signal,'param_net',net.param_net.tt_Ctx)
-        net.param_net.tt_Ctx.filename='bg_net/Ctx10000_ramp_freq5.0_'+freqCtx+'dur'+str(rampdur)
+        print('if stop signal',stop_signal,'param_net',net.param_net.tt_Ctx.filename,'fname',net.outfile)
+        net.param_net.tt_Ctx.filename='bg_net/Ctx10000_ramp_freq7.0_'+freqCtx+'dur'+str(rampdur)
         net.param_net.tt_STNp.filename='bg_net/STN500_pulse_freq1.0_'+freqStn+'dur'+str(pulsedur)
     else:
         net.param_net.tt_Ctx.filename='bg_net/Ctx10000_osc_freq'+freqCtx+'_osc0.7'
@@ -143,7 +143,7 @@ def moose_main(p):
                 else:
                     conn_dict.append({'neur':ntype,'syn':syntype,'pre':pretype,'params':{'nc':info.num_conns,'prob':info.probability,'sc':info.space_const,'wt':info.weight}})
 
-    params={'simtime':model.param_sim.simtime,'numSyn':model.NumSyn,'connect_dict':conn_dict}
+    params={'simtime':model.param_sim.simtime,,'plotdt':model.param_sim.plotdt,'numSyn':model.NumSyn,'connect_dict':conn_dict}
 
     ######### Actually save data - just spikes if they occur.  also conn_dict
     print('************ output file name',net.outfile)

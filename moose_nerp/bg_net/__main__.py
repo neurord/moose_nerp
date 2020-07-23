@@ -141,7 +141,7 @@ for ntype in net.connect_dict.keys():
             else:
                 conn_dict.append({'neur':ntype,'syn':syntype,'pre':pretype,'params':{'nc':info.num_conns,'prob':info.probability,'sc':info.space_const,'wt':info.weight}})
 
-params={'simtime':model.param_sim.simtime,'numSyn':model.NumSyn,'connect_dict':conn_dict}
+params={'simtime':model.param_sim.simtime,'dt':param_sim.plotdt, 'plas':model.stpYN,'inj':param_sim.injection_current,'numSyn':model.NumSyn,'connect_dict':conn_dict}
 
 ######### Actually save data - just spikes if they occur.  also conn_dict
 if model.param_sim.save_txt:
