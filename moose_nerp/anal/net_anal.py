@@ -148,7 +148,7 @@ for cond in param1:
                 pu.plot_dict(alldata.isi_time_mean,alldata.timebins[neur],std_dict=alldata.isi_time_std,ylabel='counts',ftitle='ISI '+cond+key)
                 pu.plot_dict(alldata.lat_mean,alldata.pre_post_stim[neur],std_dict=alldata.lat_std,ylabel='Latency (sec)',ftitle=cond+key)
             if len(alldata.vmdat[neur]):
-                pu.fft_plot(alldata,maxfreq=100,title=cond+key)#,mean_fft=True) #COMPARE TO ELIFE
+                pu.fft_plot(alldata,maxfreq=60,title=cond+key,mean_fft=True) #COMPARE TO ELIFE
                 pu.plot_dict(alldata.sta_mean,xsta,std_dict=alldata.sta_std,ylabel='Vm (Volts)',ftitle='STA '+cond+' '+key)
         if raster_plots:
             pu.plot_raster(syn_input.spiketimes[0],alldata.sim_time[neur],ftitle='output '+cond+key)
@@ -179,7 +179,7 @@ if group_plots:
 if savetxt:
     nau.write_dict_of_dicts(spikerate_mean,rate_xvals,'spike_rate','rate',spikerate_std) 
     nau.write_dict_of_dicts(spikerate_elphmean,elph_xvals,'elph_spike_rate','Erate',spikerate_elphstd)
-    nau.write_triple_dict(isihist_mean,hist_xvals,'isi_histogram','isiN',isihist_std,xheader='isi_bin') #possibly delete triple dict and loop over neur type?
+    nau.write_triple_dict(isihist_mean,'isi_histogram','isiN',isihist_std,xdata=hist_xvals,xheader='isi_bin') #possibly delete triple dict and loop over neur type?
     nau.write_dict_of_dicts(sta_mean,xsta,'sta_vm','stavm',sta_std)
     nau.write_dict_of_dicts(prespike_sta_mean,prespike_xvals,'sta_spike','stapre',prespike_sta_std)
     nau.write_dict_of_dicts(mean_fft,alldata.freqs,'fft','fft',std_fft,xheader='freq') #this may need triple dict if do fft for multiple neur types
@@ -195,8 +195,4 @@ if savetxt:
 NEXT:
 2c: latency vs latency phase - check calculation - compare with previous code, change from % to / for phase?
 3. Edit fft func to allow multiple neurons per type (possibly create new function?)
-4. plots when not network sim, i.e.,
-4a. plot of Vm in absence of spikes, measuring PSP - different class?
-# all_results,all_xvals=pu.plot_freq_dep_psp(fileroot,presyn,suffix,neurtype)
-4b. #pu.plot_freq_dep_vm(fileroot,presyn,plasYN,inj,neurtype)
 '''

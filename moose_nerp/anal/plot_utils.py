@@ -69,6 +69,9 @@ def plot_dict_of_dicts(mean_dict,xarray=None,ylabel='',xlabel='Time (sec)',std_d
                         sdvals=np.array(std_dict[param1][param2][epoch])
             else:
                 yvals=np.array(mean_dict[param1][param2])
+                if np.shape(np.shape(yvals))[0]==2:
+                    print(' ****** Only printing first item in array of size',np.shape(yvals))
+                    yvals=yvals[0]
                 if len(std_dict):
                     sdvals=np.array(std_dict[param1][param2])
             xvals=choose_xvals(xarray,yvals,param1,param2)
@@ -139,7 +142,7 @@ def plot_raster(spikes,max_time,max_trains=np.inf,ftitle='',syntt={}):
 
 def fft_plot(alldata,maxfreq=500,phase=True,title='',mean_fft=False):
     colors=[plt.get_cmap('Greys'),plt.get_cmap('Blues'),plt.get_cmap('Reds'),plt.get_cmap('Purples'),plt.get_cmap('Oranges')]
-    if np.array(phase).any():
+    if phase:
         fig,axes=plt.subplots(2,1)
     else:
         fig,axes=plt.subplots(1,1)
@@ -148,30 +151,22 @@ def fft_plot(alldata,maxfreq=500,phase=True,title='',mean_fft=False):
     maxfreq_pt=np.min(np.where(alldata.freqs>maxfreq))
     maxval=np.max([np.max(np.abs(f[1:])) for fft_set in alldata.fft_wave.values() for f in fft_set])
     for i,(epoch,fft) in enumerate(alldata.fft_wave.items()):
-        colormap=i%len(colors)
-        axes[0].plot(alldata.freqs[0:maxfreq_pt], np.mean(np.abs(fft),axis=0)[0:maxfreq_pt],label=epoch,color=colors[colormap].__call__(200))
+        mapnum=i%len(colors)
+        for jj,ft in enumerate(fft):
+            color=colornum(jj,fft,colors[mapnum])
+            axes[0].plot(alldata.freqs[0:maxfreq_pt], np.abs(ft*ft)[0:maxfreq_pt],label=epoch,color=colors[mapnum].__call__(color))
+            if phase:
+                axes[1].plot(alldata.freqs[0:maxfreq_pt], np.angle(ft)[0:maxfreq_pt],'.',label=epoch,color=colors[mapnum].__call__(color))
+                axes[1].set_ylabel('FFT Phase')
         if mean_fft:
-            axes[0].plot(alldata.freqs[0:maxfreq_pt],np.abs(alldata.mean_fft[epoch])[0:maxfreq_pt],color=colors[colormap].__call__(100))
-        else:
-            stdplus=np.mean(np.abs(fft),axis=0)+np.std(np.abs(fft),axis=0)
-            stdminus=np.mean(np.abs(fft),axis=0)-np.std(np.abs(fft),axis=0)
-            axes[0].fill_between(alldata.freqs[0:maxfreq_pt],stdplus[0:maxfreq_pt],stdminus[0:maxfreq_pt],facecolor=colors[colormap].__call__(80))
-    axes[0].set_ylabel('FFT Magnitude')
-    axes[0].set_xlim(0 , alldata.freqs[maxfreq_pt] )
-    axes[0].set_ylim(0,np.round(maxval) )
+            axes[0].plot(alldata.freqs[0:maxfreq_pt],np.abs(alldata.fft_of_mean[epoch]**2)[0:maxfreq_pt],color=colors[mapnum].__call__(80))
+            if phase:
+                axes[1].plot(alldata.freqs[0:maxfreq_pt],np.angle(alldata.fft_of_mean[epoch])[0:maxfreq_pt],'.',color=colors[mapnum].__call__(80))
+    axes[0].set_ylabel('FFT Power')
+    axes[0].set_ylim(0,np.round(maxval)**2 )
+    axes[-1].set_xlim(0 , alldata.freqs[maxfreq_pt] )
+    axes[-1].set_xlabel('Frequency in Hertz [Hz]')
     axes[0].legend()
-
-    if phase:
-        for i,(epoch,phases) in enumerate(alldata.fft_phase.items()):
-            colormap=i%len(colors)
-            axes[1].plot(alldata.freqs[0:maxfreq_pt],np.mean(phases,axis=0)[0:maxfreq_pt],'.',label=epoch,color=colors[colormap].__call__(200))
-            if mean_fft:
-                axes[1].plot(alldata.freqs[0:maxfreq_pt],alldata.mean_phase[epoch][0:maxfreq_pt],'.',color=colors[colormap].__call__(100))
-        axes[1].set_xlabel('Frequency in Hz')
-        axes[1].set_ylabel('FFT Phase')
-        axes[1].set_xlim(0 , alldata.freqs[maxfreq_pt] )
-    else:
-        axes[0].set_xlabel('Frequency in Hertz [Hz]')
 
 #Triple dict of dicts of dicts
 def plot_prespike_sta_cond(mean_prespike_sta,bins):
@@ -197,10 +192,10 @@ def plot_freq_dep(data,xvals,ylabel,title,num_neurs,xlabel='Time (sec)',scale=1,
     x=xvals
     for i,presyn in enumerate(data.keys()):
         for k,freq in enumerate(sorted(data[presyn].keys())):
-            if freq.startswith('_'):
-                freq_lbl=freq[1:]
-            else:
-                freq_lbl=freq
+            #if freq.startswith('_'):
+            #    freq_lbl=freq[1:]
+            #else:
+            freq_lbl=freq
             main_color=colormap.__call__(colornum(k,data[presyn],colormap))
             for j,ntype in enumerate(data[presyn][freq].keys()):
                 if isinstance(xvals,dict):

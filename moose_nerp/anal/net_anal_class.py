@@ -161,9 +161,8 @@ class network_fileset(): #set of files, same condition, different trials
         #endtime - if you want to stop fft calculation, in case end departs from ergodicity
         #these will also allow you to avoid transition periods
         self.fft_wave={k:[] for k in self.timebins[ntype].keys()}
-        self.fft_phase={k:[] for k in self.timebins[ntype].keys()}
         self.fft_env={k:[] for k in self.timebins[ntype].keys()}
-        self.mean_phase={};self.fft_of_mean={}
+        self.fft_of_mean={}
         for epoch,bins in self.timebins[ntype].items(): #bins are in pairs of low value and high value
             init_point=int((bins[0][1]+init_time)/self.dt) #in case of bin overlap, use upper value of bin to start 
             endpoint=int((bins[-1][0]+endtime)/self.dt) #
@@ -177,7 +176,6 @@ class network_fileset(): #set of files, same condition, different trials
                     maxpoint=None
                #wave is an analog signal - either Vm or binary spike signal.  Do not use spiketime
                 self.fft_wave[epoch].append(np.fft.rfft(data)[0:maxpoint])
-                self.fft_phase[epoch].append(np.angle(self.fft_wave[epoch][-1]))
                 norm_data=np.abs(data-np.mean(data))
                 self.fft_env[epoch].append(np.fft.rfft(norm_data)[0:maxpoint])
                 cutoff=3
@@ -190,7 +188,6 @@ class network_fileset(): #set of files, same condition, different trials
             #multiply sample spacing by max frequency (=1/dt):
             mean_wave=np.mean(self.vmdat[ntype],axis=0)
             self.fft_of_mean[epoch]=np.fft.rfft(mean_wave[init_point:endpoint])[0:maxpoint]
-            self.mean_phase[epoch]=np.angle(self.fft_of_mean[epoch])
-        self.mean_fft={epoch:np.mean(np.abs(self.fft_wave[epoch]),axis=0) for epoch in self.fft_wave.keys()} #IS THIS CORRECT?  
-        self.std_fft={epoch:np.std(np.abs(self.fft_wave[epoch]),axis=0) for epoch in self.fft_wave.keys()}
+        self.mean_fft={epoch:np.mean(np.abs([ft**2 for ft in fft]),axis=0) for epoch,fft in self.fft_wave.items()} #PSD
+        self.std_fft={epoch:np.std(np.abs([ft**2 for ft in fft]),axis=0) for epoch,fft in self.fft_wave.items()}
         self.add_to_accum([self.mean_fft,self.std_fft],['mean_fft','std_fft'])
