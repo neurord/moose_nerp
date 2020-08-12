@@ -65,7 +65,46 @@ def choose_xvals(xvals):
         x=xvals
     return x
 
-############ 
+def cross_corr(pre_spikes,post_spikes,t_end,binsize):
+    import elephant
+    from neo.core import AnalogSignal,SpikeTrain
+    from elephant.conversion import BinnedSpikeTrain
+    import quantities as q
+    #
+    def elph_train(spike_set,t_end,binsize):
+        if isinstance(spike_set, list):
+            spikes = np.sort(np.concatenate([st for st in spike_set])) #1D array, spikes of all input synapses
+        else:
+            spikes=spike_set
+        train=SpikeTrain(spikes*q.s,t_stop=np.ceil(spikes[-1])*q.s)
+        return BinnedSpikeTrain(train,t_start=0*q.s,t_stop=t_end*q.s,binsize=binsize*q.s)
+    #
+    numtrials=len(post_spikes)
+    cc_hist={k:[[] for t in range(numtrials)] for k in pre_spikes[0].keys()}
+    for trial_in in range(len(pre_spikes)): 
+        for pre,spike_set in pre_spikes[trial_in].items():
+            in_train=elph_train(spike_set,t_end,binsize)
+            for trial_out in range(numtrials):
+                out_train=elph_train(post_spikes[trial_out],t_end,binsize)
+                #print('trial_in,trial_out', trial_in, trial_out)
+                cc_hist[pre][trial_in].append(elephant.spike_train_correlation.cross_correlation_histogram(in_train,out_train)[0].magnitude[:,0])
+    mean_cc={};mean_cc_shuffle={};cc_shuffle_corrected={}
+    for pre in cc_hist.keys():
+        #shuffle corrected mean cross-correlogram
+        cc_same=[cc_hist[pre][a][a] for a in range(numtrials)]
+        mean_cc[pre]=np.mean(cc_same,axis=0)
+        cc_diff=[cc_hist[pre][a][b] for a in range(numtrials) for b in range(numtrials) if b != a ]
+        mean_cc_shuffle[pre]=np.mean(cc_diff,axis=0)
+        cc_shuffle_corrected[pre]=mean_cc[pre]-mean_cc_shuffle[pre]
+    xbins=elephant.spike_train_correlation.cross_correlation_histogram(in_train,out_train)[0].times
+    return mean_cc,mean_cc_shuffle,cc_shuffle_corrected,xbins
+############
+def write_data_header(fname,header,outputdata):
+    f=open(fname+".txt",'w')
+    f.write(header+'\n')
+    np.savetxt(f,outputdata,fmt='%.5f')
+    f.close()
+
 def write_dict_of_dicts(meandata,xdata, fname,varname,stddata=None,xheader='Time'):
     header=xheader+' '
     outputdata=choose_xvals(xdata)
@@ -82,11 +121,7 @@ def write_dict_of_dicts(meandata,xdata, fname,varname,stddata=None,xheader='Time
             outputdata=np.column_stack((outputdata,meandata[key1][key2]))
             if stddata is not None:
                 outputdata=np.column_stack((outputdata,stddata[key1][key2]))
-    f=open(fname+".txt",'w')
-    f.write(header+'\n')
-    np.savetxt(f,outputdata,fmt='%.5f')
-    f.close()
-    
+    write_data_header(fname,header,outputdata)   
 ############ 
 def write_dict_of_epochs(meandata,xdata,fname,varname,num_keys,stddata=None,xheader='Time'):
     header=xheader+' '
@@ -104,10 +139,7 @@ def write_dict_of_epochs(meandata,xdata,fname,varname,num_keys,stddata=None,xhea
     outputdata=np.column_stack((outputdata,reshaped_mean))
     if stddata is not None:
         outputdata=np.column_stack((outputdata,reshaped_std))
-    f=open(fname+".txt",'w')
-    f.write(header+'\n')
-    np.savetxt(f,outputdata,fmt='%.5f')
-    f.close()
+    write_data_header(fname,header,outputdata)   
     
 ############ 
 def write_triple_dict(meandata,fname,varname,stddata=None,xdata=None,xheader='Time'):
@@ -125,8 +157,39 @@ def write_triple_dict(meandata,fname,varname,stddata=None,xdata=None,xheader='Ti
                 else:
                     header=header+key2+'_'+key3+'_'+varname+'_mean '+key2+'_'+key3+'_'+varname+'_std '
                 outputdata=np.column_stack((outputdata,meandata[key1][key2][key3],stddata[key1][key2][key3]))
-    f=open(fname+".txt",'w')
-    f.write(header+'\n')
-    np.savetxt(f,outputdata,fmt='%.5f')
-    f.close()
+    write_data_header(fname,header,outputdata)   
 
+def write_transpose(psp_norm,stim_tt,ntype,varname):
+    import pandas as pd
+    dfy=pd.DataFrame(psp_norm)
+    output_dict=dfy.transpose().to_dict()
+    dfx=pd.DataFrame(stim_tt)
+    xvals=dfx.transpose().to_dict()
+    for k1 in output_dict.keys():
+        fname=varname+'_'+k1
+        header='  '.join([varname+'_'+k2+'_'+k1 for k2 in output_dict[k1].keys() ])
+        outputdata=schoose_xvals(xvals[k1])
+        for k2 in output_dict[k1].keys():
+            outputdata=np.column_stack((outputdata,output_dict[k1][k2][ntype]))
+        write_data_header(fname,header,outputdata)
+
+def print_con(confile_name):
+    import glob
+    confiles=glob.glob(confile_name)
+    for f in confiles:
+        data=np.load(f,'r',allow_pickle=True)
+        print ('########### ', f,' ##############')
+        for ntype,conns in data['summary'].item().items():
+            for syn in conns['intra']:
+                for presyn in conns['intra'][syn].keys():
+                    print(ntype,syn,'presyn=',presyn,'mean inputs=',np.round(np.mean(conns['intra'][syn][presyn]),2) )
+                    short=[y for y in conns['shortage'][syn].values()]
+                    print_short=np.mean(short) if np.mean(short)==0 else short
+                    print('shortage',print_short)
+'''  
+#Possibly add this to mnerp_net_output?                  
+connect=dat['params'].item()['connect_dict']
+print ('########### ', fname,' ##############')
+for row in connect:
+    print(row)
+'''

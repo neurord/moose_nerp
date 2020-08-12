@@ -206,12 +206,23 @@ def plot_freq_dep(data,xvals,ylabel,title,num_neurs,xlabel='Time (sec)',scale=1,
                 else:
                     y=np.array(data[presyn][freq][ntype])
                 if xlabel=='Time (sec)':
-                    axis[axisnum].plot(x,scale*y+k*offset,color=main_color,label=freq_lbl)
+                    axis[axisnum].plot(x[0:len(y)],scale*y+k*offset,color=main_color,label=freq_lbl)
                 else:
-                    axis[axisnum].scatter(x,scale*y-k*offset,marker='.',color=main_color,label=freq_lbl)
+                    axis[axisnum].scatter(x[0:len(y)],scale*y-k*offset,marker='.',color=main_color,label=freq_lbl)
                 #axis[axisnum].legend(title=str(ntype))
                 axis[axisnum].set_ylabel(str(presyn)+' '+ylabel)
     for j in range(num_neurs):
         axis[(len(data.keys())-1)*num_neurs+j].set_xlabel(xlabel)
     axis[0].legend(title=str(ntype))
  
+def plot_cross_corr(mean_cc,mean_cc_shuffle,cc_shuffle_corrected,xbins):
+    fig,axes =plt.subplots(3,1,sharex=True)
+    fig.suptitle('cross correlograms ')
+    for key in mean_cc.keys():
+        axes[0].plot(xbins,mean_cc[key],label=key)
+        axes[1].plot(xbins,mean_cc_shuffle[key],label=key)
+        axes[2].plot(xbins,cc_shuffle_corrected[key],label=key)
+    axes[0].set_ylabel('mean cc')
+    axes[1].set_ylabel('mean cc shuffled')
+    axes[2].set_ylabel('mean cc shuffled-corrected')
+    axes[2].legend()

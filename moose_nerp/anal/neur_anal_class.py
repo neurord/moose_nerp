@@ -6,8 +6,11 @@ class neur_npz():
         dat=np.load(fname,'r',allow_pickle=True)
         self.fname=fname
         if 'spike_time' in dat.keys():
-            self.isis=dat['isi'].item()
-            self.spiketime={neur:st[0][0:-1] for neur,st in dat['spike_time'].items()}
+            self.isis={neur:st[0][0:-1] for neur,st in dat['isi'].item().items()}
+            #try:
+            #    self.spiketime={neur:st[0][0:-1] for neur,st in dat['spike_time'].items()}
+            #except
+            self.spiketime={neur:st[0][0:-1] for neur,st in dat['spike_time'].item().items()}
         else:
             print('no spike times or isi in', fname)
             self.isis={}
@@ -30,6 +33,7 @@ class neur_npz():
         self.time=np.linspace(0,self.dt*len(self.traces[neur][0]),len(self.traces[neur][0]),endpoint=False)
         for neur in self.neurtypes:
             if 'syn_tt' in dat['params'].item().keys():
+                print('syn_tt info',dat['params'].item()['syn_tt'])
                 ############### Preferred, but new way, of storing regular time-table data for ep simulations #######
                 stim_tt=dat['params'].item()['syn_tt'][neur][0][1] #take stim times from 1st item in list, could be multiple branches stimulated
                 stim_loc=[stim[0] for stim in dat['params'].item()['syn_tt'][neur]]
@@ -79,18 +83,22 @@ class neur_set():
         else:
             newkey=key
         self.spiketime[par1][newkey]=data.spiketime
-        self.psp_norm[par1][newkey]=data.psp_norm
-        self.psp_amp[par1][newkey]=data.psp_amp
+        if 'psp_norm' in data.__dict__:
+            self.psp_norm[par1][newkey]=data.psp_norm
+            self.psp_amp[par1][newkey]=data.psp_amp
         self.traces[par1][newkey]=data.traces
         if 'isis' in data.__dict__:
             self.isis[par1][newkey]=data.isis
         if 'neurtypes' in data.__dict__:
             self.neurtypes=data.neurtypes
-            self.time[par1][newkey]={neur:data.time for neur in data.syntt_info}
-            self.stim_tt[par1][newkey]={neur:range(len(data.syntt_info[neur]['stim_tt'])) for neur in data.syntt_info}
+            self.time[par1][newkey]={neur:data.time for neur in data.neurtypes}
         else:
             self.time[par1][newkey]=data.time
-            self.stim_tt[par1][newkey]=data.syntt_info
+        if 'syntt_info' in data.__dict__:
+            if 'stim_tt' in data.syntt_info.keys():
+                self.stim_tt[par1][newkey]=data.syntt_info['stim_tt']
+            else:
+                self.stim_tt[par1][newkey]={neur:range(len(data.syntt_info[neur]['stim_tt'])) for neur in data.syntt_info.keys()}
         self.params[par1][newkey]={'freq':data.freq,'inj':data.inj}
 
     def freq_inj_curve(self,start,end):
@@ -101,8 +109,9 @@ class neur_set():
         for p in self.spiketime.keys():
             for k in self.spiketime[p].keys():
                 if len(self.spiketime[p][k]):
-                    stim_spikes[p][k]={n:[st for st in spikeset if st > start_stim and st < end_stim]
+                    stim_spikes[p][k]={n:[st for st in spikeset if st > start and st < end]
                                        for n,spikeset in self.spiketime[p][k].items()}
+                    print('freq_inj_curve, stim spikes',len(stim_spikes[p][k]),stim_spikes[p][k])
                     self.spike_freq[p][k]={n:len(spikes)/(end-start) for n,spikes in stim_spikes[p][k].items()}
                     self.stim_isis[p][k]={n:[spikeset[i+1]-spikeset[i] for i in range(len(spikeset)-1)]
                                         for n,spikeset in self.spiketime[p][k].items()}
@@ -116,12 +125,14 @@ class neur_text():
             time_index=header.index('time')-1  #-1 here and column_dict because header begins with '# time'
             columns=[head.split('/')[-2]+head[2:].split('/')[-1] for head in header[2:]]
             self.column_map={col:i+1 for i, col in enumerate(columns)}
-            self.soma_name=[col for col in columns if soma in col][0]
+            self.soma_name=[col for col in columns if soma in col]
+            self.neurtypes=[sn.split('[')[0] for sn in self.soma_name]
         dat=np.loadtxt(fname)
         self.time=dat[:,time_index]
         self.traces={col:mM_to_uM*dat[:,i+1] for i,col in enumerate(self.column_map.keys())}
         self.dt=self.time[1]
         self.sim_time=self.time[-1]
+        self.freq=0 #initalize.  Overwrite later if > 0
         
     def cal_stats(self,start_stim,settle_time):
         start_search=np.min(np.where(self.time>start_stim+settle_time)) 
@@ -132,26 +143,28 @@ class neur_text():
 
     def spikes(self,inj):
         import detect
-        self.spiketime=[]
         self.inj=inj
-        vmtab=self.traces[self.soma_name]
-        self.spiketime.append(detect.detect_peaks(vmtab)*self.dt)
+        self.spiketime={}
+        for sn in self.soma_name:
+            vmtab=self.traces[sn]
+            self.spiketime[sn]=detect.detect_peaks(vmtab)*self.dt
             
     def psp_amp(self,start_stim,freq,peak='min'):
         self.freq=int(freq)
-        self.psp_amp={neur:[] for neur in self.traces.keys()}
-        self.psp_norm={neur:[] for neur in self.traces.keys()}
-        vmtab=self.traces[self.soma_name]
+        self.psp_amp={}
+        self.psp_norm={}
         stim_tt=[start_stim+float(n)/self.freq for n in range(self.freq)]
-        vm_init=[vmtab[int(t/self.dt)] for t in stim_tt] #find Vm at the time of stim
-        if peak=='min':
-            vm_peak=[np.min(vmtab[int(t/self.dt):int((t+1/self.freq)/self.dt)]) for t in stim_tt] #find peak between pair of stims
-        elif peak=='max':
-            vm_peak=[np.max(vmtab[int(t/self.dt):int((t+1/self.freq)/self.dt)]) for t in stim_tt] #
-        else:
-            print('!!!!!!!!!! specify min (for IPSPs) or max (for EPSPs)')
-        self.psp_amp=np.array(vm_peak)-np.array(vm_init)  #calculate diff between init and peak
-        self.psp_norm=[amp/self.psp_amp[0] for amp in self.psp_amp] #normalize to 1st in train
+        for sn in self.soma_name:
+            vmtab=self.traces[sn]
+            vm_init=[vmtab[int(t/self.dt)] for t in stim_tt] #find Vm at the time of stim
+            if peak=='min':
+                vm_peak=[np.min(vmtab[int(t/self.dt):int((t+1/self.freq)/self.dt)]) for t in stim_tt] #find peak between pair of stims
+            elif peak=='max':
+                vm_peak=[np.max(vmtab[int(t/self.dt):int((t+1/self.freq)/self.dt)]) for t in stim_tt] #
+            else:
+                print('!!!!!!!!!! specify min (for IPSPs) or max (for EPSPs)')
+        self.psp_amp[sn.split('[')[0]]=np.array(vm_peak)-np.array(vm_init)  #calculate diff between init and peak
+        self.psp_norm[sn.split('[')[0]]=[amp/self.psp_amp[sn.split('[')[0]][0] for amp in self.psp_amp[sn.split('[')[0]]] #normalize to 1st in train
         xstart=stim_tt[0]
         xend=stim_tt[-1]
         self.syntt_info={'xstart':xstart,'xend':xend,'stim_tt':stim_tt}
