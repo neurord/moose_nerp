@@ -15,7 +15,7 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # mM, default for GHK is 2e-3
+ConcOut=2     # mM, default for GHK is 2
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
@@ -78,8 +78,8 @@ _Npas = _util.NamedDict(
     KCNQ={prox: 0.5686942658971823, dist: 0.5686942658971823, axon: 0.5686942658971823},
     NaF={prox: 555.3424370698181, dist: 132.8229730460519, axon: 799.8374378688678},
     NaS={prox: 2.7007305371793593, dist: 3.8034413284916413, axon: 8.313587666058021},
-    Ca={prox: 1.1552050102266058, dist: .0.2995930801362671, axon: 0},
-    HCN1={prox: 2.595601342962455, dist: .0.030197105069703644, axon: 0},
+    Ca={prox: 1.1552050102266058, dist: 0.2995930801362671, axon: 0},
+    HCN1={prox: 2.595601342962455, dist: 0.030197105069703644, axon: 0},
     HCN2={prox: 0.5747932548588786, dist: 0.13177471484455885, axon: 0},
     SKCa={prox: 11.406785065682566, dist: 2.149205933048437, axon: 0},
     BKCa={prox: 34.39398639046415, dist: 302.42338788920904, axon: 0},
@@ -87,6 +87,6 @@ _Npas = _util.NamedDict(
 )
 Condset  = _util.NamedDict(
     'Condset',
-    proto = _proto,
+    #proto = _proto,
     Npas=_Npas
 )

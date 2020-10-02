@@ -16,7 +16,7 @@ else:
     ghKluge=1
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
 
-ConcOut=2e-3     # mM, default for GHK is 2e-3
+ConcOut=2     # mM, default for GHK is 2
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None

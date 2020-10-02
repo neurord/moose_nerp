@@ -71,5 +71,5 @@ _arky = _util.NamedDict(
 Condset  = _util.NamedDict(
     'Condset',
     proto = _proto,
-    arky=_arky,
+    #arky=_arky,
 )

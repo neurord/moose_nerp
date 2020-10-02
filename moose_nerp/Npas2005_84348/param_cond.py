@@ -15,11 +15,11 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # mM, default for GHK is 2e-3
+ConcOut=2     # mM, default for GHK is 2
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
-morph_file = {'Npas': 'GP1_41comp_24_Npas_7270_24Npas_19038.p' #'proto': 'GP1_41comp_24_proto_7395.p', 'arky': 'GP_arky_41comp.p',}
+morph_file = {'Npas': 'GP1_41comp_24_Npas_7270_24_Npas_19038.p' ,'proto': 'GP1_41comp_24_proto_7395.p', 'arky': 'GP_arky_41comp.p',}
 NAME_SOMA='soma'
 
 #CONDUCTANCES
@@ -35,7 +35,7 @@ axon = (0.,1., 'axon')
 
 #CONDUCTANCE VALUES - UNITS of Siemens/meter squared
 # _proto for prototypical GP neuron
-'''proto = _util.NamedDict(
+_proto = _util.NamedDict(
     'proto',
     KDr={prox: 252.11742766709327, dist: 189.58923312652283, axon: 256.04921275490784},
     Kv3={prox: 847.5656407446413, dist: 827.3424242663868, axon: 1215.4767445923346},  # , med:847.5656407446413},
@@ -66,7 +66,7 @@ _arky = _util.NamedDict(
     HCN2={prox: 0.25, dist: 0.25, axon: 0},
     SKCa={prox: 35, dist: 3.5, axon: 0},
     BKCa={prox: 200, dist: 200, axon: 0},
-)'''
+)
 
 _Npas = _util.NamedDict(
     'Npas',
@@ -77,8 +77,8 @@ _Npas = _util.NamedDict(
     KCNQ={prox: 0.140857074042178, dist: 0.140857074042178, axon: 0.140857074042178},
     NaF={prox: 1838.9214539075556, dist: 1995.6832372301014, axon: 677.3387765292271},
     NaS={prox: 3.7544770179133566, dist: 0.3257761248020214, axon: 5.328833623250063},
-    Ca={prox: 1.051175962767335, dist: .0.0019921101420210152, axon: 0},
-    HCN1={prox: 4.861939562755437, dist: .2.47306618014184, axon: 0},
+    Ca={prox: 1.051175962767335, dist: 0.0019921101420210152, axon: 0},
+    HCN1={prox: 4.861939562755437, dist: 2.47306618014184, axon: 0},
     HCN2={prox: 0.06995037701823244, dist: 0.6667979219685228, axon: 0},
     SKCa={prox: 0.39048821905626097, dist: 4.623457432814697, axon: 0},
     BKCa={prox: 24.160849840151855, dist: 782.9956479671798, axon: 0},
@@ -86,6 +86,6 @@ _Npas = _util.NamedDict(
 )
 Condset  = _util.NamedDict(
     'Condset',
-    proto = _proto,
+    #proto = _proto,
     Npas=_Npas
 )
