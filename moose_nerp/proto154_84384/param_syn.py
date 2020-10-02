@@ -63,3 +63,6 @@ _ampa= {param_cond.prox:1, param_cond.dist:3}
 
 NumSyn={'gaba':_gaba,
         'ampa':_ampa}
+
+NumSyn={'proto':{'gaba':_gaba,
+        'ampa':_ampa}}

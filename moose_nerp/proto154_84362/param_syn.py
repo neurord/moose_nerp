@@ -58,8 +58,8 @@ NAME_AMPA='ampa'
 NAME_NMDA='nmda'
 
 # number of synapses at each distance
-_gaba = {param_cond.prox:3, param_cond.dist:1}
+_gaba = {param_cond.prox:6, param_cond.dist:2}
 _ampa= {param_cond.prox:1, param_cond.dist:3}
 
-NumSyn={'gaba':_gaba,
-        'ampa':_ampa}
+NumSyn={'proto':{'gaba':_gaba,
+        'ampa':_ampa}}
