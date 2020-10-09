@@ -47,6 +47,9 @@ def facil_depress(name,stp_params,simdt,presyn,msg):
     else:
         no_change=0
         #if using D -> D+d when spike occurs, d=0 when no spike
+    #This probably won't work if presyn is a spikgen, as time table objects send in the time of their spikes
+    #for spikegens, change (x1<=t && x1>t-dt) to x1
+    #ideally, if the synhandler can send the spike message, then can use x1 for either timetable or spikegen inputs
     change_per_spike_expr='((x1<=t && x1>t-dt) ? delta : '+str(no_change)+')'
     plas.expr='{} {}{}{}'.format(initial_value_expr, decay_to_initial_expr,stp_params.change_operator,change_per_spike_expr)
     plas.x.num=2
