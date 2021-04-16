@@ -7,13 +7,17 @@ Set of prototype files and parameter files to simplify creation of neuron and ne
 Each neuron or set of neurons has its own package in moose_nerp, d1d2 for two types of spiny projection neurons, gp for two types of globus pallidus neurons, and ca1 for hippocampal CA1 neurons.
 Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creating ion channels, synaptic channels, neuron morphology, plasticity, spines and calcium dynamics, as well as the main program, which both creates and simulates the neurons.
 
-run the simulation from a terminal window (in spspine directory) using the command:
+run the simulation from a terminal window (in moose_nerp directory) using the command:
 
   `python -m moose_nerp.d1d2`
 
-from a python window (python 2 only), run using the command:
+from a python2 console, run using the command:
 
   `import moose_nerp.d1d2.__main__`, or `execfile('moose_nerp/d1d2/__main__.py')`
+  
+from a python3 console, run using the commend:
+
+  `exec(open('moose_nerp/d1d2/__main__.py').read())`
 
 to evaluate variables created in __main__ after the import, use the following syntax:
    `moose_nerp.d1d2.__main__.variable_name`
