@@ -10,7 +10,10 @@ def moose_main(p):
     model.synYN = True
     model.stpYN = stpYN
     outdir="ep/output/"
-    stimtype='PSP_' #choose from AP and PSP
+    if presyn=='none':
+        stimtype='AP_' #choose from AP and PSP
+    else:
+        stimtype='PSP_'
     if stimfreq>0:
         model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
         print(model.param_sim.stim_paradigm,presyn)
@@ -18,7 +21,7 @@ def moose_main(p):
             model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
     else:
         model.param_sim.stim_paradigm='inject'
-
+    
     create_model_sim.setupOptions(model)
     # Parameter overrides can be specified:
 
@@ -54,7 +57,7 @@ def moose_main(p):
     create_model_sim.setupStim(model)
     param_sim.simtime=4.0
 
-     #add short term plasticity to synapse as appropriate
+    #add short term plasticity to synapse as appropriate
     param_dict={'syn':presyn,'freq':stimfreq,'plas':model.stpYN,'inj':param_sim.injection_current,'simtime':param_sim.simtime,'dt':param_sim.plotdt}
     if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
         from moose_nerp.prototypes import plasticity_test as plas_test
@@ -140,8 +143,8 @@ if __name__ == "__main__":
         do_exit = True
     inj=float(args[0]) #choose from 0 or -15e-12 (15 pA)
     stpYN=int(args[1]) #either 0 or 1
-    synset=['GPe','str']#['none']#
-    stimfreqs=[10,20,40]#[20]#
+    synset=args[2].split() 
+    stimfreqs=[5,10,20,40,50]
     results = multi_main(synset,stpYN,inj,stimfreqs)
 
     if plot_stuff:
@@ -180,14 +183,3 @@ if __name__ == "__main__":
             axis[synindex].set_ylabel(syntype+' Gk*1e9')
             axis[synindex].legend()
 
-'''
-2D axes are numbered as follows:
-0       1
-2       3
-4       5
-
-ToDo:
-re-analyze effect of stp on PSP amp vs frequency using optimized model
-   a. hyperpol to prevent spiking
-   b. depol with spiking
-'''   
