@@ -100,7 +100,7 @@ def addoneSynChan(chanpath,syncomp,gbar,calYN,GbarVar,module=None):
         proto = moose.element('/library/' +chanpath)
     else:
         proto = moose.element('/library/'+module+'/'+chanpath)
-    log.info('adding channel {} to {.path} from {.path}'.format( chanpath, syncomp, proto))
+    log.debug('adding channel {} to {.path} from {.path}'.format( chanpath, syncomp, proto))
     synchan=moose.copy(proto,syncomp,chanpath)[0]
     synchan.Gbar = np.random.normal(gbar,gbar*GbarVar)
     #bidirectional connection from synchan to compartment when not NMDA:
