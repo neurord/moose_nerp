@@ -8,10 +8,11 @@ import plot_utils as pu
 
 ####################################
 # Parameters specifying set of files to analyze
-#example 1 - ep plots
-
+#example 1 - Effect of regular stimulation and stp on spontaneous firing
 filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/'
 file_root='ep'
+infiles=[]
+confile_root=''
 '''
 param1=['GABA'] #condition - each of these occurs with each of the param2 sets.  
 #param2 - each of these occurs with each of param1 sets.  The dictionary key is the word to use in constructing the filename and figure legends
@@ -19,20 +20,22 @@ param2=[{'PSP_':'GPe','_freq':20,'_plas':11},{'PSP_':'GPe','_freq':20,'_plas':10
 suffix='_tg_GPe_lognorm*_ts_SPN_lognorm_ts_STN_lognorm'
 out_fname='stim20Hz'
 '''
-#example 2: 3 conditions, but no "regular" stimulation
-filedir='/home/avrama/moose/mn_output/ep_net/' #oscillatory input
+#example 2A: 3 conditions, but no "regular" stimulation, #oscillatory input
+filedir='/home/avrama/moose/mn_output/ep_net/' 
 param1=['GABAosc','POST-HFSosc','POST-NoDaosc']
 param2=[{'PSP_':'non','_freq':0,'_plas':1}]
 suffix=''#oscillatory input
 out_fname='osc'
+infiles=['ep_net/STN_InhomPoisson_freq18_osc0.6','ep_net/str_InhomPoisson_freq4.0_osc0.2','ep_net/GPe_InhomPoisson_freq29.3_osc2.0']
 '''
-filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/' #spontaneous inputs
+#example 2B: 3 conditions, but no "regular" stimulation, log normally distributed inputs
+filedir='/home/avrama/moose/moose_nerp/moose_nerp/ep_net/output/' 
 param1=['GABA','POST-HFS','POST-NoDa'] #spontaneous inputs
-suffix='_tg_GPe_lognorm_freq29_ts_SPN_lognorm_ts_STN_lognorm' #spontaneous inputs
+suffix='_tg_GPe_lognorm_freq29_ts_SPN_lognorm_ts_STN_lognorm' #spontaneous inputs have log normal distribution
 param2=[{'PSP_':'non','_freq':0,'_plas':1}]
 out_fname='lognorm'
 '''
-'''
+
 '''
 #example 3 - bg network
 filedir='/home/avrama/moose/moose_nerp/moose_nerp/bg_net/'
@@ -46,6 +49,7 @@ infiles=[filedir+'STN500_pulse_freq1.0_73dur0.05',
         filedir+'Ctx10000_ramp_freq5.0_50dur0.3',
         filedir+'Ctx10000_ramp_freq5.0_30dur0.5'] #input spikes
 confile_root=''#'ctx7_connectCtx_ramp' #set to '' to avoid printing confile
+'''
 # Other parameters
 neur='ep' #which neuron type to analyze response to regular stimulation, calculate fft (consider eliminating neur spec) and input fire freq)
 numbins=20 #number of bins (for histograms) if no overlap of bins
@@ -68,9 +72,9 @@ entropy_bin_size=0.01 #Lavian J Neurosci used 10 ms bins
 raster_plots=0 #showing both input data and output spiking
 individual_plots=0 #set of trials for single condition
 group_plots=1 #plots comparing parameter sets
-savetxt=False
+savetxt=True
 calc_input_ff=False
-binsize_factor=10 #used for cross_corr
+binsize_factor=0#10 #used for cross_corr, set to zero to skip cross_corr
 
 ############# loop over sets of files ##################
 for cond in param1:
@@ -139,10 +143,14 @@ for cond in param1:
             inpattern=filedir+'tt'+file_root+cond+key+suffix
             input_files=sorted(glob.glob(inpattern+'*.npy'))
             if len(input_files):
-                syn_input=isc.input_spikes(infiles,alldata.sim_time)
-                mean_cc,mean_cc_shuffle,cc_shuffle_corrected,cc_bins=nau.cross_corr(syn_input.spiketimes,alldata.spiketimes[neur],alldata.sim_time[neur],alldata.dt*binsize_factor)
-                accum_names=['cross_corr','cross_corr_shuffle','cross_corr_corrected']
-                accum_list=[mean_cc,mean_cc_shuffle,cc_shuffle_corrected]
+                syn_input=isc.input_spikes(input_files,alldata.sim_time)
+                if binsize_factor>0:
+                    mean_cc,mean_cc_shuffle,cc_shuffle_corrected,cc_bins=nau.cross_corr(syn_input.spiketimes,alldata.spiketimes[neur],alldata.sim_time[neur],alldata.dt*binsize_factor)
+                    accum_names=['cross_corr','cross_corr_shuffle','cross_corr_corrected']
+                    accum_list=[mean_cc,mean_cc_shuffle,cc_shuffle_corrected]
+                else:
+                    accum_list=[]
+                    accum_names=[]
                 if calc_input_ff: #This is slow, so provide option to skip
                     syn_input.input_fire_freq(neur,binsize_for_prespike_sta)
                     accum_names=accum_names+syn_input.accum_names
@@ -159,7 +167,8 @@ for cond in param1:
         ######## Single parameter set plots
         ###################################################
         if individual_plots:
-            pu.plot_cross_corr(mean_cc,mean_cc_shuffle,cc_shuffle_corrected,cc_bins)
+            if binsize_factor>0:
+                pu.plot_cross_corr(mean_cc,mean_cc_shuffle,cc_shuffle_corrected,cc_bins)
             pu.plot_dict_of_dicts(alldata.isi_hist_mean,alldata.isihist_bins,ylabel='counts',std_dict=alldata.isi_hist_std,xlabel='ISI (sec)',ftitle=cond+' '+key)
             #pu.plot_dict(alldata.spikerate_mean,alldata.ratebins,ylabel='Spike Rate (Hz)',std_dict=alldata.spikerate_std,ftitle=cond+key)
             if len(alldata.pre_post_stim):
@@ -213,7 +222,8 @@ if savetxt:
     nau.write_dict_of_dicts(spikerate_elphmean,elph_xvals,'elph_spike_rate_'+out_fname,'Erate',spikerate_elphstd)
     nau.write_triple_dict(isihist_mean,'isi_histogram_'+out_fname,'isiN',isihist_std,xdata=hist_xvals,xheader='isi_bin') #possibly delete triple dict and loop over neur type?
     nau.write_dict_of_dicts(sta_mean,xsta,'sta_vm_'+out_fname,'stavm',sta_std)
-    nau.write_dict_of_dicts(prespike_sta_mean,prespike_xvals,'sta_spike_'+out_fname,'stapre',prespike_sta_std)
+    if 'inputrate_mean' in vars():
+        nau.write_dict_of_dicts(prespike_sta_mean,prespike_xvals,'sta_spike_'+out_fname,'stapre',prespike_sta_std)
     nau.write_dict_of_dicts(mean_fft,alldata.freqs,'fft_'+out_fname,'fft',std_fft,xheader='freq') #this may need triple dict if do fft for multiple neur types
     if len(alldata.pre_post_stim):
         #x values will be the same for all data.  Possibly concatenate pre, post and stim?  write_dict_of_epochs.
