@@ -149,19 +149,20 @@ def fft_plot(alldata,maxfreq=500,phase=True,title='',mean_fft=False):
     fig.suptitle(title+' fft')
 
     maxfreq_pt=np.min(np.where(alldata.freqs>maxfreq))
-    maxval=np.max([np.max(np.abs(f[1:])) for fft_set in alldata.fft_wave.values() for f in fft_set])
+    minpt=1
+    maxval=np.max([np.max(np.abs(f[minpt:])) for fft_set in alldata.fft_wave.values() for f in fft_set])
     for i,(epoch,fft) in enumerate(alldata.fft_wave.items()):
         mapnum=i%len(colors)
         for jj,ft in enumerate(fft):
             color=colornum(jj,fft,colors[mapnum])
-            axes[0].plot(alldata.freqs[0:maxfreq_pt], np.abs(ft*ft)[0:maxfreq_pt],label=epoch,color=colors[mapnum].__call__(color))
+            axes[0].plot(alldata.freqs[minpt:maxfreq_pt], np.abs(ft*ft)[minpt:maxfreq_pt],label=epoch,color=colors[mapnum].__call__(color))
             if phase:
-                axes[1].plot(alldata.freqs[0:maxfreq_pt], np.angle(ft)[0:maxfreq_pt],'.',label=epoch,color=colors[mapnum].__call__(color))
+                axes[1].plot(alldata.freqs[minpt:maxfreq_pt], np.angle(ft)[minpt:maxfreq_pt],'.',label=epoch,color=colors[mapnum].__call__(color))
                 axes[1].set_ylabel('FFT Phase')
         if mean_fft:
-            axes[0].plot(alldata.freqs[0:maxfreq_pt],np.abs(alldata.fft_of_mean[epoch]**2)[0:maxfreq_pt],color=colors[mapnum].__call__(80))
+            axes[0].plot(alldata.freqs[minpt:maxfreq_pt],np.abs(alldata.fft_of_mean[epoch]**2)[minpt:maxfreq_pt],color=colors[mapnum].__call__(80))
             if phase:
-                axes[1].plot(alldata.freqs[0:maxfreq_pt],np.angle(alldata.fft_of_mean[epoch])[0:maxfreq_pt],'.',color=colors[mapnum].__call__(80))
+                axes[1].plot(alldata.freqs[minpt:maxfreq_pt],np.angle(alldata.fft_of_mean[epoch])[minpt:maxfreq_pt],'.',color=colors[mapnum].__call__(80))
     axes[0].set_ylabel('FFT Power')
     axes[0].set_ylim(0,np.round(maxval)**2 )
     axes[-1].set_xlim(0 , alldata.freqs[maxfreq_pt] )
