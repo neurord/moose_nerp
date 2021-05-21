@@ -16,12 +16,12 @@ from moose_nerp import ep as model
 namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
-
-model.synYN = False#True
-model.stpYN = False#True
+plot_facil=False
+model.synYN = False
+model.stpYN = False
 presyn='none' #choose from 'str', 'GPe', 'none'
 stimfreq=0 #choose from 1,5,10,20,40
-stimtype='AP_'#'PSP_' #choose from AP and PSP
+stimtype='AP_'#choose from AP and PSP
 if stimfreq>0:
     model.param_sim.stim_paradigm=stimtype+str(stimfreq)+'Hz'
     model.param_stim.Stimulation.StimLoc=model.param_stim.location[presyn]
@@ -33,15 +33,15 @@ else:
 create_model_sim.setupOptions(model)
 # Parameter overrides can be specified:
 param_sim = model.param_sim
-param_sim.injection_current = [0,25e-12, 50e-12,75e-12,100e-12,150e-12,200e-12]
+param_sim.injection_current = [-100e-12,-200e-12,0e-12,25e-12, 50e-12]#,75e-12,100e-12,150e-12,200e-12]
 param_sim.injection_delay = 0.2
-param_sim.injection_width=0.4
-param_sim.simtime=1.0
+param_sim.injection_width=0.3
+param_sim.simtime=0.7
 
-param_sim.save_txt=True
+param_sim.save_txt=False
 #param_sim.plot_synapse=True
-param_sim.plot_calcium=True
-param_sim.plotcomps = list(set(param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1a','p0b1b1c','p0b1b1_1']))
+param_sim.plot_calcium=False
+#param_sim.plotcomps = list(set(param_sim.plotcomps+['p0b1','p0b1b1','p0b1b1a','p0b1b1c','p0b1b1_1']))
 #soma:13 um diam
 #p0b1:16 um away
 #p0b1b1:60 um 
@@ -56,7 +56,9 @@ elif presyn=='GPe' and model.stpYN:
 else:
     print('########### unknown synapse type:', presyn)
 
-param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)+'_inj'+str(param_sim.injection_current[0])
+param_sim.fname='ep'+stimtype+presyn+'_freq'+str(stimfreq)+'_plas'+str(1 if model.stpYN else 0)
+if model.param_sim.stim_paradigm != 'inject':
+    param_sim.fname=param_sim.fname+'_inj'+str(param_sim.injection_current[0])
 print('>>>>>>>>>> moose_main, protocol {} presyn {} stpYN {} plot comps {}'.format(model.param_sim.stim_paradigm,presyn,model.stpYN,param_sim.plotcomps))
 
 # This function creates the neuron(s) in Moose:
@@ -93,18 +95,15 @@ if model.param_stim.Stimulation.Paradigm.name is not 'inject' and not np.all([in
     pg.firstLevel = param_sim.injection_current[0]
 
 ##################### for debugging: shows that some spikes elicit 2x increase in weight
-'''
-fac=moose.element('/ep/p0b1b1b2/gaba/fac0')
-x0=fac.x[0]
-x1=fac.x[1]
-x0tab=moose.Table('x0tab')
-x1tab=moose.Table('x1tab')
-moose.connect(x0tab,'requestOut',x0,'getValue')
-moose.connect(x1tab,'requestOut',x1,'getValue')
-ttstate=moose.Table('/data/ttstate')
-tt=list(model.tuples['ep'].values())[0][0]
-moose.connect(ttstate, 'requestOut', tt, 'getState')
-'''
+if plot_facil:
+    fac=moose.element('/ep/p2b2b1/gaba/fac0')
+    x0=fac.x[0]
+    x1=fac.x[1]
+    x0tab=moose.Table('x0tab')
+    x1tab=moose.Table('x1tab') #better captures presyn than ttstate
+    moose.connect(x0tab,'requestOut',x0,'getValue')
+    moose.connect(x1tab,'requestOut',x1,'getValue')
+
 #param_sim.simtime=0.01
 
 ##################### 
@@ -156,14 +155,14 @@ if model.param_stim.Stimulation.Paradigm.name.startswith('PSP'):
     plt.legend()
 
 ##################### for debugging: shows that some spikes elicit 2x increase in weight
-'''
-plt.figure()
-plt.plot(time[0:numpts],x0tab.vector,label='x0tab')
-plt.plot(time[0:numpts],x1tab.vector,label='x1tab')
-plt.plot(time[0:numpts],ttstate.vector,label='tt state')
-plt.legend()
+if plot_facil:
+    plt.figure()
+    plt.title(fac.expr)
+    plt.plot(time[0:numpts],x0tab.vector,label='x0tab')
+    plt.plot(time[0:numpts],x1tab.vector,label='x1tab')
+    plt.legend()
 #####################
-'''
+
 #plot spikes or PSP amplitude if no spikes during stimulation
 if np.any([len(st) for tabset in spike_time.values() for st in tabset]):
     plt.figure()
@@ -182,31 +181,4 @@ if psp_norm:
         for i,tab in enumerate(tabset):
             plt.plot(range(len(tab)),tab,'o')
 
-''' 
-ToDo:
-1. update this chart
-2. fix inject protocol and handling of overrides
 
-          tau decay = 20ms               Lavian       tau decay = 10 ms
-              str      GPe,tau=1s  tau=0.6s  GPe    Str    str   GPe (tau=0.6s)
-initial PSP   0.4 mV   1.5 mV       1.5       3     1.5   
-1 Hz                                          0.9   1.0
-5Hz           1.6      0.75         0.83      0.75  2.6    1.6    0.83
-10Hz          2.0      0.65         0.72      0.65  3.5    2.1    0.72
-20Hz          1.2      0.3          0.43      0.55  2.5    2.2    0.49
-40Hz          0.2                   0.14      0.3   1.5    0.41   0.2
-
-Str depression with higher freq due to membrane time constant
-GABA inputs should have fast and slow decay components
-
-Traces in Lavian reveal that str decay gets _faster_ with higher frequencies, 
-so decay between pulses does not decrease drastically
-Lower membrane time constant with higher tau decay may work better
-
-Assessment during firing:
-a. STN input to produce firing (using lognormal time tables
-add in regular GPe or STR input and measure change in ISI
-
-b. STN, GPe and str log normal inputs
-compare with and without plasticity
-'''
