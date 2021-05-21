@@ -12,7 +12,7 @@
 ##      used to tune parameters and channel kinetics (but using larger morphology)
 
 from __future__ import print_function, division
-from moose_nerp import arky140_1compNoCal as model
+from moose_nerp.cells import arky140_1compNoCal as model
 '''Evaluates moose_nerp/gp/__init__.py to load all the parameters, e.g.
 param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,

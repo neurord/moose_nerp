@@ -11,7 +11,7 @@ from __future__ import print_function, division
 import moose
 import numpy as np
 from moose_nerp.prototypes import create_model_sim, inject_func
-from moose_nerp import 032117_1compNoCa as model
+from moose_nerp.cells import 032117_1compNoCa as model
 '''Imports functions for setting up and simulating model. These take the `model`
 namespace as argument, and append variables to this namespace. Thus, after
 running a simulation, the output tables would be accessible as model.vmtab,
