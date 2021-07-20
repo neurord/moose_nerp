@@ -34,12 +34,17 @@ model.catab, etc.'''
 model.spineYN=False
 model.calYN=True
 model.param_sim.plot_channels = True
-model.Condset.D1.NaF[model.param_cond.dist]=0
-model.Condset.D1.SKCa[model.param_cond.dist]*=.25
-model.Condset.D1.BKCa[model.param_cond.dist]*=.25
-model.Condset.D1.KaF[model.param_cond.dist]*=.5
-model.Condset.D1.KaS[model.param_cond.dist]*=.25
-model.Condset.D1.Kir[model.param_cond.dist]*=.5
+
+model.CaPlasticityParams.CaShellModeDensity = {model.CaPlasticityParams.soma:model.CaPlasticityParams.SHELL, model.CaPlasticityParams.dend:model.CaPlasticityParams.SHELL, model.CaPlasticityParams.spines:model.CaPlasticityParams.SLAB}
+
+
+
+# model.Condset.D1.NaF[model.param_cond.dist]=0
+# model.Condset.D1.SKCa[model.param_cond.dist]*=.25
+# model.Condset.D1.BKCa[model.param_cond.dist]*=.25
+# model.Condset.D1.KaF[model.param_cond.dist]*=.5
+# model.Condset.D1.KaS[model.param_cond.dist]*=.25
+# model.Condset.D1.Kir[model.param_cond.dist]*=.5
 # This function sets up the options specified in param_sim or passed from
 # command line:
 create_model_sim.setupOptions(model)

@@ -35,8 +35,8 @@ GEOMETRIC = 1
 LINEAR = 0
 
 #SPECIFY TYPE OF CALCIUM DYNAMICS HERE
-#CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
-CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included
+CaShellModeDensity = {soma:SHELL, dend:SHELL, spines:SLAB}
+#CaShellModeDensity = {soma:CAPOOL, dend:CAPOOL, spines:CAPOOL} #TODO: #FIXME: segfault when dend uses capool and spines are included
 
 ############################################
 #intrinsic calcium params

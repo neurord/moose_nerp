@@ -38,13 +38,13 @@ narev=50e-3
 carev=140e-3 #assumes CaExt=2 mM and CaIn=50e-3
 ZpowCDI=2
 
-VMIN = -120e-3
-VMAX = 50e-3
+VMIN = -140e-3
+VMAX = 80e-3
 VDIVS = 3401 #0.5 mV steps
 
 #units for calcium concentration: mM
-CAMIN = 0.01e-3   #10 nM
-CAMAX = 40e-3  #40 uM, might want to go up to 100 uM with spines
+CAMIN = 0.001e-3   #10 nM
+CAMAX = 150e-3  #40 uM, might want to go up to 100 uM with spines
 CADIVS = 4001 #10 nM steps
 
 #mtau: Ogata fig 5, no qfactor accounted in mtau, 1.2 will improve spike shape
@@ -203,8 +203,7 @@ KaS_Y_params = AlphaBetaChannelParams(A_rate=41596177.34640679,
 # CDI measured by Kasai
 #Note that CaL13 for D1 has mvhalf 10 mV more negative than for D2
 #CaL12 does not differ between D1 and D2.
-CaL12param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI,
- Erev=carev, name='CaL12')
+CaL12param = ChannelSettings(Xpow=1, Ypow=1, Zpow=ZpowCDI, Erev=carev, name='CaL12')
 qfactCaL = 2
 
 CaL12_X_params = AlphaBetaChannelParams(A_rate=-1760.132,
@@ -348,26 +347,25 @@ CaN_Y_params = TauInfMinChannelParams(T_min=0.035,
 # CaR tau from a few measurements from pyramidal neurons by Foerhing
 # CaR inact tau from Brevi 2001
 #Inact params are a bit too steep for ss, and not steep enough for tau
-CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=ZpowCDI,
- Erev=carev, name='CaR')
+CaRparam = ChannelSettings(Xpow=3, Ypow=1, Zpow=0, Erev=carev, name='CaR')
 qfactCaR = 2
-CaR_X_params = AlphaBetaChannelParams(A_rate=480/2.,
+CaR_X_params = AlphaBetaChannelParams(A_rate=480/4.,
  A_B=0,
  A_C=0.0,
  A_vhalf=0.0-10e-3,
  A_vslope=-0.028,
- B_rate=16000000.0/2.*(0.158-10e-3),
- B_B=16000000.0/2.,
+ B_rate=16000000.0/4.*(0.158-10e-3),
+ B_B=16000000.0/4.,
  B_C=-1.0,
  B_vhalf=0.158-10e-3,
  B_vslope=0.0136)
 
-CaR_Y_params = AlphaBetaChannelParams(A_rate=10000/2.*(0.11-10e-3),
- A_B=10000/2.,
+CaR_Y_params = AlphaBetaChannelParams(A_rate=10000/4.*(0.11-10e-3),
+ A_B=10000/4.,
  A_C=-1.0,
  A_vhalf=0.11-10e-3,
  A_vslope=0.017,
- B_rate=20/2.,
+ B_rate=20/4.,
  B_B=0,
  B_C=0.0,
  B_vhalf=0.0-10e-3,
@@ -429,7 +427,7 @@ Channels = NamedDict(
     CaL12 = TypicalOneD(CaL12param,CaL12_X_params, CaL12_Y_params, CDI_Z_params, calciumPermeable=True, calciumDependent=True),
     CaL13 = TypicalOneD(CaL13param, CaL13_X_params,CaL13_Y_params, CDI_Z_params, calciumPermeable=True, calciumDependent=True),
     CaN =   TypicalOneD(CaNparam, CaN_X_params, CaN_Y_params, CDI_Z_params, calciumPermeable=True, calciumDependent=True),
-    CaR =   TypicalOneD(CaRparam, CaR_X_params, CaR_Y_params, CDI_Z_params, calciumPermeable=True, calciumDependent=True),
+    CaR =   TypicalOneD(CaRparam, CaR_X_params, CaR_Y_params, [], calciumPermeable=True),
     CaT =   TypicalOneD(CaTparam,CaT_X_params, CaT_Y_params, [], calciumPermeable=True),
     CaT32 =   TypicalOneD(CaT32param,CaT32_X_params, CaT32_Y_params, [], calciumPermeable=True),
     CaT33 =   TypicalOneD(CaT33param,CaT33_X_params, CaT33_Y_params, [], calciumPermeable=True),

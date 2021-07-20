@@ -15,7 +15,7 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # mM, default for GHK is 2e-3
+ConcOut=2     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
@@ -46,7 +46,7 @@ _D1 = _util.NamedDict(
     CaL12 = {prox:0.3670566089203581*ghKluge, med: 3.9112224494974255*ghKluge, dist: 2.3162095058181715*ghKluge},
     CaR = {prox:6.020952615897578*ghKluge, med: 9.738386461210768*ghKluge, dist: 17.31893386016392*ghKluge},
     CaN = {prox:9.033232913044772*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
-    CaT33 = {prox:0.0*ghKluge, med: .1*0.007721704132985384*ghKluge, dist: .1*0.4371369995209336*ghKluge},
+    CaT33 = {prox:0.0*ghKluge, med: 0.0007721704132985384*ghKluge, dist: 0.04371369995209336*ghKluge},
     CaT32 = {prox:0.0*ghKluge, med: 0.007721704132985384*ghKluge, dist: 0.4371369995209336*ghKluge},
     NaF = {prox:20264.011048395758, med:35054.87847330811 , dist: 2795.7343482062784},
     SKCa = {prox:0.6810806557420438, med: 0.6810806557420438, dist:0.6810806557420438 },
