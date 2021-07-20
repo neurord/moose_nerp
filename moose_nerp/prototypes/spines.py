@@ -160,11 +160,11 @@ def compensate_for_spines(model,comp,name_soma):#,total_spine_surface,surface_ar
 
         ## Additionally, compensate for ion channels in spines
         # Flatten the nested chan list:
-        chan_list = []
+        chan_dict = {}
         for c in SpineParams.spineChanList:
-            chan_list.extend(c)
+            chan_dict.update(c)
         # Get the conductance for each channel:
-        for chanpath,mult in chan_list:
+        for chanpath,mult in chan_dict.items():
             if moose.exists(comp.path+'/'+chanpath):
                 chan = moose.element(comp.path+'/'+chanpath)
                 old_gbar = chan.Gbar/surface_area
@@ -187,11 +187,11 @@ def reverse_compensate_for_explicit_spines(model,comp,explicit_spine_surface,sur
     ## Additionally, reverse compensate for ion channels in spines
     # Flatten the nested chan list:
     SpineParams = model.SpineParams
-    chan_list = []
+    chan_dict = {}
     for c in SpineParams.spineChanList:
-        chan_list.extend(c)
+        chan_dict.update(c)
     # Get the conductance for each channel:
-    for chanpath,mult in chan_list:
+    for chanpath,mult in chan_dict.items():
         if moose.exists(comp.path+'/'+chanpath):
             chan = moose.element(comp.path+'/'+chanpath)
             old_gbar = chan.Gbar/surface_area
@@ -279,11 +279,11 @@ def addSpines(model, container,ghkYN,name_soma,module=None):
                         ghkproto=moose.element('/library/ghk')
                         ghk=moose.copy(ghkproto,comp,'ghk')[0]
                         moose.connect(ghk,'channel',comp,'channel')
-                    chan_list = []
+                    chan_dict = {}
                     for c in SpineParams.spineChanList:
-                        chan_list.extend(c)
-                    for chanpath,mult in chan_list:
-                        cond = mult*distance_mapping(modelcond[chanpath],head)
+                        chan_dict.update(c)
+                    for chanpath,mult in chan_dict.items():
+                        cond = mult#*distance_mapping(modelcond[chanpath],head)
                         if cond > 0:
                             log.debug('Testing Cond If {} {}', chanpath, cond)
                             calciumPermeable = model.Channels[chanpath].calciumPermeable
