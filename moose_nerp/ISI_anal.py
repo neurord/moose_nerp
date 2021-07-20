@@ -46,16 +46,21 @@ def stim_spikes(spike_time,timetables,soma='soma'):
             stim_spikes[neurtype].append([st for st in spike_time[neurtype][-1] if st>np.min(tt.vector) and st<np.max(tt.vector)])
     return stim_spikes
 
-def psp_amp(vmtab,timetables,soma='soma'):
+def psp_amp(vmtab,timetables,soma='soma',peak='min'):
     psp_amp={key:[] for key in vmtab.keys()}
     psp_norm={key:[] for key in vmtab.keys()}
     for neurtype, tabset in vmtab.items():
         soma_tabs=find_somatabs(tabset,soma,tt=timetables[neurtype].values())
         for tab,tt in zip(soma_tabs,timetables[neurtype].values()):
             vm_init=[tab.vector[int(t/tab.dt)] for t in tt.vector]
+            print('PSPAMP, vm_init',vm_init)
             #use np.min for IPSPs and np.max for EPSPs
-            vm_peak=[np.min(tab.vector[int(tt.vector[i]/tab.dt):int(tt.vector[i+1]/tab.dt)]) for i in range(len(tt.vector)-1)]
-            psp_amp[neurtype].append([(vm_init[i]-vm_peak[i]) for i in range(len(vm_peak))])
+            if peak=='min':
+                vm_peak=[np.min(tab.vector[int(tt.vector[i]/tab.dt):int(tt.vector[i+1]/tab.dt)]) for i in range(len(tt.vector)-1)]
+            else:
+                vm_peak=[np.max(tab.vector[int(tt.vector[i]/tab.dt):int(tt.vector[i+1]/tab.dt)]) for i in range(len(tt.vector)-1)]
+            print('PSPAMP, vm_peak',vm_peak)
+            psp_amp[neurtype].append([(vm_peak[i]-vm_init[i]) for i in range(len(vm_peak))])
             psp_norm[neurtype].append([amp/psp_amp[neurtype][-1][0] for amp in psp_amp[neurtype][-1]])
     return psp_amp,psp_norm
 
