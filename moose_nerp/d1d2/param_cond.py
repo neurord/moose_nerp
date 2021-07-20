@@ -14,7 +14,7 @@ else:
     ghKluge=1
 
 #using 0.035e-9 makes NMDA calcium way too small, using single Tau calcium
-ConcOut=2e-3     # mM, default for GHK is 2e-3
+ConcOut=2     # mM, default for GHK is 2e-3
 Temp=30         # Celsius, needed for GHK objects, some channels
 
 neurontypes = None
@@ -26,6 +26,7 @@ NAME_SOMA='soma'
 prox = (0, 26.1e-6)
 med =  (26.1e-6, 50e-6)
 dist = (50e-6, 1000e-6)
+alldistances = (0,1)
 #If using swc files for morphology, can add with morphology specific helper variables
 #e.g. med=(26.1e-6, 50e-6,'_2')
 #_1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
@@ -38,6 +39,7 @@ _D1 = _util.NamedDict(
     'D1',
     Krp = {prox:0.0266, med:0.0740, dist:0.02746},
     KaF = {prox:1430.85, med:406.796, dist:91.140},
+    #KaF = {alldistances:_util.dist_dependent_cond_equation(cmin=90,cmax=1430,dhalf=30e-6,slope=0.5)},
     KaS = {prox:13.95, med: 1419.54, dist: 62.524},
     Kir = {prox:12.7875, med: 12.7875, dist: 12.7875},
     CaL13 = {prox:16.8551*ghKluge, med: 4.01164*ghKluge, dist: 2.0984*ghKluge},

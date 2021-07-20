@@ -26,7 +26,7 @@ param_sim.plotcomps = [NAME_SOMA]
 
 param_sim.fname = None
 
-param_sim.plot_vm = False#True
+param_sim.plot_vm = True
 param_sim.plotdt = 0.0002
 
 param_sim.plot_activation = False #None
