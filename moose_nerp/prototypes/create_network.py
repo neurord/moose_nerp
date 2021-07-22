@@ -83,13 +83,14 @@ def print_connect_dict(connect_dict):
                 print('***connect_dict after merge and delete:',key1,key2,key3,item3)
     return
 
-def create_network(model, param_net,neur_protos={},network_list=None):
+def create_network(model, param_net,neur_protos={},network_list=None,create_all=True):
     connections={}
     #
     conn_summary={}
     if param_net.single:
         #create all timetables
-        ttables.TableSet.create_all()
+        if create_all:
+            ttables.TableSet.create_all()
         network_pop={'pop':{},'location':{}}
         #network is equal to the list of neuron prototypes:
         for ntype in neur_protos.keys():
@@ -163,6 +164,9 @@ def create_network(model, param_net,neur_protos={},network_list=None):
         if network_list is not None:
             print('TTABLES',[tt.filename for tt in ttables.TableSet.ALL])
             print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
+    #
+    #save/write out the list of connections and location of each neuron
+    np.savez(param_net.confile,conn=connections,loc=network_pop['location'])
     #
     ##### add Synaptic Plasticity if specified, requires calcium
     plascum={}
