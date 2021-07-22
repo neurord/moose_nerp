@@ -19,7 +19,7 @@ class TableSet(object):
         path="/input"
         if not moose.exists('/input'):
             moose.Neutral('/input')
-        spike_file = np.load(self.filename+'.npz', allow_pickle=True)
+        spike_file = np.load(self.filename+'.npz', encoding='latin1',allow_pickle=True)
         spike_times = spike_file['spikeTime']
         self.numtt = len(spike_times)
         print('creating', self, self.tablename, self.filename, 'AVAILABLE trains: ', self.numtt)

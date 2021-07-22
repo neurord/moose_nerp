@@ -56,6 +56,37 @@ def move_neuron(dx,dy,dz,neurpath):
         comp.z0=comp.z0+dz
     return
 
+class dist_dependent_cond_equation:
+    def __init__(self,cmin,cmax,dhalf,slope):
+        self.cmin = cmin
+        self.cmax = cmax
+        self.dhalf = dhalf
+        self.slope = slope
+        self.__repr__()
+    def __call__(self,distance):
+            return self.cmin+(self.cmax-self.cmin)/(1+_np.exp((distance-self.dhalf)/self.slope))
+
+    def __repr__(self):
+        return '{}+({}-{})/(1+np.exp((distance-{})/{})))'.format(self.cmin,self.cmax,self.cmin,self.dhalf,self.slope)
+
+"""
+def dist_dependent_cond_equation(cmin, cmax, dhalf, slope):
+    '''Returns a function only of distance that specifies a distance
+    dependent sigmoid equation for channel conductance.
+
+    cmin: minimal distance-dependent conductance
+    cmax: maximal distant-dependent conductance
+    dhalf: distance from soma where amplitude of sigmoid is one half max-min
+    slope: slope of sigmoid equation. If positive, somatic conductance is higher; If negative, somatic conductance is smaller
+    '''
+
+    def equation(distance):
+        return cmin+(cmax-cmin)/(1+_np.exp((distance-dhalf)/slope))
+
+    print('{}+({}-{})/(1+np.exp((distance-{})/{})))'.format(cmin,cmax,cmin,dhalf,slope))
+    return equation
+
+"""
 def distance_mapping(mapping, where):
     #where is a location, either a compartment or string or moose.vec
     if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
