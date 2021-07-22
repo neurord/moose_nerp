@@ -167,7 +167,7 @@ def create_synpath_array(allsyncomp_list,syntype,NumSyn,prob=None,soma_loc=[0,0,
     avail_syns=np.int(np.round(syncomp_sum))
     return syncomps,totalsyns,avail_syns
 
-def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
+def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
     dist=0
     syn_params=model.param_syn
     simdt=model.param_sim.simdt
@@ -201,12 +201,12 @@ def connect_timetable(post_connection,syncomps,totalsyn,netparams,model):
         print('## connect from tt',post_connection.pre.tablename,', number of connections',len(presyn_tt))
     else:
         syn_choices=[];presyn_tt=[]
-        log.info('&&&&&&&&&&&&&& no connectons from time tables'.format(post_connection.pre.tablename))
+        log.info('&&&&&&&&&&&&&& no connections from time tables'.format(post_connection.pre.tablename))
     #connect the time-table to the synapse with mindelay (set dist=0)
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
         log.debug('CONNECT: TT {} POST {}', tt.path,syn)
-        synconn(syn,dist,tt,syn_params,netparams.mindelay,simdt=simdt,stp=stp,weight=post_connection.weight) ####### Dan sets to 1
+        synconn(syn,dist,tt,syn_params,mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
         #save the connection in a dictionary for inspection later.
         '''
         #NEW METHOD: allow multiple connections, needed when 2 or more pre-syn time tables
@@ -230,11 +230,11 @@ def timetable_input(cells, netparams, postype, model,soma_loc=[0,0,0]):
         for pretype in post_connections[syntype].keys():
             if 'extern' in pretype:
                 dend_prob=post_connections[syntype][pretype].dend_loc
-                print('####### timetable input ######### to',postcell,'from', pretype, ', synchan=', syntype)
+                print('####### timetable input ######### to',postcell,'from', pretype, ', synchan=', syntype,', num stimtab',len(post_connections[syntype][pretype].pre.stimtab) )
                 allsyncomp_list=moose.wildcardFind(postcell+'/##/'+syntype+'[ISA=SynChan]')
                 syncomps,totalsyn,availsyn=create_synpath_array(allsyncomp_list,syntype,model.param_syn.NumSyn[postype],prob=dend_prob,soma_loc=soma_loc)
                 log.info('  SYN TABLE for {} {} has {} slots to make {} synapses from {} ', postcell,syntype, len(syncomps),totalsyn,pretype)
-                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyn,netparams,model)
+                connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyn,model,netparams.mindelay[postype])
     return connect_list
                     
 def connect_neurons(cells, netparams, postype, model):
@@ -270,7 +270,7 @@ def connect_neurons(cells, netparams, postype, model):
                     if ix<print_cells:
                         print('## connect to tt',postcell,syntype,pretype,'from',post_connections[syntype][pretype].pre.filename)
                     ####### connect to time tables instead of other neurons in network
-                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyns,netparams,model)
+                    connect_list[postcell][syntype][pretype]=connect_timetable(post_connections[syntype][pretype],syncomps,availsyns,model,netparams.mindelay[postype])
                     #NEW METHOD
                     #intra_conns[syntype][pretype].append(np.sum([len(item) for item in connect_list[postcell][syntype][pretype].values()]))
                     intra_conns[syntype][pretype].append(len(connect_list[postcell][syntype][pretype]))

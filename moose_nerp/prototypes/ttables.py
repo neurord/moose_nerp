@@ -28,7 +28,7 @@ class TableSet(object):
             self.stimtab.append([moose.TimeTable('{}/{}_TimTab{}'.format(path, self.tablename, ii)),self.syn_per_tt])
             self.stimtab[ii][0].vector=stimtimes
             self.stimtab[ii][0].tick=7
-        print(self.tablename, 'complete')
+        print(self.tablename, 'complete', len(self.stimtab), 'tables created')
 
     @classmethod
     def create_all(cls):
