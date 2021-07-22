@@ -280,7 +280,7 @@ def addDifMachineryToComp(model,comp,Buffers,Pumps,sgh,spine):
 
         if spine and comp.name.endswith(NAME_HEAD):
             try:
-                check_list = model.SpineParams.spineChanList[i]
+                check_list = list(model.SpineParams.spineChanList[i])
                 connectVDCC_KCa(model,comp,dShell,'influx','concentrationOut',check_list)
             except IndexError:
                 pass
