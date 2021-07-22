@@ -85,17 +85,17 @@ def write_textfile(tabset, tabname, fname, inj, simtime):
     return new_fname
 
 
-def write_textfiles(model, inj):
+def write_textfiles(model, inj, ca = True, spines = True, spineca = True):
         inj_nA=inj*1e9
         write_textfile(model.vmtab, 'Vm', model.param_sim.fname, inj_nA,
                               model.param_sim.simtime)
-        if model.calYN:
+        if model.calYN and ca:
             write_textfile(model.catab, 'Ca', model.param_sim.fname, inj_nA,
                                   model.param_sim.simtime)
-        if model.spineYN and len(model.spinevmtab):
+        if model.spineYN and len(model.spinevmtab) and spines:
             write_textfile(list(model.spinevmtab.values()), 'SpVm',
                                   model.param_sim.fname, inj_nA, model.param_sim.simtime)
-        if model.spineYN and len(model.spinecatab):
+        if model.spineYN and len(model.spinecatab) and spineca:
             write_textfile(list(model.spinecatab.values()), 'SpCa',
                                   model.param_sim.fname, inj_nA, model.param_sim.simtime)
 

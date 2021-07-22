@@ -294,7 +294,8 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
                                  model.param_sim.simtime)
         #save plain text output - expand this to optionally save current data
         if model.param_sim.save_txt:
-            tables.write_textfiles(model, inj)
+            tables.write_textfiles(model, inj, ca=False, spines=False, spineca=False)
+            #tables.write_textfiles(model, inj)
 
         # Switch hdf5writer mode from 2 (overwrite) to 1 (append)
         # Note that hdf5writer is initialized in mode 2, overwriting prior simulations,
