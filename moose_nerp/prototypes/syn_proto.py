@@ -7,7 +7,7 @@ import moose
 import numpy as np
 
 from moose_nerp.prototypes import constants, logutil
-from moose_nerp.prototypes.util import NamedList
+from moose_nerp.prototypes.util import NamedList, distance_mapping
 from moose_nerp.prototypes.spines import NAME_HEAD
 log = logutil.Logger()
 
@@ -132,10 +132,23 @@ def add_synchans(model, container,module=None):
             keynum = allkeys.index(key)
             Gbar = model.SYNAPSE_TYPES[key].Gbar
             Gbarvar=model.SYNAPSE_TYPES[key].var
-            for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]'):
-                if NAME_HEAD in spcomp.path:
-                    synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar,module))
-                   
+            spcomps = [spcomp for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]') if NAME_HEAD in spcomp.path]
+            for spcomp in spcomps:
+                synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar,module))
+            if len(spcomps) == 0:
+                distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
+                dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
+                if (model.SpineParams.spineEnd > dist > model.SpineParams.spineStart):
+                    try:
+                        #If SpineParams has this, use this density
+                        density=model.SpineParams.explicitSpineDensity
+                    except KeyError:
+                        #Else, just use the actual density value
+                        density=distance_mapping(distance_mapped_spineDensity,comp)
+                    numSpines = int(np.round(density*comp.length))
+                    if numSpines > 0:
+                        synchans[keynum].append(addoneSynChan(key,comp,Gbar, model.calYN, Gbarvar,module))
+
     allsynchans={key:synchans[keynum]
                  for keynum, key in enumerate(sorted(model.SYNAPSE_TYPES))}
 
