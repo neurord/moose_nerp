@@ -215,14 +215,14 @@ def plasticity2(synchan,plas_params):
     # if calcium meets LTD threshold, accumulate duration above LTD as negative value;
     # if it meets LTP threshold, accumulate duration above LTP as positive value;
     # else return 0
-
+    plas2params = plas_params
     NAME_DUR = 'CaThreshDurAccumulator'
     durname = synchan.path+'/'+NAME_DUR
     dur=moose.Function(durname)
     dur.tick=1
     # Set expression constants
-    dur.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Change to a parameter
-    dur.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Change to a parameter
+    dur.c['LTP_amp_thresh'] = plas2params.LTP_amp_thresh#0.46e-3 # TODO: Change to a parameter
+    dur.c['LTD_amp_thresh'] = plas2params.LTD_amp_thresh#0.2e-3 # TODO: Change to a parameter
     dur.c['dt'] = dur.dt # TODO: Put simdt variable here
     dur.x.num = 2 # Required?
 
@@ -241,12 +241,12 @@ def plasticity2(synchan,plas_params):
     plas=moose.Function(plasname)
     plas.tick=1
     # Constants:
-    plas.c['LTP_dur_thresh'] = 0.002 # TODO: Parameterize
-    plas.c['LTD_dur_thresh'] = 0.032 # TODO: Parameterize
-    plas.c['LTP_amp_thresh'] = 0.46e-3 # TODO: Parameterize
-    plas.c['LTD_amp_thresh'] = 0.2e-3 # TODO: Parameterize
-    plas.c['LTP_gain'] = 1100 # TODO: Parameterize
-    plas.c['LTD_gain'] = 4500*2 # TODO: Parameterize
+    plas.c['LTP_dur_thresh'] = plas2params.LTP_dur_thresh # 0.002 # TODO: Parameterize
+    plas.c['LTD_dur_thresh'] = plas2params.LTD_dur_thresh#0.032 # TODO: Parameterize
+    plas.c['LTP_amp_thresh'] = plas2params.LTP_amp_thresh#0.46e-3 # TODO: Parameterize
+    plas.c['LTD_amp_thresh'] = plas2params.LTD_amp_thresh#0.2e-3 # TODO: Parameterize
+    plas.c['LTP_gain'] = plas2params.LTP_gain#1100 # TODO: Parameterize
+    plas.c['LTD_gain'] = plas2params.LTD_gain#4500*2 # TODO: Parameterize
     min_weight = 0.0
     max_weight = 2.0
     plas.c['min_weight'] = min_weight
@@ -381,6 +381,6 @@ def addPlasticity(cell_pop,caplas_params):
             if moose.exists(synchan.path+'/SH'):
                 log.debug("{} {} {}", cell, synchan.path, moose.element(synchan.path+'/SH'))
                 synname = util.syn_name(synchan.path, spines.NAME_HEAD)
-                plascum[cell][synname] = plasticity2(synchan, caplas_params.Plas_syn)
+                plascum[cell][synname] = plasticity2(synchan, caplas_params.Plas2_syn)
 
     return plascum
