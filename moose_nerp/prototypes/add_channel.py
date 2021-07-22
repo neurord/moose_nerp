@@ -15,6 +15,7 @@ def addOneChan(chanpath,gbar,comp,ghkYN, ghk=None, calciumPermeable=False,module
     else:
         proto = moose.element('/library/'+module+'/'+chanpath)
     chan = moose.copy(proto, comp, chanpath)[0]
+    log.debug('copying {} to {}',proto, comp)
     chan.Gbar = gbar * SA
     #If we are using GHK AND it is a calcium channel, connect it to GHK
     if ghkYN and calciumPermeable:
