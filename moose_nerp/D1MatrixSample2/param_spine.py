@@ -62,7 +62,7 @@ SpineParams = _util.NamedDict(
     spineEREST = None,
     spineStart = 26.1e-6,
     spineEnd = 300e-6,
-    explicitSpineDensity = 1e6, #Density of spines to explicitly model, Should be < or = to spineDensity. TODO: Consider changing to Fraction of SpineDensity
+    explicitSpineDensity = .1e6, #Density of spines to explicitly model, Should be < or = to spineDensity. TODO: Consider changing to Fraction of SpineDensity
     spineChanList = [{'CaL13':0.7},{'CaL12':2.3,'CaR':17.3,'CaT33':0.0437,'CaT32':.437,'SKCa':.68}], #TODO: Specify for each channel the gbar ratio as a dictionary or named dict rather than list; also specify which difshell;
     #spines added to branches that are children of this branch:
     spineParent = 'soma',#'138_3',#'570_3',#106_3',#soma',
