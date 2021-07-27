@@ -55,5 +55,5 @@ SYNAPSE_TYPES = NamedDict(
 _gaba = {param_cond.inclu:1}
 _glu = {param_cond.inclu:1}
 
-NumSyn={'Gaba':_gaba,
-        'Glu':_glu}
+NumSyn={'ca1':{'Gaba':_gaba,
+        'Glu':_glu}}
