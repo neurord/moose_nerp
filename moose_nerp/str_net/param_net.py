@@ -54,10 +54,10 @@ ext_connect=NamedList('ext_connect','synapse pre post dend_loc=None stp=None wei
 # add post_location to both of these - optionally specify e.g. prox vs distal for synapses
 
 #list of time tables that provide extrinsic connections.  Each tt connected to syn_per_tt synapses
-tt_Ctx_SPN = TableSet('CtxSPN', 'str_net/FullTrialHigherVariability',syn_per_tt=2)
+tt_Ctx_SPN = TableSet('CtxSPN', 'str_net/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal',syn_per_tt=2)
 #tt_Thal_SPN = TableSet('ThalSPN', 'Thal_4x4',syn_per_tt=2)
 tt_FSI_SPN = TableSet('FSISPN','str_net/FSITrains_n-30_f-11-Hz_tmax-25-s_corr-0',syn_per_tt=8)
-tt_LTSI_SPN = TableSet('LTSISPN','str_net/LTSITrains_n-30_f-8-Hz_tmax-25-s_corr-0',syn_per_tt=2)
+tt_LTSI_SPN = TableSet('LTSISPN','str_net/LTSITrains_n-100_f-8-Hz_tmax-25-s_corr-0',syn_per_tt=2)
 
 
 distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.1)#,half_dist=50e-6,steep=1)
@@ -105,8 +105,8 @@ D1['gaba'] = {
 }
 
 connect_dict['D1']=D1
-D2['gaba']={'FSIextern': FSIextern_D1post,'LTSIextern': LTSIextern_D1post,'D1': D1pre_D2post, 'D2': D2pre_D2post}#, 'FSI': FSIpre_D2post}
-D2['ampa']={'extern1': ctx_D2post}
+#D2['gaba']={'FSIextern': FSIextern_D1post,'LTSIextern': LTSIextern_D1post,'D1': D1pre_D2post, 'D2': D2pre_D2post}#, 'FSI': FSIpre_D2post}
+#D2['ampa']={'extern1': ctx_D2post, 'extern2': thal_D2post}
 #connect_dict['D2']=D2
 #FSI['gaba']={'FSI': FSIpre_FSIpost}
 #FSI['ampa']={'extern': glu_FSI}
@@ -114,4 +114,4 @@ D2['ampa']={'extern1': ctx_D2post}
 
 # m/sec - GABA and the Basal Ganglia by Tepper et al
 cond_vel={'D1':0.8,'D2':0.8}
-mindelay={'D1':1e-3,'D2':1e-3}
+mindelay={'D1':0e-3,'D2':1e-3}
