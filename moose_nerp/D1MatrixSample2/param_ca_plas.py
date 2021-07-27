@@ -120,3 +120,21 @@ timeStepFactor = 100.0
 lowThreshold = 0.15e-3
 highThreshold = 0.3e-3
 Plas_syn = PlasParams(Name='ampa',highThreshold=highThreshold,lowThreshold=lowThreshold, highDurationThreshold = 0.005,lowDurationThreshold=0.025,highFactor='(0.5/'+str(timeStepFactor)+')',lowFactor =  '/'+str(lowThreshold-highThreshold)+'/'+str(timeStepFactor))
+
+Plas2Params = NamedList('Plas2Params','''
+Name
+LTP_dur_thresh
+LTD_dur_thresh
+LTP_amp_thresh
+LTD_amp_thresh
+LTP_gain
+LTD_gain
+'''
+)
+Plas2_syn = Plas2Params(Name='ampa',
+                        LTP_dur_thresh=0.002,
+                        LTD_dur_thresh=0.032,
+                        LTP_amp_thresh=0.46e-3,
+                        LTD_amp_thresh=0.2e-3,
+                        LTP_gain=1100,
+                        LTD_gain=4500*2)
