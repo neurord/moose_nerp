@@ -9,20 +9,20 @@ Each package, e.g. moose_nerp/d1d2, contains a set of parameter files for creati
 
 run the simulation from a terminal window (in moose_nerp directory) using the command:
 
-  `python -m moose_nerp.d1d2`
+  `python -m moose_nerp.cells.d1d2`
 
 from a python2 console, run using the command:
 
-  `import moose_nerp.d1d2.__main__`, or `execfile('moose_nerp/d1d2/__main__.py')`
+  `import moose_nerp.cells.d1d2.__main__`, or `execfile('moose_nerp/cells/d1d2/__main__.py')`
   
 from a python3 console, run using the commend:
 
-  `exec(open('moose_nerp/d1d2/__main__.py').read())`
+  `exec(open('moose_nerp/cells/d1d2/__main__.py').read())`
 
 to evaluate variables created in __main__ after the import, use the following syntax:
-   `moose_nerp.d1d2.__main__.variable_name`
+   `moose_nerp.cells.d1d2.__main__.variable_name`
 
-**Files in each package**
+**Files in each cell type package**
 
 Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,z,dia values are microns
 
@@ -68,18 +68,27 @@ Note that SI units are used everywhere EXCEPT in the morphology file, where x,y,
 7. Note that if calYN=0 or synYN=0, no plasticity will be created, even if plasYN=1
 8. make sure the .p file for your neuron is in the package
 9. Edit `param_sim.py` and `param_model_defaults.py` to set your default model and simulation options
-9. edit `__main__.py`:  replace d1d2 in this line "from moose import d1d2 as model" with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
+9. edit `__main__.py`:  replace d1d2 in this line "from moose import cell.d1d2 as model" with the name of your package. A "standard" set of graphs are created, showing membrane potential in every compartment, and calcium (if created).  You might want to customize this aspect.
 11. The functions in `__main__.py` are imported from moose_nerp/prototypes/create_model_sim. This module contains standard functions for setting up and running a model/simulation. It is recommended that this module be extended for customizing simulations, so any customization is available to any model. However, care should be made to not break/alter existing functionality since other simulations depend on this code.
 
 **Networks**
-1. clone othe package, str_net, and edit param_net.py.  Note there are three neuron types specified in this network: D1, D2 and FSI.  Delete all lines with FSI in you only want two neuron types, and delete all the lines with FSI or D2 if you want only one neuron type in your network.
-2. replace "striatum" with name of your tissue (global search and replace)
+
+Networks are used to create networks of multiple neurons or to create a single neuron with spike train input.
+1. clone the package, spn1_net, and edit param_net.py.  Note there are three neuron types specified in this network: D1, D2 and FSI.  Delete all lines with FSI in you only want two neuron types, and delete all the lines with FSI or D2 if you want only one neuron type in your network.
+2. change the netname, etc from "striatum" to name of your tissue (global search and replace)
 3. replace "D1", and optionally "D2" and "FSI" with the names of your neuron types (from the single neuron package your created)
-4. Edit grid, which specifies the size of the network (in meters, from xyzmin to xyzmax in each of three dimensions) and the distance between neuron types in each dimension (in meters, inc=).
+4. Edit grid, which specifies the size of the network (in meters, from xyzmin to xyzmax in each of three dimensions) and the distance between neuron types (variable spacing) in each dimension (in meters, inc=).
 5. For each population, specify the percent of total neurons.  The percents summed over neuron types should equal 1
 6. Specify connections.
  - Each intrinsic connection uses the NamedList 'connect', and specifies synapse type (e.g. GABA), neuron class of pre-synaptic neuron, neuron class of post-synaptic neuron, and a connection rule: either a probability (not distance dependent), or a distance dependence give by the space_const.
- - Each extrinsic connection uses the NamedList 'ext_connect', and specifies synapse type (e.g. AMPA), name of the TableSet that specifies the list of spike times, neuron class of post-synaptic neuron, and what fraction of the synapses should be filled with those time tables (e.g. 1.0 if only a single TableSet specified, 0.5 if two TableSets specified).
+ - Each extrinsic connection (spike train input) uses the NamedList 'ext_connect', and specifies synapse type (e.g. AMPA), name of the TableSet that specifies the list of spike times, neuron class of post-synaptic neuron, and what fraction of the synapses should be filled with those time tables (e.g. 1.0 if only a single TableSet specified, 0.5 if two TableSets specified).
+ - Specify one TableSet for each file that contains multiple lists of spike times. One timetable object will be  created for each list. Specify how many synapses can receive input from the same timetable.
   - After specifying each connection, collect all connections for each post-synaptic neuron type into a dictionary, e.g. D1['gaba']={'D1': D1pre_D1post, 'D2': D2pre_D1post}; D1['ampa']={'extern1': ctx_D1post, 'extern2': thal_D1post}
   - then collect all those connections into one big dictonary with neuron type as key, e.g. connect_dict['D1']=D1
-7. edit `__main__.py`: global search and replace d1d2 and strnet with the names of your packages. A "standard" set of graphs are created, showing membrane potential and calcium (if created) in each neuron.  You might want to customize this aspect.
+7. Specify conduction velocity (cond_vel) and minimum delay (mindelay) for each neuron type.  These are used to calculate a distance dependent time between pre-synaptic firing and post-synaptic event.
+8. edit `__main__.py`:
+  - replace spn_1comp (celltype package) and spn1_net with the names of your packages.
+  - Change neuron_modules to specify the names of additional celltype packages.
+  - Make neuron_modules empty list if all cell types are specified in a single cell package
+
+A "standard" set of graphs are created, showing membrane potential and calcium (if created) in each neuron.  You might want to customize this aspect.
