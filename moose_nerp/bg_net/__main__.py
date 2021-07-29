@@ -26,11 +26,11 @@ from moose_nerp.prototypes import (calcium,
                                    util,
                                    multi_module,
                                    net_sim_graph)
-from moose_nerp import spn_1comp as model
+from moose_nerp.cells import spn_1comp as model
 from moose_nerp import bg_net as net
 
 #names of additional neuron modules to import
-neuron_modules=['ep_1comp','proto154_1compNoCal','Npas2005_1compNoCal','arky140_1compNoCal','FSI01Aug2014']
+neuron_modules=['cells.ep_1comp','cells.proto154_1compNoCal','cells.Npas2005_1compNoCal','cells.arky140_1compNoCal','cells.FSI01Aug2014']
 
 ### By importing network modules, no need to repeat all the information in param_net.py
 net_modules=['moose_nerp.ep_net','moose_nerp.gp_net', 'moose_nerp.spn1_net']

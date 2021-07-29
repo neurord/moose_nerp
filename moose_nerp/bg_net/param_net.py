@@ -51,8 +51,8 @@ def fname(stop_signal,freqCtx,freqStn,pulsedur,rampdur,fb_npas,fb_lhx,FSI_in,siz
     if  FSI_in[1]=='0':
         fname+='_FS2SPN0'
     print ('********************', fname)
-    confile='ep1.4_connect'+fname+'-'+str(size_factor*500)+'um'  #saves complete list of connections
-    outfile='ep1.4_'+fname+'-'+str(size_factor*500)+'um' #saves spikes
+    confile='ctx7_connect'+fname+'-'+str(size_factor*500)+'um'  #saves complete list of connections
+    outfile='ctx7_'+fname+'-'+str(size_factor*500)+'um' #saves spikes
     return confile,outfile
 
 ########### size dependent parameters ####################
@@ -75,7 +75,7 @@ change_syn={'proto':{'gaba':4,'ampa':1.2},'Lhx6':{'gaba':4},'Npas':{'gaba':4},'e
 #New external time tables - (filename, syn_per_tt)
 #only get created if they are specified in connect_dict
 if stop_signal:
-    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_ramp_freq5.0_'+p['rampfreq']+'dur'+p['rampdur'],syn_per_tt=5*size_factor)
+    tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_ramp_freq7.0_'+p['rampfreq']+'dur'+p['rampdur'],syn_per_tt=5*size_factor)
 else: 
     tt_Ctx=TableSet('CtxSPN', 'bg_net/Ctx10000_osc_freq'+p['oscfreq']+'_osc0.7',syn_per_tt=5*size_factor)
 
@@ -174,6 +174,9 @@ prefix bg:
 D1 to ep =1.2, D2 to proto=1, D2 to D1: 0.48, D1 to D1: 0.42
 prefix ep1.4
 D1 to ep=1.4, D2 to proto=0.8, D2 to D1: 0.45, D1 to D1: 0.45
+prefix ctx7:
+same as ep1.4 BUT, basal Ctx firing =7.0 hz
+should be closer to firing and thus earlier response?
 '''
 ############ change connection probability #####################
 #example of tuples needed to change connection probability between neurons

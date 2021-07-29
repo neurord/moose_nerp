@@ -32,10 +32,10 @@ from moose_nerp.prototypes import (create_model_sim,
                                    util,
                                    multi_module,
                                    net_sim_graph)
-from moose_nerp import spn_1comp as model
+from moose_nerp.cells import spn_1comp as model
 from moose_nerp import spn1_net as net
 
-neuron_modules=['FSI01Aug2014']
+neuron_modules=['cells.FSI01Aug2014']
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True

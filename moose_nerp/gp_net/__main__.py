@@ -28,44 +28,45 @@ from moose_nerp.prototypes import (create_model_sim,
                                    util,
                                    multi_module,
                                    net_sim_graph)
-from moose_nerp import proto154_1compNoCal as model
+from moose_nerp.cells import proto154_84384 as model
 from moose_nerp import gp_net as net
 
 #names of additional neuron modules to import
-neuron_modules=['arky140_1compNoCal','Npas2005_1compNoCal']
+neuron_modules=['cells.Npas2017_84384']
 
 #additional, optional parameter overrides specified from with python terminal
 model.synYN = True
 model.stpYN = True
-model.calYN = False
+model.calYN = True
 model.spinYN = False
-net.single=False
+net.single=True
 
 ###alcohol injection--> Bk channel constant multiplier
-'''alcohol = 1#2.5
+alcohol = 1#2.5
 ampa_wt=1.0#0.7
 gaba_wt=1.0#0.8
-for neurtype in model.param_cond.Condset:
+for neurtype in model.param_cond.Condset.keys():
     for key in model.param_cond.Condset[neurtype]['BKCa']:
         model.param_cond.Condset[neurtype]['BKCa'][key]=alcohol*model.param_cond.Condset[neurtype]['BKCa'][key]
+'''
     #AMPA PART
     net.connect_dict[neurtype]['ampa']['extern'].weight=ampa_wt
     ampa_fname='all'+str(net.connect_dict[neurtype]['ampa']['extern'].weight)
     #GABA: change all:
+
     for presyn in net.connect_dict[neurtype]['gaba'].keys():
         net.connect_dict[neurtype]['gaba'][presyn].weight=gaba_wt
         gaba_fname='all'+str(net.connect_dict[neurtype]['gaba'][presyn].weight)
 #GABA; change proto only
-
 neurtype='proto';presyn='proto'
 net.connect_dict[neurtype]['gaba'][presyn].weight=gaba_wt
 gaba_fname='gabaproto'+str(net.connect_dict[neurtype]['gaba'][presyn].weight)
-
+'''
 #gaba_fname='0'
-net.outfile = 'alcohol'+str(alcohol)+'_gaba'+gaba_fname+'_ampa'+ampa_fname
+net.outfile = 'alcohol'+str(alcohol)#+'_gaba'+gaba_fname+'_ampa'+ampa_fname
 outdir="gp_net/output/"
 print('************ Output file name ***************', net.outfile)
-'''
+
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.injection_current = [0e-12]
@@ -85,7 +86,7 @@ buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neuron
 ######## this is skipped if neuron_modules is empty
 if len(neuron_modules):
     buf_cap=multi_module.multi_modules(neuron_modules,model,buf_cap)
-population,connections,plas=create_network.create_network(model, net, model.neurons)
+population,[connections,conn_summary],plas=create_network.create_network(model, net, model.neurons)
 
 ####### Set up stimulation - could be current injection or plasticity protocol
 # set num_inject=0 to avoid current injection
