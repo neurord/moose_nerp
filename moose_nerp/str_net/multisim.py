@@ -8,9 +8,6 @@ def moose_main(corticalinput,LTP_amp_thresh_mod=1.158, LTD_amp_thresh_mod=1.656,
     import numpy as np
     np.random.seed(42)
     import os
-    import matplotlib.pyplot as plt
-
-    # plt.ion()
 
     from pprint import pprint
     import moose
@@ -78,7 +75,7 @@ def moose_main(corticalinput,LTP_amp_thresh_mod=1.158, LTD_amp_thresh_mod=1.656,
     param_sim.injection_current = [0]  # [-0.2e-9, 0.26e-9]
     param_sim.injection_delay = 0.2
     param_sim.injection_width = 0.4
-    param_sim.simtime = 7.5#21.5#3.5  # 21
+    param_sim.simtime = 21.5#3.5  # 21
     net.num_inject = 0
     model.name = model.__name__.split('.')[-1]
     net.confile = "str_connect_plas_sim{}_{}_corticalfraction_{}".format(
@@ -159,13 +156,8 @@ def moose_main(corticalinput,LTP_amp_thresh_mod=1.158, LTD_amp_thresh_mod=1.656,
         run_simulation(injection_current=inj, simtime=param_sim.simtime)
 
     weights = [w.value for w in moose.wildcardFind("/##/plas##[TYPE=Function]")]
-    plt.figure()
-    plt.hist(weights, bins=100)
-    plt.title("plas_sim_{}".format(net.param_net.tt_Ctx_SPN.filename))
-    plt.savefig("plas_simd1opt_{}.png".format(net.param_net.tt_Ctx_SPN.filename))
     if param_sim.useStreamer == True:
         import atexit
-
         atexit.register(moose.quit)
     return weights
 
@@ -195,7 +187,7 @@ def multi_plas_rule_main():
         "str_net/FullTrialLowVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialHighVariabilitySimilarTrialsTruncatedNormal",
-        #"FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
+        "FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
     ]
 
     plas_mod_values = [.5,2]
@@ -234,3 +226,18 @@ if __name__ == "__main__":
     print("running main")
     results = multi_main()
     #results = multi_main_moved_spikes()
+    #######################  one plot of ending synaptic weights for each simulation ###################
+    import os
+    import matplotlib.pyplot as plt
+    for key, weights in results.items():
+        plt.figure()
+        plt.hist(weights, bins=100)
+        if isinstance(key,str):
+            title=os.path.basename(key)
+        elif isinstance(k,tuple):
+            title=os.path.basename(key[0])+'_'.join([str(s) for s in key[1:]])
+        else:
+            print('new type of multi-sim, unsure how to construct figure filename')
+            title=''
+        plt.title("plas_sim_{}".format(title))
+        plt.savefig("plas_sim_{}.png".format(title))
