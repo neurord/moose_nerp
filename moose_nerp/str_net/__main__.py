@@ -15,6 +15,7 @@ import logging
 
 import numpy as np
 np.random.seed(2020)
+import os
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -117,7 +118,7 @@ if model.synYN and (param_sim.plot_synapse or net.single):
 if param_sim.useStreamer==True:
     allTables = moose.wildcardFind('/##[ISA=Table]')
     streamer = moose.Streamer('/streamer')
-    streamer.outfile = 'plas_sim_{}.npy'.format(net.param_net.tt_Ctx_SPN.filename)
+    streamer.outfile = 'main_plas_sim_{}.npy'.format(os.path.basename(net.param_net.tt_Ctx_SPN.filename))
     moose.setClock(streamer.tick,0.1)
     for t in allTables:
         if any (s in t.path for s in ['plas','VmD1_0','extern','Shell_0']):
@@ -130,6 +131,7 @@ for sp in moose.wildcardFind('D1/##/#head#[ISA=CompartmentBase]'):
     dist,_ = util.get_dist_name(sp)
     path = sp.path
     spinedistdict[path]=dist
+np.save('main_spine_dist_dict.npy',spinedistdict)
     
 ################### Actually run the simulation
 def run_simulation(injection_current, simtime, pg,continue_sim = False):
@@ -153,7 +155,7 @@ for inj in param_sim.injection_current:
             net_graph.syn_graph(connections, model.plastab, param_sim, graph_title='Plas Weight')
             net_graph.syn_graph(connections, nonstim_plastab, param_sim, graph_title='NonStim Plas Weight')
 
-        if model.spineYN:
+        if model.spineYN and not param_sim.useStreamer:
             spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
     else:
         if net.plot_netvm and not param_sim.useStreamer:

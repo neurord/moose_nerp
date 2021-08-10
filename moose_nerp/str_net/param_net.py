@@ -4,6 +4,7 @@ from moose_nerp.prototypes.util import NamedList
 from moose_nerp.prototypes.ttables import TableSet
 from moose_nerp.prototypes import util as _util
 
+print('*************** str_net/param_net, trains in str_net ***************')
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
 netname='/striatum'
