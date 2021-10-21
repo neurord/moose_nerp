@@ -15,7 +15,7 @@ from . import logutil
 log = logutil.Logger()
 
 def vm_table_path(neuron, spine=None, comp=0):
-    return '{}/Vm{}_{}{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
+    return '{}/Vm{}_{}c{}'.format(DATA_NAME, neuron, '' if spine is None else spine, comp)
 
 def find_vm_tables(neuron):
     return moose.wildcardFind('{}/Vm{}_#[TYPE=Table]'.format(DATA_NAME, neuron))
