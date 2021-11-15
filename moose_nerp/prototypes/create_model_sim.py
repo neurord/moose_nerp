@@ -308,9 +308,11 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
             tables.wrap_hdf5(model,'injection_{}'.format(inj))
 
     if model.param_sim.plot_vm:
-        neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime)
+        import sys
+        modulename=sys.path[0].split('/')[-1]
+        neuron_graph.SingleGraphSet(traces, names, model.param_sim.simtime,title=modulename)
         if model.calYN and model.param_sim.plot_calcium:
-            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime,title='Calcium')
+            neuron_graph.SingleGraphSet(catraces, names, model.param_sim.simtime,title=modulename+'Calcium')
 
     if model.param_sim.plot_current:
         num_currents=np.shape(current_traces)[0]//len(model.param_sim.injection_current)
