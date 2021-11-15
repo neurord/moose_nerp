@@ -45,12 +45,16 @@ neuron_modules=['cells.d1d2'] #d1d2 has the matrix d2 neuron
 
 #additional, optional parameter overrides specified from with python terminal
 net.connect_dict['D1']['ampa']['extern1'].dend_loc.postsyn_fraction = 0.7
+net.connect_dict['D2']['ampa']['extern1'].dend_loc.postsyn_fraction = 0.8
+model.param_syn._SynAMPA.Gbar = .25e-9
+model.param_syn._SynNMDA.Gbar = .25e-9
+model.param_syn._SynGaba.Gbar = 0.75e-9
 
 model.synYN = True
 model.plasYN = False
 model.calYN = True
-model.spineYN = True
-net.single=True
+model.spineYN = False
+net.single=False#True
 #for k,v in model.param_ca_plas.CaShellModeDensity.items():
 #    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
@@ -62,7 +66,7 @@ param_sim.stim_paradigm = 'inject'
 param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
 param_sim.injection_delay = 0.2
 param_sim.injection_width = 0.4
-param_sim.simtime = 1.1#.003#.#21
+param_sim.simtime = 2.5 #2.5#.003#.#21
 net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
@@ -143,7 +147,7 @@ traces, names = [], []
 for inj in param_sim.injection_current:
     run_simulation(injection_current=inj, simtime=param_sim.simtime,pg=model.pg,continue_sim=continue_sim)
     if net.single and len(model.vmtab):
-        for neurnum,neurtype in enumerate(util.neurontypes(model.param_cond)):
+        for neurnum,neurtype in enumerate(model.neurons):
             traces.append(model.vmtab[neurtype][0].vector)
             names.append('{} @ {}'.format(neurtype, inj))
         if model.synYN and not param_sim.useStreamer:
@@ -162,13 +166,14 @@ for inj in param_sim.injection_current:
         net_output.writeOutput(model, net.outfile+str(inj),model.spiketab,model.vmtab,population)
 
 if net.single:
-    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime)
+    neuron_graph.SingleGraphSet(traces, names, param_sim.simtime,title=net.netname)
     # block in non-interactive mode
 
-weights = [w.value for w in moose.wildcardFind('/##/plas##[TYPE=Function]')]
-plt.figure()
-plt.hist(weights,bins=100)
-util.block_if_noninteractive()
+if model.plasYN: 
+    weights = [w.value for w in moose.wildcardFind('/##/plas##[TYPE=Function]')]
+    plt.figure()
+    plt.hist(weights,bins=100)
+    util.block_if_noninteractive()
 
 if param_sim.useStreamer==True:
     import atexit
