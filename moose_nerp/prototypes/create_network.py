@@ -166,7 +166,7 @@ def create_network(model, param_net,neur_protos={},network_list=None,create_all=
             print ('>>>> original ttabs',len(ttables.TableSet.ALL),'needed_ttabs',len(needed_ttabs), [tt.filename for tt in needed_ttabs])
     #
     #save/write out the list of connections and location of each neuron
-    np.savez(param_net.confile,conn=connections,loc=network_pop['location'])
+    np.savez(param_net.confile,conn=connections,loc=network_pop['location'],summary=conn_summary)
     #
     ##### add Synaptic Plasticity if specified, requires calcium
     plascum={}
