@@ -179,13 +179,29 @@ def print_con(confile_name):
     for f in confiles:
         data=np.load(f,'r',allow_pickle=True)
         print ('########### ', f,' ##############')
-        for ntype,conns in data['summary'].item().items():
-            for syn in conns['intra']:
-                for presyn in conns['intra'][syn].keys():
-                    print(ntype,syn,'presyn=',presyn,'mean inputs=',np.round(np.mean(conns['intra'][syn][presyn]),2) )
-                    short=[y for y in conns['shortage'][syn].values()]
-                    print_short=np.mean(short) if np.mean(short)==0 else short
-                    print('shortage',print_short)
+        if 'summary' in data.keys():
+            for ntype,conns in data['summary'].item().items():
+                for syn in conns['intra']:
+                    for presyn in conns['intra'][syn].keys():
+                        print(ntype,syn,'presyn=',presyn,'mean inputs=',np.round(np.mean(conns['intra'][syn][presyn]),2) )
+                        short=[y for y in conns['shortage'][syn].values()]
+                        print_short=np.mean(short) if np.mean(short)==0 else short
+                        print('shortage',print_short)
+        else:
+            for ntype,conns in data['conn'].item().items():
+                for neur in conns.keys():
+                    print('connections for', neur)
+                    for syn in conns[neur].keys():
+                        if isinstance(conns[neur][syn],dict):
+                            ext_cons=0
+                            for key in conns[neur][syn].keys():
+                                if 'extern' in key:
+                                    ext_cons+=1
+                                    print('           ',syn,key, 'has', len(conns[neur][syn][key]),'inputs')
+                            print('      ',syn,'intrinsic conns', len(conns[neur][syn].keys())-ext_cons)
+                                    
+                            
+            
 '''  
 #Possibly add this to mnerp_net_output?                  
 connect=dat['params'].item()['connect_dict']
