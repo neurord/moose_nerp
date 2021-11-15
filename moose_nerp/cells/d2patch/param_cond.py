@@ -55,16 +55,16 @@ _D1 = _util.NamedDict(
 )
 _D2 = _util.NamedDict(
     'D2',
-    Krp = {prox:177.25, med:177.25, dist:27.25},
-    KaF = {prox:641, med:300, dist:100},
-    KaS = {prox:322, med: 32.9, dist: 0}, #patch d2?
+    Krp = {prox:57.25, med:67.25, dist:27.25},
+    KaF = {prox:341, med:300, dist:100},
+    KaS = {prox:273, med: 132.9, dist: 0}, #patch d2?
     Kir = {prox:6.2, med: 6.2, dist: 6.2},
-    CaL13 = {prox:10*ghKluge, med: 4*ghKluge, dist: 4*ghKluge},
+    CaL13 = {prox:10*ghKluge, med: 8*ghKluge, dist: 8*ghKluge},
     CaL12 = {prox:4*ghKluge, med: 2.2*ghKluge, dist: 2.2*ghKluge},
-    CaR = {prox:40*ghKluge, med: 45*ghKluge, dist: 45*ghKluge}, #patch d2?
+    CaR = {prox:15*ghKluge, med: 80*ghKluge, dist: 80*ghKluge}, #patch d2?
     CaN = {prox:1.5*ghKluge, med: 0.0*ghKluge, dist: 0.0*ghKluge},
     CaT = {prox:0.0*ghKluge, med: 1.9*ghKluge, dist: 1.9*ghKluge},
-    NaF = {prox:150.0e3, med: 2503, dist: 1073},
+    NaF = {prox:100.0e3, med: 2503, dist: 1073},
     SKCa = {prox:0.5, med: 0.5, dist: 0.5},
     BKCa = {prox:10, med: 10, dist: 10},
     CaCC = {prox:5, med: 2, dist:2 },

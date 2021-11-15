@@ -17,7 +17,8 @@ do: model.spinesYN = True (Default is set in param_model_defaults).
 
 from __future__ import print_function, division
 
-from moose_nerp.cells import d1d2 as model
+from moose_nerp.cells import d2patch as model
+model.name='d2patch'
 '''Evaluates moose_nerp/d1d2/__init__.py to load all the parameters, e.g.
 param_sim.py, param_ca_plas.py, param_chan.py, param_cond.py, param_sim.py, etc.
 into the model namespace. These parameters are then accessible by, e.g.,
