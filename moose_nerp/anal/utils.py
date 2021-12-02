@@ -25,12 +25,13 @@ def spikerate_func(spiketime_dict,simtime,binsize):
 
 def spiketime_from_vm(vmtab,dt):
     spike_time={key:[] for key in vmtab.keys()}
+    numspikes_mean={key:[] for key in vmtab.keys()};numspikes_ste={key:[] for key in vmtab.keys()}
     numspikes={key:[] for key in vmtab.keys()}
     for neurtype, tabset in vmtab.items():
         for tab in tabset:
             spike_time[neurtype].append(detect.detect_peaks(tab)*dt)
             numspikes[neurtype]=[len(st) for st in spike_time[neurtype]]
-        print(neurtype,'mean spikes:',np.mean(numspikes[neurtype]))
+        print(neurtype,'mean spikes:',np.mean(numspikes[neurtype]), 'ste',np.std(numspikes[neurtype])/np.sqrt(len(numspikes[neurtype])) )
     return spike_time
 
 def fft_func(spike_rate,dt,init_time=0,maxfreq=None,window=11):
@@ -57,12 +58,13 @@ def shuffle(spikes,num_shuffles):
     shuffle_spikes={ntype:[] for ntype in spikes.keys()}
     for ntype in spikes.keys():
         for i,spiketrain in enumerate(spikes[ntype]):
-            dT=np.zeros(len(spiketrain))
-            dT[1:]=np.diff(spiketrain)
-            dT[0]=spiketrain[0]
-            for j in range(num_shuffles):
-                np.random.shuffle(dT)
-                shuffle_spikes[ntype].append(np.cumsum(dT))
+            if len(spiketrain):
+                dT=np.zeros(len(spiketrain))
+                dT[1:]=np.diff(spiketrain)
+                dT[0]=spiketrain[0]
+                for j in range(num_shuffles):
+                    np.random.shuffle(dT)
+                    shuffle_spikes[ntype].append(np.cumsum(dT))
         print('num spiketrains',len(spikes[ntype]),', num shuffles', np.shape(shuffle_spikes[ntype]))
     return shuffle_spikes
 
