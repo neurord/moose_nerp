@@ -54,7 +54,7 @@ model.synYN = True
 model.plasYN = False
 model.calYN = True
 model.spineYN = False
-net.single=False#True
+net.single=False#True#
 #for k,v in model.param_ca_plas.CaShellModeDensity.items():
 #    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
 create_model_sim.setupOptions(model)
@@ -66,7 +66,7 @@ param_sim.stim_paradigm = 'inject'
 param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
 param_sim.injection_delay = 0.2
 param_sim.injection_width = 0.4
-param_sim.simtime = 2.5 #2.5#.003#.#21
+param_sim.simtime = 1.0 #2.5 #2.5#.003#.#21
 net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]

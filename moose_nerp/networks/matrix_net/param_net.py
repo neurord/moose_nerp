@@ -8,14 +8,14 @@ print('*************** str_net/param_net, trains in str_net ***************')
 neur_distr=NamedList('neur_distr', 'neuronname spacing percent')
 
 netname='/matrix'
-confile='mat_connect'
-outfile='mat_out'
+confile='matrix1s_connect'
+outfile='matrix1s_out'
 
 spacing=25e-6
 #0,1,2 refer to x, y and z
 grid={}
-grid[0]={'xyzmin':0,'xyzmax':225e-6,'inc':spacing}
-grid[1]={'xyzmin':0,'xyzmax':225e-6,'inc':spacing}
+grid[0]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
+grid[1]={'xyzmin':0,'xyzmax':200e-6,'inc':spacing}
 grid[2]={'xyzmin':0,'xyzmax':0,'inc':0}
 
 #Do not include a neuron type in pop_dict if the proto not created
@@ -61,8 +61,9 @@ tt_FSI_SPN = TableSet('FSISPN','./FSI1000_osc_freq20.0_osc0.7',syn_per_tt=16)
 tt_LTSI_SPN = TableSet('LTSISPN','./LTSI1000_osc_freq8.0_osc0.7',syn_per_tt=20) #4 for single
 
 distr=dend_location(mindist=0e-6,maxdist=400e-6,postsyn_fraction=.1)#,half_dist=50e-6,steep=1)
-FSI_distr = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=0.5)
-LTSI_distr = dend_location(mindist=80e-6,maxdist=400e-6,postsyn_fraction=.25) #change to 0.25 in network, 0.5 for single
+FSI_distrD1 = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=0.4)
+FSI_distrD2 = dend_location(mindist=0e-6,maxdist=80e-6,postsyn_fraction=0.5)
+LTSI_distr = dend_location(mindist=80e-6,maxdist=400e-6,postsyn_fraction=.5) #change to 0.25 in network, 0.5 for single
 
 MSNconnSpaceConst=180e-6
 FSIconnSpaceConst=200e-6
@@ -80,8 +81,8 @@ ctx_D1post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D1', dend_loc = distr
 ctx_D2post=ext_connect(synapse='ampa',pre=tt_Ctx_SPN,post='D2', dend_loc = distr)
 #thal_D2post=ext_connect(synapse='ampa',pre=tt_Thal_SPN,post='D2', dend_loc = distr)
 #glu_FSI=connect(synapse='ampa',pre='timetable',post='FSI',)
-FSIextern_D1post = ext_connect(synapse='gaba', pre=tt_FSI_SPN, post='D1', dend_loc = FSI_distr,weight=4)
-FSIextern_D2post = ext_connect(synapse='gaba', pre=tt_FSI_SPN, post='D2', dend_loc = FSI_distr,weight=4)
+FSIextern_D1post = ext_connect(synapse='gaba', pre=tt_FSI_SPN, post='D1', dend_loc = FSI_distrD1,weight=4)
+FSIextern_D2post = ext_connect(synapse='gaba', pre=tt_FSI_SPN, post='D2', dend_loc = FSI_distrD2,weight=4)
 
 LTSIextern_D1post = ext_connect(synapse='gaba', pre=tt_LTSI_SPN, post='D1', dend_loc = LTSI_distr)
 LTSIextern_D2post = ext_connect(synapse='gaba', pre=tt_LTSI_SPN, post='D2', dend_loc = LTSI_distr)
