@@ -68,7 +68,7 @@ def neuronclasses(model,module=None):
         neuron[ntype]=create_neuron(model, ntype, model.ghkYN,module=module)
         #optionally add spines; includes reverse compensation
         if model.spineYN:
-            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN, model.param_cond.NAME_SOMA,module=module)
+            headArray[ntype]=spines.addSpines(model, ntype, model.ghkYN, model.param_cond.NAME_SOMA,neuron[ntype][0],module=module)
         #optionally add synapses to dendrites, and possibly to spines
         if model.synYN:
             synArray[ntype] = syn_proto.add_synchans(model, ntype,module=module)
