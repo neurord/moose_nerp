@@ -217,6 +217,8 @@ def getBranchDict(neuron):
             branchDict[lastbranchpoint[-1]]['BranchLength'] += comp.length
             branchDict[lastbranchpoint[-1]]['CompDistances'].append(branchDict[lastbranchpoint[-1]]['MaxBranchDistance']+comp.length/2.)
             branchDict[lastbranchpoint[-1]]['MaxBranchDistance'] += comp.length
+        else:
+            print(comp.path,'length of parentCompChildren == 0')
 
         if len(children)==0: #This is a terminal compartment
             branchDict[lastbranchpoint[-1]]['Terminal'] = True
@@ -234,14 +236,20 @@ def getBranchDict(neuron):
 def mapCompartmentToBranch(neuron):
     bd = getBranchDict(neuron)
     compToBranchDict={}
+    missing=[]
     for comp in neuron.compartments:
         for k,v in bd.items():
-                if comp.path in bd[k]['CompList']:
-                    compToBranchDict[comp.path]={'Branch':k}
-                    compToBranchDict[comp.path]['BranchOrder']=bd[k]['BranchOrder']
-                    compToBranchDict[comp.path]['Terminal']=bd[k]['Terminal']
-                    compToBranchDict[comp.path]['BranchPath']=bd[k]['BranchPath']
-                    #compToBranchDict[comp.path]['Distance']
+            if comp.path in bd[k]['CompList']:
+                compToBranchDict[comp.path]={'Branch':k}
+                compToBranchDict[comp.path]['BranchOrder']=bd[k]['BranchOrder']
+                compToBranchDict[comp.path]['Terminal']=bd[k]['Terminal']
+                compToBranchDict[comp.path]['BranchPath']=bd[k]['BranchPath']
+        if comp.path not in bd.keys() and comp.path not in missing:
+            #print(comp.path,'not in branchDict keys')
+            missing.append(comp.path)
+            #compToBranchDict[comp.path]['Distance']
+    if len(missing):
+        print('these comps not in comp_to_branch_dict',missing)
     return compToBranchDict
 
 
@@ -349,6 +357,27 @@ def test():
     return elist, possibleBranches
 
     
+def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):
+    # Want to distribute total_num_spines into num_clusters of size cluster_distance
+    # Generate num_clusters non-overlapping cluster centers on dendritic tree where the dendritic distance from center of 
+    # each cluster is cluster_distance
+    # Determine dendritic location of each connection 
+    # Add explicit spines to each location
+    for neuron in model.neurons.values():
+        branch_dict = getBranchDict(neuron)
+        # randomly choose compartment for potential cluster center
+        # We don't want clusters near each other, so choose the parent level that maximally disperses each cluster
+        # e.g. if we have 1 cluster, soma is the parent level; if we have 4 primary branches and 4 clusters, each cluster should be within 
+        # a different primary branch. if we have 4 primary branches and more than 4 clusters, choose clusters based on secondary branches, etc.
+        comp_to_branch_dict = mapCompartmentToBranch(neuron)
+        num_branches_per_order = [len(getBranchesOfOrder(neuron,order,'all')) for order in [0,1,2,3]]
+        for i,nb in enumerate(num_branches_per_order):
+            if num_clusters <= nb:
+                cluster_parent_order = i
+                break
+        for clus in range(num_clusters):
+            pass
+
 if __name__ == '__main__':
     from moose_nerp import d1patchsample2 as model
     from moose_nerp.prototypes import create_model_sim
