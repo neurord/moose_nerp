@@ -206,7 +206,10 @@ def connect_timetable(post_connection,syncomps,totalsyn,model,mindelay=0):
     for tt,syn in zip(presyn_tt,syn_choices):
         postbranch=util.syn_name(moose.element(syn).parent.path,NAME_HEAD)
         log.debug('CONNECT: TT {} POST {}', tt.path,syn)
-        synconn(syn,dist,tt,syn_params,mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
+        if hasattr(post_connection,'weight'):
+            synconn(syn,dist,tt,syn_params,mindelay,simdt=simdt,stp=stp,weight=post_connection.weight)
+        else:
+            synconn(syn,dist,tt,syn_params,mindelay,simdt=simdt,stp=stp,weight=1)
         #save the connection in a dictionary for inspection later.
         '''
         #NEW METHOD: allow multiple connections, needed when 2 or more pre-syn time tables
