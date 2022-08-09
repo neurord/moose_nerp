@@ -197,55 +197,66 @@ def weight_histogram(data):
     fractional_size(f,.75)
     ax.set_xlim(.59,1.3)
     sns.despine(trim=True)
+    return f
 
-
-def nearby_synapse_image(v,all_mean,binned_means,mean_sub=True,title=False):
+def nearby_synapse_image(all_mean,binned_means,tmax=1.0,mean_sub=True,title=''):
     from scipy import ndimage
     allf=[]
     #f,axs=plt.subplots(1,1,constrained_layout=True,figsize=(8,32))
     #for ax,ar in zip(axs,[pot_mean[1:,:]-all_mean[1:,:],dep_mean[1:,:]-all_mean[1:,:]]):#,nochange_mean[1:,:]]):
     for i,(k,v) in enumerate(binned_means.items()):
         if mean_sub:
-            ar = v[1:,:]-all_mean[1:,:]
+            ar = v[0:,:]-all_mean[0:,:]
             pre_title='Mean-subtracted a'
+            vmin=-25
+            vmax=25
         else:
             ar = v[0:,:]
             pre_title='A'
+            vmin=0
+            vmax=50
         f,axs=plt.subplots(1,1,constrained_layout=True,figsize=(4,3))
 
         ax = axs#[i]
         #print('min: ',np.min(ar),'max: ',np.max(ar))
-        pc=ax.pcolormesh(ndimage.gaussian_filter(ar,[0,0]),vmin=-40,vmax=40,cmap='seismic')
-        ax.set_yticks([0.5,18.5])
-        ax.set_yticklabels([1,19])
-        ax.set_ylim(0,19)
-        ax.set_xticks([0,25,50,75,100])
-        ax.set_xticklabels(np.linspace(0,1,5))
+        pc=ax.pcolormesh(ndimage.gaussian_filter(ar,[0,0]),vmin=vmin,vmax=vmax,cmap='seismic')
+        ax.set_yticks([0.5,9.5,18.5])
+        ax.set_yticklabels([0,9,18])
+        ax.set_ylim(0,20)
+        ax.set_xticklabels(np.linspace(0,tmax,5))
+        if tmax==1.0:
+            ax.set_xticks([0,25,50,75,100])
+        else:
+            xticks=np.arange(0,np.shape(ar)[1],5)
+            ax.set_xticks(xticks)
         ax.set_xlabel('Time (s)',fontsize=12)
         ax.set_title('weight bin='+str(round(k[0],3))+' to '+str(round(k[1],3)),fontsize=12)
-        print('min: ',np.min(ndimage.gaussian_filter(ar,[0,0])))
-        print('max: ',np.max(ndimage.gaussian_filter(ar,[0,0])))
+        print('nearby synapse, min: ',np.min(ndimage.gaussian_filter(ar,[0,0])), ', max: ',np.max(ndimage.gaussian_filter(ar,[0,0])))
 
         ax.set_ylabel('Nearest neighboring synapses',fontsize=12)
         cbar=f.colorbar(pc)
         cbar.ax.set_ylabel('Firing rate (Hz)')# instantaneous firing rate (Hz)')
         if title:
-            
-            f.suptitle(pre_title+'verage firing rate of neighboring synapses',fontsize=19)#,y=1.075)
+           
+            f.suptitle(pre_title+'vg firing of neighbors',fontsize=19)#,y=1.075)
         allf.append(f)
     return f
 
-def nearby_synapse_1image(v,all_mean,binned_means,mean_sub=True,title=False):
+def nearby_synapse_1image(all_mean,binned_means,mean_sub=True,title=False):
     from scipy import ndimage
-    f,axes=plt.subplots(3,2,constrained_layout=True,figsize=(16,16))
+    f,axes=plt.subplots(3,2,constrained_layout=True,figsize=(12,12))
     j=0
     for k,v in binned_means.items():
         if mean_sub:
-            ar = v[1:,:]-all_mean[1:,:]
+            ar = v[0:,:]-all_mean[0:,:]
             pre_title='Mean-subtracted a'
+            vmin=-25
+            vmax=25
         else:
             ar = v[0:,:]
             pre_title='A'
+            vmin=0
+            vmax=50
         if k[0]>0 or k[1] < [0]: #skip middle bin
             if k[0]<0:
                 i=0
@@ -253,23 +264,23 @@ def nearby_synapse_1image(v,all_mean,binned_means,mean_sub=True,title=False):
                 i=1
             jj=j%3
             ax=axes[jj,i]
-            pc=ax.pcolormesh(ndimage.gaussian_filter(ar,[0,0]),vmin=-20,vmax=20,cmap='seismic')
-            ax.set_yticks([0.5,9.5,18.5])
-            ax.set_yticklabels([1,10,19])
+            pc=ax.pcolormesh(ndimage.gaussian_filter(ar,[0,0]),vmin=vmin,vmax=vmax,cmap='seismic')
+            ax.set_yticks([0.5,6.5,12.5,18.5])
+            ax.set_yticklabels([0,6,12,18])
             ax.tick_params(labelsize=12)
-            ax.set_ylim(0,19)
+            ax.set_ylim(0,20)
             ax.set_xticks([0,25,50,75,100])
             ax.set_xticklabels(np.linspace(0,1,5))
-            ax.set_xlabel('Time (s)',fontsize=14)
-            ax.set_title('weight bin='+str(round(k[0],3))+' to '+str(round(k[1],3)),fontsize=14)
-            ax.set_ylabel('Neighboring synapses',fontsize=14)
-            cbar=f.colorbar(pc)
-            cbar.ax.set_ylabel('Firing rate (Hz)')# instantaneous firing rate (Hz)')
+            ax.set_xlabel('Time (s)',fontsize=12)
+            ax.set_title('weight bin='+str(round(k[0],3))+' to '+str(round(k[1],3)),fontsize=12)
+            ax.set_ylabel('Neighboring synapses',fontsize=12)
             if title:            
                 f.suptitle(pre_title+'verage firing rate of neighboring synapses',fontsize=14)#,y=1.075)
             j+=1
         else:
             print('skipping',k)
+    cbar=f.colorbar(pc)
+    cbar.ax.set_ylabel('Firing rate (Hz)')# instantaneous firing rate (Hz)')
     return f
 
 def weight_vs_variability(data,df,titles,keys,sigma={}):
@@ -293,7 +304,7 @@ def weight_vs_variability(data,df,titles,keys,sigma={}):
     cs=sns.color_palette('colorblind')[0:4]
     for spine in df['spine'].drop_duplicates():
         #do not plot if all trials have weight change < 0.025
-        line = [ df.loc[ (df.spine == spine) & (df.Variability == sv) ]['endweight'].iat[0] for sv in keys]
+        line = [ df.loc[ (df.spine == spine) & (df.trial == sv) ]['endweight'].iat[0] for sv in keys]
         #if line.count(1.0)==len(line):
         if np.any(abs(np.array(line)-1)>=0.25): #if ([l for l in line if abs(l-1)<.025]): continue
             x = np.arange(len(line))+np.random.uniform(-.1,.1)
@@ -310,17 +321,17 @@ def weight_vs_variability(data,df,titles,keys,sigma={}):
     ########## Figure 4 bottom panels in manuscript
 
     f2,ax = plt.subplots(1,2,constrained_layout=True,sharey=False)
-    sns.boxplot(x='Variability',y='endweight',data=df[df['endweight']<.99],ax=ax[0],palette='colorblind')
+    sns.boxplot(x='trial',y='endweight',data=df[df['endweight']<.99],ax=ax[0],palette='colorblind')
 
     #plt.figure()
-    sns.boxplot(x='Variability',y='endweight',data=df[df['endweight']>1.01],ax=ax[1],palette='colorblind')
+    sns.boxplot(x='trial',y='endweight',data=df[df['endweight']>1.01],ax=ax[1],palette='colorblind')
     
     from scipy.stats import pearsonr
     if 'sigma' in titles[0]:
-        df['sigma']=df.Variability.map(sigma)
+        df['sigma']=df.trial.map(sigma)
         group_var='sigma'
     else:
-        group_var='Variability'
+        group_var='trial'
     means=df[df['endweight']<.99].groupby(group_var).mean().endweight
     print('LTD, correlation of endweight with variability=',pearsonr(means.index,means.values))
     print('LTD, N=',len(df[df['endweight']<0.99]),'R,p=', pearsonr(df[df['endweight']<.99].endweight,df[df['endweight']<.99][group_var]))
@@ -367,7 +378,7 @@ def colorbar7(cs,binned_weight_change_index,ax,fontsize=10):
     cbar.ax.tick_params(labelsize=fontsize)
     
 #### Combined Figure
-def combined_figure(binned_pre,binned_calcium,binned_weight_change_index,duration):
+def combined_figure(binned_pre,binned_calcium,binned_weight_change_index,duration,std=None):
     fig=plt.figure(constrained_layout=True,figsize=(6,8))
     grid=fig.add_gridspec(4,40)
     ax_pre=fig.add_subplot(grid[0:2,0:-1])
@@ -390,6 +401,14 @@ def combined_figure(binned_pre,binned_calcium,binned_weight_change_index,duratio
                 ax.plot(x,v,c=cs[i])
             else:
                 print('binned means has too many dimensions')
+    if std is not None:
+        for ax,binned_means, stdy in zip([ax_pre,ax_cal],[binned_pre,binned_calcium], std):
+            for i,(k,v) in enumerate(binned_means.items()):
+                x = np.linspace(0,duration,np.shape(v)[-1])
+                if len(np.shape(v))==2:
+                    ax.fill_between(x, v[0,:]-stdy[k][0,:], v[0,:]+stdy[k][0,:],alpha=0.2,facecolor=cs[i])
+                elif len(np.shape(v))==1:
+                    ax.fill_between(x, v-stdy[k], v+stdy[k],alpha=0.2,facecolor=cs[i])
         ax.set_ylabel(ylbl,fontsize=12)
     ax_cal.set_xlabel('Time (s)',fontsize=12)
     colorbar7(cs,binned_weight_change_index,ax_cbar,fontsize=12)
@@ -419,7 +438,7 @@ def combined_spatial(combined_neighbors_array,binned_weight_change_dict,binned_w
     return fig
     
 #### Use 7 bins
-def weight_change_trig_avg(binned_means,binned_weight_change_index,duration,cs=None,colorbar=False,title='',ylabel='Instantaneous Presynaptic Firing Rate (Hz)'):
+def weight_change_trig_avg(binned_means,binned_weight_change_index,duration,std=None,cs=None,colorbar=False,title='',ylabel='Instantaneous Presynaptic Firing Rate (Hz)'):
     fig,ax = plt.subplots(1,1,constrained_layout=False)#,figsize=(12,8))
     fig.suptitle(title)
     if len(title):
@@ -438,8 +457,12 @@ def weight_change_trig_avg(binned_means,binned_weight_change_index,duration,cs=N
             lbl=k
         if len(np.shape(v))==2:
             ax.plot(x,v[0,:],c=cs[i],label=lbl)
+            #if std is not None:
+            #    ax.fill_between(x, v[0,:], v[0,:]+std[k][0,:],alpha=0.2,facecolor=cs[i])
         elif len(np.shape(v))==1:
             ax.plot(x,v,c=cs[i],label=lbl)
+            #if std is not None:
+            #    ax.fill_between(x, v, v+std[k],alpha=0.2,facecolor=cs[i])
         else:
             print('binned means has too many dimensions')
     ax.set_ylabel(ylabel)
@@ -458,12 +481,12 @@ def weight_change_trig_avg(binned_means,binned_weight_change_index,duration,cs=N
     return fig,cs
 
 def endwt_plot(df,xcolumn,xlabel,titles):
-    if len(np.unique(df.Variability))>10:
+    if len(np.unique(df.trial))>10:
         leg=False
     else:
         leg='full'
     f_bcm,ax = plt.subplots()#figsize=(12,8))
-    sns.scatterplot(x=xcolumn,y='endweight',data=df,hue='Variability',ax=ax,palette='magma',legend=leg)
+    sns.scatterplot(x=xcolumn,y='endweight',data=df,hue='trial',ax=ax,palette='magma',legend=leg)
     ax.set_ylabel('Ending Synaptic Weight')
     ax.set_xlabel(xlabel)
     if 'sigma' in titles[0]:
@@ -478,6 +501,32 @@ def endwt_plot(df,xcolumn,xlabel,titles):
     sns.despine(trim=True)
     return f_bcm
 
+def fft_plot(fft_dict,freqs,binned_weight_change_index,cs=None,colorbar=False,title='',ylabel='FFT magnitude',min_pt=1,maxfreq=0.1):
+    fig,ax = plt.subplots(1,1,constrained_layout=False)#,figsize=(12,8))
+    fig.suptitle(title)
+    if len(title):
+        fontsize=10
+    else:
+        fontsize=14
+    if not cs:
+        cs = plt.cm.coolwarm(np.linspace(0,1,len(binned_means)-1))
+        cs =list(cs)
+        cs.insert(len(binned_means)//2,plt.cm.gray(0.5))
+    for k,v in binned_means.items():
+        if isinstance(k,tuple):
+            lbl=' '.join([str(round(float(k[0]),3)),'to',str(round(float(k[1]),3))])
+        else:
+            lbl=k
+        ax.plot(freqs[1:],v[min_pt:],c=cs[i],label=lbl)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel('Frequency (Hz)')
+    ax.set_xlim([0,maxfreq])
+    if not colorbar:
+        ax.legend()
+    else:
+        colorbar7(cs,binned_weight_change_index,ax,fontsize=fontsize)
+    return fig,cs
+   
 def rand_forest_plot(ytrain,ytest,fit,pred,title=''):
     f,axes = plt.subplots(1,2,sharey=True,sharex=True)
     axes[0].scatter(ytrain,fit)
@@ -535,6 +584,82 @@ def plotPredictions(max_feat, train_test, predict_dict, class_labels, feature_or
             plt.ylabel(feature_cols[cols[1]])
             plt.legend()
 
+
+def inst_wt_change_plot(weight_change_event_df,save_name=''):
+    figs={}
+    for xcolumn in ['isi','pre_rate']:#,'presyn_spike','postsyn_spike',]:
+        f,ax = plt.subplots()
+        sns.scatterplot(x=xcolumn,y='dW',data=weight_change_event_df,hue='trial',ax=ax,palette='magma',legend='full')    
+        ax.set_ylabel('Weight Change',fontsize=12)
+        ax.set_xlabel(xcolumn+' (sec)',fontsize=12)
+        if xcolumn=='isi':
+            xlim=ax.get_xlim()
+            newXmin=max(-0.5,xlim[0])
+            ax.set_xlim([newXmin,0.4])
+        ax.tick_params(labelsize=12)
+        ax.legend()
+        figs[xcolumn]=f
+    return figs
+
+def dW_2Dcolor_plot(inst_weight_change):
+    figs={}
+    for ycolumn in ['isi2','pre_interval']:#'pre_spike2_dt'
+        f,ax = plt.subplots()
+        sns.scatterplot(x='isi',y=ycolumn,data=inst_weight_change,hue='dW',hue_norm=(-.0003,.0003),ax=ax,palette='seismic',legend='brief')    
+        ax.set_ylabel(ycolumn,fontsize=12)
+        ax.set_xlabel('ISI (sec)',fontsize=12)
+        newYmin=min(max(-0.15,inst_weight_change[ycolumn].min()),0)
+        newYmax=min(0.2,inst_weight_change[ycolumn].max())
+        ax.set_ylim([newYmin,newYmax])
+        ax.set_xlim([-0.15,0.1])
+        ax.tick_params(labelsize=12)
+        figs[ycolumn]=f
+    return figs
+
+ 
+def spiketime_plot(binned_spiketime,binned_spiketime_std,save_name='',wt_change_title=''):
+    figs={}
+    for kk in ['isi','pre_rate','isi2','pre_interval','pre_spike_dt']:# binned_spiketime.keys():
+        f,ax = plt.subplots()
+        f.suptitle(wt_change_title)
+        labels=[str(round((b[0]+b[1])/2,5)) for b in binned_spiketime[kk].keys()]
+        if kk.startswith('isi') or kk.startswith('pre'):
+            values=binned_spiketime[kk].values()
+            std=binned_spiketime_std[kk].values()
+            ax.set_ylabel(kk+' (sec)',fontsize=12)
+        else:   
+             values=[np.log(val) for val in binned_spiketime[kk].values()]
+             std=[np.log(val) for val in binned_spiketime_std[kk].values()]
+             ax.set_ylabel('log('+kk+')(sec)',fontsize=12)
+        ax.bar(labels,values,yerr=std)
+        ax.set_xlabel('Weight Change Bin',fontsize=12)
+        ax.tick_params(labelsize=12)
+        figs[kk]=f
+    return figs
+
+def plot_3D_scatter(df,xname,yname,zname,binned_dict,cs):
+    x={}; y={}; z={}
+    for k,v in binned_dict.items():
+        x[k]=df[xname].iloc[v]
+        y[k]=df[yname].iloc[v]
+        z[k]=df[zname].iloc[v]
+    fig=plt.figure()
+    ax=fig.add_subplot(projection='3d')
+    for i,k in enumerate(x.keys()):
+        label=' to '.join([str(round(wt,5)) for wt in k])
+        ax.scatter(x[k].values,y[k].values,z[k].values,color=cs[i],label=label)
+    ax.legend()
+    ax.set_xlabel(xname)
+    xlim=ax.get_xlim()
+    ax.set_xlim([xlim[0],0.4])
+    ylim=ax.get_ylim()
+    ax.set_ylim([0,ylim[1]])
+    ax.set_ylabel(yname)
+    ax.set_zlabel(zname)
+    ax.tick_params(labelsize=12)
+    return fig
+
+#3D scatter/color plot of dW (in color) vs isi1(x) vs isi2(y), or vs y=pre_dt or y = pre_interval
 '''
 #nothing shows up???
 from mpl_toolkits.mplot3d import Axes3D
@@ -560,7 +685,7 @@ ax.scatter(df.spikecount,df.spinedist,df.endweight)
 # f,ax = plt.subplots()
 # for spine in df['spine'].drop_duplicates():
 #     #ignore no all no change:
-#     line = [ df.loc[ (df.spine == spine) & (df.Variability == sv) ]['endweight'].iat[0] for sv in range(10,101,10) ]
+#     line = [ df.loc[ (df.spine == spine) & (df.trial == sv) ]['endweight'].iat[0] for sv in range(10,101,10) ]
 #     #if line.count(1.0)==len(line):
 #     if ([l for l in line if abs(l-1)<.01]):
 #         continue

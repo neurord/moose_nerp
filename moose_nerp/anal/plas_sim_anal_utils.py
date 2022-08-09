@@ -3,51 +3,104 @@ import neo
 import elephant
 from quantities import Hz,s
 import pandas as pd
+from scipy.signal import find_peaks
 
+#naming convention for calcium compartments from spine names
+#may need to be changed if table names change in moose_nerp
+def get_shellname(syn):
+    if '-sp' in syn:
+        shellnum=syn.split('_3-')[0].split('_to_')[-1]
+        spnum=syn.split('-sp')[-1].split('headplas')[0]
+        shell='/data/D1_sp'+spnum+shellnum+'_3Shell_0'
+    else:
+        shellnum=syn.split('_to_')[-1].split('_')[0]
+        shell='/data/D1_'+shellnum+'Shell_0'
+    return shell
 ############## Create weight_change_event array, then binned spike train array, for calculating weight change triggered average ########
-def weight_change_events_spikes_calcium(files,simtime,params,extern_names):
+def dW(data,syn,dt,spiketimes,tr,inst_weightchange,peaktimes,nochangedW):
+    #NEW - instantaneous weight change    
+    all_dW=np.diff(data[syn]) #instantaneous weight change (instead of trial)
+    dWpeaks,_=find_peaks(np.abs(all_dW),prominence=nochangedW/2)  #time of weight change
+    dWtime=dWpeaks*dt
+    ''' #for debugging
+    if len(dWpeaks): 
+        if np.max(all_dW)>1e-5:
+            from matplotlib import pyplot as plt
+            plt.plot(dt*np.arange(len(all_dW)),all_dW)
+            plt.scatter(dWtime,all_dW[dWpeaks])
+    '''
+    #NEW - determine time of post-synaptic and pre-synaptic spikes for each change in weight
+    for dWindex,dWt in zip(dWpeaks,dWtime):
+        all_post_spikes=(dWt-spiketimes)[np.where(dWt-spiketimes>0)] #
+        if len(all_post_spikes):
+            postsyn_spike=np.min(all_post_spikes)               
+        else:
+            postsyn_spike=np.nan
+            #print('no postsyn spike:', syn.split('/')[-1],dWindex,dWt)
+        all_pre_spikes=(dWt-peaktimes)[np.where(dWt-peaktimes>0)]
+        if len(all_pre_spikes):
+            presyn_spike=np.min(all_pre_spikes)
+            if len(all_pre_spikes)>1:
+                presyn_spike2=sorted(all_pre_spikes)[1]
+            else:
+                presyn_spike2=np.nan
+        else:
+            presyn_spike=np.nan
+            presyn_spike2=np.nan
+            #print('no presyn spike:', syn.split('/')[-1],dWindex,dWt)
+        isi=presyn_spike-postsyn_spike #gives postsyn_time - presyn_time for closest spikes prior to weight change
+        isi2=presyn_spike2-postsyn_spike
+        pre_interval=presyn_spike2-presyn_spike
+        if ~np.isnan(isi):
+            inst_weightchange.append([tr,syn,all_dW[dWindex],dWt,postsyn_spike,presyn_spike,isi,presyn_spike2,pre_interval,isi2])
+    iwc_cols=['trial','synapse','dW','dWt','post_spike_dt','pre_spike_dt','isi','pre_spike2_dt','pre_interval','isi2']
+    return inst_weightchange,iwc_cols
+
+def weight_change_events_spikes_calcium(files,params,warnings):
     #### This loops over every data file ######
-    from scipy.signal import find_peaks
     from elephant import kernels
     neighbors=params['neighbors']
     bins_per_sec=params['bins_per_sec']
     samp_rate=params['samp_rate']
+    simtime=params['simtime']
     length_of_firing_rate_vector=params['length_of_firing_rate_vector']
     ca_downsamp=params['ca_downsamp']
     ITI=params['ITI']
     down_samp=int(samp_rate/bins_per_sec)
     
-    kernel = kernels.GaussianKernel(sigma=100e-3*s)
     binned_trains_index=[]
     trains = []
-    numtrains=len(extern_names)*len(files) #use extern_names
-    inst_rate_array = np.zeros((numtrains,int(simtime*bins_per_sec)))
     all_ca_array=[];ca_index=[]
 
     # dt = 0.1e-3 (.1 ms) so a stepsize of 100 data points is equivalent to 10 ms, step size of 1000 datapoints = 100 ms
-    dframelist = []
     t1weight_dist={'mean':[],'std':[],'no change':[],'files':[]}
     # ## Detect weight change events
     #stepsize = 1000
-    weight_at_times = np.arange(0.,simtime,ITI)
+    weight_at_times = np.arange(0.,simtime,ITI) #first trial starts at time=0.0
     weight_at_index = (weight_at_times*samp_rate).astype(np.int64)
-    weightchangelist=[]
-    for i,(tr,f) in enumerate(files.items()):  
+    df=[];wce_df=[]
+    inst_weightchange=[]
+    for i,(trial,f) in enumerate(files.items()):  
+        weightchangelist=[]; dframelist = []
         missing=0
         d= np.load(f,mmap_mode='r')  
-        print(i, 'analyzing',tr)
-        index_for_weight = (np.abs(d['time'] - 2)).argmin() #1st trial ending weight.  2 = ITI?  get weight just prior to next trial
+        print(i, 'analyzing',trial)
+        index_for_weight = (np.abs(d['time'] - 2)).argmin() #1st trial ending weight = weight just prior to next trial; 2 = ITI? 
         t1weight = [d[n][index_for_weight] for n in d.dtype.names if 'plas' in n]
         t1weight_dist['mean'].append(np.mean(t1weight))
         t1weight_dist['std'].append(np.std(t1weight))
         t1weight_dist['no change'].append(t1weight.count(1.0))
-        t1weight_dist['files'].append(tr)
-        plas_names=[nm for nm in d.dtype.names if 'plas' in nm] #plas names may differ for each file if using different seeds
+        t1weight_dist['files'].append(trial)
+        #extract post-syn spikes
+        somaVm=d['/data/VmD1_0']
+        spikes,_=find_peaks(somaVm,height=0.0,distance=200) #index of time of post-syn spikes
+        spiketimes= spikes*(1.0/samp_rate)
+        #plas_names=[nm for nm in d.dtype.names if 'plas' in nm ] #includes synaptic inputs directly onto dendrites
+        plas_names=[nm for nm in d.dtype.names if 'plas' in nm and 'head' in nm] #plas names may differ for each file if using different seeds
         extern_names=[nm for nm in plas_names if 'extern1' in nm]
         for n in plas_names:
             #print(n,d[n][-1])
             endweight = d[n][-1]
-            stimvariability = tr
             if '_to_' in n:
                 spine = n.split('_to_')[-1].replace('-','_').strip('plas')
                 stim=True
@@ -59,319 +112,227 @@ def weight_change_events_spikes_calcium(files,simtime,params,extern_names):
             weight_change_variance = np.var(np.diff(d[n]))
             spinedist = np.nan#[v for k2,v in spinedistdict.items() if spine in '_'.join(k2.split('/')[-2:]).replace('[0]','')][0]
             #print(n,spine,endweight,stimvariability,spinedist)
-            dframelist.append((spine,endweight,stimvariability,spinedist,stim,spikecount,weight_change_variance))
-        for j,syn in enumerate(extern_names):        
+            dframelist.append((spine,endweight,trial,spinedist,stim,spikecount,weight_change_variance))
+        for jj,syn in enumerate(extern_names):        
             weightchange=np.diff(d[syn][weight_at_index])
             startingweight = d[syn][weight_at_index]
             for k,w in enumerate(weightchange):
-                weightchangelist.append((tr,syn,weight_at_times[k+1],startingweight[k],w))                
+                weightchangelist.append((trial,syn,weight_at_times[k+1],startingweight[k],w))                
             peaks,_ = find_peaks(d[syn.rpartition('plas')[0]]) 
             peaktimes = d['time'][peaks]
-            ### create SpikeTrain DataFrame for every trial/synapse
+            ### create SpikeTrain for every trial/synapse
             train = neo.SpikeTrain(peaktimes,t_stop=simtime*s,units=s)
             trains.append(train)
-            binned_trains_index.append((tr,syn))
-            train.sampling_rate=samp_rate*Hz
-            jj=i*len(extern_names)+j
-            inst_rate_array[jj,:] = elephant.statistics.instantaneous_rate(train,train.sampling_period,kernel=kernel)[::down_samp,0].flatten()
-            #extract calcium traces
-            shellnum=syn.split('_3-')[0].split('_to_')[-1]
-            spnum=syn.split('-sp')[-1][0]          
-            shell='/data/D1_sp'+spnum+shellnum+'_3Shell_0'
+            binned_trains_index.append((trial,syn))
+            #extract calcium traces.  Must edit to match naming convention
+            shell=get_shellname(syn)
             if shell in d.dtype.names:
-                ca_index.append((tr,shell))
+                ca_index.append((trial,shell))
                 #jj=i*len(ca_names)+j
                 all_ca_array.append(d[shell][::ca_downsamp])
             else:
                 missing+=1
-                print(missing,shell,' NOT IN FILE',tr)
-    binned_trains = elephant.conversion.BinnedSpikeTrain(trains,binsize=1e-3*s) #never used
-    binned_trains_array = binned_trains.to_array() #never used
-    
-    df = pd.DataFrame(dframelist,columns = ['spine','endweight','Variability','spinedist','stim','spikecount','weight_change_variance'])
-    weight_change_event_df = pd.DataFrame(weightchangelist,columns = ['trial','synapse','time','startingweight','weightchange'])
-    return df,weight_change_event_df,inst_rate_array,trains,binned_trains_index,np.array(all_ca_array),ca_index,t1weight_dist
+                if missing<warnings:
+                    print(missing,syn,shell,' NOT IN FILE',trial)
+            inst_weightchange,iwc_cols=dW(d,syn,(1.0/samp_rate),spiketimes,trial,inst_weightchange,peaktimes,params['nochangedW'])
+            if missing>warnings-1:
+                print(missing, 'extern_names have no calcium conc')
+        df.append(pd.DataFrame(dframelist,columns = ['spine','endweight','trial','spinedist','stim','spikecount','weight_change_variance']))
+        wce_df.append(pd.DataFrame(weightchangelist,columns = ['trial','synapse','time','startingweight','weightchange']))
+    alldf = pd.concat(df).reset_index()
+    weight_change_event_df = pd.concat(wce_df).reset_index()
+    inst_weight_change_df=pd.DataFrame(inst_weightchange,columns=iwc_cols)
+    ### instantaneous weight array - created from spikeTrains
+    kernel = kernels.GaussianKernel(sigma=100e-3*s)
+    numtrains=len(trains) #use extern_names
+    inst_rate_array = np.zeros((numtrains,int(simtime*bins_per_sec)))
+    for jj,train in enumerate(trains):
+        train.sampling_rate=samp_rate*Hz
+        inst_rate_array[jj,:] = elephant.statistics.instantaneous_rate(train,train.sampling_period,kernel=kernel)[::down_samp,0].flatten()
+    return alldf,weight_change_event_df,inst_rate_array,trains,binned_trains_index,np.array(all_ca_array),ca_index,t1weight_dist,inst_weight_change_df
 
-def add_spine_soma_dist(wce_df,df, spine_soma_dist_file):
-    spine_soma_dist=pd.read_csv(spine_soma_dist_file,index_col=0)    
+def add_spine_soma_dist(wce_df,df, spine_soma_dist_file,warnings=5):
+    if isinstance(spine_soma_dist_file,pd.core.series.Series):
+        spine_soma_dist=spine_soma_dist_file
+    else:
+        spine_soma_dist_df=pd.read_csv(spine_soma_dist_file,index_col=0)
+        spine_soma_dist=spine_soma_dist_df.distance
     wce_df['spine_soma_dist']=np.nan
+    missing=0
     for wce in wce_df.index:
         syn = wce_df.synapse[wce]
         spine = syn.split('_to_')[-1].replace('plas','').replace('-sp','_sp')
-        wce_df.loc[wce,'spine_soma_dist']=spine_soma_dist.loc[spine].distance
-    for syn in df.spine:
-        df.loc[df.spine==syn,'spinedist']=1e6*spine_soma_dist.loc[syn].distance #distance in um
-    return wce_df,df
-'''
-spine_soma_dist=pd.read_csv(spine_soma_dist_file,index_col=0)    
-for syn in df.spine:
-    df.loc[syn,'spinedist']=spine_soma_dist.loc[syn].distance'''
-#from sklearn.preprocessing import PolynomialFeatures
-#from scipy.stats import binned_statistic
-
-def do_random_forest(X_train,y_train,X_test,y_test,n_est=100):
-    from sklearn.ensemble import RandomForestRegressor
-    regr = RandomForestRegressor(random_state=0,n_estimators=n_est)#,max_features='sqrt')
-    reg = regr.fit(X_train, y_train)
-    fit = reg.predict(X_train)
-    pred = reg.predict(X_test)
-    print('Training set score: ',reg.score(X_train, y_train))
-    print('Testing Set score: ', reg.score(X_test,y_test))
-    score= {'train':reg.score(X_train,y_train),'test':reg.score(X_test,y_test)}
-    return reg,fit,pred,score,reg.feature_importances_[:]
-
-def downsample_X(Xinput,numbins,weight_change_event_df, num_events,add_start_wt=True): 
-    downsamp=np.shape(Xinput)[1]//numbins
-    #Xbins=Xinput[:,::downsamp] #simplest is to downsample by 10
-    Xbins=np.zeros((np.shape(Xinput)[0],numbins))  #Better is to average across bins
-    for b in range(numbins):
-        Xbins[:,b]=np.mean(Xinput[:,b*downsamp:(b+1)*downsamp],axis=1)
-    feature_labels=[str(b) for b in range(numbins)]
-    if np.std(weight_change_event_df['startingweight'].to_numpy())>0 and add_start_wt:
-        Xbins=np.concatenate((Xbins,weight_change_event_df['startingweight'].to_numpy().reshape(num_events,1)),axis=1)
-        feature_labels.append('start_wt')
-    return Xbins,feature_labels
-
-def create_set_of_Xarrays(newX,adjX,numbins,weight_change_event_df,all_cor,num_events,lin=False):
-    Xbins,feat_lbl=downsample_X(newX,numbins,weight_change_event_df,num_events)
-    if lin:
-        Xbins_adj,_=downsample_X(adjX,1,weight_change_event_df,num_events,add_start_wt=False)
-        Xbins_combined=np.concatenate((Xbins,Xbins_adj),axis=1)
-        set_of_Xbins={'':Xbins,'_adj':Xbins_combined}
-    else:
-        Xbins_adj,_=downsample_X(adjX,numbins,weight_change_event_df,num_events,add_start_wt=False)
-        Xbins_combined=np.concatenate((Xbins,Xbins_adj),axis=1)
-        Xbins_dist=np.concatenate((Xbins,weight_change_event_df['spine_soma_dist'].to_numpy().reshape(num_events,1)),axis=1)
-        Xbins_corr = np.concatenate((Xbins,all_cor.reshape(num_events,1)),axis=1)
-        Xbins_corr_dist=np.concatenate((Xbins_dist,all_cor.reshape(num_events,1)),axis=1)
-        set_of_Xbins={'':Xbins,'_corr':Xbins_corr,'_adj':Xbins_combined,'_dist':Xbins_dist,'_corr_dist':Xbins_corr_dist}
-    return set_of_Xbins,feat_lbl
-
-def random_forest_LeaveNout(newX, adjacentX, y, weight_change_event_df,all_cor,bin_set,num_events,trials=3,linear=False):
-    from sklearn.model_selection import train_test_split
-    from sklearn import linear_model
-    feature_types=['','_corr','_adj','_dist','_corr_dist']
-    reg_score={str(bn)+k :[] for bn in bin_set for k in feature_types}
-    feature_import={str(bn)+k :[] for bn in bin_set for k in feature_types}
-    linreg_score={str(bn)+k :[] for bn in bin_set for k in feature_types}
-    for numbins in bin_set:
-        set_of_Xbins,feat_lbl=create_set_of_Xarrays(newX,adjacentX,numbins,weight_change_event_df,all_cor,num_events,lin=linear)
-        for i in range(trials):
-            for feat,Xarray in set_of_Xbins.items():
-                X_train, X_test, y_train, y_test = train_test_split(Xarray, y, test_size=1/trials)
-                if linear:
-                    linreg = linear_model.LinearRegression(fit_intercept=True).fit(X_train, y_train)
-                    linreg_score[str(numbins)+feat].append({'train':linreg.score(X_train, y_train),'test':linreg.score(X_test, y_test),'coef':linreg.coef_})
-                reg,fit,pred,regscore,feature=do_random_forest(X_train,y_train,X_test,y_test)
-                reg_score[str(numbins)+feat].append(regscore)
-                if feat == '_dist': 
-                    feat_list=list(feature)
-                    feat_list.insert(numbins,0)
-                    feature_import[str(numbins)+feat].append(np.array(feat_list))
-                else:
-                    feature_import[str(numbins)+feat].append(feature)
-        xticks=feat_lbl+['corr','dist']
-        feature_import[str(numbins)+'_features']=xticks
-    return reg_score,feature_import,linreg_score
-
-def random_forest_variations(newX, adjacentX, y, weight_change_event_df,all_cor,bin_set,num_events,wt_change_title,RF_plots,linear=False):
-    from sklearn.model_selection import train_test_split
-    from sklearn import linear_model
-    from plas_sim_plots import rand_forest_plot
-    if RF_plots:
-        from matplotlib import pyplot as plt
-    reg_score={}
-    feature_import={}
-    linreg_score={}
-    for numbins in bin_set:        
-        set_of_Xbins,feat_lbl=create_set_of_Xarrays(newX,adjacentX, numbins,weight_change_event_df,all_cor,num_events,lin=linear)
-        print('###########',numbins,' bins,',' ##############')
-        for feat,Xarray in set_of_Xbins.items():
-            print('      ##',feat[1:],', features:', np.shape(Xarray)[1], ' ##')
-            X_train, X_test, y_train, y_test = train_test_split(Xarray, y, test_size=0.1, random_state=42)
-            if linear:
-                linreg = linear_model.LinearRegression(fit_intercept=True).fit(X_train, y_train)
-                print('linear score:',linreg.score(X_train, y_train),', coef:',linreg.coef_,linreg.intercept_) 
-                #rfe = RFE(estimator=linear_model.LinearRegression(), n_features_to_select=1, step=1)
-                #rfe.fit(X_train, y_train)
-                #ranking = rfe.ranking_
-                #print('selecting subset of columns',[newX.columns[ranking==i] for i in range(1,11)])
-                linreg_score[str(numbins)+feat]={'score':linreg.score(X_test, y_test),'coef':linreg.coef_}
-            reg,fit,pred,regscore,feature=do_random_forest(X_train,y_train,X_test,y_test)
-            reg_score[str(numbins)+feat]=regscore
-            if feat == '_dist':
-                feat_list=list(feature)
-                feat_list.insert(numbins,0)
-                feature_import[str(numbins)+feat]=np.array(feat_list)
-            else:
-                feature_import[str(numbins)+feat]=feature
-            if RF_plots:
-                rand_forest_plot(y_train,y_test,fit,pred,str(numbins)+' bins '+feat+wt_change_title)
-        xticks=feat_lbl+['corr','dist']
-        feature_import[str(numbins)+'_features']=xticks
-        
-    if RF_plots:
-        for numbins in bin_set:
-            fimport,ax=plt.subplots()
-            for regname,features in feature_import.items():
-                if regname.startswith(str(numbins)) and not regname.endswith('features'):
-                    ax.plot(features,label=regname+',score='+str(round(reg_score[regname]['test'],3)))
-            ax.set_ylabel('feature important')
-            ax.set_xticks(range(len(feature_import[str(numbins)+'_features'])))
-            ax.set_xticklabels(feature_import[str(numbins)+'_features'])
-            ax.set_xlabel('feature name')
-            ax.legend()
-    return reg_score,feature_import,linreg_score
-
-def RF_oob(weight_change_alligned_array,all_cor,weight_change_event_df,y, RF_plots=False):
-    from sklearn.model_selection import train_test_split
-    from sklearn.ensemble import RandomForestRegressor
-    from matplotlib import pyplot as plt
-    ################### Try Random Forest with oob_score=True and max_features='sqrt' ##########
-    wce_len=np.shape(weight_change_alligned_array.max(1).T[:,0])[0]
-    X= weight_change_alligned_array.max(1).T[:,0].reshape(wce_len,1)
-    #Xt = combined_neighbors_array.max(0).reshape(wce_len,1)
-    Xt = all_cor.reshape(wce_len,1)
-    X=np.concatenate((X,weight_change_event_df.startingweight.to_numpy().reshape(wce_len,1),
-                      Xt,
-                     ),axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=42)
-    regr = RandomForestRegressor(100,random_state=0,oob_score=True,max_features='sqrt')
-    reg = regr.fit(X_train, y_train)
-    fit = reg.predict(X_train)
-    pred = reg.predict(X_test)
-    if RF_plots:
-        f,axes = plt.subplots(1,2,sharey=True,sharex=True)
-        axes[0].scatter(y_train,fit)
-        xmin=round(min(y_train.min(),y_test.min()),1)
-        xmax=round(max(y_train.max(),y_test.max()),1)
-        ymin=round(min(fit.min(),pred.min()),1)
-        ymax=round(max(fit.max(),pred.max()),1)
-        diagmin=min(xmin,ymin)
-        diagmax=max(ymin,ymax)
-        axes[0].plot([diagmin,diagmax],[diagmin,diagmax])
-        #reg.score(y_train,fit)
-        axes[1].scatter(y_test,pred)
-        axes[0].plot([diagmin,diagmax],[diagmin,diagmax])
-        #v = [X.columns[ranking==i] for i in range(1,11)][-5][0]
-        #v = 'spikecount'
-        #axes[0].set_title(v)
-        # axes[0].scatter(X_train[v],fit)
-        # axes[0].scatter(X_train[v],y_train)
-        # axes[1].scatter(X_test[v],pred)
-        # axes[1].scatter(X_test[v],y_test)
-    
-    print('oob regression scores, train:',reg.score(X_train,y_train), 'test:',reg.score(X_test,y_test))
-    print('oob score',reg.oob_score_)
-    
-def runClusterAnalysis(param_values, labels, num_features, class_labels,epoch):
-
-    from sklearn import model_selection
-    from sklearn.ensemble import RandomForestClassifier
-    import operator
-
-    ############ data is ready for the cluster analysis ##################
-    #select a random subset of data for training, and use the other part for testing
-    #sklearn.model_selection.train_test_split(*arrays, **options)
-    #returns the top max_feat number of features and their weights
-
-    df_values_train, df_values_test, df_labels_train, df_labels_test = model_selection.train_test_split(param_values, labels, test_size=0.25)
-    train_test = {'train':(df_values_train,df_labels_train), 'test':(df_values_test, df_labels_test)}
-
-    #number of estimators (n_estim) is number of trees in the forest
-    #This is NOT the number of clusters to be found
-    #max_feat is the number of features to use for classification
-    #Empirical good default value is max_features=sqrt(num_features) for classification tasks
-    max_feat=int(np.ceil(np.sqrt(num_features)))
-    n_estim=20
-    rtc = RandomForestClassifier(n_estimators=n_estim, max_features=max_feat)
-
-    #This line actually builds the random forest (does the training)
-    rtc.fit(df_values_train,df_labels_train)
-
-    ###### EVALUATE THE RESULT
-    #calculate a score, show the confusion matrix
-    predict_dict = {}
-    for nm,(df,labl) in train_test.items():
-        predict = rtc.predict(df)
-        predict_dict[nm] = predict
-    
-    #evauate the importance of each feature in the classifier
-    #The relative rank (i.e. depth) of a feature used as a decision node in a tree can be used to assess the relative importance of that feature with respect to the predictability of the target variable. 
-    feature_order = sorted({feature : importance for feature, importance in zip(list(df_values_train.columns), list(rtc.feature_importances_))}.items(), key=operator.itemgetter(1), reverse=True)
-    return feature_order[0:max_feat],predict_dict,train_test
-    
-def cluster_analysis(y,X,adjX,numbins,weight_change_event_df,all_cor,epochs,num_events,cs,max_feat=2 ):
-    import operator
-    from sklearn.metrics import confusion_matrix
-    from plas_sim_plots import plotPredictions
-    classes=np.unique(y.values).astype('int')
-    set_of_Xbins,feat_lbl=create_set_of_Xarrays(X,adjX, numbins,weight_change_event_df,all_cor,num_events)
-    collectionBestFeatures={Xinputs:{} for Xinputs in set_of_Xbins.keys()}
-    collectionTopFeatures={Xinputs:{} for Xinputs in set_of_Xbins.keys()}
-    confuse_mat={Xinputs:[] for Xinputs in set_of_Xbins.keys()}
-    for Xinputs,Xarray in set_of_Xbins.items():
-        if Xinputs=='_corr' or Xinputs=='_dist':            
-            feature_labels=feat_lbl+[Xinputs.strip('_')]
-        elif Xinputs=='_corr_dist':
-            feature_labels=feat_lbl+['corr','dist']
-        elif Xinputs=='_adj':
-            feature_labels=feat_lbl+[str(lbl)+'adj' for lbl in feat_lbl if lbl != 'start_wt']
+        if 'head' in spine: #need to add distance to soma for non-spine plasticity
+            wce_df.loc[wce,'spine_soma_dist']=spine_soma_dist.loc[spine]
         else:
-            feature_labels=feat_lbl
-        print (Xinputs,feature_labels,np.shape(Xarray))
-        X_df=pd.DataFrame(Xarray,columns = feature_labels)
-        num_feat=np.shape(Xarray)[1]
-        for epoch in range(0, epochs):
-            features, predict_dict,train_test = runClusterAnalysis(X_df,y.astype('int'),num_feat,classes,epoch)
-            #print(Xinputs,epoch,'test classes', np.unique(train_test['test'][1]), 'predict classes', np.unique(predict_dict['test']),
-            #      '\n',confusion_matrix(train_test['test'][1],predict_dict['test']))
-            confuse_mat[Xinputs].append({'true':np.unique(train_test['test'][1]),'pred':np.unique(predict_dict['test']),'mat': confusion_matrix(train_test['test'][1],predict_dict['test'])})
-
-            if epoch<2 and max_feat>0: #plot not working when max_feat=4
-                plotPredictions(max_feat, train_test, predict_dict, classes, features,'E'+str(epoch)+'_bins'+str(numbins)+Xinputs,cs)
-            for i,(feat, weight) in enumerate(features):
-                #print(str(numbins),Xinputs,'feat=',feat,collectionBestFeatures[str(numbins)][Xinputs])
-                #print(i,feat,weight) #monitor progress 
-                if feat not in collectionBestFeatures[Xinputs]:          # How is the weight scaled? caution
-                    collectionBestFeatures[Xinputs][feat] = weight
-                else:
-                    collectionBestFeatures[Xinputs][feat] += weight
-                #print(collectionBestFeatures[str(numbins)][Xinputs])        
-            f, w = features[0]
-            if f not in collectionTopFeatures[Xinputs]:
-                collectionTopFeatures[Xinputs][f] = 1
-            else:
-                collectionTopFeatures[Xinputs][f] += 1
-
-        listBestFeatures=sorted(collectionBestFeatures[Xinputs].items(),key=operator.itemgetter(1),reverse=True)
-        collectionBestFeatures[Xinputs]=listBestFeatures
-        listTopFeatures=sorted(collectionTopFeatures[Xinputs].items(),key=operator.itemgetter(1),reverse=True)
-        collectionTopFeatures[Xinputs]=listTopFeatures
-    return collectionBestFeatures,collectionTopFeatures,confuse_mat
-
-'''
-del dframelist,weightchangelist
-def calcium(files,downsamp):
-    all_ca_array=[];ca_index=[]
-    for i,(tr,f) in enumerate(files.items()): 
-        missing=0
-        d= np.load(f,mmap_mode='r')
-        plas_names=[nm for nm in d.dtype.names if 'plas' in nm] #plas names may differ for each file if using different seeds
-        extern_names=[nm for nm in plas_names if 'extern1' in nm]
-        print(i, 'analyzing calcium for',tr)
-        for j, syn in enumerate(extern_names):
-            shellnum=syn.split('_3-')[0].split('_to_')[-1]
-            spnum=syn.split('-sp')[-1][0]          
-            shell='/data/D1_sp'+spnum+shellnum+'_3Shell_0'
-            if shell in d.dtype.names:
-                ca_index.append((tr,shell))
-                #jj=i*len(ca_names)+j
-                all_ca_array.append(d[shell][::downsamp])
-            else:
+            branch_dist=[spine_soma_dist[i] for i in spine_soma_dist.index if i.startswith(spine)]
+            wce_df.loc[wce,'spine_soma_dist']=np.mean(branch_dist)
+            if np.std(branch_dist)>1e-12:  #if distances of all spines the same, branch dist is well defined
                 missing+=1
-                print(missing,shell,' NOT IN FILE',tr)
-    return ca_index, np.array(all_ca_array)
+            if missing<warnings:
+                print('wce in add_spine_soma_dist',syn,':::',spine,'not spine head, use mean of spine distances for that compartment')
+    if missing>warnings-1:
+        print('wce, add_spine_soma_dist', missing, 'syn are not spine head, use mean of spine distances for that compartment')
+    missing=0
+    for syn in df.spine:
+        if 'head' in syn:
+            df.loc[df.spine==syn,'spinedist']=1e6*spine_soma_dist.loc[syn] #distance in um
+        else:
+            branch_dist=[spine_soma_dist[i] for i in spine_soma_dist.index if i.startswith(syn)]
+            df.loc[df.spine==syn,'spinedist']=1e6*np.mean(branch_dist)
+            if np.std(branch_dist)>1e-12:
+                missing+=1
+            if missing<warnings:
+                print('df in add_spine_soma_dist',syn,'::: not spine head, use mean of spine distances for that compartment')
+    if missing>warnings-1:
+        print('df, add_spine_soma_dist', missing, 'syn are not spine head, use mean of spine distances for that compartment')
+    return wce_df,df
 
+def weight_changed_aligned_array(params,weight_change_event_df,ca_index,sorted_other_stim_spines,binned_trains_index,ca_trace_array,sp2sp,inst_rate_array,trains):
+    from elephant import kernels
+    cabins_per_sec=int(params['samp_rate']/params['ca_downsamp'])
+    weight_change_alligned_array = np.zeros((params['neighbors'],params['length_of_firing_rate_vector'],len(weight_change_event_df.index)))
+    weight_change_weighted_array = np.zeros((params['neighbors'],params['length_of_firing_rate_vector'],len(weight_change_event_df.index)))
+    combined_neighbors_array = np.zeros((int(round(params['duration']*params['bins_per_sec'])),weight_change_alligned_array.shape[2]))
+    weight_change_alligned_ca=np.zeros((int(round(cabins_per_sec*params['duration'])),len(weight_change_event_df.index)))
+    kernel = kernels.GaussianKernel(sigma=100e-3*s)
+    sampling_resolution=1.0/params['samp_rate']
+    down_samp=int(params['samp_rate']/params['bins_per_sec'])
+    branch_wce={}
+    for wce in weight_change_event_df.index:
+        tr = weight_change_event_df.trial[wce]
+        syn = weight_change_event_df.synapse[wce]
+        t = weight_change_event_df.time[wce] 
+        if t >= 2:  #if t<2: continue  
+            spine = syn.split('_to_')[-1].replace('plas','').replace('-sp','_sp')
+            #### calcium part ###
+            shell=get_shellname(syn)
+            if (tr,shell)  in ca_index:   
+                index=ca_index.index((tr,shell))
+                #weight_change_alligned_ca[:,wce]=ca_trace_array[index,int(round((t-tstart)*cabins_per_sec)):int(round((t-tend)*cabins_per_sec))]
+                weight_change_alligned_ca[:,wce]=ca_trace_array[index,int(round((t-params['tstart'])*cabins_per_sec)):int(round((t-params['tstart']+params['duration'])*cabins_per_sec))]
+            else:
+                weight_change_alligned_ca[:,wce]=np.nan
+                print(tr,shell,'not in ca_index')
+             ### end calcium part
+            temp_array = [];sumdist=0
+            if spine in sorted_other_stim_spines[tr]:
+                for i,other in enumerate(sorted_other_stim_spines[tr][spine][0:params['neighbors']]):
+                    distance=sp2sp[spine][other] #convert from meters to mm, further is smaller
+                    othername = '/data/D1-extern1_to_{}plas'.format(other.replace('_sp','-sp'))
+                    if (tr,othername) not in binned_trains_index:
+                        print(tr,syn,t,spine,i,other,'not in list',othername)
+                    #else:
+                    index = binned_trains_index.index((tr,othername))
+                    #weight_change_alligned_array[i,:,wce] = inst_rate_array[index,int(round((t-tstart)*params['bins_per_sec'])):int(round((t-tend)*params['bins_per_sec']))]
+                    #what about weighting the neighbors by distance?
 
-'''
+                    weight_change_alligned_array[i,:,wce] = inst_rate_array[index,int(round((t-params['tstart'])*params['bins_per_sec'])):int(round((t-params['tstart']+params['duration'])*params['bins_per_sec']))]
+                    weight_change_weighted_array[i,:,wce] = (1-distance/params['max_dist'])*inst_rate_array[index,int(round((t-params['tstart'])*params['bins_per_sec'])):int(round((t-params['tstart']+params['duration'])*params['bins_per_sec']))]
+                    #for combined_neighbors_array
+                    if i>0 and distance<=params['dist_thresh']:
+                        temp_train = trains[index].copy()
+                        #temp_train_cut = temp_train[(temp_train>(t-tstart)) & (temp_train<(t-tend))]
+                        temp_train_cut = temp_train[(temp_train>(t-params['tstart'])) & (temp_train<(t-params['tstart']+params['duration']))]
+                        temp_array.append(temp_train_cut)#,int(round((ta-2)*100)):int(round((t-1)*100))]
+                #combined_array = elephant.statistics.instantaneous_rate(temp_array,.1e-3*s,kernel=kernel,t_start=(t-tstart)*s, t_stop = (t-tend)*s)
+                #### new version of elephant.statistics.instantaneous_rate provides 2D array with 1 column for each list in temp_array.  Need to flatten first
+                train_list=sorted([round(i,4) for ta in temp_array for i in ta.as_array() ])
+                temp_array=neo.SpikeTrain(train_list,t_stop=params['simtime']*s,units=s)
+                combined_array = elephant.statistics.instantaneous_rate(temp_array,sampling_resolution*s,kernel=kernel,t_start=(t-params['tstart'])*s, t_stop = (t-params['tstart']+params['duration'])*s)
+                combined_neighbors_array[:,wce] = combined_array.as_array().flatten()[::down_samp]
+            else: #branch, not spine. cannot determine neighbors from sorted_other_stim_spines. possible use all spines on branch?
+                index = binned_trains_index.index((tr,syn))
+                weight_change_alligned_array[0,:,wce] = inst_rate_array[index,int(round((t-tstart)*params['bins_per_sec'])):int(round((t-tstart+duration)*params['bins_per_sec']))]
+                weight_change_alligned_array[1:params['neighbors'],:,wce]=np.nan
+                weight_change_weighted_array[1:params['neighbors'],:,wce]=np.nan
+                combined_neighbors_array[:,wce]=np.nan
+                branch_wce[syn]={'trial':tr,'index':wce,'weight change':weight_change_event_df.weightchange[wce],'firing':np.mean(weight_change_alligned_array[0,:,wce]),'shell':shell,'cal':np.mean(weight_change_alligned_ca[:,wce])}
+    print('   > finished weight change triggered calcium and pre-synaptic firing rate <  ')
+    print(len(branch_wce), '***** branches, not spine - no neighbors or calcium.')
+    if len(branch_wce):
+        print('mean calcium=', np.mean([bwce['cal'] for bwce in branch_wce.values()]),
+              'mean weight change=',np.mean([bwce['weight change'] for bwce in branch_wce.values()]))
+    return weight_change_alligned_array,weight_change_weighted_array,combined_neighbors_array,weight_change_alligned_ca
+
+def mean_std(weight_change_alligned_array,indices):
+    #mean and std uses all spines and averages across events
+    #absmean only use direct spine (not neighbors) and average across time
+    #absmean of the nochange events used for mean-subtracted instantaneous firing rate
+    mn=np.nanmean(weight_change_alligned_array[:,:,indices],axis=2)
+    std=np.nanstd(weight_change_alligned_array[:,:,indices],axis=2)
+    absmean = np.nanmean(weight_change_alligned_array[0,:,indices],axis=0)
+    return mn,std,absmean
+
+def add_cluster_info(wce_df,df, inst_df,cluster_file):
+    import pickle
+    f=open(cluster_file,'rb')
+    mydata=pickle.load(f)
+    clusterlist=[[str(m['seed']),m['ClusteringParams']['cluster_length'],m['ClusteringParams']['n_spines_per_cluster']] for m in mydata]
+    clusterdf=pd.DataFrame(clusterlist,columns=['trial','cluster_length','spines_per_cluster'])
+    print('cluster correlations',clusterdf['cluster_length'].corr(clusterdf['spines_per_cluster']))
+    wce_df=pd.merge(wce_df,clusterdf,on='trial',validate='many_to_one')
+    df=pd.merge(df,clusterdf,on='trial',validate='many_to_one')
+    inst_df=pd.merge(inst_df,clusterdf,on='trial',validate='many_to_one')
+    return wce_df,df,inst_df
+
+def fft_anal(binned_means):
+    mags={}
+    for key,values in binned_means.items():
+        fft=np.fft.rfft(values/np.mean(values))
+        mags[key]=np.abs(fft)
+    freqs=np.fft.rfftfreq(len(values))
+    return mags,freqs
+
+def bin_spiketime(binned_weight_change_dict,wce_df,variables):
+    binned_spiketime={kk:{} for kk in variables}
+    binned_spiketime_std={kk:{} for kk in variables}
+    for kk in binned_spiketime.keys():
+        for k,v in binned_weight_change_dict.items():
+            binned_spiketime[kk][k]=wce_df[kk].iloc[v].mean()
+            binned_spiketime_std[kk][k]=wce_df[kk].iloc[v].std()/np.sqrt(len(wce_df[kk].iloc[v]))
+    return binned_spiketime,binned_spiketime_std
+
+def binned_weight_change(wce_df,numbins,weight_var,nochange):
+    numbins=7
+    binned_weight_change_index_LTD = np.linspace(wce_df[weight_var].min(),-nochange,(numbins+1)//2)#wce_df[weight_var].max(),numbins)
+    binned_weight_change_index_LTP = np.linspace(nochange,wce_df[weight_var].max(),(numbins+1)//2)
+    binned_weight_change_index = np.hstack((binned_weight_change_index_LTD,binned_weight_change_index_LTP))
+    print('       now average within weight change bins:',binned_weight_change_index )
+
+    ### Assign weight_change_events to one of the bins
+    binned_weight_change_dict = {}
+    for i in range(len(binned_weight_change_index)-1):
+        lower = binned_weight_change_index[i]
+        upper = binned_weight_change_index[i+1]
+        if i+1 == len(binned_weight_change_index)-1:
+            binned_weight_change_dict[(lower,upper)] =  wce_df.loc[(wce_df[weight_var]>=lower)&(wce_df[weight_var]<=upper)].index.to_numpy()
+        else:
+            binned_weight_change_dict[(lower,upper)] =  wce_df.loc[(wce_df[weight_var]>=lower)&(wce_df[weight_var]<upper)].index.to_numpy()
+    ### create a new variable - the binned weight change
+    wce_df['weight_bin']=np.nan
+    for binnum,indices in enumerate(binned_weight_change_dict.values()):
+        wce_df.loc[indices,'weight_bin']=binnum-(numbins//2)
+    return binned_weight_change_dict,binned_weight_change_index
+
+def calc_dW_aligned_array(inst_weight_change,sorted_other_stim_spines,params,binned_trains_index,inst_rate_array,duration=0.05):
+    tstart=duration #: consider input spikes beginning duration sec prior to weight change time.
+    #duration: tstart-tend  #evaluate 0.1 sec of firing for dW
+    weight_change_alligned_array = np.zeros((params['neighbors'],int(duration*params['bins_per_sec']),len(inst_weight_change.index)))
+    inst_weight_change['pre_rate']=np.nan
+    for wce in inst_weight_change.index:
+        tr = inst_weight_change.trial[wce]
+        syn = inst_weight_change.synapse[wce]
+        t = inst_weight_change.dWt[wce] 
+        spine = syn.split('_to_')[-1].replace('plas','').replace('-sp','_sp')
+        if spine in sorted_other_stim_spines[tr]:
+            for i,other in enumerate(sorted_other_stim_spines[tr][spine][0:params['neighbors']]):
+                othername = '/data/D1-extern1_to_{}plas'.format(other.replace('_sp','-sp'))
+                index = binned_trains_index.index((tr,othername))
+                #weight_change_alligned_array[i,wce] = inst_rate_array[index,int(round((t-tstart)*params['bins_per_sec'])):int(round((t-tstart+duration)*params['bins_per_sec']))].mean()
+                if len(inst_rate_array[index,int(round((t-tstart)*params['bins_per_sec'])):int(round(t*params['bins_per_sec']))])!=int(duration*params['bins_per_sec']):
+                    print('wrong size',wce, 'changing t',t,' by tiny amount',t-1e-6)
+                    t=t-1e-6
+                weight_change_alligned_array[i,:,wce]=inst_rate_array[index,int(round((t-tstart)*params['bins_per_sec'])):int(round(t*params['bins_per_sec']))]
+        inst_weight_change.pre_rate[wce]=weight_change_alligned_array[0,:,wce].mean()
+    return weight_change_alligned_array,inst_weight_change
