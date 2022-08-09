@@ -135,7 +135,8 @@ def add_synchans(model, container,module=None):
             spcomps = [spcomp for spcomp in moose.wildcardFind(comp.path + '/#[ISA=Compartment]') if NAME_HEAD in spcomp.path]
             for spcomp in spcomps:
                 synchans[keynum].append(addoneSynChan(key,spcomp,Gbar, model.calYN, Gbarvar,module))
-            if len(spcomps) == 0:
+            if len(spcomps) == 0 and model.SYNAPSE_TYPES[key].spinic<2: #spinic = 2 prevents synapses on dendrite even if no spine in that compartment
+                #print('SPcomps is empty',spcomps,'adding synapses to dendrite for',comp.path,'for synapses of type',key,'in comp',comp.path)
                 distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
                 dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
                 if (model.SpineParams.spineEnd > dist > model.SpineParams.spineStart):
