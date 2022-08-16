@@ -189,8 +189,11 @@ def overrides(param_sim, model):
     #update in future: currently cannot deal with more than one stim_dendrite in option parser (OK in param_stim.location)
     if model.param_stim.Stimulation.Paradigm.name is not 'inject' or param_sim.stim_loc is not None:
         #param_sim.plotcomps=list(np.unique(param_sim.plotcomps+model.param_stim.location.stim_dendrites))
-        #change this to (after checking with Dan):
-        param_sim.plotcomps=list(np.unique(param_sim.plotcomps+model.param_stim.Stimulation.StimLoc.stim_dendrites))
+        #np.unique sorts the list.  Move soma to be first if it exists
+        plotcomps=list(np.unique(param_sim.plotcomps+model.param_stim.Stimulation.StimLoc.stim_dendrites))
+        if model.NAME_SOMA in plotcomps:
+            plotcomps.insert(0,plotcomps.pop(plotcomps.index(model.NAME_SOMA)))
+        param_sim.plotcomps=plotcomps
     return model,param_sim
 
 class AppendFlat(argparse.Action):
