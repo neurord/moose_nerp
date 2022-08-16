@@ -5,17 +5,37 @@ Created on Fri Jun 25 13:11:10 2021
 @author: kblackw1
 """
 import numpy as np
-import pandas as pd
 import moose
 from moose_nerp import D1PatchSample5 as model
-from moose_nerp.prototypes import spatiotemporalInputMapping as stim
-
 model.spineYN = True
-from moose_nerp.prototypes import create_model_sim as cms
+from moose_nerp.prototypes import (
+        create_model_sim,
+        cell_proto,
+        clocks,
+        inject_func,
+        create_network,
+        tables,
+        net_output,
+        logutil,
+        util,
+        standard_options,
+        ttables,
+        spines,
+    )
+from moose_nerp import str_net as net
+net.single = True
+total_spines = 200 # Minimum -- note that we round up n spines per cluster
+model.SpineParams.ClusteringParams = {}
+model.SpineParams.ClusteringParams['n_clusters'] = 20
+model.SpineParams.ClusteringParams['cluster_length'] = 200e-6/model.SpineParams.ClusteringParams['n_clusters']# 200 microns divided by number of clusters, fewer clusters --> greater cluster length to distribute within.
+model.SpineParams.ClusteringParams['n_spines_per_cluster'] = int(np.ceil(total_spines/model.SpineParams.ClusteringParams['n_clusters']))
+create_model_sim.setupOptions(model)
+model = create_model_sim.setupNeurons(model, network=not net.single)
+ntypes = util.neurontypes(model.param_cond)
 
-#Create neuron
-cms.setupNeurons(model)
-d1 = model.neurons['D1'][0]
+import pandas as pd
+
+d1 = ntypes[0]
 
 #calculate distance from soma - but not working
 d1.pathDistanceFromSoma
@@ -26,44 +46,6 @@ for each spine, loop again over every other spine in model
 for each pair of spines (from outer and inner loops), find their common parent compartment and compute the distance of each one from the common parent
 sum the two distances and append to spine_to_spine_distances table
 '''
-def compute_spine_to_spine_dist(spine, other_spine,print_info=False):
-    '''Compute the path distance along dendritic tree between any two spines'''
-    # get parent compartment of spine
-    spine_parents = [spine.parent, other_spine.parent]
-
-    # get the branch of the spine_parent
-    spine_branches = [comp_to_branch_dict[sp.path] for sp in spine_parents]
-    branch_paths = spine_branches[0]['BranchPath'], spine_branches[1]['BranchPath']
-    # if on same branch
-    if spine_branches[0]==spine_branches[1]:
-        # if on same compartment:
-        if spine_parents[0]==spine_parents[1]:
-            spine_to_spine_dist = np.sqrt((spine.x - other_spine.x)**2 + (spine.y - other_spine.y)**2 + (spine.z - other_spine.z)**2)
-        # else if on same branch but not same compartment:
-        else:
-            compdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
-            complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
-            compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
-            comp_to_comp_distance = np.abs(compdistances[0][compindexes[0]] - compdistances[1][compindexes[1]])
-            spine_to_spine_dist = comp_to_comp_distance
-    # else if on different branches, find common parent branch first
-    else:
-        for a,b in zip(branch_paths[0], branch_paths[1]):
-            #print(a,b)
-            if a == b:
-                common_parent = a
-        common_parent_distance = bd[common_parent]['CompDistances'][0]
-        if print_info:
-            print('common parent is ', common_parent, 'common_parent_distance is ', common_parent_distance)
-        allcompdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
-        complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
-        compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
-        compdistances = [allcompdistances[0][compindexes[0]], allcompdistances[1][compindexes[1]]]
-        comp_to_comp_distance = (compdistances[0]-common_parent_distance) + (compdistances[1]-common_parent_distance)
-        if print_info:
-            print('compdistances',compdistances,'comp_to_comp_distance', comp_to_comp_distance)
-        spine_to_spine_dist = comp_to_comp_distance
-    return spine_to_spine_dist
 
                 
 bd = stim.getBranchDict(d1) #dictionary of 39 items - only those branches which receive synaptic input
@@ -97,12 +79,14 @@ spine_dist_df.to_csv('test.csv')
 
 ######## ####### ####### ####### ####### ####### ####### ####### ###### 
 ####### Use branch_dist to calculate spine distance from soma
+########## Add this part to spines, in possible_spine_to_spine_distances?
+#### but replace allspines with possible_spines
 branch_dist={k:(v['MinBranchDistance']+v['MaxBranchDistance'])/2 for k,v in bd.items()}
 spine_to_soma_distance={}
 #all_spine_to_soma_distance={}
 #### calculate spine to soma distance
 #for spine_path,spine_parent_path in allspines_paths:
-for spine in allspines:
+for spine in allspines: #possible_spines
     spine_key=spine.path.replace('[0]','').replace('/','_').replace('D1','').lstrip('_')
     #all_spine_to_soma_distance[spine_key]=spine.pathDistanceFromSoma
     if spine.parent.path in comp_to_branch_dict.keys():
