@@ -74,6 +74,8 @@ def setPassiveSpineParams(model,container,name_soma):
         model.SpineParams.spineEREST = globalEREST
         log.debug('Setting spineEREST to globalEREST = {}', globalEREST)
 
+from scipy.linalg import norm
+
 def makeSpine(model, parentComp, compName,index,frac,SpineParams,randomAngles=True):
     #frac is where along the compartment the spine is attached
     #unfortunately, these values specified in the .p file are not accessible
@@ -220,7 +222,7 @@ def getChildren(parentname,childrenlist):
             childrenlist.append(child.name)
             getChildren(child,childrenlist)
 
-def addSpines(model, container,ghkYN,name_soma,module=None):
+def addSpines(model, container,ghkYN,name_soma,neuron_object,module=None):
     distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
     headarray=[]
     # Sets Spine Params to global values for RM, CM, etc. if value is None:
@@ -231,6 +233,95 @@ def addSpines(model, container,ghkYN,name_soma,module=None):
     modelcond = model.Condset[container]
     single_spine_surface = spine_surface(SpineParams)
 
+    # if clustering spines, call those functions here and return early
+    if "ClusteringParams" in SpineParams:
+        possible_spines = getPossibleSpines(model, container,ghkYN,name_soma)
+        spine_to_spine_dists = possible_spine_to_spine_distances(model, possible_spines,neuron_object)
+        chosen_spine_clusters,chosen_spines_in_each_cluster,clustered_spine_index = choose_spine_clusters(model, possible_spines, spine_to_spine_dists,SpineParams.ClusteringParams['n_clusters'], SpineParams.ClusteringParams['cluster_length'], SpineParams.ClusteringParams['n_spines_per_cluster'])
+        all_possible_spine_info={ps['head_path']:(ps['x'],ps['y'],ps['z']) for ps in possible_spines} #maybe this should be ordered list?
+        if len(spine_to_spine_dists)==len(possible_spines)+1:
+            soma = moose.element(container+'/'+name_soma)
+            print('adding index for soma to s2sd',soma.path)
+            all_possible_spine_info[soma.path]=(0,0,0) #add soma
+        added_spines={sp:[possible_spines[x]['head_path'] for x in chosen_spines_in_each_cluster[i]] for i,sp in enumerate(chosen_spine_clusters)}
+        for sp in clustered_spine_index:
+            head =add_one_spine_from_spine_info(possible_spines[sp],model,SpineParams,container,ghkYN,name_soma)
+            #print('test adding one spine of cluster')
+            headarray.append(head)
+        print('prep for auto file name',model.morph_file, container,len(headarray),'spines created')
+        fname=model.morph_file[container].split('.p')[0] #container is ntype
+        np.savez(fname+'_s2sdist', s2sd=spine_to_spine_dists,index=all_possible_spine_info) #needed for analysis later.  Probably need to save in different directory
+        return headarray
+    else:
+        parentComp = container+'/'+SpineParams.spineParent
+        print('Adding spines to parent: ' + parentComp)
+        if not moose.exists(parentComp):
+            raise Exception(parentComp + ' Does not exist in Moose model!')
+        compList = [SpineParams.spineParent]
+        getChildren(parentComp,compList)
+
+        for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
+            dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
+            if name_soma not in comp.path and comp.name in compList and (SpineParams.spineEnd > dist > SpineParams.spineStart):
+                #determine the number of spines
+                try:
+                    #If SpineParams has this, use this density
+                    density=SpineParams.explicitSpineDensity
+                except KeyError:
+                    #Else, just use the actual density value
+                    density=distance_mapping(distance_mapped_spineDensity,comp)
+                numSpines = int(np.round(density*comp.length))
+
+                #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
+                if not numSpines:
+                    rand = random.random()
+                    if rand > density*comp.length:
+                        numSpines = 1
+                        suma += 1
+                #calculate total surface area of the added spines
+                total_spine_surface = numSpines*single_spine_surface
+                surface_area = comp.diameter*comp.length*np.pi
+
+                # if SpineParams.compensationSpineDensity:
+                #     compensation_spine_surface = int(np.round(SpineParams.compensationSpineDensity*comp.length))*single_spine_surface
+                #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
+                # else:
+                #increase resistance according to the spines that should be there but aren't
+                reverse_compensate_for_explicit_spines(model,comp,total_spine_surface,surface_area)
+
+                #spineSpace = comp.length/(numSpines+1)
+                #for each spine, make a spine and possibly compensate for its surface area
+                for index in range(numSpines):
+                    frac = (index+0.5)/numSpines
+                    #print comp.path,"Spine:", index, "located:", frac
+                    head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
+                    headarray.append(head)
+                    if SpineParams.spineChanList:
+                        if ghkYN:
+                            ghkproto=moose.element('/library/ghk')
+                            ghk=moose.copy(ghkproto,comp,'ghk')[0]
+                            moose.connect(ghk,'channel',comp,'channel')
+                        chan_dict = {}
+                        for c in SpineParams.spineChanList:
+                            chan_dict.update(c)
+                        for chanpath,mult in chan_dict.items():
+                            cond = mult#*distance_mapping(modelcond[chanpath],head)
+                            if cond > 0:
+                                log.debug('Testing Cond If {} {}', chanpath, cond)
+                                calciumPermeable = model.Channels[chanpath].calciumPermeable
+                                addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable,module=module)
+                #end for index
+        #end for comp
+
+        log.info('{} spines created in {}', len(headarray), container)
+        return headarray
+
+def getPossibleSpines(model, container,ghkYN,name_soma):
+    possible_spine_list = [] # Collect every potential spine with info needed to make that spine in another function.
+        
+    distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
+    SpineParams = model.SpineParams
+    suma = 0
     parentComp = container+'/'+SpineParams.spineParent
     print('Adding spines to parent: ' + parentComp)
     if not moose.exists(parentComp):
@@ -238,16 +329,12 @@ def addSpines(model, container,ghkYN,name_soma,module=None):
     compList = [SpineParams.spineParent]
     getChildren(parentComp,compList)
 
-    for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
+    for comp in moose.wildcardFind(container + '/#[ISA=CompartmentBase]'):
+        #print(comp)
         dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
         if name_soma not in comp.path and comp.name in compList and (SpineParams.spineEnd > dist > SpineParams.spineStart):
-            #determine the number of spines
-            try:
-                #If SpineParams has this, use this density
-                density=SpineParams.explicitSpineDensity
-            except KeyError:
-                #Else, just use the actual density value
-                density=distance_mapping(distance_mapped_spineDensity,comp)
+            #determine the number of possible spines using distance mapped density
+            density=distance_mapping(distance_mapped_spineDensity,comp)
             numSpines = int(np.round(density*comp.length))
 
             #if spine density is low (less than 1 per comp) use random number to determine whether to add a spine
@@ -257,39 +344,227 @@ def addSpines(model, container,ghkYN,name_soma,module=None):
                      numSpines = 1
                      suma += 1
             #calculate total surface area of the added spines
-            total_spine_surface = numSpines*single_spine_surface
-            surface_area = comp.diameter*comp.length*np.pi
+            #total_spine_surface = numSpines*single_spine_surface
+            #surface_area = comp.diameter*comp.length*np.pi
 
             # if SpineParams.compensationSpineDensity:
             #     compensation_spine_surface = int(np.round(SpineParams.compensationSpineDensity*comp.length))*single_spine_surface
             #     decompensate_compensate_for_spines(comp,total_spine_surface,surface_area,compensation_spine_surface)
             # else:
             #increase resistance according to the spines that should be there but aren't
-            reverse_compensate_for_explicit_spines(model,comp,total_spine_surface,surface_area)
+            
+            ### Do this when actually adding the spines
+            #reverse_compensate_for_explicit_spines(model,comp,total_spine_surface,surface_area)
 
             #spineSpace = comp.length/(numSpines+1)
             #for each spine, make a spine and possibly compensate for its surface area
             for index in range(numSpines):
                 frac = (index+0.5)/numSpines
                 #print comp.path,"Spine:", index, "located:", frac
-                head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
-                headarray.append(head)
-                if SpineParams.spineChanList:
-                    if ghkYN:
-                        ghkproto=moose.element('/library/ghk')
-                        ghk=moose.copy(ghkproto,comp,'ghk')[0]
-                        moose.connect(ghk,'channel',comp,'channel')
-                    chan_dict = {}
-                    for c in SpineParams.spineChanList:
-                        chan_dict.update(c)
-                    for chanpath,mult in chan_dict.items():
-                        cond = mult#*distance_mapping(modelcond[chanpath],head)
-                        if cond > 0:
-                            log.debug('Testing Cond If {} {}', chanpath, cond)
-                            calciumPermeable = model.Channels[chanpath].calciumPermeable
-                            addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable,module=module)
+                #head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
+                spineInfo = makeSpineInfo(model, comp, 'sp',index, frac, SpineParams)
+                #headarray.append(head)
+                possible_spine_list.append(spineInfo)
+                # if SpineParams.spineChanList:
+                #     if ghkYN:
+                #         ghkproto=moose.element('/library/ghk')
+                #         ghk=moose.copy(ghkproto,comp,'ghk')[0]
+                #         moose.connect(ghk,'channel',comp,'channel')
+                #     chan_dict = {}
+                #     for c in SpineParams.spineChanList:
+                #         chan_dict.update(c)
+                #     for chanpath,mult in chan_dict.items():
+                #         cond = mult#*distance_mapping(modelcond[chanpath],head)
+                #         if cond > 0:
+                #             log.debug('Testing Cond If {} {}', chanpath, cond)
+                #             calciumPermeable = model.Channels[chanpath].calciumPermeable
+                #             addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
             #end for index
     #end for comp
 
-    log.info('{} spines created in {}', len(headarray), container)
-    return headarray
+    #log.info('{} spines created in {}', len(headarray), container)
+    #return headarray
+    return possible_spine_list
+
+def makeSpineInfo(model, parentComp, compName,index,frac,SpineParams,randomAngles=True):
+    #print('making spine info')
+    spine_info = {}
+    spine_info['parentComp'] = parentComp
+    spine_info['compName']= compName
+
+    #frac is where along the compartment the spine is attached
+    #unfortunately, these values specified in the .p file are not accessible
+    neck_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_NECK)
+    spine_info['neck_path'] = neck_path
+    #neck = moose.Compartment(neck_path)
+    #log.debug('{} at {} x,y,z={},{},{}', neck.path, frac, parentComp.x, parentComp.y, parentComp.z)
+    #moose.connect(parentComp,'raxial',neck,'axial','Single')
+    #evenly distribute the spines along the parent compartment
+    x=parentComp.x0+ frac * (parentComp.x - parentComp.x0)
+    y=parentComp.y0+ frac * (parentComp.y - parentComp.y0)
+    z=parentComp.z0+ frac * (parentComp.z - parentComp.z0)
+    spine_info['x'] = x
+    spine_info['y'] = y
+    spine_info['z'] = z
+    #neck.x0, neck.y0, neck.z0 = x, y, z
+    #setSpineCompParams(model, neck,SpineParams.neckdia,SpineParams.necklen,SpineParams.neckRA,SpineParams.spineRM,SpineParams.spineCM)
+
+    head_path = '{}/{}{}{}'.format(parentComp.path, compName, index, NAME_HEAD)
+    spine_info['head_path'] = head_path
+    #head = moose.Compartment(head_path)
+    #moose.connect(neck, 'raxial', head, 'axial', 'Single')
+    #head.x0, head.y0, head.z0 = neck.x, neck.y, neck.z
+    #head.x, head.y, head.z = SpineParams.headlen*np.array([head.x0, head.y0, head.z0])/norm(np.array([head.x0, head.y0, head.z0]))
+    #head.x0, head.y0 + SpineParams.headlen, head.z0
+
+    #setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
+    return spine_info #head, neck
+
+def possible_spine_to_spine_distances(model, possible_spines,neuron_object):
+    from moose_nerp.prototypes import spatiotemporalInputMapping as stim
+    neuron = neuron_object#list(model.neurons.values())[0][0]
+    bd = stim.getBranchDict(neuron)
+    comp_to_branch_dict = stim.mapCompartmentToBranch(neuron)
+    
+    def compute_spine_to_spine_dist(spine, other_spine,print_info=False):
+        '''Compute the path distance along dendritic tree between any two spines'''
+        # get parent compartment of spine
+        spine_parents = [spine['parentComp'], other_spine['parentComp']]
+
+        # get the branch of the spine_parent
+        spine_branches = [comp_to_branch_dict[sp.path] for sp in spine_parents]
+        branch_paths = spine_branches[0]['BranchPath'], spine_branches[1]['BranchPath']
+        # if on same branch
+        if spine_branches[0]==spine_branches[1]:
+            # if on same compartment:
+            if spine_parents[0]==spine_parents[1]:
+                spine_to_spine_dist = np.sqrt((spine['x'] - other_spine['x'])**2 + (spine['y'] - other_spine['y'])**2 + (spine['z'] - other_spine['z'])**2)
+            # else if on same branch but not same compartment:
+            else:
+                compdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
+                complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
+                compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
+                comp_to_comp_distance = np.abs(compdistances[0][compindexes[0]] - compdistances[1][compindexes[1]])
+                spine_to_spine_dist = comp_to_comp_distance
+        # else if on different branches, find common parent branch first
+        else:
+            for a,b in zip(branch_paths[0], branch_paths[1]):
+                #print(a,b)
+                if a == b:
+                    common_parent = a
+            common_parent_distance = bd[common_parent]['CompDistances'][0]
+            if print_info:
+                print('common parent is ', common_parent, 'common_parent_distance is ', common_parent_distance)
+            allcompdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
+            complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
+            compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
+            compdistances = [allcompdistances[0][compindexes[0]], allcompdistances[1][compindexes[1]]]
+            comp_to_comp_distance = (compdistances[0]-common_parent_distance) + (compdistances[1]-common_parent_distance)
+            if print_info:
+                print('compdistances',compdistances,'comp_to_comp_distance', comp_to_comp_distance)
+            spine_to_spine_dist = comp_to_comp_distance
+        return spine_to_spine_dist
+    
+
+    spine_to_spine_dist_array = np.zeros((len(possible_spines)+1, len(possible_spines)+1)) #+1 for adding spine to soma distance
+    spine_index=[]
+    import itertools
+    for spine_pairs in itertools.combinations(range(len(possible_spines)), 2):
+        spine_dist = compute_spine_to_spine_dist(possible_spines[spine_pairs[0]],possible_spines[spine_pairs[1]])
+        spine_to_spine_dist_array[spine_pairs[0], spine_pairs[1]] = spine_dist
+        spine_to_spine_dist_array[spine_pairs[1], spine_pairs[0]] = spine_dist
+    missing=[]
+    for spnum,spine in enumerate(possible_spines):
+        spine_parent=spine['parentComp']
+        if spine_parent.path in comp_to_branch_dict.keys():
+            spine_branch = comp_to_branch_dict[spine_parent.path]
+            allcompdistances = bd[spine_branch['Branch']]['CompDistances']
+            complist = bd[spine_branch['Branch']]['CompList']
+            compindex = complist.index(spine_parent.path)
+            spine_to_spine_dist_array[spnum,-1]=allcompdistances[compindex]
+            spine_to_spine_dist_array[-1,spnum]=allcompdistances[compindex]
+        else:
+            if spine_parent.path not in missing:
+                missing.append(spine_parent.path)
+            #print('spine',spine.path,'parent comp not in comp_to_branch_dict', comp_to_branch_dict.keys())
+    if len(missing):
+        print('these comps not in comp_to_branch_dict',missing)
+
+    return spine_to_spine_dist_array
+
+def choose_spine_clusters(model, possible_spines, spine_to_spine_dist_array, n_clusters, cluster_length, n_spines_per_cluster):
+    # randomly choose n_clusters spines from possible spines
+    # ensure the randomly chosen spines for each different cluster are well distributed 
+    chosen_spine_clusters = []
+    possible_spine_index = list(range(len(possible_spines)))
+    for i in range(n_clusters):
+        validated_spine = False
+        failures=0
+        while not validated_spine:
+            chosen_spine = np.random.choice(possible_spine_index,1)
+            possible_spine_index.remove(chosen_spine)
+            # make sure at least n_spines_per_cluster within cluster_length of chosen spine
+            num_spines_within_length = np.argwhere(spine_to_spine_dist_array[chosen_spine, :]<cluster_length).shape[0]
+            if num_spines_within_length < n_spines_per_cluster:
+                print('too few spines nearby for cluster choose again')
+                continue
+            # Check if chosen spine is at least 3xcluster_length distance from all other clusters
+            if all(spine_to_spine_dist_array[chosen_spine, chosen_spine_clusters] > 3*cluster_length):
+                chosen_spine_clusters.append(chosen_spine[0])
+                validated_spine = True
+                print('chosen spine cluster length ', len(chosen_spine_clusters)) 
+            else:
+                failures+=1
+        print('cluster',i,'too close to other spines in cluster choosing again', failures,'times')
+    
+    # Now randomly choose n_spines_percluster within cluster_length of each cluster
+    chosen_spines_in_each_cluster = []
+    for i in range(n_clusters):
+        origin_spine = chosen_spine_clusters[i]
+        choices = np.random.choice(np.where(
+            (spine_to_spine_dist_array[origin_spine,:]<cluster_length) &
+            (spine_to_spine_dist_array[origin_spine,:]>0))[0],
+            size=n_spines_per_cluster-1, replace=False)
+        choices = list(choices)
+        choices.append(origin_spine)
+        chosen_spines_in_each_cluster.append(choices)
+    
+    all_chosen_spines = [s for clus in chosen_spines_in_each_cluster for s in clus]
+    return chosen_spine_clusters,chosen_spines_in_each_cluster,all_chosen_spines
+
+def add_one_spine_from_spine_info(spine_info, model,SpineParams,container,ghkYN,name_soma):
+    compName = spine_info['compName']
+    neck_path = spine_info['neck_path']
+    parentComp = spine_info['parentComp']
+    neck = moose.Compartment(neck_path)
+    #log.debug('{} at {} x,y,z={},{},{}', neck.path, frac, parentComp.x, parentComp.y, parentComp.z)
+    moose.connect(parentComp,'raxial',neck,'axial','Single')
+    neck.x0, neck.y0, neck.z0 = spine_info['x'], spine_info['y'], spine_info['z']
+    neck.x, neck.y, neck.z = neck.x0, neck.y0 + SpineParams.necklen, neck.z0
+    setSpineCompParams(model, neck,SpineParams.neckdia,SpineParams.necklen,SpineParams.neckRA,SpineParams.spineRM,SpineParams.spineCM)
+    head_path = spine_info['head_path']
+    head = moose.Compartment(head_path)
+    moose.connect(neck, 'raxial', head, 'axial', 'Single')
+    head.x0, head.y0, head.z0 = neck.x, neck.y, neck.z
+    head.x, head.y, head.z = SpineParams.headlen*np.array([head.x0, head.y0, head.z0])/norm(np.array([head.x0, head.y0, head.z0]))
+
+    setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
+
+    surface_area = parentComp.diameter*parentComp.length*np.pi
+    reverse_compensate_for_explicit_spines(model,parentComp,spine_surface(SpineParams),surface_area)
+    # add channel code for single spine here
+    if SpineParams.spineChanList:
+        if ghkYN:
+            ghkproto=moose.element('/library/ghk')
+            ghk=moose.copy(ghkproto,comp,'ghk')[0]
+            moose.connect(ghk,'channel',comp,'channel')
+        chan_dict = {}
+        for c in SpineParams.spineChanList:
+            chan_dict.update(c)
+        for chanpath,mult in chan_dict.items():
+            cond = mult#*distance_mapping(modelcond[chanpath],head)
+            if cond > 0:
+                log.debug('Testing Cond If {} {}', chanpath, cond)
+                calciumPermeable = model.Channels[chanpath].calciumPermeable
+                addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
+    return head
