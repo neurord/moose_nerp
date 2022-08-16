@@ -115,20 +115,19 @@ def MakeTimeTables(Stimulation,spine_no):
     StimParams = Stimulation.Paradigm
     delay = Stimulation.stim_delay
     location=Stimulation.StimLoc
-    print('maketimetab location',location)
+    print('maketimetab location=',location)
 
     time_tables = {}
     if location.spine_density==0.0:
         how_many=spine_no
     else:
         if location.which_spines in ['all','ALL','All']:
-            how_many  = round(location.spine_density*spine_no)
+            how_many  = max(1,round(location.spine_density*spine_no))
         elif location.which_spines:
             how_many  = round(location.spine_density*len(location.which_spines))
-
     for i in range(StimParams.n_train):
         for j in range(StimParams.n_burst):
-            for k in range(StimParams.n_pulse):
+            for k in range(StimParams.n_pulse): 
                 if location.spine_density==0:
                     my_spines=location.stim_dendrites
                 elif location.pulse_sequence:
@@ -138,25 +137,22 @@ def MakeTimeTables(Stimulation,spine_no):
                 elif location.which_spines in ['all','ALL','All']:
                     my_spines = []
                     how_many_spines = 0
-                    while True:
+                    while how_many_spines<how_many:
                         spine = random.randint(0,spine_no-1)
                         if spine not in my_spines:
                             my_spines.append(spine)
                             how_many_spines += 1
-                            if how_many_spines == how_many:
-                                break
 
                 elif  location.which_spines:
                     my_spines = []
                     how_many_spines = 0
-                    while True:
+                    while how_many_spines<how_many:
                         r = random.randint(0,len(location.which_spines)-1)
                         spine = location.which_spines[r]
                         if spine not in my_spines:
                             my_spines.append(spine)
                             how_many_spines += 1
-                            if how_many_spines == how_many:
-                                break
+
                 #ANOTHER ISSUE: This will create identical time_tables for each spine, instead of hooking up same tt to multiples
                 loop_through_spines(i,j,k,my_spines,time_tables,delay,StimParams)
 
@@ -185,34 +181,43 @@ def enumerate_spine_synchans(model,dendrite):
     return num_spines,synapses    
 
 def HookUpDend(model,dendrites,container,dendpath):
+    print('HUD',dendrites,container,dendpath)
     if model.Stimulation.StimLoc.spine_density>0:
-        num_spines,synchans=enumerate_spine_synchans(model,dendrites)
-        tt_root_name=container.path+'/TimTab'+dendrite.name
-    else:
+        synchans={}
+        num_spines=0
+        for dend in dendrites:
+            num_spine,sc=enumerate_spine_synchans(model,dendpath+dend)
+            synchans[dend]=sc
+            num_spines+=num_spine
+            tt_root_name=container.path+'/TimTab'+dend
+    elif model.Stimulation.StimLoc.syntype:
         num_spines=1
         synchans={dend:[dendpath+dend+'/'+model.Stimulation.StimLoc.syntype] for dend in dendrites}
         tt_root_name=container.path+'/TimTab'
         print('HookUpDend, syn:', synchans,num_spines)
+    else:
+        import sys
+        sys.exit('******* ERROR: HookUpDend, either Stimulation.StimLoc.spine_density>0 or Stimulation.StimLoc.syntype not None')
     if getattr(model.Stimulation.StimLoc,'weight',None):
         weight=model.Stimulation.StimLoc.weight
     else:
         weight=1
-    time_tables = MakeTimeTables(model.Stimulation,num_spines)
+    time_tables = MakeTimeTables(model.Stimulation,num_spines) #may not work as expected with multiple dendrites
     freq=model.Stimulation.Paradigm.f_pulse
     print('HookUpDend, tt:', time_tables)
     stimtab = {}
     stim_syn = {}
-    for spine in time_tables.keys():
+    for spine in time_tables.keys(): #time_tables has key=spine_number, synchans has key=dendrite
         stimtab[spine] = moose.TimeTable('%s_%s_%s' % (tt_root_name,str(spine),str(int(freq))))
         stimtab[spine].vector = np.array(time_tables[spine])
         stimtab[spine].tick=7#moose.element(synchans[spine][0]).tick
-        print('HUD, stimtab {} tick {} synchans {}'.format(stimtab,stimtab[spine].tick,synchans[spine]))
+        print('HUD, stimtab {} tick {} synchans {}'.format(stimtab,stimtab[spine].tick,synchans[dend][spine]))
 
-        for synchan in synchans[spine]:  #if neuron has spines, is this syntax needed?
-              synapse = moose.element(synchan+'/SH')
-              print('**** ready to connect',synapse.path,stimtab[spine].vector,model.Stimulation.Paradigm.name,'weight=',weight)
-              connect.synconn(synapse.path,0,stimtab[spine],model.param_syn,weight=weight)
-              stim_syn[synchan]=(stimtab[spine],synapse,synapse.synapse.num-1)
+        for synchan in synchans[dend][spine]:  #if neuron has spines, is this syntax needed?
+            synapse = moose.element(synchan.path+'/SH')
+            print('**** ready to connect',synapse.path,stimtab[spine].vector,model.Stimulation.Paradigm.name,'weight=',weight)
+            connect.synconn(synapse.path,0,stimtab[spine],model.param_syn,weight=weight)
+            stim_syn[synchan]=(stimtab[spine],synapse,synapse.synapse.num-1)
             
     return stimtab,synchans,stim_syn
 
