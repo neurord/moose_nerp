@@ -57,6 +57,22 @@ BKChannelParams=NamedList('BKChannelParams', 'alphabeta K delta')
 
 ChannelSettings = NamedList('ChannelSettings', 'Xpow Ypow Zpow Erev name')
 
+def dist_dependent_cond_equation(cmin, cmax, dhalf, slope):
+    '''Returns a function only of distance that specifies a distance
+    dependent sigmoid equation for channel conductance.
+
+    cmin: minimal distance-dependent conductance
+    cmax: maximal distant-dependent conductance
+    dhalf: distance from soma where amplitude of sigmoid is one half max-min
+    slope: slope of sigmoid equation. If positive, somatic conductance is higher; If negative, somatic conductance is smaller
+    '''
+
+    def equation(distance):
+        return cmin+(cmax-cmin)/(1+np.exp((distance-dhalf)/slope))
+
+    print('{}+({}-{})/(1+np.exp((distance-{})/{})))'.format(cmin,cmax,cmin,dhalf,slope))
+    return equation
+
 def sigmoid(x,xmin,xmax,xvhalf,xslope):
     return xmin+xmax/(1+np.exp((x-xvhalf)/xslope))
 #notice the x-xvhalf in sigmoid, but x+xvhalf used by MOOSE
