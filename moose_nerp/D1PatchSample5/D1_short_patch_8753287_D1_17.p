@@ -1,5 +1,5 @@
-*Original .swc file : /home/dbd/ResearchNotebook/luebke/CNG version/Apr29IR2b.CNG.swc
-*Modified to .p file on : 2019-06-19 11:10:37.960375
+//*Original .swc file : /home/dbd/ResearchNotebook/luebke/CNG version/Apr29IR2b.CNG.swc
+//*Modified to .p file on : 2019-06-19 11:10:37.960375
 //Source: neuromorpho Luebke archive Apr29IR2b D1 wildtype.
 //Note: Selected to model patch due to shorter dendritic branches but otherwise similar morphology to the morphology used for D1 matrix.
 //UNITS: micros for x,y,d dia, SI otherwise
@@ -7,7 +7,7 @@
 *relative     
 *cartesian     
 *asymmetric     
-*lambda_warn     
+//*lambda_warn     
      
 *set_global RA 1.3015353004070984
 *set_global CM 0.011391615228350225
@@ -16,7 +16,7 @@
 *set_global ELEAK -0.08799305349400305
      
 *start_cell     
-*cylindrical     
+//*cylindrical     
 
 soma none 0.0 0.0 11.738 9.856
 27_3 soma 0.0 0.0 25.94 0.965
