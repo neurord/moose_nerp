@@ -29,18 +29,22 @@ def create_set_of_Xarrays(newX,adjX,numbins,weight_change_event_df,all_cor,num_e
     Xbins_adj,_=downsample_X(adjX,numbins,weight_change_event_df,num_events,add_start_wt=False)
     Xbins_combined=np.concatenate((Xbins,Xbins_adj),axis=1)
     Xbins_dist=np.concatenate((Xbins,weight_change_event_df['spine_soma_dist'].to_numpy().reshape(num_events,1)),axis=1)
-    #Xbins_clust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1), weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
-    Xbins_clust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1)),axis=1)
-    Xbins_distclust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1),weight_change_event_df['spine_soma_dist'].to_numpy().reshape(num_events,1)),axis=1)
-    Xbins_spclust=np.concatenate((Xbins,weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
-    Xbins_allclust=np.concatenate((Xbins_clust,weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
-    set_of_Xbins={'':Xbins,'_adj':Xbins_combined,'_dist':Xbins_dist,'_clust':Xbins_clust,'_dist_clust':Xbins_distclust,'_spines':Xbins_spclust,'_spines_clustLen':Xbins_allclust}
+    set_of_Xbins={'':Xbins,'_adj':Xbins_combined,'_dist':Xbins_dist}
+    if 'cluster_length' in weight_change_event_df.columns:
+        #Xbins_clust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1), weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
+        Xbins_clust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1)),axis=1)
+        Xbins_distclust=np.concatenate((Xbins,weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1),weight_change_event_df['spine_soma_dist'].to_numpy().reshape(num_events,1)),axis=1)
+        Xbins_spclust=np.concatenate((Xbins,weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
+        Xbins_allclust=np.concatenate((Xbins_clust,weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)),axis=1)
+        set_of_Xbins={'':Xbins,'_adj':Xbins_combined,'_dist':Xbins_dist,'_clust':Xbins_clust,'_dist_clust':Xbins_distclust,'_spines':Xbins_spclust,'_spines_clustLen':Xbins_allclust}
     return set_of_Xbins,feat_lbl
 
 def random_forest_LeaveNout(newX, adjacentX, y, weight_change_event_df,all_cor,bin_set,num_events,trials=3,linear=False):
     from sklearn.model_selection import train_test_split
     from sklearn import linear_model
-    feature_types=['','_adj','_dist','_clust', '_dist_clust','_spines','_spines_clustLen']
+    feature_types=['','_adj','_dist']
+    if 'cluster_length'  in weight_change_event_df.columns:
+       feature_types=feature+types+['_clust', '_dist_clust','_spines','_spines_clustLen']
     reg_score={str(bn)+k :[] for bn in bin_set for k in feature_types}
     feature_import={str(bn)+k :[] for bn in bin_set for k in feature_types}
     linreg_score={str(bn)+k :[] for bn in bin_set for k in feature_types}

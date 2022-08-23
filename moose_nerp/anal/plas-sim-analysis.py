@@ -30,23 +30,25 @@ from scipy.stats import pearsonr
 import plas_sim_anal_utils as psau #from moose_nerp.anal 
 import plas_sim_plots as plas_plot
 
-#### Control which analyses and graphs to generate
-#path = '/home/dbd/ResearchNotebook/IBAGS2019/FiguresSrc/'
+#### Where to put figures when savefig=True.  
 figure_path='/home/avrama/moose/NSGPlas_2022jun23_ran0_220_uni/'
-#figure_path='C:\\Users\\kblackw1\\Documents\\StriatumCRCNS\\SPmodelCalcium\\DormanPlasticity\\'#'/home/avrama/python/DormanAnal/'
-#'/home/dbd/Dissertation/plasChapterFigs/'
-#data file directory: need to allow this to be specified with args
+#'/home/dbd/Dissertation/plasChapterFigs/''/home/dbd/ResearchNotebook/IBAGS2019/FiguresSrc/'
+####data file directory: need to allow this to be specified with args
 ddir = figure_path+'NSGPlasticity/testdata/'
-#'/home/dbd/moose_nerp/'
-#'/home/avrama/moose/moose_nerp/moose_nerp/plas_simD1PatchSample5_str_net/'
-#'/run/media/Seagate/ExternalData/plasticity_full_output/NSGPlasticity/testdata/'
+#ddir='/media/mybook/ExternalData/plasticity_full_output/NSGPlasticity/testdata' #old seed (not clustered)
 csvdir=figure_path+'NSGPlasticity/'
-#csvdir='C:\\Users\\kblackw1\\Documents\\StriatumCRCNS\\SPmodelCalcium\\DormanPlasticity\\'#'/home/dbd/ResearchNotebook/'#
 spine_soma_dist_file='/home/avrama/python/DormanAnal/spine_soma_distance.csv'
 spine_to_spine_dist_file=csvdir+'D1_short_patch_8753287_D1_17_s2sdist.npz'
-#spine_to_spine_dist_file=figure_path+'spine_to_spine_dist_D1PatchSample5.csv'
+#### For truncated normal and moved spikes
+ddir='/home/avrama/python/DormanAnal/'
+input_dir='/home/dbd/moose_nerp_old/' #also has trunc_normal and moved outputs with longer filenames
+figure_path=ddir+'figures/'
+csvdir=ddir
+spine_to_spine_dist_file=csvdir+'spine_to_spine_dist_D1PatchSample5.csv'
+####for clustered inputs
 param_file=csvdir+'testparams.pickle'
 
+#### Control which analyses and graphs to generate
 plot_input=False
 plot_hist=False
 regression_all=False #this takes a long time
@@ -57,12 +59,10 @@ linear_reg=False
 plot_neighbor_image=False
 combined_presyn_cal=False
 combined_spatial=False
-savefig=True
+savefig=False
 fontsize=12
 warnings=5
-dW=True
-
-#ARGS='seed'
+dW=False
 
 try:
     commandline = ARGS.split() #in python: define space-separated ARGS string
@@ -84,25 +84,25 @@ sigma={}
 ############################ Specify Files ############################33
 if sim_files=='trunc_normal':
     ###### 1. Truncated Normal, control using glob
-    files = {k:glob.glob(ddir+'plas_sim*'+fn+'*simtime_21.5*thresh_mod_1.158*')[0] for k,fn in zip(['low','medium','intermediate','high'],['LowV','MediumV','HighV','HigherV'])}
-    #files = {k:glob.glob(ddir+'*'+fn+'*')[0] for k,fn in zip(['low','medium','intermediate'],['LowV','MediumV','HighV'])}
+    files = {k:glob.glob(ddir+'plas_sim*'+fn+'*simtime_21.5*thresh_mod_1.158*')[0] for k,fn in zip(['low','medium','high','higher'],['LowV','MediumV','HighV','HigherV'])}
+    #files = {k:glob.glob(ddir+'*'+fn+'*')[0] for k,fn in zip(['low','medium','high'],['LowV','MediumV','HighV'])}
     if plot_input:
-        tt_names={k:glob.glob(ddir+'FullTrial'+fn+'*TruncatedNormal.npz')[0] for k,fn in zip(['low','medium','intermediate','high'],['LowV','MediumV','HighV','HigherV'])}
+        tt_names={k:glob.glob(input_dir+'FullTrial'+fn+'*TruncatedNormal.npz')[0] for k,fn in zip(['low','medium','high','higher'],['LowV','MediumV','HighV','HigherV'])}
     wt_change_title=''
 elif sim_files=='nmda_block':
     ###### 2. Truncated Normal, nmda block using glob
-    files = {k:glob.glob(ddir+'*'+fn+'*nonmda*')[0] for k,fn in zip(['low','medium','intermediate','high'],['LowV','MediumV','HighV','HigherV'])}
+    files = {k:glob.glob(ddir+'*'+fn+'*nonmda*')[0] for k,fn in zip(['low','medium','high','higher'],['LowV','MediumV','HighV','HigherV'])}
     ## input time tables for truncated normal simulations
     if plot_input:
-        tt_names={k:glob.glob(ddir+'FullTrial'+fn+'*TruncatedNormal.npz')[0] for k,fn in zip(['low','medium','intermediate','high'],['LowV','MediumV','HighV','HigherV'])}
+        tt_names={k:glob.glob(input_dir+'FullTrial'+fn+'*TruncatedNormal.npz')[0] for k,fn in zip(['low','medium','high','higher'],['LowV','MediumV','HighV','HigherV'])}
     wt_change_title='nmda block'
 elif sim_files=='moved':
     ###### 3. Alternative method of introducing variability
-    files = {int(f.split('Prob_')[-1].split('_Percent')[0]):f for f in glob.glob(ddir+'*MovedSpikes*.npy')}
+    files = {int(f.split('Prob_')[-1].split('_Percent')[0].split('.')[0]):f for f in glob.glob(ddir+'*MovedSpikes*.npy')}
     files = {k:f for k,f in sorted(files.items())} #sort by move probability
     ## input time tables for moved spikes
     if plot_input:
-        tt_names={k:glob.glob(ddir+'MovedSpikesToOtherTrains_Prob_'+str(k)+'_Percent.npz')[0] for k in range(10,101,10)}
+        tt_names={k:glob.glob(input_dir+'MovedSpikesToOtherTrains_Prob_'+str(k)+'_Percent.npz')[0] for k in range(10,101,10)}
     #low=list(tt_names.keys())[0]
     #high=list(tt_names.keys())[-1] 
     wt_change_title='Moved Spikes'
@@ -124,7 +124,7 @@ elif sim_files.startswith('seed'):
 
 if 'low' in files.keys():
     titles = ['$\sigma=1$ ms','$\sigma=10 $ ms','$\sigma=100 $ ms','$\sigma=200 $ ms']
-    sigma={'low':1,'medium':10,'intermediate':100,'high':200}
+    sigma={'low':1,'medium':10,'high':100,'higher':200}
     keys=list(files.keys())
     low='low'
     high='higher'
@@ -161,12 +161,11 @@ params={'neighbors':20,
         'simtime':simtime,
         'nochangedW':nochangedW}
 
-if plot_input: ######### fcombined is Figure 1 in manuscript
-    from plas_sim_anal_utils import input_plot
+if plot_input and len(tt_names): ######### fcombined is Figure 1 in manuscript
     ############ Input spike trains ##################
     tt_Ctx_SPN={k:np.load(f,allow_pickle=True) for k,f in tt_names.items()}
     
-    fraster,fcombined=input_plot(tt_Ctx_SPN,datalow,low,high)
+    fraster,fcombined=plas_plot.input_plot(tt_Ctx_SPN,datalow,low,high)
     if savefig:
         fraster.savefig(figure_path+sim_files+'initialTrialRasterPSTH.pdf')
         fcombined.savefig(figure_path+sim_files+'RasterPSTHSomaVmCombined.pdf')
@@ -498,6 +497,7 @@ pot_cov = np.cov(combined_neighbors_array[::100,pot_index], weight_change_allign
 all_cov = []
 all_xcor = []
 all_cor = []
+num_nan_corr=0
 for i in range(combined_neighbors_array.shape[1]):
     if not any(np.isnan(combined_neighbors_array[:,i])):
         temp_cov = np.cov(combined_neighbors_array[:,i].T, weight_change_alligned_array[0,:,i] , bias=True)
@@ -507,10 +507,15 @@ for i in range(combined_neighbors_array.shape[1]):
         #print('shape=',np.shape(temp_cov),', cor=',round(temp_cor[0],3),', cov=',round(temp_cov[0,1],1))
         temp_corr = np.corrcoef(combined_neighbors_array[:,i].T, weight_change_alligned_array[0,:,i])
         if np.isnan(temp_corr[0,1]):
-            print ('NAN in temp_corr',i,binned_trains_index[i])
-            all_cor.append(0)#FIXME
+            all_cor.append(-9)#FIXME
+            if combined_neighbors_array.shape[1]==len(binned_trains_index): #this is true if only a single trial was simulated
+                print ('NAN in temp_corr',i,binned_trains_index[i])
+            else:
+                num_nan_corr+=1
         else:
             all_cor.append(temp_corr[0,1])
+if num_nan_corr>0:
+    print('number of NANs in temp_corr=',num_nan_corr)
 all_cov = np.array(all_cov)
 all_xcor = np.array(all_xcor)
 all_cor = np.array(all_cor)
@@ -646,7 +651,7 @@ newchangedf=newdf[(newdf.weight_change>.01) | (newdf.weight_change<-0.01)]
 print('CHANGE DF: correlation, direct firing:',pearsonr(newchangedf['synapse'],newchangedf['weight_change']),
       ', adj firing:',pearsonr(newchangedf['adj'],newchangedf['weight_change']))
 
-if 'cluster_length' in weight_change_event_df:
+if 'cluster_length' in weight_change_event_df.columns:
     clust_len=weight_change_event_df['cluster_length'].to_numpy().reshape(num_events,1)
     clust_sp=weight_change_event_df['spines_per_cluster'].to_numpy().reshape(num_events,1)
     newdf=pd.DataFrame(data=np.column_stack([Xbins,Xadj,y,clust_len,clust_sp]),columns=['synapse','adj','weight_change','cluster_length','spines_per_cluster'])
