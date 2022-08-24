@@ -135,7 +135,7 @@ def moose_main(corticalinput,LTP_amp_thresh_mod=1.158, LTD_amp_thresh_mod=1.656,
         allTables = moose.wildcardFind("/##[ISA=Table]")
         streamer = moose.Streamer("/streamer")
         streamer.outfile = "plas_sim{}_{}_corticalfraction_{}_LTP_amp_thresh_mod_{}_LTD_amp_thresh_mod_{}_LTP_dur_thresh_mod_{}_LTD_dur_thresh_mod_{}_LTP_gain_mod_{}_LTD_gain_mod_{}.npy".format(model.name,
-            net.param_net.tt_Ctx_SPN.filename, 0.8, LTP_amp_thresh_mod, LTD_amp_thresh_mod, LTP_dur_thresh_mod, LTD_dur_thresh_mod, LTP_gain_mod, LTD_gain_mod,
+            os.path.basename(net.param_net.tt_Ctx_SPN.filename), 0.8, LTP_amp_thresh_mod, LTD_amp_thresh_mod, LTP_dur_thresh_mod, LTD_dur_thresh_mod, LTP_gain_mod, LTD_gain_mod,
         )
         moose.setClock(streamer.tick, 0.1)
         for t in allTables:
@@ -143,6 +143,13 @@ def moose_main(corticalinput,LTP_amp_thresh_mod=1.158, LTD_amp_thresh_mod=1.656,
                 streamer.addTable(t)
             else:
                 t.tick = -2
+
+    spinedistdict = {}
+    for sp in moose.wildcardFind('D1/##/#head#[ISA=CompartmentBase]'):
+        dist,_ = util.get_dist_name(sp)
+        path = sp.path
+        spinedistdict[path]=dist
+    np.save(os.path.basename(net.param_net.tt_Ctx_SPN.filename)+'_spine_dist_dict.npy',spinedistdict)
 
     ################### Actually run the simulation
     def run_simulation(injection_current, simtime):
@@ -168,11 +175,12 @@ def multi_main():
     p = Pool(4, maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
     # cfs = ['FullTrialLowVariability', 'FullTrialHighVariability','FullTrialHigherVariability']
+    #remove str_net/ from filenames if running from within str_net directory
     cfs = [
         "str_net/FullTrialLowVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialHighVariabilitySimilarTrialsTruncatedNormal",
-        #"str_net/FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
+        "str_net/FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
     ]
     results = p.map(moose_main, cfs)
     return dict(zip(cfs, results))
@@ -183,11 +191,12 @@ def multi_plas_rule_main():
     p = Pool(16, maxtasksperchild=1)
     # Apply main simulation varying cortical fractions:
     # cfs = ['FullTrialLowVariability', 'FullTrialHighVariability','FullTrialHigherVariability']
+    #remove str_net/ from filenames if running from within str_net directory
     cfs = [
         "str_net/FullTrialLowVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal",
         "str_net/FullTrialHighVariabilitySimilarTrialsTruncatedNormal",
-        "FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
+        "str_net/FullTrialHigherVariabilitySimilarTrialsTruncatedNormal",
     ]
 
     plas_mod_values = [.5,2]
