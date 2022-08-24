@@ -114,18 +114,20 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     for s in wildcardStrings:
         l = moose.wildcardFind(neuron.path+'/##/#'+s+'#[ISA='+elementType+']')
         allList.extend(l)
-    #print(allList)
+    #print('allList', allList)
     if branch_list is None:
         possibleBranches = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
                                           commonParentOrder=commonParentOrder, min_length = min_length, min_path_length = minDistance, max_path_length = maxDistance,seed=branch_seed)
     else:
         possibleBranches = branch_list
+    #print('********** possibleBranches\n', possibleBranches,'\n exclude',exclude_branch_list)
     if exclude_branch_list is not None:
         possibleBranches = [b for b in possibleBranches if b not in exclude_branch_list]
     bd = getBranchDict(neuron)
     possibleCompartments = [comp for branch in possibleBranches for comp in bd[branch]['CompList']]
     possible_comp_dists = [d for branch in possibleBranches for d in bd[branch]['CompDistances']]
     elementList = []
+    #print('#####possible compartments\n', possibleCompartments)
     for el in allList:
         # Get Distance of element, or parent compartment if element not compartment
         el = moose.element(el)
@@ -140,8 +142,6 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
         if any(s in name.lower() for s in ['head'.lower(),'neck'.lower()]):
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = moose.element(path).parent
-        #print('#####possible compartments')
-        #print(possibleCompartments)
         #print(name, dist, path)
         if path.path in possibleCompartments:
             ind = possibleCompartments.index(path.path)
