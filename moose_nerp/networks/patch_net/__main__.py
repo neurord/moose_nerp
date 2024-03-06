@@ -158,7 +158,7 @@ for inj in param_sim.injection_current:
             net_graph.syn_graph(connections, nonstim_plastab, param_sim, graph_title='NonStim Plas Weight')
 
         if model.spineYN and not param_sim.useStreamer:
-            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
+            spine_graph.spineFig(model, param_sim.simtime,model.spinevmtab, model.spinecatab)
     else:
         if net.plot_netvm and not param_sim.useStreamer:
             net_graph.graphs(population['pop'], param_sim.simtime, model.vmtab,model.catab,model.plastab)

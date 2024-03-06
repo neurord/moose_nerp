@@ -57,10 +57,11 @@ model.spineYN = False
 net.single=False#True#
 #for k,v in model.param_ca_plas.CaShellModeDensity.items():
 #    model.param_ca_plas.CaShellModeDensity[k] = model.param_ca_plas.SHELL
+model.ConcOut = model.param_cond.ConcOut = 1.2 #SI units are mM for concentration
 create_model_sim.setupOptions(model)
 param_sim = model.param_sim
 param_sim.useStreamer = False
-param_sim.plotdt = .1e-3
+param_sim.plotdt = 0.1e-3
 param_sim.stim_loc = model.NAME_SOMA
 param_sim.stim_paradigm = 'inject'
 param_sim.injection_current = [0] #[-0.2e-9, 0.26e-9]
@@ -71,7 +72,7 @@ net.num_inject = 0
 if net.num_inject==0:
     param_sim.injection_current=[0]
 #################################-----------create the model: neurons, and synaptic inputs
-model=create_model_sim.setupNeurons(model,network=True) # Do not setup hsolve yet, since there may be additional neuron_modules
+model=create_model_sim.setupNeurons(model,network=not net.single) # Do not setup hsolve yet, since there may be additional neuron_modules
 #create dictionary of BufferCapacityDensity - only needed if hsolve & simple calcium dynamics
 buf_cap={neur:model.param_ca_plas.BufferCapacityDensity for neur in model.neurons.keys()}
 
@@ -157,7 +158,7 @@ for inj in param_sim.injection_current:
             net_graph.syn_graph(connections, nonstim_plastab, param_sim, graph_title='NonStim Plas Weight')
 
         if model.spineYN and not param_sim.useStreamer:
-            spine_graph.spineFig(model,model.spinecatab,model.spinevmtab, param_sim.simtime)
+            spine_graph.spineFig(model, param_sim.simtime,model.spinevmtab, model.spinecatab)
     else:
         if net.plot_netvm and not param_sim.useStreamer:
             net_graph.graphs(population['pop'], param_sim.simtime, model.vmtab,model.catab,model.plastab)

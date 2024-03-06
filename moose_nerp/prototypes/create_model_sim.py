@@ -290,8 +290,8 @@ def runAll(model, plotIndividualInjections=False, writeWavesCSV=False, printPara
 
         #plot spines
         if len(model.spinevmtab) and model.param_sim.plot_vm:
-            spine_graph.spineFig(model, model.spinecatab, model.spinevmtab,
-                                 model.param_sim.simtime)
+            spine_graph.spineFig(model, model.param_sim.simtime, model.spinevmtab,
+                                 model.spinecatab )                            )
         #save plain text output - expand this to optionally save current data
         if model.param_sim.save_txt:
             tables.write_textfiles(model, inj, ca=False, spines=False, spineca=False)

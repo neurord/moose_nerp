@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from moose_nerp.prototypes.util import neurontypes
 
-def spineFig(model,spinecatab,spinevmtab,simtime):
+def spineFig(model,simtime,spinevmtab,spinecatab=None):
     f=plt.figure()
     f.canvas.set_window_title('Spines')
     t = np.linspace(0, simtime, len(spinevmtab[0][0].vector))
@@ -19,7 +19,7 @@ def spineFig(model,spinecatab,spinevmtab,simtime):
             else:
                 print('data problem with spine Vm for', oid)
             plt.ylabel('Vm')
-    if model.calYN:
+    if model.calYN and spinecatab:
         plt.subplot(212)
         for neurnum in range(len(neurontypes(model.param_cond))):
             for oid in spinecatab[neurnum]:
