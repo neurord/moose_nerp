@@ -294,22 +294,37 @@ def temporalMapping(inputList, minTime = 0, maxTime = 0, random = True):
     for input in inputList:
         input.delay = np.random.uniform(minTime, maxTime)
 
-def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, duration_limit = None):
+######## Edit this one to use real input trains??  ttables.TableSet.create_all(), randomize_input_trains(net.param_net.tt_Ctx_SPN,ran=randomize)
+####### Then, for each input in inputList, randomly select a tt from timetable.stimtab
+def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, duration_limit = None, input_spikes=None):
     from moose_nerp.prototypes import connect
-    num = len(inputList)
+    
     input_times = []
-    for i,input in enumerate(inputList):
-        sh = moose.element(input.path+'/SH')
-        tt = moose.TimeTable(input.path+'/tt')
-        
-        times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)]
-        times = np.array(times)
-        if duration_limit is not None:
-            times = times[times<(start_time+duration_limit)]
-        tt.vector = times
-        input_times.extend(tt.vector)
-        #print(tt.vector)
-        connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
+    if input_spikes is not None:
+        from moose_nerp.prototypes import ttables
+        from moose_nerp.prototypes.connect import select_entry
+        tt_Ctx_SPN = ttables.TableSet('CtxSPN', input_spikes['fname'],syn_per_tt=input_spikes['syn_per_tt'])
+        ttables.TableSet.create_all()
+        for i,input in enumerate(inputList):
+            sh = moose.element(input.path+'/SH')
+            tt=select_entry(tt_Ctx_SPN.stimtab)
+            connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
+            input_times.extend(tt.vector)
+    else:
+        num = len(inputList)
+        for i,input in enumerate(inputList):
+            sh = moose.element(input.path+'/SH')
+            tt = moose.TimeTable(input.path+'/tt')
+            
+            times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)] #n_per_syn is number of spikes to each synapse
+            print(times)
+            times = np.array(times)
+            if duration_limit is not None:
+                times = times[times<(start_time+duration_limit)]
+            tt.vector = times
+            input_times.extend(tt.vector)
+            #print(tt.vector)
+            connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
     input_times.sort()
     return input_times
 
@@ -326,37 +341,41 @@ def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):
         #print(inputs)
         return inputs
 
+def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None):
+    for neuron in model.neurons.values():
+        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+                                minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
+                                numBranches='all', branchOrder=None,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                branch_list=branch_list,
+                                )
+        if nInputs<len(elementlist):
+            inputs = selectRandom(elementlist,n=nInputs,seed=seed)
+        else:
+            print('Clustered_BLA: unable to provide sufficient inputs within distance specified')
+            inputs=elementlist
+        #print(inputs)
+        return inputs
+
 def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None):
     for neuron in model.neurons.values():
         elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list)
         inputs = selectRandom(elementlist,n=nInputs,seed=seed)
         return inputs
 
-def test():
-    from moose_nerp import D1MatrixSample2 as model
-    from moose_nerp.prototypes import create_model_sim as cms 
-    model.spineYN = True
-    model.calYN = True
-    model.synYN = True
+def report_element_distance(inputs, print_num=40):
+    dist_list=[]
+    for i,el in enumerate(inputs):
+        if isinstance(el, (moose.Compartment, moose.ZombieCompartment)):
+            dist,name = util.get_dist_name(el)
+            path = el
+        elif isinstance(moose.element(el.parent),(moose.Compartment,moose.ZombieCompartment)):
+            dist,name = util.get_dist_name(moose.element(el.parent))
+            path = el.parent
+        dist_list.append(dist)
+        if i < print_num: #don't print out 200 inputs
+            print('     ',el.path,name, dist)
+    print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list))
 
-    cms.setupAll(model)
-    neuron = model.neurons['D1'][0]
-    bd = getBranchDict(neuron)
-    possibleBranches = getBranchesOfOrder(neuron, -1, n='all',
-                                          commonParentOrder=0, min_length = 20e-6, min_path_length = 150e-6, max_path_length = 180e-6)
-    
-    elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                minDistance=180e-6, maxDistance=200e-6, commonParentOrder=0,
-                                numBranches=1, branchOrder=-1,min_length=20e-6,
-                                )
-    # elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-    #                             minDistance=120e-6, maxDistance=200e-6, commonParentOrder=0,
-    #                             numBranches=1, branchOrder=-1,min_length=20e-6,
-    #                             )
-    
-    return elist, possibleBranches
-
-    
 def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):
     # Want to distribute total_num_spines into num_clusters of size cluster_distance
     # Generate num_clusters non-overlapping cluster centers on dendritic tree where the dendritic distance from center of 
@@ -379,113 +398,28 @@ def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_nu
             pass
 
 if __name__ == '__main__':
-    from moose_nerp import d1patchsample2 as model
-    from moose_nerp.prototypes import create_model_sim
-    #model.param_sim.hsolve=False
+    from moose_nerp import D1MatrixSample2 as model
+    from moose_nerp.prototypes import create_model_sim as cms 
     model.spineYN = True
     model.calYN = True
     model.synYN = True
-    model.SpineParams.explicitSpineDensity=1e6
-    model.SpineParams.spineParent = '570_3'
-    model.param_syn._SynNMDA.Gbar = 10e-09*1.2
-    model.param_syn._SynAMPA.Gbar = 1e-09
-    #model.morph_file = 'D1_patch_sample_3.p'
-    #for k,v in model.Condset.D1.NaF.items():
-    #    model.Condset.D1.NaF[k]=0.0
-    model.Condset.D1.NaF[model.param_cond.dist]=0
-    #model.Condset.D1.SKCa[model.param_cond.dist]*=.25
-    #model.Condset.D1.BKCa[model.param_cond.dist]*=.25
-    model.Condset.D1.KaF[model.param_cond.dist]*=.5
-    model.Condset.D1.KaS[model.param_cond.dist]*=.25
-    model.Condset.D1.Kir[model.param_cond.dist]*=.5
+
+    cms.setupAll(model)
+    neuron = model.neurons['D1'][0]
+    bd = getBranchDict(neuron)
+    possibleBranches = getBranchesOfOrder(neuron, -1, n='all',
+                                          commonParentOrder=0, min_length = 20e-6, min_path_length = 50e-6, max_path_length = 180e-6)
     
-
-    for chan in ['CaL12','CaL13']:
-        for k,v in model.Condset.D1[chan].items():
-            #model.Condset.D1[chan][k]*=.2
-            model.Condset.D1[chan][model.param_cond.dist]*=1
-    for chan in ['CaT33']:
-        for k,v in model.Condset.D1[chan].items():
-            #model.Condset.D1[chan][k]*=10#0.000001#.#1.0e-12
-            model.Condset.D1[chan][model.param_cond.dist]*=2
-
-    for chan in ['CaR']:
-        for k,v in model.Condset.D1[chan].items():
-            model.Condset.D1[chan][k]*=.5#0.01#1.2#1.0e-12
-            #model.Condset.D1[chan][model.param_cond.dist]*=1
-            
-    model.param_syn.SYNAPSE_TYPES.nmda.MgBlock.C=1
-    create_model_sim.setupOptions(model)
-
-    create_model_sim.setupNeurons(model)
-
-    create_model_sim.setupOutput(model)
+    elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
+                                minDistance=180e-6, maxDistance=200e-6, commonParentOrder=0,
+                                numBranches=1, branchOrder=-1,min_length=20e-6,
+                                ) #could try minDistance=120e-6
+    elist_DMS=Clustered_BLA(model, nInputs = 32,minDistance=40e-6, maxDistance=60e-6)
+    elist_DLS=Clustered_BLA(model, nInputs = 16,minDistance=80e-6, maxDistance=120e-6)
+    elist={'DMS':elist_DMS,'DLS':elist_DLS}
+    for k,v in elist.items():
+        print('elements and distance for', k)
+        report_element_distance(v, print_num=100)
 
     
-    inputs = exampleClusteredDistal(model,nInputs = 15)
-    spine_cur_tab = []
-    which_spine = inputs[0].parent
-    for ch in ['SKCa','CaL13','CaL12','CaR','CaT33','CaT32']:
-        chan = moose.element(which_spine.path+'/'+ch)
-        tab = moose.Table('data/'+chan.path.replace('/','__').replace('[0]',''))
-        moose.connect(tab,'requestOut',chan,'getGk')
-        spine_cur_tab.append(tab)
-    
-
-    plotgates =['CaR','CaT32','CaT33','CaL12','CaL13']
-    model.gatetables = {}
-    
-    for plotgate in plotgates:
-        model.gatetables[plotgate] = {}
-        gatepath = which_spine.path+'/'+plotgate
-        gate = moose.element(gatepath)
-        gatextab=moose.Table('/data/'+plotgate+'_gatex')
-        moose.connect(gatextab, 'requestOut', gate, 'getX')
-        model.gatetables[plotgate]['gatextab']=gatextab
-        gateytab=moose.Table('/data/'+plotgate+'_gatey')
-        moose.connect(gateytab, 'requestOut', gate, 'getY')
-        model.gatetables[plotgate]['gateytab']=gateytab
-        if model.Channels[plotgate][0][2]>0:
-            gateztab=moose.Table('/data/'+plotgate+'_gatez')
-            moose.connect(gateztab, 'requestOut', gate, 'getZ')
-            model.gatetables[plotgate]['gateztab']=gateztab
-
-
-    #dispersed_inputs = dispersed(model, nInputs = 100)
-    createTimeTables(inputs,model,n_per_syn=3)
-    #createTimeTables(dispersed_inputs,model,n_per_syn=2,start_time=0.01,freq=100.0)
-    #c = moose.element('D1/634_3')
-    #c.Rm = c.Rm*100
-
-    moose.reinit()
-    moose.start(.4)
-    create_model_sim.neuron_graph.graphs(model, model.vmtab, False,.4)
-    from matplotlib import pyplot as plt
-    plt.ion()
-    plt.show()
-    plt.figure()
-    for i in model.spinevmtab[0]:
-        t = np.linspace(0,.4,len(i.vector))
-        plt.plot(t,i.vector)
-
-    n = model.neurons['D1'][0]
-    d_vs_len = [(p,c.diameter) for c,p in zip(n.compartments,n.geometricalDistanceFromSoma)]
-    d_vs_len = np.array(d_vs_len)
-    plt.figure()
-    plt.scatter(d_vs_len[:,0],d_vs_len[:,1])
-
-    plt.figure()
-    
-    for cur in spine_cur_tab:
-        plt.plot(cur.vector,label=cur.name.strip('_'))
-    
-    plt.legend()
-    create_model_sim.plot_channel.plot_gate_params(moose.element('/library/CaT32'),3)
-
-    
-    for c,d in model.gatetables.items():
-        plt.figure()
-        plt.title(c)
-        for g,t in d.items():    
-            plt.plot(t.vector,label=g)
-        plt.legend()
+ 
