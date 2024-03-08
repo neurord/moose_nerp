@@ -7,8 +7,7 @@ def spineFig(model,simtime,spinevmtab,spinecatab=None):
     f=plt.figure()
     f.canvas.set_window_title('Spines')
     t = np.linspace(0, simtime, len(spinevmtab[0][0].vector))
-    tca = np.linspace(0, simtime, len(spinecatab[0][0].vector))
-    if model.calYN:
+    if model.calYN and spinecatab:
         plt.subplot(211)
     for neurnum in range(len(neurontypes(model.param_cond))):
         for oid in spinevmtab[neurnum]:
@@ -21,6 +20,7 @@ def spineFig(model,simtime,spinevmtab,spinecatab=None):
             plt.ylabel('Vm')
     if model.calYN and spinecatab:
         plt.subplot(212)
+        tca = np.linspace(0, simtime, len(spinecatab[0][0].vector))
         for neurnum in range(len(neurontypes(model.param_cond))):
             for oid in spinecatab[neurnum]:
                 if len(oid.vector)==len(t):
