@@ -174,12 +174,12 @@ def setup_model(model, mod_dict, block_naf=False, filename=None):
         model.param_sim.fname = filename
     model.param_sim.save_txt = True
     model.param_sim.plot_vm = False
-    model.param_sim.plot_current = True
+    model.param_sim.plot_current = False #True
     model.param_sim.plot_current_message = "getIk"
     model.spineYN = True
     model.calYN = True
     model.synYN = True
-    model.SpineParams.explicitSpineDensity = 1e6
+    #model.SpineParams.explicitSpineDensity = 1e6
     if any("patch" in v for v in model.morph_file.values()):
         # model.SpineParams.spineParent = "570_3"
         model.clusteredparent = "570_3"
@@ -187,7 +187,7 @@ def setup_model(model, mod_dict, block_naf=False, filename=None):
         # model.SpineParams.spineParent = "1157_3"
         model.clusteredparent = "1157_3"
 
-    model.SpineParams.spineParent = model.clusteredparent  # "soma"
+    model.SpineParams.spineParent = "soma" #model.clusteredparent  # clusteredparent will create all spines in one compartment only
     modelname = model.__name__.split(".")[-1]
     model.param_syn._SynNMDA.Gbar = 10e-09 * mod_dict[modelname]["NMDA"]
     model.param_syn._SynNMDA.tau2 *= 2
@@ -196,7 +196,7 @@ def setup_model(model, mod_dict, block_naf=False, filename=None):
     model.param_syn._SynAMPA.spinic=True #allow synapses on dendrites even if there are spines
     model.param_syn._SynNMDA.spinic=True
     mod_dist_gbar(model, mod_dict[modelname])
-
+    print('NaF vals', model.param_cond.Condset['D1']['NaF'], 'block_naf=', block_naf)
     if block_naf:
         for k, v in model.Condset.D1.NaF.items():
             model.Condset.D1.NaF[k] = 0.0
@@ -229,7 +229,6 @@ def iv_main(model, mod_dict, block_naf=False, filename=None):
 
     create_model_sim.runAll(model)
 
-
 def upstate_main(
     model,
     mod_dict,
@@ -244,10 +243,13 @@ def upstate_main(
     filename=None,
     do_plots=False,
     injection_current = None,
+    time_tables=None,
+    start_stim=0.3
 ):
     import numpy as np
     from moose_nerp.prototypes import create_model_sim, tables
     from moose_nerp.prototypes import spatiotemporalInputMapping as stim
+    from moose_nerp.graph import plot_channel,spine_graph
     import moose
 
     model = setup_model(model, mod_dict, block_naf=block_naf, filename=filename)
@@ -258,19 +260,28 @@ def upstate_main(
     modelname = model.__name__.split(".")[-1]
 
     branch_list = ["/D1[0]/{}[0]".format(model.clusteredparent)]
-
+    ############# Identify a cluster of synapses for stimulation ########################
     if num_clustered > 0:
-        inputs = stim.exampleClusteredDistal(
-            model,
-            nInputs=num_clustered,
-            branch_list=branch_list,
-            seed=clustered_seed,  # 6,
-        )
-        parent_dend = [i.parent.parent for i in inputs]
-        parent_spine = [i.parent for i in inputs]
-        parents = parent_dend + parent_spine
-        input_parent_dends = set(parents)
-        # mod_local_gbar(input_parent_dends, mod_dict[modelname])
+        if 'DMS' in filename:
+            print('simulating ',num_clustered,' BLA inputs to DMS')
+            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,minDistance=40e-6, maxDistance=60e-6)
+        elif 'DLS' in filename:
+            print('simulating',num_clustered,'  BLA inputs to DLS')
+            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,minDistance=80e-6, maxDistance=120e-6)
+        else:
+            inputs = stim.exampleClusteredDistal(
+                model,
+                nInputs=num_clustered,
+                branch_list=branch_list,
+                seed=clustered_seed,  # 6,
+            )
+            parent_dend = [i.parent.parent for i in inputs]
+            parent_spine = [i.parent for i in inputs]
+            parents = parent_dend + parent_spine
+            input_parent_dends = set(parents)
+            # mod_local_gbar(input_parent_dends, mod_dict[modelname])
+        print('clustered stim=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
+        stim.report_element_distance(inputs)
 
     neuron = model.neurons["D1"][0]
     bd = stim.getBranchDict(neuron)
@@ -285,46 +296,34 @@ def upstate_main(
     # from IPython import embed; embed()
 
     # import pdb;pdb.set_trace()
-    if num_clustered > 0:
-        spine_cur_tab = []
-        which_spine = inputs[0].parent
-        for ch in ["SKCa", "CaL13", "CaL12", "CaR", "CaT33", "CaT32", "ampa", "nmda"]:
-            chan = moose.element(which_spine.path + "/" + ch)
-            tab = moose.Table("data/" + chan.path.replace("/", "__").replace("[0]", ""))
-            moose.connect(tab, "requestOut", chan, "getIk")
-            spine_cur_tab.append(tab)
-
+     ############## Identify set of synaptic inputs, one set dispersed, the other a cluster ###################
+    if num_clustered > 0 and model.param_sim.plot_current:
         plotgates = ["CaR", "CaT32", "CaT33", "CaL12", "CaL13"]
-        model.gatetables = {}
+        plotchan=plotgates+["SKCa", "ampa", "nmda"]
+        msg='getIk'
+        spine_cur_tab=plot_channel.plotgates(model,plotgates,plotchan,inputs,msg)
 
-        for plotgate in plotgates:
-            model.gatetables[plotgate] = {}
-            gatepath = which_spine.path + "/" + plotgate
-            gate = moose.element(gatepath)
-            gatextab = moose.Table("/data/" + plotgate + "_gatex")
-            moose.connect(gatextab, "requestOut", gate, "getX")
-            model.gatetables[plotgate]["gatextab"] = gatextab
-            gateytab = moose.Table("/data/" + plotgate + "_gatey")
-            moose.connect(gateytab, "requestOut", gate, "getY")
-            model.gatetables[plotgate]["gateytab"] = gateytab
-            if model.Channels[plotgate][0][2] > 0:
-                gateztab = moose.Table("/data/" + plotgate + "_gatez")
-                moose.connect(gateztab, "requestOut", gate, "getZ")
-                model.gatetables[plotgate]["gateztab"] = gateztab
-
+    ############# Identify a set of synapses for dispersed stimulation ########################
+    #dispersed inputs go to all branches except those stimulated (if specified in branch_list).
     dispersed_inputs = stim.dispersed(
         model,
         nInputs=num_dispersed,
         exclude_branch_list=branch_list,
         seed=dispersed_seed,
     )
+    print('dispersed stim=',num_dispersed)
+    if num_dispersed>0:
+        stim.report_element_distance(dispersed_inputs)
+    ############## create time table inputs, either specific frequency or from external spike trains ###################
     if num_clustered > 0:
         input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=n_per_clustered, start_time=0.3
-        )
-    stim.createTimeTables(
-        dispersed_inputs, model, n_per_syn=10, start_time=0.35, freq=freq_dispersed, duration_limit=0.3
-    )
+            inputs, model, n_per_syn=n_per_clustered, start_time=start_stim) 
+        #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
+    if num_dispersed>0:
+        stim.createTimeTables(dispersed_inputs, model, n_per_syn=2, start_time=start_stim, 
+            freq=freq_dispersed, duration_limit=0.6, input_spikes=time_tables)
+        print('dispersed inputs:', time_tables)
+
     # c = moose.element('D1/634_3')
     # c.Rm = c.Rm*100
     if injection_current is not None:
@@ -337,54 +336,46 @@ def upstate_main(
         
         #from IPython import embed; embed()
 
-    simtime = 1.5  # 1.5
+    simtime = 1.2  # 1.5
     moose.reinit()
     moose.start(simtime)
 
     if do_plots:
         create_model_sim.neuron_graph.graphs(model, model.vmtab, False, simtime)
         from matplotlib import pyplot as plt
-
+        ######## Add time of clustered stim to figure #########3
         ax = plt.gca()
-        ax.set_title(modelname)
-        ax.axvspan(
-            input_times[0], input_times[-1], facecolor="gray", alpha=0.5, zorder=-10
-        )
+        ax.set_title(modelname+' '+sims[0]['name']+str(num_dispersed))
+        if num_clustered > 0:
+            ax.axvspan(
+                input_times[0], input_times[-1], facecolor="gray", alpha=0.5, zorder=-10
+            )
         import pprint
-
         # ax.text(.5,.5,pprint.pformat(mod_dict[modelname]), transform = ax.transAxes)
         plt.ion()
         plt.show()
-        plt.figure()
-        for i in model.spinevmtab[0]:
-            t = np.linspace(0, 0.4, len(i.vector))
-            plt.plot(t, i.vector)
 
-        # n = model.neurons["D1"][0]
-        # d_vs_len = [
-        #     (p, c.diameter) for c, p in zip(n.compartments, n.geometricalDistanceFromSoma)
-        # ]
-        # d_vs_len = np.array(d_vs_len)
-        # plt.figure()
-        # plt.scatter(d_vs_len[:,0],d_vs_len[:,1])
+        spine_graph.spineFig(model,simtime,model.spinevmtab)
 
-        plt.figure()
+        create_model_sim.neuron_graph.dist_vs_diam(model,modelname,sims,num_dispersed)
 
-        for cur in spine_cur_tab:
-            plt.plot(cur.vector, label=cur.name.strip("_"))
+        if model.param_sim.plot_current:
+            plt.figure()
 
-        plt.legend()
-        # create_model_sim.plot_channel.plot_gate_params(moose.element('/library/CaT32'),3)
+            for cur in spine_cur_tab:
+                plt.plot(cur.vector, label=cur.name.strip("_"))
 
-        # for c,d in model.gatetables.items():
-        #     plt.figure()
-        #     plt.title(c)
-        #     for g,t in d.items():
-        #         plt.plot(t.vector,label=g)
-        #     plt.legend()
+            plt.legend()
+            # create_model_sim.plot_channel.plot_gate_params(moose.element('/library/CaT32'),3)
+            ######## Test this, may be redundanat with plot_channel #########
+            # for c,d in model.gatetables.items():
+            #     plt.figure()
+            #     plt.title(c)
+            #     for g,t in d.items():
+            #         plt.plot(t.vector,label=g)
+            #     plt.legend()
 
-        # from moose_nerp.prototypes import util
-        plt.show(block=True)
+            plt.show(block=True)
 
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(filename))
@@ -392,6 +383,7 @@ def upstate_main(
     # return plt.gcf()
     #from IPython import embed
     #embed()
+    return model
 
 
 def subprocess_main(function, model, mod_dict, kwds,time_limit):
@@ -519,7 +511,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed):
                      "dispersed_seed": dispersed_seed,
                      "clustered_seed": clustered_seed,
                  },
-             } for freq in np.arange(200,501,50)]
+             }]# for freq in np.arange(200,501,50)]
     elif sim_type=='new_dispersed_300ms_only':
         sims = [
             {
@@ -532,7 +524,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed):
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
                 },
-            } for freq in np.arange(200,501,50)]
+            } ] #for freq in np.arange(200,501,50)]
     elif sim_type=='upstate_only':
         sims = [
             {
@@ -545,6 +537,32 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed):
                     "clustered_seed": clustered_seed,
                 },
             }]
+    elif sim_type=='BLA_DMS_dispersed':
+        sims = [
+            {
+                "name": "BLA_DMS_dispersed",
+                "f": upstate_main,
+                "kwds": {
+                    "num_dispersed": 70, #100 inputs alone produces 2 spikes, 80 inputs produces 1 spike
+                    "num_clustered": 32,
+                    "freq_dispersed": 250,
+                    "dispersed_seed": dispersed_seed,
+                    "clustered_seed": clustered_seed,
+                },
+            } ]
+    elif sim_type=='BLA_DLS_dispersed':
+        sims = [
+            {
+                "name": "BLA_DLS_dispersed",
+                "f": upstate_main,
+                "kwds": {
+                    "num_dispersed": 70, #100 inputs alone produces 2 spikes, 90 inputs produces 1 spike
+                    "num_clustered": 16,
+                    "freq_dispersed": 250,
+                    "dispersed_seed": dispersed_seed,
+                    "clustered_seed": clustered_seed,
+                },
+            } ]
     elif sim_type=='single_epsp':
         sims = [
             {
@@ -567,16 +585,23 @@ if __name__ == "__main__":
     clustered_seed = 135
     dispersed_seed = 172
     single_epsp_seed = 314
-    sim_type='rheobase_only'
+    sim_type='rheobase_only' #'new_dispersed_300ms_only'#  or 'upstate_only'?
     sims=specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed)
 
     import sys
 
     args = sys.argv
     # args.append('--single')
-    if len(args) > 1 and args[1] == "--single": ########### FIXME, unable to create dispersed spines ###########
-        # upstate_main(list(mod_dict.keys())[0],mod_dict)
-        upstate_main("D1PatchSample5", mod_dict, do_plots=True)
+    if len(args) > 1 and args[1] == "--single":
+        if len(args)>2:
+            sim_type=args[2]
+            sims=specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed)
+            tt_Ctx_SPN = {'fname':'networks/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal','syn_per_tt':2} #FIXME: pass in parameter into this  "main"
+            model=upstate_main("D1MatrixSample2", mod_dict, **sims[0]['kwds'],do_plots=True,filename=sims[0]['name'], time_tables=tt_Ctx_SPN)
+            print(sims[0])
+        else:
+            # upstate_main(list(mod_dict.keys())[0],mod_dict)
+            upstate_main("D1PatchSample5", mod_dict, do_plots=True)
 
     elif len(args) > 1 and args[1] == "--iv":
         # upstate_main(list(mod_dict.keys())[0],mod_dict)
