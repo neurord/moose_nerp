@@ -109,3 +109,30 @@ def plot_gate_params(chan,plotpow, VMIN=-0.1, VMAX=0.05, CAMIN=0, CAMAX=1):
             plt.ylabel('Vm [V]')
             plt.colorbar()
     return
+
+def plot_gates(model,plotgates,plotchan,inputs,msg='getGk'):
+    spine_cur_tab = []
+    model.gatetables = {}
+    which_spine = inputs[0].parent
+
+    for ch in plotchan:
+        chan = moose.element(which_spine.path+'/'+ch)
+        tab = moose.Table('data/'+chan.path.replace('/','__').replace('[0]',''))
+        moose.connect(tab,'requestOut',chan,msg)
+        spine_cur_tab.append(tab)
+   
+    for plotgate in plotgates:
+        model.gatetables[plotgate] = {}
+        gatepath = which_spine.path+'/'+plotgate
+        gate = moose.element(gatepath)
+        gatextab=moose.Table('/data/'+plotgate+'_gatex')
+        moose.connect(gatextab, 'requestOut', gate, 'getX')
+        model.gatetables[plotgate]['gatextab']=gatextab
+        gateytab=moose.Table('/data/'+plotgate+'_gatey')
+        moose.connect(gateytab, 'requestOut', gate, 'getY')
+        model.gatetables[plotgate]['gateytab']=gateytab
+        if model.Channels[plotgate][0][2]>0:
+            gateztab=moose.Table('/data/'+plotgate+'_gatez')
+            moose.connect(gateztab, 'requestOut', gate, 'getZ')
+            model.gatetables[plotgate]['gateztab']=gateztab
+    return spine_cur_tab
