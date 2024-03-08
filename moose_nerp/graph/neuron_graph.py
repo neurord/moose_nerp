@@ -124,3 +124,15 @@ def CurrentGraphSet(value,g, keys, simtime):
     axes.set_xlabel('Time, sec')
     axes.legend(fontsize=10,loc='best')
     f.canvas.draw()
+
+def dist_vs_diam(model,modelname,sims,num_dispersed):
+    n = model.neurons["D1"][0]
+    d_vs_len = [
+        (p, c.diameter) for c, p in zip(n.compartments, n.geometricalDistanceFromSoma) ]
+    d_vs_len = np.array(d_vs_len)
+    pyplot.figure()
+    pyplot.scatter(d_vs_len[:,0],d_vs_len[:,1])
+    pyplot.xlabel('distance from soma')
+    pyplot.ylabel('diameter')
+    pyplot.title(modelname+' '+sims[0]['name']+str(num_dispersed))
+
