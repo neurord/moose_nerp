@@ -263,11 +263,11 @@ def upstate_main(
     ############# Identify a cluster of synapses for stimulation ########################
     if num_clustered > 0:
         if 'DMS' in filename:
-            print('simulating ',num_clustered,' BLA inputs to DMS')
-            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,minDistance=40e-6, maxDistance=60e-6)
+            print('simulating ',num_clustered,' BLA inputs to DMS') #
+            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,seed=clustered_seed,minDistance=40e-6, maxDistance=60e-6)
         elif 'DLS' in filename:
             print('simulating',num_clustered,'  BLA inputs to DLS')
-            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,minDistance=80e-6, maxDistance=120e-6)
+            inputs=stim.Clustered_BLA(model, nInputs = num_clustered,seed=clustered_seed,minDistance=80e-6, maxDistance=120e-6)
         else:
             inputs = stim.exampleClusteredDistal(
                 model,
@@ -310,7 +310,7 @@ def upstate_main(
         nInputs=num_dispersed,
         exclude_branch_list=branch_list,
         seed=dispersed_seed,
-    )
+    ) #using seed - always same
     print('dispersed stim=',num_dispersed)
     if num_dispersed>0:
         stim.report_element_distance(dispersed_inputs)
