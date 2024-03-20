@@ -305,6 +305,11 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, dur
         from moose_nerp.prototypes.connect import select_entry
         tt_Ctx_SPN = ttables.TableSet('CtxSPN', input_spikes['fname'],syn_per_tt=input_spikes['syn_per_tt'])
         ttables.TableSet.create_all()
+        if duration_limit is not None: #limit spikes to duration_limit
+            for tt in tt_Ctx_SPN.stimtab:
+                times=tt[0].vector
+                times = times[times<(start_time+duration_limit)]
+                tt[0].vector = times        
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
             tt=select_entry(tt_Ctx_SPN.stimtab)
