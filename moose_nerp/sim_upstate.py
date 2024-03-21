@@ -345,7 +345,7 @@ def upstate_main(
         from matplotlib import pyplot as plt
         ######## Add time of clustered stim to figure #########3
         ax = plt.gca()
-        ax.set_title(modelname+' '+sims[0]['name']+str(num_dispersed))
+        ax.set_title(modelname+' '+filename+str(num_dispersed))
         if num_clustered > 0:
             ax.axvspan(
                 input_times[0], input_times[-1], facecolor="gray", alpha=0.5, zorder=-10
@@ -357,7 +357,7 @@ def upstate_main(
 
         spine_graph.spineFig(model,simtime,model.spinevmtab)
 
-        create_model_sim.neuron_graph.dist_vs_diam(model,modelname,sims,num_dispersed)
+        create_model_sim.neuron_graph.dist_vs_diam(model,modelname,filename,num_dispersed)
 
         if model.param_sim.plot_current:
             plt.figure()
