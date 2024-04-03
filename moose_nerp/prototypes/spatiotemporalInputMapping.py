@@ -333,7 +333,7 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, dur
     input_times.sort()
     return input_times
 
-def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):
+def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 minDistance=150e-6, maxDistance=190e-6, commonParentOrder=0,
@@ -346,11 +346,56 @@ def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):
         #print(inputs)
         return inputs
 
-def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None):
+def remove_comps(elementlist, input_per_comp):
+    elementDict={}
+    for el in elementlist:
+        key=el.path.split('sp')[0]
+        if key in elementDict.keys():
+            elementDict[key].append(el)
+        else:
+            elementDict[key]=[el]
+    for values in elementDict.values():
+        if len(values)<input_per_comp:
+            for el in values:
+                elementlist.remove(el)
+    return elementlist
+
+def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
+    #get 1 comp, then call elementlist again with that branch excluded, repeat. 
+    #select one spine on that comp for a synapse, then select input_per_comp-1 other spines
+    #possibly exclude the entire 1st order parent? (primary dendrite) or 2nd order parent?  - more complicated
+    schan='ampa'
+    elementType='SynChan'
+    for neuron in model.neurons.values():
+        bd=getBranchDict(neuron[0])
+        all_inputs=[]
+        exclude_branch_list=[]
+        while len(all_inputs)<nInputs:
+            elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+                                    minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
+                                    numBranches='all', branchOrder=branchOrder,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                    branch_list=branch_list, exclude_branch_list=exclude_branch_list,
+                                    )
+            elementlist=remove_comps(elementlist, input_per_comp)
+            if len(elementlist):
+                inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
+                if input_per_comp>1:
+                    comp=inputs[0].path.split('sp')[0][0:-1] ######### This assumes that input is to a spine 
+                    chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
+                    chans.remove(inputs[0])
+                    more_inputs=selectRandom(chans,n=input_per_comp-1)
+                    inputs=np.concatenate((inputs,more_inputs))
+                for branch, bvalues in bd.items():
+                    if comp in bvalues['CompList']:
+                        exclude_branch_list.append(branch) #do not select any other inputs from that branch
+            all_inputs=np.concatenate((all_inputs,inputs))
+        return all_inputs
+
+def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
     for neuron in model.neurons.values():
         elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
-                                numBranches='all', branchOrder=None,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                numBranches='all', branchOrder=branchOrder,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                 branch_list=branch_list,
                                 )
         if nInputs<len(elementlist):
@@ -361,7 +406,7 @@ def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branc
         #print(inputs)
         return inputs
 
-def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None):
+def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list)
         inputs = selectRandom(elementlist,n=nInputs,seed=seed)
@@ -419,8 +464,10 @@ if __name__ == '__main__':
                                 minDistance=180e-6, maxDistance=200e-6, commonParentOrder=0,
                                 numBranches=1, branchOrder=-1,min_length=20e-6,
                                 ) #could try minDistance=120e-6
-    elist_DMS=Clustered_BLA(model, nInputs = 32,minDistance=40e-6, maxDistance=60e-6)
-    elist_DLS=Clustered_BLA(model, nInputs = 16,minDistance=80e-6, maxDistance=120e-6)
+    elist_DLS=n_inputs_per_comp(model, nInputs = 16,input_per_comp=2,minDistance=80e-6, maxDistance=120e-6,branch_list = None, seed = None, branchOrder=3)
+    elist_DMS=n_inputs_per_comp(model, nInputs = 32,input_per_comp=4,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=3)
+    #elist_DMS=Clustered_BLA(model, nInputs = 32,minDistance=40e-6, maxDistance=60e-6)
+    #elist_DLS=Clustered_BLA(model, nInputs = 16,minDistance=80e-6, maxDistance=120e-6)
     elist={'DMS':elist_DMS,'DLS':elist_DLS}
     for k,v in elist.items():
         print('elements and distance for', k)
