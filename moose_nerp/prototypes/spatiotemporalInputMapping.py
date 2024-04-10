@@ -296,7 +296,7 @@ def temporalMapping(inputList, minTime = 0, maxTime = 0, random = True):
 
 ######## Edit this one to use real input trains??  ttables.TableSet.create_all(), randomize_input_trains(net.param_net.tt_Ctx_SPN,ran=randomize)
 ####### Then, for each input in inputList, randomly select a tt from timetable.stimtab
-def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, duration_limit = None, input_spikes=None):
+def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end_time=None, duration_limit = None, input_spikes=None):
     from moose_nerp.prototypes import connect
     
     input_times = []
@@ -320,7 +320,8 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, dur
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
             tt = moose.TimeTable(input.path+'/tt')
-            
+            if end_time:
+                freq=((num-1)*(1+(n_per_syn-1))+1)/(end_time-start_time)
             times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)] #n_per_syn is number of spikes to each synapse
             print(times)
             times = np.array(times)
@@ -342,7 +343,7 @@ def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#
                                 #branch_list = ['/D1[0]/570_3[0]'],
                                 #branch_list = ['/D1[0]/138_3[0]'],
                                 )
-        inputs = selectRandom(elementlist,n=nInputs,seed=seed)
+        inputs = selectRandom(elementlist,n=min(nInputs,len(elementlist)),seed=seed)
         #print(inputs)
         return inputs
 
@@ -373,7 +374,7 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
         while len(all_inputs)<nInputs:
             elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                     minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
-                                    numBranches='all', branchOrder=branchOrder,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                    numBranches='all', branchOrder=branchOrder,#min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                     branch_list=branch_list, exclude_branch_list=exclude_branch_list,
                                     )
             elementlist=remove_comps(elementlist, input_per_comp)
@@ -387,7 +388,16 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
                     inputs=np.concatenate((inputs,more_inputs))
                 for branch, bvalues in bd.items():
                     if comp in bvalues['CompList']:
-                        exclude_branch_list.append(branch) #do not select any other inputs from that branch
+                        exclude_branch_list.append(branch) #do not select any other inputs from that branch FIXME
+            else:
+                inputs=[]
+                print('********* n_inputs_per_comp: PROBLEM, not enough branches of order', branchOrder, 'at distance', minDistance,maxDistance)
+                if branchOrder:
+                    print('************ changing branchOrder to None')
+                    branchOrder=None
+                else:
+                    print('***** Even with branchOrder of None, insufficient branches. Number of inputs is', len(all_inputs))
+                    break
             all_inputs=np.concatenate((all_inputs,inputs))
         return all_inputs
 
