@@ -10,8 +10,9 @@ def plot_traces(fnames,reg):
     fig.suptitle(reg)
     for fn in fnames:
         data=neur_text(fn)
-        data.seed=fn.split('dispersed')[-1].split('Vm.txt')[0]
+        data.seed=fn.split('_')[-1].split('0Vm.txt')[0]
         plt.plot(data.time,data.traces[data.soma_name[0]], label=data.seed)
+        plt.legend()
     return fig   
 
 region=['DMS','DLS']
@@ -22,7 +23,8 @@ num_spikes={reg:[] for reg in region}
 inst_freq={}
 
 for reg in region:
-    fnames=glob.glob('BLA_'+reg+'_*'+suffix+'0Vm.txt')
+    fnames=glob.glob('BLA_'+reg+'_dispersed*'+suffix+'*0Vm.txt')
+    plot_traces(fnames,reg) 
     for fn in fnames:
         data=neur_text(fn)
         data.spikes(0)
@@ -31,5 +33,5 @@ for reg in region:
             isis[reg].append(np.diff(data.spiketime[data.soma_name[0]]))
     inst_freq[reg]=np.mean([np.mean(1/isi) for isi in isis[reg]])
     print(reg,'spikes=',np.mean(num_spikes[reg]),round(np.std(num_spikes[reg]),2),'freq=',round(inst_freq[reg],2), 'from', len(isis[reg]), 'trials')
-    plot_traces(fnames,reg)
+    #plot_traces(fnames,reg)
     
