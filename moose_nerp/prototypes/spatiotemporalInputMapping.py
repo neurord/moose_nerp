@@ -391,7 +391,7 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
                         exclude_branch_list.append(branch) #do not select any other inputs from that branch FIXME
             else:
                 inputs=[]
-                print('********* n_inputs_per_comp: PROBLEM, not enough branches of order', branchOrder, 'at distance', minDistance,maxDistance)
+                print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs for branches of order', branchOrder, 'at distance', minDistance,maxDistance)
                 if branchOrder:
                     print('************ changing branchOrder to None')
                     branchOrder=None

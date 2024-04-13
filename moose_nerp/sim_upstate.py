@@ -260,7 +260,8 @@ def upstate_main(
     create_model_sim.setupNeurons(model)
 
     modelname = model.__name__.split(".")[-1]
-
+    neuron = model.neurons["D1"][0]
+    bd = stim.getBranchDict(neuron)
     branch_list = ["/D1[0]/{}[0]".format(model.clusteredparent)]
     ############# Identify a cluster of synapses for stimulation ########################
     ### updated to make specified number of inputs per branch/compartment
@@ -269,7 +270,7 @@ def upstate_main(
         if 'DMS' in filename:
             print('simulating ',num_clustered,' BLA inputs to DMS') #
             #inputs=stim.Clustered_BLA(model, nInputs = num_clustered,seed=clustered_seed,minDistance=40e-6, maxDistance=60e-6)
-            inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,input_per_comp=3,seed=clustered_seed, minDistance=40e-6, maxDistance=60e-6,branchOrder=3)
+            inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,input_per_comp=2,seed=clustered_seed, minDistance=40e-6, maxDistance=60e-6,branchOrder=3) #FIXME. input_per_comp should be 3 for DMS only if num_clustered=24
         elif 'DLS' in filename:
             print('simulating',num_clustered,'  BLA inputs to DLS')
             #inputs=stim.Clustered_BLA(model, nInputs = num_clustered,seed=clustered_seed,minDistance=80e-6, maxDistance=120e-6)
@@ -288,13 +289,12 @@ def upstate_main(
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
         print('clustered stim=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
         stim.report_element_distance(inputs)
+        branch_list=[c for c in np.unique(parent_dend) if c in bd.keys()] #new branch_list based on clustered inputs
 
-    neuron = model.neurons["D1"][0]
-    bd = stim.getBranchDict(neuron)
-    branch_list=[c for c in np.unique(parent_dend) if c in bd.keys()] #new branch list - one of the clustered inputs
+    #new branch list - one of the clustered inputs
     if len(branch_list)==0:
         branch_list=["/D1[0]/{}[0]".format(model.clusteredparent)]
-    comps = [moose.element(comp) for comp in bd[branch_list[0]]["CompList"]]
+    comps = [moose.element(comp) for comp in bd[branch_list[0]]["CompList"]] #plot compartments for 1st branch
     spines = [sp[0] for comp in comps for sp in comp.children if "head" in sp.name]
     model.param_sim.plotcomps = [s.split("/")[-1] for s in bd[branch_list[0]]["BranchPath"]]
 
@@ -324,13 +324,13 @@ def upstate_main(
     ############## create time table inputs, either specific frequency or from external spike trains ###################
     if num_clustered > 0:
         input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=n_per_clustered, start_time=start_stim,end_time=end_stim) #probably want n_per_clustered=1 if input_per_comp>1
+            inputs, model, n_per_syn=1, start_time=start_stim,end_time=end_stim) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
         stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_stim, 
             freq=freq_dispersed, duration_limit=0.6, input_spikes=time_tables)
         print('dispersed inputs:', time_tables)
-        model.param_sim.fname=model.param_sim.fname+'_'+str(num_dispersed)+'_'+str(num_clustered)
+    model.param_sim.fname=model.param_sim.fname+'_'+str(num_dispersed)+'_'+str(num_clustered)
     # c.Rm = c.Rm*100
     if injection_current is not None:
         model.param_sim.injection_current = [injection_current]
@@ -341,7 +341,7 @@ def upstate_main(
         model.pg.firstLevel = injection_current
         
         #from IPython import embed; embed()
-
+    print('ready to simulate')
     simtime = 0.6#1.2  # 1.5
     moose.reinit()
     moose.start(simtime)
@@ -363,7 +363,7 @@ def upstate_main(
 
         spine_graph.spineFig(model,simtime,model.spinevmtab)
 
-        create_model_sim.neuron_graph.dist_vs_diam(model,modelname,model.param_sim.fname,num_dispersed)
+        #create_model_sim.neuron_graph.dist_vs_diam(model,modelname,model.param_sim.fname,num_dispersed)
 
         if num_clustered > 0 and model.param_sim.plot_current:
             plt.figure()
@@ -556,7 +556,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
                     "num_clustered": params.num_clustered,
-                    "freq_dispersed": 250,
+                    "freq_dispersed": 80,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
                     "start_stim": params.start_stim,
@@ -571,7 +571,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
                     "num_clustered": params.num_clustered,
-                    "freq_dispersed": 250,
+                    "freq_dispersed": 80,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
                     "start_stim": params.start_stim,
