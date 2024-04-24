@@ -324,7 +324,7 @@ def upstate_main(
     ############## create time table inputs, either specific frequency or from external spike trains ###################
     if num_clustered > 0:
         input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=1, start_time=start_stim,end_time=end_stim) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
+            inputs, model, n_per_syn=1, start_time=start_stim,end_time=end_stim, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
         stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_stim, 
@@ -385,7 +385,7 @@ def upstate_main(
             #     plt.legend()
 
             plt.show(block=True)
-    model.param_sim.fname=model.param_sim.fname+'_'+str(start_stim)+'_'+str(mod_dict["D1MatrixSample2"]['NMDA'])+'_'+str(dispersed_seed)
+    model.param_sim.fname=model.param_sim.fname+'_80_'+str(start_stim)+'_'+str(mod_dict["D1MatrixSample2"]['NMDA'])+'_'+str(dispersed_seed)
     # c = moose.element('D1/634_3')
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(model.param_sim.fname))
@@ -556,7 +556,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
                     "num_clustered": params.num_clustered,
-                    "freq_dispersed": 80,
+                    "freq_dispersed": 250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
                     "start_stim": params.start_stim,
@@ -571,7 +571,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
                     "num_clustered": params.num_clustered,
-                    "freq_dispersed": 80,
+                    "freq_dispersed":250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
                     "start_stim": params.start_stim,
@@ -601,7 +601,7 @@ def parsarg(commandline):
     small_parser=argparse.ArgumentParser()
     small_parser.add_argument('base_sim', type=str, default='mpi_main', help='single, iv, mp, or mpi_main')
     small_parser.add_argument('-sim_type', type=str, default='rheobase_only', help='one of the choices from specify_sims')
-    small_parser.add_argument('-tt',type=str,default='networks/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal', help='spike train file')
+    small_parser.add_argument('-spkfile',type=str,default='networks/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal', help='spike train file')
     small_parser.add_argument('-SPN', type=str, default="D1MatrixSample2", help='neuron module')
     small_parser.add_argument('-seed', type=int, help='dispersed spine seed')
     small_parser.add_argument('-start_stim', type=float, default=0.3, help='time to start BLA stim, in sec')
@@ -627,8 +627,8 @@ if __name__ == "__main__":
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 
     if params.base_sim == "single":
-        if params.tt:
-            tt_Ctx_SPN={'fname':params.tt,'syn_per_tt':2}
+        if params.spkfile:
+            tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':2}
             model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=sims[0]['name'], time_tables=tt_Ctx_SPN)
             print(sims[0])
         else:
