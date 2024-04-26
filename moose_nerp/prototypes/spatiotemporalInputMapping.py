@@ -64,8 +64,9 @@ def selectRandom(elementList, n=1, replace=False, weight=None, seed = None):
 
     Add weight parsing to this function, or create a separate function?
     '''
-    selections = np.random.RandomState(seed).choice(elementList, size=n, replace=replace, p=weight)
-    return selections
+    intlist=range(len(elementList))
+    selections = np.random.RandomState(seed).choice(intlist, size=n, replace=replace, p=weight)
+    return [elementList[s] for s in selections]
 
 
 def distanceWeighting(elementList, distanceMapping):
@@ -131,10 +132,10 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     for el in allList:
         # Get Distance of element, or parent compartment if element not compartment
         el = moose.element(el)
-        if isinstance(el, (moose.Compartment, moose.ZombieCompartment)):
+        if el.className=='Compartment' or el.className=='ZombieCompartment':
             dist,name = util.get_dist_name(el)
             path = el
-        elif isinstance(moose.element(el.parent),(moose.Compartment,moose.ZombieCompartment)):
+        elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = el.parent
         else:
@@ -336,7 +337,8 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
 
 def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
-        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+        neur=util.select_neuron(neuron)
+        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 minDistance=150e-6, maxDistance=190e-6, commonParentOrder=0,
                                 numBranches=1, branchOrder=-1,min_length=20e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                 branch_list=branch_list,
@@ -368,11 +370,12 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
     schan='ampa'
     elementType='SynChan'
     for neuron in model.neurons.values():
-        bd=getBranchDict(neuron[0])
+        neur=util.select_neuron(neuron)
+        bd=getBranchDict(neur)
         all_inputs=[]
         exclude_branch_list=[]
         while len(all_inputs)<nInputs:
-            elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+            elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                     minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                     branch_list=branch_list, exclude_branch_list=exclude_branch_list,
@@ -403,7 +406,8 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
 
 def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
     for neuron in model.neurons.values():
-        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',
+        neur=util.select_neuron(neuron)
+        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
                                 numBranches='all', branchOrder=branchOrder,min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                 branch_list=branch_list,
@@ -418,17 +422,18 @@ def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branc
 
 def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
-        elementlist = generateElementList(neuron[0], wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list)
+        neur=util.select_neuron(neuron)
+        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list)
         inputs = selectRandom(elementlist,n=nInputs,seed=seed)
         return inputs
 
 def report_element_distance(inputs, print_num=40):
     dist_list=[]
     for i,el in enumerate(inputs):
-        if isinstance(el, (moose.Compartment, moose.ZombieCompartment)):
+        if el.className=='Compartment' or el.className=='ZombieCompartment':
             dist,name = util.get_dist_name(el)
             path = el
-        elif isinstance(moose.element(el.parent),(moose.Compartment,moose.ZombieCompartment)):
+        elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = el.parent
         dist_list.append(dist)
@@ -465,7 +470,7 @@ if __name__ == '__main__':
     model.synYN = True
 
     cms.setupAll(model)
-    neuron = model.neurons['D1'][0]
+    neuron=util.select_neuron(model.neurons['D1'])
     bd = getBranchDict(neuron)
     possibleBranches = getBranchesOfOrder(neuron, -1, n='all',
                                           commonParentOrder=0, min_length = 20e-6, min_path_length = 50e-6, max_path_length = 180e-6)

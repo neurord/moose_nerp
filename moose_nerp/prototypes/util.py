@@ -20,6 +20,20 @@ def syn_name(synpath,headname):
 
     return postbranch
 
+def select_neuron(neuron):
+    if isinstance(neuron,list) or isinstance(neuron,_np.ndarray) or isinstance(neuron,moose.vec):
+        neur=neuron[0]
+    else:
+        neur=neuron
+    return neur 
+
+def select_branch(parent):
+    if int(moose.__version__[0])>3:
+        branch_list = ["/D1[0]/{}".format(parent)]
+    else:
+        branch_list = ["/D1[0]/{}[0]".format(parent)]
+    return branch_list 
+
 def neurontypes(param_cond,override=None):
     "Query or set names of neurontypes of each neurons to be created"
     if override is None:
@@ -89,7 +103,7 @@ def dist_dependent_cond_equation(cmin, cmax, dhalf, slope):
 """
 def distance_mapping(mapping, where):
     #where is a location, either a compartment or string or moose.vec
-    if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
+    if where.className=='Compartment' or where.className=='ZombieCompartment':
         comp=where
     elif isinstance(where,moose.vec):
         #Needs to be tested.  May need to loop over comps in moose.vec
@@ -107,7 +121,7 @@ def distance_mapping(mapping, where):
         print('Wrong distance/element passed in distance mapping ',where)
         return 0
     #calculate distance of compartment from soma
-    if isinstance(where, (moose.Compartment, moose.ZombieCompartment)):
+    if where.className=='Compartment' or where.className=='ZombieCompartment':
         dist,name = get_dist_name(where)
 
     from collections import OrderedDict as od

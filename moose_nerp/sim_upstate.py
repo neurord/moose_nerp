@@ -251,6 +251,7 @@ def upstate_main(
     import numpy as np
     from moose_nerp.prototypes import create_model_sim, tables
     from moose_nerp.prototypes import spatiotemporalInputMapping as stim
+    from moose_nerp.prototypes import util as _util
     from moose_nerp.graph import plot_channel,spine_graph
     import moose
 
@@ -260,9 +261,10 @@ def upstate_main(
     create_model_sim.setupNeurons(model)
 
     modelname = model.__name__.split(".")[-1]
-    neuron = model.neurons["D1"][0]
+    neuron=_util.select_neuron(model.neurons['D1'])
     bd = stim.getBranchDict(neuron)
-    branch_list = ["/D1[0]/{}[0]".format(model.clusteredparent)]
+    branch_list=_util.select_branch(model.clusteredparent)
+
     ############# Identify a cluster of synapses for stimulation ########################
     ### updated to make specified number of inputs per branch/compartment
     ### update to ensure each set of inputs has unique parent branch?
@@ -292,8 +294,8 @@ def upstate_main(
         branch_list=[c for c in np.unique(parent_dend) if c in bd.keys()] #new branch_list based on clustered inputs
 
     #new branch list - one of the clustered inputs
-    if len(branch_list)==0:
-        branch_list=["/D1[0]/{}[0]".format(model.clusteredparent)]
+    if len(branch_list)==0 or branch_list[0] not in bd.keys():
+        branch_list=_util.select_branch(model.clusteredparent)
     comps = [moose.element(comp) for comp in bd[branch_list[0]]["CompList"]] #plot compartments for 1st branch
     spines = [sp[0] for comp in comps for sp in comp.children if "head" in sp.name]
     model.param_sim.plotcomps = [s.split("/")[-1] for s in bd[branch_list[0]]["BranchPath"]]
@@ -621,8 +623,8 @@ if __name__ == "__main__":
 
     import sys
 
-    args = sys.argv[1:]
-    #args='single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
+    #args = sys.argv[1:]
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 
