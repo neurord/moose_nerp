@@ -291,7 +291,7 @@ def upstate_main(
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
         print('clustered stim=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
         stim.report_element_distance(inputs)
-        branch_list=[c for c in np.unique(parent_dend) if c in bd.keys()] #new branch_list based on clustered inputs
+        branch_list=[c for c in np.unique([pd.path for pd in parent_dend]) if c in bd.keys()] #new branch_list based on clustered inputs
 
     #new branch list - one of the clustered inputs
     if len(branch_list)==0 or branch_list[0] not in bd.keys():
@@ -553,7 +553,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
     elif sim_type=='BLA_DMS_dispersed':
         sims = [
             {
-                "name": "BLA_DMS_dispersed",
+                "name": "BLA_DMS",
                 "f": upstate_main,
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
@@ -568,7 +568,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
     elif sim_type=='BLA_DLS_dispersed':
         sims = [
             {
-                "name": "BLA_DLS_dispersed",
+                "name": "BLA_DLS",
                 "f": upstate_main,
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
@@ -624,14 +624,14 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 
     if params.base_sim == "single":
         if params.spkfile:
             tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':2}
-            model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=sims[0]['name'], time_tables=tt_Ctx_SPN)
+            model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=params.SPN[0:5]+sims[0]['name'], time_tables=tt_Ctx_SPN)
             print(sims[0])
         else:
             # upstate_main(list(mod_dict.keys())[0],mod_dict)
