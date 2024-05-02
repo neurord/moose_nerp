@@ -635,7 +635,7 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -SPN cells.D1MatrixSample3'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 

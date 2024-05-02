@@ -235,7 +235,7 @@ def getBranchDict(neuron):
 
 
 def mapCompartmentToBranch(neuron):
-    bd = getBranchDict(neuron)
+    bd = getBranchDict(neuron) 
     compToBranchDict={}
     missing=[]
     for comp in neuron.compartments:
