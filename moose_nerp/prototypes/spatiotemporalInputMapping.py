@@ -309,7 +309,7 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
         if duration_limit is not None: #limit spikes to duration_limit
             for tt in tt_Ctx_SPN.stimtab:
                 times=tt[0].vector
-                times = times[times<(start_time+duration_limit)]
+                times = times[np.array(times<(start_time+duration_limit)) & np.array(times>start_time)]
                 tt[0].vector = times        
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
@@ -384,14 +384,16 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
             if len(elementlist):
                 inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
                 if input_per_comp>1:
-                    comp=inputs[0].path.split('sp')[0][0:-1] ######### This assumes that input is to a spine 
+                    comp=inputs[0].path.split('/sp')[0] ######### This assumes that input is to a spine 
+                    if int(moose.__version__[0])>3:
+                        comp=comp[0:-3] #strip off [0]
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
                     chans.remove(inputs[0])
                     more_inputs=selectRandom(chans,n=input_per_comp-1)
-                    inputs=np.concatenate((inputs,more_inputs))
+                    inputs=[inp for inp in inputs]+[minp for minp in more_inputs]
                 for branch, bvalues in bd.items():
                     if comp in bvalues['CompList']:
-                        exclude_branch_list.append(branch) #do not select any other inputs from that branch FIXME
+                        exclude_branch_list.append(branch) #do not select any other inputs from that branch
             else:
                 inputs=[]
                 print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs for branches of order', branchOrder, 'at distance', minDistance,maxDistance)
@@ -401,7 +403,7 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
                 else:
                     print('***** Even with branchOrder of None, insufficient branches. Number of inputs is', len(all_inputs))
                     break
-            all_inputs=np.concatenate((all_inputs,inputs))
+            all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
         return all_inputs
 
 def Clustered_BLA(model, nInputs = 16,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
@@ -448,7 +450,7 @@ def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_nu
     # Determine dendritic location of each connection 
     # Add explicit spines to each location
     for neuron in model.neurons.values():
-        branch_dict = getBranchDict(neuron)
+        branch_dict = getBranchDict(neuron) #not used FIXME
         # randomly choose compartment for potential cluster center
         # We don't want clusters near each other, so choose the parent level that maximally disperses each cluster
         # e.g. if we have 1 cluster, soma is the parent level; if we have 4 primary branches and 4 clusters, each cluster should be within 
@@ -471,7 +473,7 @@ if __name__ == '__main__':
 
     cms.setupAll(model)
     neuron=util.select_neuron(model.neurons['D1'])
-    bd = getBranchDict(neuron)
+    bd = getBranchDict(neuron) #NOT USED - just for debugging
     possibleBranches = getBranchesOfOrder(neuron, -1, n='all',
                                           commonParentOrder=0, min_length = 20e-6, min_path_length = 50e-6, max_path_length = 180e-6)
     
