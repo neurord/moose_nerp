@@ -31,9 +31,9 @@ running a simulation, the output tables would be accessible as model.vmtab,
 model.catab, etc.'''
 
 # Parameter overrides can be specified:
-model.spineYN=False
+model.spineYN=True
 model.calYN=True
-model.param_sim.plot_channels = True
+model.param_sim.plot_channels = False
 
 model.CaPlasticityParams.CaShellModeDensity = {model.CaPlasticityParams.soma:model.CaPlasticityParams.SHELL, model.CaPlasticityParams.dend:model.CaPlasticityParams.SHELL, model.CaPlasticityParams.spines:model.CaPlasticityParams.SLAB}
 
