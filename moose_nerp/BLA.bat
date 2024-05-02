@@ -24,13 +24,46 @@ do
     #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.1 >> DLS_70_16_100ms.txt
     #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.2 >> DMS_70_16_200ms.txt
     #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.2 >> DLS_70_16_200ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_exp5_70_0_100ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_exp5_70_0_100ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_exp5_65_0_100ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_exp5_65_0_100ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 35 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq10.0>> DMS_exp10_35_0_100ms.txt
-    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 35 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq10.0>> DLS_exp10_35_0_100ms.txt
-    #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DMS_0_80_16_100ms.txt
-    #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DLS_0_80_16_100ms.txt
+    ##test different matrix neuron, updated with CaR=5.2, not 45.2 to see if this one has better response to dispersed
+    python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DLS_mat3_exp5_70_0.txt
+    python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DMS_mat3_exp5_70_0.txt
+    python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DLS_mat3_exp5_65_0.txt
+    python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DMS_mat3_exp5_65_0.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DLS_mat3_exp5_70_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DMS_mat3_exp5_70_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DLS_mat3_exp5_70_16_200ms.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 70 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DMS_mat3_exp5_70_16_200ms.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DLS_mat3_exp5_65_0_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN cells.D1MatrixSample3 -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0 >> DMS_mat3_exp5_65_0_100ms.txt
+    ##test more patch to determine subthreshold
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 80 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_patch_exp5_80_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 80 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_patch_exp5_80_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 80 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_patch_exp5_70_16_200ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 80 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_patch_exp5_70_16_200ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 80 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_patch_exp5_80_0.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 80 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_patch_exp5_80_0.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 90 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_patch_exp5_65_0.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 90 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_patch_exp5_65_0.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DMS_mat_0_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DLS_mat_0_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DMS_patch_0_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -SPN D1PatchSample5 -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0 -start_stim 0.1 >> DLS_patch_0_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 >> DMS_70_0_100ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 >> DLS_70_0_100ms.txt
+    ## change param_cond in Matrix2, CaT32=1.09 not 8.09, and see if this has better response to dispersed. 
+    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_exp5_70_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_exp5_70_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 75 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_exp5_75_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 75 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_exp5_75_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 >> DMS_70_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -start_stim 0.1 >> DLS_70_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 75 -start_stim 0.1 >> DMS_75_0.txt
+    python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 75 -start_stim 0.1 >> DLS_75_0.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_65_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 65 -start_stim 0.1 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_65_16_100ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DMS_dispersed -num_clustered 16 -num_dispersed 65 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DMS_65_16_200ms.txt
+    #python3 sim_upstate_BLA.py single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 65 -start_stim 0.2 -spkfile spn1_net/Ctx1000_exp_freq5.0>> DLS_65_16_200ms.txt
+    ## test NMDAR conductance
+    ## possibly use real spike trains if D1MatrixSample3 works better
 
 done
