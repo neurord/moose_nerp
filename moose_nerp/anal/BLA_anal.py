@@ -3,11 +3,11 @@ import glob
 import sys
 from moose_nerp.anal.neur_anal_class import neur_text
 
-def plot_traces(fnames,reg):
+def plot_traces(fnames,reg,spn):
     from matplotlib import pyplot as plt
     plt.ion()
     fig=plt.figure()
-    fig.suptitle(reg)
+    fig.suptitle(reg+'_'+spn)
     for fn in fnames:
         data=neur_text(fn)
         data.seed=fn.split('_')[-1].split('0Vm.txt')[0]
@@ -22,16 +22,24 @@ isis={reg:[] for reg in region}
 num_spikes={reg:[] for reg in region}
 inst_freq={}
 
-for reg in region:
-    fnames=glob.glob('BLA_'+reg+'_dispersed*'+suffix+'*0Vm.txt')
-    plot_traces(fnames,reg) 
-    for fn in fnames:
-        data=neur_text(fn)
-        data.spikes(0)
-        num_spikes[reg].append(len(data.spiketime[data.soma_name[0]]))
-        if len(data.spiketime[data.soma_name[0]])>1:
-            isis[reg].append(np.diff(data.spiketime[data.soma_name[0]]))
-    inst_freq[reg]=np.mean([np.mean(1/isi) for isi in isis[reg]])
-    print(reg,'spikes=',np.mean(num_spikes[reg]),round(np.std(num_spikes[reg]),2),'freq=',round(inst_freq[reg],2), 'from', len(isis[reg]), 'trials')
-    #plot_traces(fnames,reg)
-    
+#for spn in ['Mat3', 'Mat2']:
+for spn in ['0','16']:    
+    for reg in region:
+        #pattern='D1'+spn+'BLA_'+reg+suffix+'*0Vm.txt'
+        pattern='D1*BLA_'+reg+suffix+spn+'*0Vm.txt'
+        fnames=glob.glob(pattern)
+        print('files:', fnames)
+        if len(fnames):
+            plot_traces(fnames,reg,spn) 
+            for fn in fnames:
+                data=neur_text(fn)
+                data.spikes(0)
+                num_spikes[reg].append(len(data.spiketime[data.soma_name[0]]))
+                if len(data.spiketime[data.soma_name[0]])>1:
+                    isis[reg].append(np.diff(data.spiketime[data.soma_name[0]]))
+            inst_freq[reg]=np.mean([np.mean(1/isi) for isi in isis[reg]])
+            print(reg,'spikes=',np.mean(num_spikes[reg]),round(np.std(num_spikes[reg]),2),'freq=',round(inst_freq[reg],2), 'from', len(isis[reg]), 'trials')
+            #plot_traces(fnames,reg)
+        else:
+            print('no files found using pattern',pattern)
+
