@@ -60,7 +60,7 @@ import numpy as np
 
 
 def rand_mod_dict():
-    mod_dict = {"D1MatrixSample2": {}, "D1PatchSample5": {}}
+    mod_dict = {"D1MatrixSample2": {},"D1MatrixSample3": {}, "D1PatchSample5": {}}
 
     var_range = {
         "KaS": [0, 4],
@@ -85,12 +85,23 @@ def make_mod_dict():
 
     mod_dict = {
         "D1MatrixSample2": {},
-        # "D1MatrixSample3": {},
+        "D1MatrixSample3": {},
         # "D1PatchSample4": {},
         "D1PatchSample5": {},
     }
 
     mod_dict["D1MatrixSample2"] = {
+        "KaS": 0.5,  # 0.2,
+        "NMDA": 2.25,
+        "CaR": 10,  # 1,
+        "AMPA": 0.4,  # 2,
+        "CaL12": 1,  # 0.01,
+        "CaL13": 1,  # 0.25,
+        "CaT32": 0.5,  # 0.001,
+        "CaT33": 1,  # 0.05,
+        "Kir": 1,
+    }
+    mod_dict["D1MatrixSample3"] = {
         "KaS": 0.5,  # 0.2,
         "NMDA": 2.25,
         "CaR": 10,  # 1,
@@ -291,7 +302,7 @@ def upstate_main(
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
         print('clustered stim=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
         stim.report_element_distance(inputs)
-        branch_list=[c for c in np.unique(parent_dend) if c in bd.keys()] #new branch_list based on clustered inputs
+        branch_list=[c for c in np.unique([pd.path for pd in parent_dend]) if c in bd.keys()] #new branch_list based on clustered inputs
 
     #new branch list - one of the clustered inputs
     if len(branch_list)==0 or branch_list[0] not in bd.keys():
@@ -329,7 +340,7 @@ def upstate_main(
             inputs, model, n_per_syn=1, start_time=start_stim,end_time=end_stim, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
-        stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_stim, 
+        stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, #start_time=start_stim, Desire dispersed to optionally start prior to clustered
             freq=freq_dispersed, duration_limit=0.6, input_spikes=time_tables)
         print('dispersed inputs:', time_tables)
     model.param_sim.fname=model.param_sim.fname+'_'+str(num_dispersed)+'_'+str(num_clustered)
@@ -387,7 +398,7 @@ def upstate_main(
             #     plt.legend()
 
             plt.show(block=True)
-    model.param_sim.fname=model.param_sim.fname+'_80_'+str(start_stim)+'_'+str(mod_dict["D1MatrixSample2"]['NMDA'])+'_'+str(dispersed_seed)
+    model.param_sim.fname=model.param_sim.fname+'_80_'+str(start_stim)+'_'+str(mod_dict[modelname]['NMDA'])+'_'+str(dispersed_seed)
     # c = moose.element('D1/634_3')
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(model.param_sim.fname))
@@ -553,7 +564,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
     elif sim_type=='BLA_DMS_dispersed':
         sims = [
             {
-                "name": "BLA_DMS_dispersed",
+                "name": "BLA_DMS",
                 "f": upstate_main,
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
@@ -568,7 +579,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
     elif sim_type=='BLA_DLS_dispersed':
         sims = [
             {
-                "name": "BLA_DLS_dispersed",
+                "name": "BLA_DLS",
                 "f": upstate_main,
                 "kwds": {
                     "num_dispersed": params.num_dispersed, 
@@ -624,14 +635,15 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 70 -SPN cells.D1MatrixSample3'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 
     if params.base_sim == "single":
         if params.spkfile:
             tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':2}
-            model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=sims[0]['name'], time_tables=tt_Ctx_SPN)
+            spn_name=params.SPN.split('.')[-1][0:5]+params.SPN.split('.')[-1][-1]
+            model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=spn_name+sims[0]['name'], time_tables=tt_Ctx_SPN)
             print(sims[0])
         else:
             # upstate_main(list(mod_dict.keys())[0],mod_dict)
