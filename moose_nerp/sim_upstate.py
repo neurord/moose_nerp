@@ -255,9 +255,11 @@ def upstate_main(
     do_plots=False,
     injection_current = None,
     time_tables=None,
-    start_stim=0.3,
+    start_cluster=0.3,
+    end_cluster=None, #if defined, this will override frequency specified
+    start_dispersed=0.05,
+    end_dispersed=0.6,
     Mg_conc=1,
-    end_stim=None
 ):
     import numpy as np
     from moose_nerp.prototypes import create_model_sim, tables
@@ -325,6 +327,7 @@ def upstate_main(
 
     ############# Identify a set of synapses for dispersed stimulation ########################
     #dispersed inputs go to all branches except those stimulated (if specified in branch_list). 
+    print(filename,'has excluded branches:', branch_list, 'dispersed',n_per_dispersed, freq_dispersed)
     if num_dispersed>0:
         dispersed_inputs = stim.dispersed(
             model,
@@ -337,11 +340,11 @@ def upstate_main(
     ############## create time table inputs, either specific frequency or from external spike trains ###################
     if num_clustered > 0:
         input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=1, start_time=start_stim,end_time=end_stim, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
+            inputs, model, n_per_syn=1, start_time=start_cluster,end_time=end_cluster, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
-        stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, #start_time=start_stim, Desire dispersed to optionally start prior to clustered
-            freq=freq_dispersed, duration_limit=0.6, input_spikes=time_tables)
+        stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_dispersed, 
+            freq=freq_dispersed, end_time=end_dispersed, input_spikes=time_tables)
         print('dispersed inputs:', time_tables)
     model.param_sim.fname=model.param_sim.fname+'_'+str(num_dispersed)+'_'+str(num_clustered)
     # c.Rm = c.Rm*100
@@ -398,7 +401,7 @@ def upstate_main(
             #     plt.legend()
 
             plt.show(block=True)
-    model.param_sim.fname=model.param_sim.fname+'_80_'+str(start_stim)+'_'+str(mod_dict[modelname]['NMDA'])+'_'+str(dispersed_seed)
+    model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(dispersed_seed)])
     # c = moose.element('D1/634_3')
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(model.param_sim.fname))
@@ -572,9 +575,11 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                     "freq_dispersed": 250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
-                    "start_stim": params.start_stim,
-                    "end_stim": params.end_stim,
-                },
+                    "start_dispersed": params.start_dispersed,
+                    "end_dispersed": params.end_dispersed,
+                    "start_cluster": params.start_cluster,
+                    "end_cluster": params.end_cluster,
+                 },
             } ]
     elif sim_type=='BLA_DLS_dispersed':
         sims = [
@@ -587,8 +592,10 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                     "freq_dispersed":250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
-                    "start_stim": params.start_stim,
-                    "end_stim": params.end_stim,
+                    "start_dispersed": params.start_dispersed, 
+                    "end_dispersed": params.end_dispersed,
+                    "start_cluster": params.start_cluster,
+                    "end_cluster": params.end_cluster,
                 },
             } ]
     elif sim_type=='single_epsp':
@@ -617,10 +624,12 @@ def parsarg(commandline):
     small_parser.add_argument('-spkfile',type=str,default='networks/FullTrialMediumVariabilitySimilarTrialsTruncatedNormal', help='spike train file')
     small_parser.add_argument('-SPN', type=str, default="D1MatrixSample2", help='neuron module')
     small_parser.add_argument('-seed', type=int, help='dispersed spine seed')
-    small_parser.add_argument('-start_stim', type=float, default=0.3, help='time to start BLA stim, in sec')
-    small_parser.add_argument('-end_stim', type=float, help='time to end BLA stim, in sec')
+    small_parser.add_argument('-start_cluster', type=float, default=0.3, help='time to start clustered, BLA stim, in sec')
+    small_parser.add_argument('-end_cluster', type=float, help='time to end clustered, BLA stim, in sec')
     small_parser.add_argument('-num_dispersed', type=int, default=75, help='number of dispersed inputs')
     small_parser.add_argument('-num_clustered', type=int, default=16, help='number of BLA inputs')
+    small_parser.add_argument('-start_dispersed', type=float, default=0.05, help='time to start dispersed stim')
+    small_parser.add_argument('-end_dispersed', type=float, default=0.6, help='time to end dispersed stim')
 
     args=small_parser.parse_args(commandline)
     return args
@@ -635,7 +644,7 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 0'.split() #-num_clustered 0 -num_dispersed 0 for one or the other #
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 16 -num_dispersed 70 -start_cluster 0.2 -end_dispersed 0.39'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
 

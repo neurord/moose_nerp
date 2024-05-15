@@ -297,7 +297,7 @@ def temporalMapping(inputList, minTime = 0, maxTime = 0, random = True):
 
 ######## Edit this one to use real input trains??  ttables.TableSet.create_all(), randomize_input_trains(net.param_net.tt_Ctx_SPN,ran=randomize)
 ####### Then, for each input in inputList, randomly select a tt from timetable.stimtab
-def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end_time=None, duration_limit = None, input_spikes=None):
+def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end_time=None, input_spikes=None):
     from moose_nerp.prototypes import connect
     
     input_times = []
@@ -306,10 +306,10 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
         from moose_nerp.prototypes.connect import select_entry
         tt_Ctx_SPN = ttables.TableSet('CtxSPN', input_spikes['fname'],syn_per_tt=input_spikes['syn_per_tt'])
         ttables.TableSet.create_all()
-        if duration_limit is not None: #limit spikes to duration_limit
+        if end_time is not None: #limit spikes to duration_limit
             for tt in tt_Ctx_SPN.stimtab:
                 times=tt[0].vector
-                times = times[np.array(times<(start_time+duration_limit)) & np.array(times>start_time)]
+                times = times[np.array(times<end_time) & np.array(times>start_time)]
                 tt[0].vector = times        
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
@@ -326,8 +326,8 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
             times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)] #n_per_syn is number of spikes to each synapse
             print(times)
             times = np.array(times)
-            if duration_limit is not None:
-                times = times[times<(start_time+duration_limit)]
+            if end_time: #probably not needed
+                times = times[times<end_time]
             tt.vector = times
             input_times.extend(tt.vector)
             #print(tt.vector)
