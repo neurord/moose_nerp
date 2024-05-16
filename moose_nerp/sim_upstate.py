@@ -302,7 +302,7 @@ def upstate_main(
         parents = parent_dend + parent_spine
         input_parent_dends = set(parents)
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
-        print('clustered stim=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
+        print('clustered stim for seed', clustered_seed,'=')#,inputs) #if want to exclude these branches from dispersed input, need to put into branch_list
         stim.report_element_distance(inputs)
         branch_list=[c for c in np.unique([pd.path for pd in parent_dend]) if c in bd.keys()] #new branch_list based on clustered inputs
 
