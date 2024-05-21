@@ -33,7 +33,7 @@ dist = (50e-6, 1000e-6)
 #_1 as soma, _2 as apical dend, _3 as basal dend and _4 as axon
 #Parameters used by optimization from here down
 #morph_file = {'D1':'MScell-primDend.p', 'D2': 'MScell-primDend.p'} # test_version.
-morph_file = {'D1':'D1_long_matrix_84362_D1_15.p'}
+morph_file = {'D1':'D1_long_matrix_84362_D1_15_ab.p'}
 #morph_file = {'D1':'D1_patch_sample_3.p'} # old_version.
 
 #CONDUCTANCES - UNITS of Siemens/meter squared
