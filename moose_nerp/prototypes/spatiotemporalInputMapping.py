@@ -121,7 +121,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
         allList.extend(l)
     #print('allList', allList)
     if branch_list is None:
-        possibleBranches = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
+        possibleBranches,_ = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
                                           commonParentOrder=commonParentOrder, min_length = min_length, min_path_length = minDistance, max_path_length = maxDistance,seed=branch_seed)
     else:
         possibleBranches = branch_list
@@ -409,7 +409,7 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
                     chans.remove(inputs[0])
                     more_inputs=selectRandom(chans,n=input_per_comp-1,func='n_inputs_per_comp')
                     inputs=[inp for inp in inputs]+[minp for minp in more_inputs]
-                for branch, bvalues in bd.items():
+                for branch, bvalues in bd.items(): #possibly don't do this
                     if comp in bvalues['CompList']:
                         exclude_branch_list.append(branch) #do not select any other inputs from that branch
             else:

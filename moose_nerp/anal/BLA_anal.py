@@ -36,14 +36,14 @@ def decay_time(dat,base_val,plateau_val,pt):
 
 suffix=sys.argv[1]
 end_disp=sys.argv[2]
-#suffix='_70_' #for debugging
+#suffix='_70_' #for debugging, number of dispersed inputs
 #end_disp='0.39'
 
 region=['DMS','DLS']
-clust=['0','16']
+clust=['0','16', '20']
 dur=0.05 #measure Vm over 50 msec for baseline
 base_time=[0.1-dur,0.1]
-plateau_time=[float(end_disp)-2*dur,float(end_disp)] #measure Vm over 100 msec during plateau
+plateau_time=[float(end_disp)-dur,float(end_disp)] #measure Vm over 50 msec during plateau
 
 isis={reg:{c:[] for c in clust} for reg in region}
 num_spikes={reg:{c:[] for c in clust} for reg in region}
@@ -56,7 +56,7 @@ trials={reg:{} for reg in region}
 for reg in region:
     for spn in clust:    
         #pattern='D1'+spn+'BLA_'+reg+suffix+'*0Vm.txt'
-        pattern='D1*BLA_'+reg+suffix+spn+'_'+end_disp+'*0Vm.txt'
+        pattern='D1*BLA_'+reg+suffix+spn+'*0Vm.txt'
         fnames=glob.glob(pattern)
         trials[reg][spn]=len(fnames)
         if len(fnames):
@@ -66,7 +66,7 @@ for reg in region:
                 data=neur_text(fn)
                 data.spikes(0) #calculate spike times, using 0 mV as threshold
                 spk_tm=data.spiketime[data.soma_name[0]] #extract spike times of soma
-                num_spikes[reg][spn].append(len(spk_tm)) dd
+                num_spikes[reg][spn].append(len(spk_tm)) 
                 if not len(data.spiketime[data.soma_name[0]]): #if no spikes, measure plateau and decay time
                     baseVm,_=mean_Vm(data,base_time) #baseline Vm
                     plateau,plat_start=mean_Vm(data,plateau_time) #plateau Vm
