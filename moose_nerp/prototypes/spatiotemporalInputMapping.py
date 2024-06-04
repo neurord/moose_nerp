@@ -68,7 +68,7 @@ def selectRandom(elementList, n=1, replace=False, weight=None, seed = None, func
     if n<=len(intlist):
         selections = np.random.RandomState(seed).choice(intlist, size=n, replace=replace, p=weight)
     else:
-        print('unable to choose',n, 'from', len(intlist), 'items!!!')
+        print('selectRandom called from',func,'; unable to choose',n, 'from', len(intlist), 'items!!!')
         selections=np.random.RandomState(seed).choice(intlist, size=len(intlist), replace=replace, p=weight)
     return [elementList[s] for s in selections]
 
@@ -152,9 +152,9 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             ind = possibleCompartments.index(path.path)
             dist = possible_comp_dists[ind]
             # print(path, minDistance,dist+path.length/2., maxDistance, dist-path.length/2.) #Start and end distance of compartment
-            if ((minDistance <= dist+path.length/2.) and (dist+path.length/2. <= maxDistance)) or \
-                ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance)) or  \
-                ((minDistance <= dist) and (dist <= maxDistance)):
+            if ((minDistance <= dist+path.length/2.) and (dist-path.length/2. <= maxDistance)): #or \
+                #((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance)) or  \
+                #((minDistance <= dist) and (dist <= maxDistance)):
                     elementList.append(el)
     # print(elementList)
     return elementList
@@ -327,13 +327,14 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
             input_times.extend(tt.vector)
     else:
         num = len(inputList)
+        print('regular input times:')
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
             tt = moose.TimeTable(input.path+'/tt')
             if end_time:
                 freq=((num-1)*(1+(n_per_syn-1))+1)/(end_time-start_time)
             times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)] #n_per_syn is number of spikes to each synapse
-            print(times)
+            print('   ',times)
             times = np.array(times)
             if end_time: #probably not needed
                 times = times[times<end_time]
@@ -427,10 +428,12 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
             all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
         return all_inputs
 
-def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None): #FIXME: will only generate inputs for one neuron
+def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
-        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,branch_list=branch_list)
+        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
+                                          branch_list=branch_list, minDistance=minDistance, maxDistance=maxDistance)
+        num_inputs=min(nInputs,len(elementlist))
         inputs = selectRandom(elementlist,n=nInputs,seed=seed, func='dispersed')
         return inputs
 
