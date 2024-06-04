@@ -3,7 +3,7 @@ import glob
 import sys
 from moose_nerp.anal.neur_anal_class import neur_text
 
-def plot_traces(fnames,reg,spn):
+def plot_traces(fnames,reg,spn,startime,endtime):
     from matplotlib import pyplot as plt
     plt.ion()
     fig=plt.figure()
@@ -12,11 +12,26 @@ def plot_traces(fnames,reg,spn):
         data=neur_text(fn)
         data.seed=fn.split('_')[-1].split('0Vm.txt')[0]
         plt.plot(data.time,data.traces[data.soma_name[0]], label=data.seed)
-        plt.legend()
-        plt.xlabel('Time (sec)')
-        plt.ylabel('Vm (mV)')
-    return fig   
+    plt.legend()
+    plt.xlabel('Time (sec)')
+    plt.ylabel('Vm (mV)')
+    plt.axvspan(startime, endtime, facecolor="gray", alpha=0.1, zorder=-10)
+    return fig
 
+def plot_one_file(fn,dat,startime,endtime):
+    from matplotlib import pyplot as plt
+    plt.ion()
+    fig=plt.figure()
+    seed=fn.split('_')[-1].split('0Vm.txt')[0]
+    title=fn.split('_')[1]+fn.split('_')[2]+fn.split('_')[3]
+    fig.suptitle(title+'_'+seed)
+    for  col in dat.traces.keys():
+        plt.plot(dat.time,dat.traces[col], label=col)
+    plt.legend()
+    plt.xlabel('Time (sec)')
+    plt.ylabel('Vm (mV)')
+    plt.axvspan(startime, endtime, facecolor="gray", alpha=0.1, zorder=-10)
+    
 def mean_Vm(dat,time_vals):
     points=[]
     for bt in time_vals:
@@ -31,8 +46,10 @@ def decay_time(dat,base_val,plateau_val,pt):
     decay_pt= np.where(dat.traces[dat.soma_name[0]][pt:]<thresh) #start search at end of plateau
     if len(decay_pt[0]):
         decay=dat.time[decay_pt[0][0]+pt] #add in pt because np.where indexes start of search at 0
+        #return decay
     else:
-        decay=dat.simtime
+        decay=dat.sim_time
+        #return None
     return decay
 
 #may need to add NMDA, celltype, distance or other parameters at some point
@@ -40,30 +57,31 @@ def parsarg(commandline):
     import argparse
     parser=argparse.ArgumentParser()
     parser.add_argument('-dur', type=float, default=0.05, help='duration for measuring plateau, in sec')
-    parser.add_argument('-num_dispersed', nargs="+", type=int, default=75, help='number of dispersed inputs')
-    parser.add_argument('-num_clustered', nargs="+", type=int, default=16, help='number of clustered inputs')
-    parser.add_argument('-end_time', nargs="+", type=float, default=0.3, help='time to begin measuring decay, in sec')
-
+    parser.add_argument('-num_dispersed', nargs="+", type=int, default=[75], help='number of dispersed inputs')
+    parser.add_argument('-num_clustered', nargs="+", type=int, default=[16], help='number of clustered inputs')
+    parser.add_argument('-end_time', nargs="+", type=float, default=[0.3], help='time to begin measuring decay, in sec')
+    parser.add_argument('-seed', type=int, help='seed for file to plot all compartments')
     args=parser.parse_args(commandline)
     return args
 
-#args = sys.argv[1:]
-args='-num_dispersed 64 80 100 120 160 -num_clustered 0 -end_time 0.3'.split()
+args = sys.argv[1:]
+#args='-num_dispersed 48 -num_clustered 0 -end_time 0.3 -seed 5344'.split()
 par=parsarg(args)
+print('disp',par.num_dispersed,'clust',par.num_clustered)
 
 if len(par.num_clustered)>=1 and len(par.num_dispersed)==1:
     num_stim=par.num_clustered
     num_disp=par.num_dispersed[0]
+    starttime=0.2 #plotting different numbers of clustered inputs, which typically start at 0.2
 elif len(par.num_clustered)==1 and len(par.num_dispersed)>=1:
     num_clust=par.num_clustered[0]
     num_stim=par.num_dispersed
+    starttime=0.1   #plotting different numbers of dispersed inputs, which typically start at 0.05 or 0.1
 else:
     print('ERROR: either specify one value for num_clustered or one value for num_dispersed')
 
-
-
 region=['DMS','DLS']
-base_time=[0.1-par.dur,0.1]
+base_time=[starttime-par.dur,starttime]
 
 isis={reg:{str(c):[] for c in num_stim} for reg in region}
 num_spikes={reg:{str(c):[] for c in num_stim} for reg in region}
@@ -83,7 +101,7 @@ for reg in region:
             et=par.end_time[ii]
         else:
             print('ERROR: specify either 1 end_time or 1 per num_clustered, instead of', par.end_time)
-        if len(par.num_clustered)>1:
+        if len(par.num_dispersed)==1:
             pattern='D1*BLA_'+reg+'_'+'_'.join([str(num_disp),nc,str(et)])+'*0Vm.txt'
         else:
             pattern='D1*BLA_'+reg+'_'+'_'.join([nc,str(num_clust),str(et)])+'*0Vm.txt'
@@ -91,7 +109,7 @@ for reg in region:
         trials[reg][nc]=len(fnames)
         if len(fnames):
             print('files for ',nc,reg,':', fnames)
-            plot_traces(fnames,reg,nc) 
+            plot_traces(fnames,reg,nc,starttime,et) 
             plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
             for fn in fnames:
                 data=neur_text(fn)
@@ -107,6 +125,9 @@ for reg in region:
                     plat_trials[reg][nc]+=1
                 if len(data.spiketime[data.soma_name[0]])>1: #if more than 1 spike, calculate mean ISI
                     isis[reg][nc].append(np.diff(data.spiketime[data.soma_name[0]]))
+                if par.seed:
+                    if str(par.seed) in fn:
+                        plot_one_file(fn,data, starttime,et)      
             if len(isis[reg][nc]):
                 inst_freq[reg][nc]=np.mean([np.mean(1/isi) for isi in isis[reg][nc]])  #from ISIs, calculate mean instaneous frequency
         else:
