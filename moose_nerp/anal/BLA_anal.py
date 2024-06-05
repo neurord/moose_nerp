@@ -15,7 +15,7 @@ def plot_traces(fnames,reg,spn,startime,endtime):
     plt.legend()
     plt.xlabel('Time (sec)')
     plt.ylabel('Vm (mV)')
-    plt.axvspan(startime, endtime, facecolor="gray", alpha=0.1, zorder=-10)
+    plt.axvspan(startime, endtime, facecolor="gray", alpha=0.3, zorder=-10)
     return fig
 
 def plot_one_file(fn,dat,startime,endtime):
@@ -52,6 +52,15 @@ def decay_time(dat,base_val,plateau_val,pt):
         #return None
     return decay
 
+def remove_fn(fnames,key):
+    remove=[]
+    for fn in fnames:
+        if key in fn:
+            remove.append(fn)
+    for fn in remove:
+        fnames.remove(fn)
+    return fnames
+
 #may need to add NMDA, celltype, distance or other parameters at some point
 def parsarg(commandline):
     import argparse
@@ -61,11 +70,13 @@ def parsarg(commandline):
     parser.add_argument('-num_clustered', nargs="+", type=int, default=[16], help='number of clustered inputs')
     parser.add_argument('-end_time', nargs="+", type=float, default=[0.3], help='time to begin measuring decay, in sec')
     parser.add_argument('-seed', type=int, help='seed for file to plot all compartments')
+    parser.add_argument('-dir', type=str, help='directory with files')
+    parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
     args=parser.parse_args(commandline)
     return args
 
 args = sys.argv[1:]
-#args='-num_dispersed 48 -num_clustered 0 -end_time 0.3 -seed 5344'.split()
+#args='-num_dispersed 24 36 48 -num_clustered 0 -end_time 0.3 -naf 1 -dir real_trains/exp50_3x_one_branch/'.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
@@ -102,10 +113,16 @@ for reg in region:
         else:
             print('ERROR: specify either 1 end_time or 1 per num_clustered, instead of', par.end_time)
         if len(par.num_dispersed)==1:
-            pattern='D1*BLA_'+reg+'_'+'_'.join([str(num_disp),nc,str(et)])+'*0Vm.txt'
+            pattern='D1*BLA_'+reg+'_'+'_'.join([str(num_disp),nc])
         else:
-            pattern='D1*BLA_'+reg+'_'+'_'.join([nc,str(num_clust),str(et)])+'*0Vm.txt'
-        fnames=glob.glob(pattern)
+            pattern='D1*BLA_'+reg+'_'+'_'.join([nc,str(num_clust)])
+        if par.dir:
+            pattern=par.dir+pattern
+        if par.naf:
+            fnames=glob.glob(pattern+'*NaF*0Vm.txt')
+        else:
+            fnames=glob.glob(pattern+'*0Vm.txt')
+            fnames=remove_fn(fnames,'NaF')
         trials[reg][nc]=len(fnames)
         if len(fnames):
             print('files for ',nc,reg,':', fnames)
@@ -123,6 +140,8 @@ for reg in region:
                     decay=decay_time(data,baseVm,peakVm, plat_start) #time to decay
                     decay10[reg][nc].append(1000*(decay-plateau_time[1]))
                     plat_trials[reg][nc]+=1
+                else:
+                    print('spikes for', fn)
                 if len(data.spiketime[data.soma_name[0]])>1: #if more than 1 spike, calculate mean ISI
                     isis[reg][nc].append(np.diff(data.spiketime[data.soma_name[0]]))
                 if par.seed:
@@ -140,7 +159,7 @@ for reg in region:
         nc=str(num_clust)
         print( '  ', nc,'inputs, spikes=',round(np.mean(num_spikes[reg][nc]),3),'+/-',round(np.std(num_spikes[reg][nc])/np.sqrt(len(fnames)),3))
         if len(isis[reg][nc]):
-            print('        freq=',round(inst_freq[reg],2), 'from', len(isis[reg][nc]), 'trials')
+            print('        freq=',round(inst_freq[reg][nc],2), 'from', len(isis[reg][nc]), 'trials')
         else:
             print('        no frequency, only 1 spike per trace')
         if len(decay10[reg][nc]):
