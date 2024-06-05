@@ -378,9 +378,9 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
         elementlist.remove(val)
     return elementlist
 
-def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
+def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
     #get 1 comp, then call elementlist again with that branch excluded, repeat. 
-    #select one spine on that comp for a synapse, then select input_per_comp-1 other spines
+    #select one spine on that comp for a synapse, then select spine_per_comp-1 other spines
     #possibly exclude the entire 1st order parent? (primary dendrite) or 2nd order parent?  - more complicated
     #only exclude that compartment and not the entire branch?
     schan='ampa'
@@ -398,17 +398,17 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
                                     )
-            elementlist=remove_comps(elementlist, input_per_comp, input_comp) #remove compartments that have < input_per_comp
+            elementlist=remove_comps(elementlist, spine_per_comp, input_comp) #remove compartments that have < spine_per_comp
             if len(elementlist):
                 inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
                 comp=inputs[0].path.split('/sp')[0] ######### This assumes that input is to a spine 
                 if int(moose.__version__[0])>3:
                     comp=comp[0:-3] #strip off [0]
                 input_comp.append(comp)
-                if input_per_comp>1:
+                if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
                     chans.remove(inputs[0])
-                    more_inputs=selectRandom(chans,n=input_per_comp-1,func='n_inputs_per_comp')
+                    more_inputs=selectRandom(chans,n=spine_per_comp-1,func='n_inputs_per_comp')
                     inputs=[inp for inp in inputs]+[minp for minp in more_inputs]
                 for branch, bvalues in bd.items(): #possibly don't do this
                     if comp in bvalues['CompList']:
@@ -416,7 +416,7 @@ def n_inputs_per_comp(model, nInputs = 16,input_per_comp=1,minDistance=40e-6, ma
             else:
                 inputs=[]
                 if branch_list:
-                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs with', input_per_comp,'inputs/comp on', branch_list, 'at distance', minDistance,maxDistance)
+                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs with', spine_per_comp,'inputs/comp on', branch_list, 'at distance', minDistance,maxDistance)
                     break
                 elif branchOrder:
                     print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs for branches of order', branchOrder, 'at distance', minDistance,maxDistance)
@@ -506,9 +506,9 @@ if __name__ == '__main__':
                                 numBranches=1, min_length=10e-6, branch_list=possibleBranches
                                 ) #could try minDistance=120e-6'''
     elist_DLS = selectRandom(elist,n=16,func='elist_DMS')
-    #elist_DLS=n_inputs_per_comp(model, nInputs = 16,input_per_comp=2,minDistance=80e-6, maxDistance=120e-6,branch_list=possibleBranches, seed = None)
-    #elist_DMS=n_inputs_per_comp(model, nInputs = 16,input_per_comp=2,minDistance=40e-6, maxDistance=60e-6, branch_list=possibleBranches, seed = None)
-    #elist_DMS=n_inputs_per_comp(model, nInputs = 32,input_per_comp=4,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=3)
+    #elist_DLS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,minDistance=80e-6, maxDistance=120e-6,branch_list=possibleBranches, seed = None)
+    #elist_DMS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,minDistance=40e-6, maxDistance=60e-6, branch_list=possibleBranches, seed = None)
+    #elist_DMS=n_inputs_per_comp(model, nInputs = 32,spine_per_comp=4,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=3)
     elist={'DMS':elist_DMS,'DLS':elist_DLS}
     for k,v in elist.items():
         print('elements and distance for', k)

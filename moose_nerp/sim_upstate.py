@@ -265,7 +265,9 @@ def upstate_main(
     start_dispersed=0.05,
     end_dispersed=0.6,
     Mg_conc=1,
-):
+    min_disp=100e-6, #change to 20e-6
+    max_disp=150e-6, #change to 300e-6
+    ):
     import numpy as np
     from moose_nerp.prototypes import create_model_sim, tables
     from moose_nerp.prototypes import spatiotemporalInputMapping as stim
@@ -282,28 +284,18 @@ def upstate_main(
     neuron=_util.select_neuron(model.neurons['D1'])
     bd = stim.getBranchDict(neuron)
     branch_list=_util.select_branch(model.clusteredparent)
-    #potentially specify min and max path length for dispersed input
-    if 'DLS' in filename:
-        min_disp=150e-6
-        max_disp=200e-6
-    elif 'DMS' in filename:
-        min_disp=30e-6
-        max_disp=80e-6
-    else:
-        min_disp=20e-6
-        max_disp=300e-6
  
     ############# Identify a cluster of synapses for stimulation ########################
     ### updated to make specified number of inputs per branch/compartment
     ### update to ensure each set of inputs has unique parent branch?
     if num_clustered > 0:
         if model.SpineParams.spineParent != 'soma': #clustered BLA is distributed, 2 per comp on multile branches
-            possibleBranches, branch_len = stim.getBranchesOfOrder(neuron, -1, n=1,  #select one tertiary branch; n='all' will select multiple tertiary on specified primary; None will include 2nd and 4th 
+            possibleBranches, branch_len = stim.getBranchesOfOrder(neuron, -1, n=1,  #select one terminal branch; n='all' will select multiple terminal on specified primary; None will include all order branches, 3 will use only tertiary 
                                           commonParentOrder=1, commonParentBranch=branch_list[0]) #, min_length = 120e-6#select with parent=specified primary, with 120 um length - but not for exampleClustered
         if 'DMS' in filename:
             print('simulating ',num_clustered,' BLA inputs to DMS') #
             if model.SpineParams.spineParent == 'soma': #inputs dispersed over entire tree
-                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,input_per_comp=2,seed=clustered_seed, minDistance=40e-6, maxDistance=60e-6) #FIXME. input_per_comp should be 3 for DMS only if num_clustered=24
+                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=40e-6, maxDistance=60e-6) #FIXME. spine_per_comp should be 3 for DMS only if num_clustered=24
             else:
                 tries=0
                 success=0
@@ -321,13 +313,13 @@ def upstate_main(
         elif 'DLS' in filename:
             print('simulating',num_clustered,'  BLA inputs to DLS')
             if model.SpineParams.spineParent == 'soma': #inputs dispersed over entire tree
-                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,input_per_comp=2,seed=clustered_seed, minDistance=100e-6, maxDistance=120e-6)
+                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=100e-6, maxDistance=120e-6)
             else:
                 tries=0
                 success=0
                 while tries<8 and success==0: #if elist is not big enough, try a few more times
                     elist = stim.generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                            minDistance=150e-6, maxDistance=200e-6, commonParentOrder=0,
+                                            minDistance=100e-6, maxDistance=150e-6, commonParentOrder=0,
                                             numBranches=1, min_length=10e-6, branch_list=possibleBranches
                                             ) #could try minDistance=120e-6'''
                     tries+=1
@@ -378,7 +370,7 @@ def upstate_main(
     #dispersed inputs go to all branches except those stimulated (if specified in branch_list). 
     if num_dispersed>0:
         if model.SpineParams.spineParent=='soma': #i.e., if dispersing inputs everywhere
-            print(filename,'has excluded branches:', branch_list, 'dispersed',n_per_dispersed, freq_dispersed)
+            print(filename,'has excluded branches:', branch_list, 'dispersed',n_per_dispersed, freq_dispersed) 
             dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed,
                 exclude_branch_list=branch_list, seed=dispersed_seed) #using seed - always same.  excludes branches with clustered inputs
         else:
@@ -396,7 +388,7 @@ def upstate_main(
     if num_clustered > 0:
         model.param_sim.plotcomps +=[s.split("/")[-1] for s in cluster_comps]
         input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=4, start_time=start_cluster,end_time=end_cluster)#, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
+            inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster)#, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
         model.param_sim.plotcomps += [s.split("/")[-1] for s in disp_comps]
@@ -404,7 +396,7 @@ def upstate_main(
             freq=freq_dispersed, end_time=end_dispersed, input_spikes=time_tables)
         print('dispersed inputs:', time_tables, 'num stimuli=', len(inputs_disp), '\n   begin=', inputs_disp[0:5], '\n   end=', inputs_disp[-5:])
     else:
-        end_dispersed=round(end_dispersed,input_times[-1],3) #use time of last clustered stim for filename if no dispersed
+        end_dispersed=round(input_times[-1],3) #use time of last clustered stim for filename if no dispersed
     model.param_sim.fname=model.param_sim.fname+'_'+str(num_dispersed)+'_'+str(num_clustered)
     # c.Rm = c.Rm*100
     if injection_current is not None:
@@ -463,7 +455,10 @@ def upstate_main(
             #     plt.legend()
 
             plt.show(block=True)
-    model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),str(dispersed_seed)])
+    if block_naf:
+        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),str(dispersed_seed)])
+    else:
+        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),'NaF',str(dispersed_seed)])
     # c = moose.element('D1/634_3')
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(model.param_sim.fname))
@@ -637,11 +632,8 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                     "freq_dispersed": 250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
-                    "start_dispersed": params.start_dispersed,
-                    "end_dispersed": params.end_dispersed,
-                    "start_cluster": params.start_cluster,
-                    "end_cluster": params.end_cluster,
-                    "block_naf": params.block_naf,
+                    "n_per_clustered": params.n_per_clustered,
+                   "block_naf": params.block_naf,
                  },
             } ]
     elif sim_type=='BLA_DLS_dispersed':
@@ -655,10 +647,7 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
                     "freq_dispersed":250,
                     "dispersed_seed": dispersed_seed,
                     "clustered_seed": clustered_seed,
-                    "start_dispersed": params.start_dispersed, 
-                    "end_dispersed": params.end_dispersed,
-                    "start_cluster": params.start_cluster,
-                    "end_cluster": params.end_cluster,
+                    "n_per_clustered": params.n_per_clustered,
                     "block_naf": params.block_naf,
                 },
             } ]
@@ -678,6 +667,14 @@ def specify_sims(sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params=
             }]
     else:
         sims=[ {"name": "iv_curves", "f": iv_main, "kwds": {}}]
+    for sim in sims:
+        sim['kwds']['min_disp']=params.min_disp
+        sim['kwds']['max_disp']=params.max_disp
+        sim['kwds']["start_dispersed"]=params.start_dispersed
+        sim['kwds']["end_dispersed"]=params.end_dispersed
+        sim['kwds']["start_cluster"]=params.start_cluster
+        sim['kwds']["end_cluster"]=params.end_cluster
+     
     return sims
     
 def parsarg(commandline):
@@ -695,6 +692,9 @@ def parsarg(commandline):
     small_parser.add_argument('-start_dispersed', type=float, default=0.1, help='time to start dispersed stim')
     small_parser.add_argument('-end_dispersed', type=float, default=0.6, help='time to end dispersed stim')
     small_parser.add_argument('-block_naf', type=bool, default=False)
+    small_parser.add_argument('-min_disp', type=float, default=20e-6, help='minimum distance for dispersed inputs')
+    small_parser.add_argument('-max_disp', type=float, default=300e-6, help='maximum distance for dispersed inputs')
+    small_parser.add_argument('-n_per_clustered', type=int, default=2, help='number of stim per clustered synapse')
 
     args=small_parser.parse_args(commandline)
     return args
@@ -709,10 +709,10 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 0 -num_dispersed 20 -start_cluster 0.2 -block_naf True'.split() #for debugging
+    args='single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 20'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
-
+ 
     if params.base_sim == "single":
         if params.spkfile:
             tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':2}
