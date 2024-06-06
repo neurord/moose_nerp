@@ -69,30 +69,30 @@ def parsarg(commandline):
     parser.add_argument('-num_dispersed', nargs="+", type=int, default=[75], help='number of dispersed inputs')
     parser.add_argument('-num_clustered', nargs="+", type=int, default=[16], help='number of clustered inputs')
     parser.add_argument('-end_time', nargs="+", type=float, default=[0.3], help='time to begin measuring decay, in sec')
+    parser.add_argument('-start', type=float, default=0.1, help='time that stimulation begins, in sec')
     parser.add_argument('-seed', type=int, help='seed for file to plot all compartments')
     parser.add_argument('-dir', type=str, help='directory with files')
     parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
+    parser.add_argument('-dist', type=int, help='max_dist of dispersed')
     args=parser.parse_args(commandline)
     return args
 
 args = sys.argv[1:]
-#args='-num_dispersed 24 36 48 -num_clustered 0 -end_time 0.3 -naf 1 -dir real_trains/exp50_3x_one_branch/'.split()
+#args='-num_dispersed 20 -num_clustered 0 -end_time 0.3'.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
 if len(par.num_clustered)>=1 and len(par.num_dispersed)==1:
     num_stim=par.num_clustered
     num_disp=par.num_dispersed[0]
-    starttime=0.2 #plotting different numbers of clustered inputs, which typically start at 0.2
 elif len(par.num_clustered)==1 and len(par.num_dispersed)>=1:
     num_clust=par.num_clustered[0]
     num_stim=par.num_dispersed
-    starttime=0.1   #plotting different numbers of dispersed inputs, which typically start at 0.05 or 0.1
 else:
     print('ERROR: either specify one value for num_clustered or one value for num_dispersed')
 
 region=['DMS','DLS']
-base_time=[starttime-par.dur,starttime]
+base_time=[par.start-par.dur,par.start]
 
 isis={reg:{str(c):[] for c in num_stim} for reg in region}
 num_spikes={reg:{str(c):[] for c in num_stim} for reg in region}
@@ -118,6 +118,8 @@ for reg in region:
             pattern='D1*BLA_'+reg+'_'+'_'.join([nc,str(num_clust)])
         if par.dir:
             pattern=par.dir+pattern
+        if par.dist:
+            pattern=pattern+'*'+str(par.dist)
         if par.naf:
             fnames=glob.glob(pattern+'*NaF*0Vm.txt')
         else:
@@ -126,7 +128,7 @@ for reg in region:
         trials[reg][nc]=len(fnames)
         if len(fnames):
             print('files for ',nc,reg,':', fnames)
-            plot_traces(fnames,reg,nc,starttime,et) 
+            plot_traces(fnames,reg,nc,par.start,et) 
             plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
             for fn in fnames:
                 data=neur_text(fn)
