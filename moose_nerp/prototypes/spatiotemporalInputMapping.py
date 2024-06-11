@@ -93,7 +93,7 @@ def distanceWeighting(elementList, distanceMapping):
 
 
 def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                        minDistance=0, maxDistance=1, commonParentOrder=0,
+                        minDistance=0, maxDistance=1, commonParentOrder=0, exclude_syn=[],
                         numBranches='all', branchOrder=None,min_length = None, min_path_length = None, max_path_length = None,branch_list = None, exclude_branch_list = None, branch_seed = None, select_seed = None):
     '''Generate list of Moose elements between minDistance and maxDistance from
     soma. if commonParent is None, then all branches considered. If numBranches
@@ -152,9 +152,9 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             ind = possibleCompartments.index(path.path)
             dist = possible_comp_dists[ind]
             # print(path, minDistance,dist+path.length/2., maxDistance, dist-path.length/2.) #Start and end distance of compartment
-            if ((minDistance <= dist+path.length/2.) and (dist-path.length/2. <= maxDistance)): #or \
-                #((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance)) or  \
-                #((minDistance <= dist) and (dist <= maxDistance)):
+            if ((minDistance <= dist+path.length/2.) and (dist-path.length/2. <= maxDistance)) and (el not in exclude_syn):              
+                #or ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance))  \
+                #or ((minDistance <= dist) and (dist <= maxDistance)):
                     elementList.append(el)
     # print(elementList)
     return elementList
@@ -428,17 +428,19 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
             all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
         return all_inputs
 
-def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6): #FIXME: will only generate inputs for one neuron
+def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6, exclude_syn=[]): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
         elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
-                                          branch_list=branch_list, minDistance=minDistance, maxDistance=maxDistance)
+                                          branch_list=branch_list, minDistance=minDistance, maxDistance=maxDistance, exclude_syn=exclude_syn)
         num_inputs=min(nInputs,len(elementlist))
         inputs = selectRandom(elementlist,n=nInputs,seed=seed, func='dispersed')
         return inputs
 
 def report_element_distance(inputs, print_num=40):
     dist_list=[]
+    dist100=0
+    dist150=0
     for i,el in enumerate(inputs):
         if el.className=='Compartment' or el.className=='ZombieCompartment':
             dist,name = util.get_dist_name(el)
@@ -447,9 +449,13 @@ def report_element_distance(inputs, print_num=40):
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = el.parent
         dist_list.append(dist)
+        if dist>100e-6:
+            dist100+=1
+        if dist>150e-6:
+            dist150+=1
         if i < print_num: #don't print out 200 inputs
             print('     ',el.path,name, dist)
-    print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list))
+    print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list),', num>100um=', dist100, ',150um=', dist150)
 
 def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):
     # Want to distribute total_num_spines into num_clusters of size cluster_distance
