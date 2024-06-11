@@ -284,7 +284,7 @@ def upstate_main(
     neuron=_util.select_neuron(model.neurons['D1'])
     bd = stim.getBranchDict(neuron)
     branch_list=_util.select_branch(model.clusteredparent)
- 
+    inputs=[]
     ############# Identify a cluster of synapses for stimulation ########################
     ### updated to make specified number of inputs per branch/compartment
     ### update to ensure each set of inputs has unique parent branch?
@@ -295,7 +295,7 @@ def upstate_main(
         if 'DMS' in filename:
             print('simulating ',num_clustered,' BLA inputs to DMS') #
             if model.SpineParams.spineParent == 'soma': #inputs dispersed over entire tree
-                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=40e-6, maxDistance=60e-6) #FIXME. spine_per_comp should be 3 for DMS only if num_clustered=24
+                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=40e-6, maxDistance=70e-6) #FIXME. spine_per_comp should be 3 for DMS only if num_clustered=24
             else:
                 tries=0
                 success=0
@@ -313,13 +313,13 @@ def upstate_main(
         elif 'DLS' in filename:
             print('simulating',num_clustered,'  BLA inputs to DLS')
             if model.SpineParams.spineParent == 'soma': #inputs dispersed over entire tree
-                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=100e-6, maxDistance=120e-6)
+                inputs=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=2,seed=clustered_seed, minDistance=80e-6, maxDistance=130e-6)
             else:
                 tries=0
                 success=0
                 while tries<8 and success==0: #if elist is not big enough, try a few more times
                     elist = stim.generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                            minDistance=100e-6, maxDistance=150e-6, commonParentOrder=0,
+                                            minDistance=80e-6, maxDistance=130e-6, commonParentOrder=0,
                                             numBranches=1, min_length=10e-6, branch_list=possibleBranches
                                             ) #could try minDistance=120e-6'''
                     tries+=1
@@ -372,12 +372,12 @@ def upstate_main(
         if model.SpineParams.spineParent=='soma': #i.e., if dispersing inputs everywhere
             print(filename,'has excluded branches:', branch_list, 'dispersed',n_per_dispersed, freq_dispersed) 
             dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed,
-                exclude_branch_list=branch_list, seed=dispersed_seed) #using seed - always same.  excludes branches with clustered inputs
+                exclude_branch_list=branch_list, seed=dispersed_seed) #using seed - always same.  excludes branches with clustered inputs.  Possibly exclude synapses?
         else:
             possibleBranches, _ = stim.getBranchesOfOrder(neuron, None, n='all', min_path_length=min_disp, max_path_length=max_disp, #select multiple branches on specified primary 
                                           commonParentOrder=1, commonParentBranch=branch_list[0]) #select with parent=specified primary, with 120 um length
             print(filename,'dispersing inputs on:', possibleBranches, 'dispersed',n_per_dispersed, freq_dispersed)
-            dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed,
+            dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed, exclude_syn=inputs,
                 branch_list=possibleBranches,seed=dispersed_seed, minDistance=min_disp, maxDistance=max_disp) #using seed - always same; min_disp and max_disp needed here, too
         stim.report_element_distance(dispersed_inputs)
         disp_comps=list(np.unique([i.parent.parent.path for i in dispersed_inputs]))
@@ -709,7 +709,7 @@ if __name__ == "__main__":
     import sys
 
     #args = sys.argv[1:]
-    args='single -sim_type BLA_DMS_dispersed -num_clustered 0 -num_dispersed 20'.split() #for debugging
+    args='single -sim_type BLA_DMS_dispersed -num_clustered 2 -num_dispersed 16'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
