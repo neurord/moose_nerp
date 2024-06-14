@@ -65,6 +65,7 @@ def selectRandom(elementList, n=1, replace=False, weight=None, seed = None, func
     Add weight parsing to this function, or create a separate function?
     '''
     intlist=range(len(elementList))
+    print('selectRandom', func, seed)
     if n<=len(intlist):
         selections = np.random.RandomState(seed).choice(intlist, size=n, replace=replace, p=weight)
     else:
@@ -296,6 +297,7 @@ def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0, min_length = None, 
     if n in ['all','All','ALL']:
         return branchesOfOrder, branch_length
     else:
+        print('random branch',seed)
         nBranches = np.random.RandomState(seed).choice(branchesOfOrder, size=n, replace=False)
         return nBranches, branch_length
 
@@ -309,7 +311,7 @@ def temporalMapping(inputList, minTime = 0, maxTime = 0, random = True):
 def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end_time=None, input_spikes=None):
     from moose_nerp.prototypes import connect
     
-    input_times = []
+    input_times = [];ttlist=[]
     if input_spikes is not None:
         from moose_nerp.prototypes import ttables
         from moose_nerp.prototypes.connect import select_entry
@@ -323,8 +325,11 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
             tt=select_entry(tt_Ctx_SPN.stimtab)
+            #tt=input_spikes.stimtab[i][0] #eliminate randomness here
             connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
             input_times.extend(tt.vector)
+            ttlist.append(tt.path)
+            print(tt.vector,'to',input.path)
     else:
         num = len(inputList)
         print('regular input times:')
@@ -332,18 +337,18 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
             sh = moose.element(input.path+'/SH')
             tt = moose.TimeTable(input.path+'/tt')
             if end_time:
-                freq=((num-1)*(1+(n_per_syn-1))+1)/(end_time-start_time)
-            times = [start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)] #n_per_syn is number of spikes to each synapse
-            print('   ',times)
-            times = np.array(times)
+                freq=(num*n_per_syn)/(end_time-start_time) #formula will reproduce correct input frequency 
+            times = np.array([start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)]) #n_per_syn is number of spikes to each synapse
             if end_time: #probably not needed
                 times = times[times<end_time]
             tt.vector = times
             input_times.extend(tt.vector)
-            #print(tt.vector)
+            print('   ',tt.path,tt.vector)
             connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
+            #moose.showmsg(sh)
+            ttlist.append(tt)
     input_times.sort()
-    return input_times
+    return input_times,ttlist
 
 def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
@@ -441,6 +446,7 @@ def report_element_distance(inputs, print_num=40):
     dist_list=[]
     dist100=0
     dist150=0
+    furthest=(inputs[0],0)
     for i,el in enumerate(inputs):
         if el.className=='Compartment' or el.className=='ZombieCompartment':
             dist,name = util.get_dist_name(el)
@@ -448,6 +454,8 @@ def report_element_distance(inputs, print_num=40):
         elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = el.parent
+        if dist>furthest[1]:
+            furthest=(el,dist)
         dist_list.append(dist)
         if dist>100e-6:
             dist100+=1
@@ -456,6 +464,7 @@ def report_element_distance(inputs, print_num=40):
         if i < print_num: #don't print out 200 inputs
             print('     ',el.path,name, dist)
     print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list),', num>100um=', dist100, ',150um=', dist150)
+    return furthest[0]
 
 def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):
     # Want to distribute total_num_spines into num_clusters of size cluster_distance
