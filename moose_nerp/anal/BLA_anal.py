@@ -148,7 +148,7 @@ for reg in region:
                     isis[reg][nc].append(np.diff(data.spiketime[data.soma_name[0]]))
                 if par.seed:
                     if str(par.seed) in fn:
-                        plot_one_file(fn,data, starttime,et)      
+                        plot_one_file(fn,data, par.start,et)      
             if len(isis[reg][nc]):
                 inst_freq[reg][nc]=np.mean([np.mean(1/isi) for isi in isis[reg][nc]])  #from ISIs, calculate mean instaneous frequency
         else:
@@ -156,7 +156,7 @@ for reg in region:
 
 ################## Results ###################33
 for reg in region:
-    print('**', reg,'trials=',[trials[reg]])
+    print('***', num_disp, reg,'trials=',[trials[reg]])
     for num_clust in num_stim:    
         nc=str(num_clust)
         print( '  ', nc,'inputs, spikes=',round(np.mean(num_spikes[reg][nc]),3),'+/-',round(np.std(num_spikes[reg][nc])/np.sqrt(len(fnames)),3))
@@ -167,5 +167,4 @@ for reg in region:
         if len(decay10[reg][nc]):
             print('        mean plateau',round(np.mean(plateauVm[reg][nc]),1),'+/-',round(np.std(plateauVm[reg][nc])/np.sqrt(plat_trials[reg][nc]),2), 'in mV, n=',plat_trials[reg][nc])
             print('        mean decay',round(np.mean(decay10[reg][nc]),1),'+/-',round(np.std(decay10[reg][nc])/np.sqrt(plat_trials[reg][nc]),2), 'in msec, n=',plat_trials[reg][nc])
-        else:
-            print('all traces had spikes')
+

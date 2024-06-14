@@ -341,7 +341,7 @@ def upstate_main(
         parents = parent_dend + parent_spine
         input_parent_dends = set(parents)
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
-        print('clustered stim for seed', clustered_seed,'=',[i.path for i in inputs]) #if want to exclude these branches from dispersed input, need to put into branch_list
+        print('clustered stim for seed', clustered_seed) #if want to exclude these branches from dispersed input, need to put into branch_list
         far.append(stim.report_element_distance(inputs))
         cluster_comps=list(np.unique([pd.path for pd in parent_dend]))
     comps = [moose.element(comp) for comp in bd[branch_list[0]]["BranchPath"]] #plot compartments for 1st branch
@@ -367,7 +367,7 @@ def upstate_main(
         disp_comps=list(np.unique([i.parent.parent.path for i in dispersed_inputs]))
         model.param_sim.plotcomps+=[dc.split('/')[-1] for dc in disp_comps]
     print('num dispersed stim for seed',dispersed_seed,'=',num_dispersed)
-    print('FURTHEST ELEMENTS', far, [f.path for f in far])
+    print('FURTHEST ELEMENTS', [f.path for f in far])
 
     create_model_sim.setupOutput(model)
     # import pdb;pdb.set_trace()
