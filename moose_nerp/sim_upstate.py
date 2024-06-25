@@ -320,9 +320,9 @@ def upstate_main(
                 success=0
                 while tries<8 and success==0: #if elist is not big enough, try a few more times
                     elist = stim.generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                            minDistance=80e-6, maxDistance=130e-6, commonParentOrder=0,
+                                            minDistance=100e-6, maxDistance=180e-6, commonParentOrder=0,  #
                                             numBranches=1, min_length=10e-6, branch_list=possibleBranches
-                                            ) #could try minDistance=120e-6'''
+                                            ) #previously 80-130 um
                     tries+=1
                     if len(elist)>=num_clustered:
                         success=1
@@ -378,13 +378,16 @@ def upstate_main(
         msg='getGk'
         spine_cur_tab=plot_channel.plot_gates(model,plotgates,plotchan,far,msg)
     ############## create time table inputs, either specific frequency or from external spike trains ###################
+    from moose_nerp.prototypes import ttables #move up
+    tt_Ctx_SPN = ttables.TableSet('CtxSPN', time_tables['fname'],syn_per_tt=time_tables['syn_per_tt']) #move up
+    ttables.TableSet.create_all() #move up
     if num_clustered > 0:
-        input_times = stim.createTimeTables(
-            inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster)#, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
+        input_times,tt = stim.createTimeTables(
+            inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)#, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz
     if num_dispersed>0:
         inputs_disp,tt = stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_dispersed,  #n_per_syn is unused if using time tables
-            freq=freq_dispersed, end_time=end_dispersed, input_spikes=time_tables)# freq_dispersed is unused if using time tables
+            freq=freq_dispersed, end_time=end_dispersed, input_spikes=tt_Ctx_SPN)# freq_dispersed is unused if using time tables #=time_tables
         print('dispersed inputs:', time_tables, 'num stimuli=', len(inputs_disp), '\n   begin=', inputs_disp[0:5], '\n   end=', inputs_disp[-5:])
     else:
         end_dispersed=round(input_times[-1],3) #use time of last clustered stim for filename if no dispersed
@@ -447,9 +450,9 @@ def upstate_main(
 
             plt.show()
     if block_naf:
-        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),str(dispersed_seed)])
+        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(end_cluster),str(round(max_disp*1e6)),str(dispersed_seed)])
     else:
-        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),'NaF',str(dispersed_seed)])
+        model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(end_cluster),str(mod_dict[modelname]['NMDA']),str(round(max_disp*1e6)),'NaF',str(dispersed_seed)])
     # c = moose.element('D1/634_3')
     tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
     print("upstate filename: {}".format(model.param_sim.fname))
@@ -688,7 +691,7 @@ def parsarg(commandline):
     small_parser.add_argument('-block_naf', type=bool, default=False)
     small_parser.add_argument('-min_disp', type=float, default=20e-6, help='minimum distance for dispersed inputs')
     small_parser.add_argument('-max_disp', type=float, default=300e-6, help='maximum distance for dispersed inputs')
-    small_parser.add_argument('-n_per_clustered', type=int, default=2, help='number of stim per clustered synapse')
+    small_parser.add_argument('-n_per_clustered', type=int, default=8, help='number of stim per clustered synapse')
 
     args=small_parser.parse_args(commandline)
     return args
@@ -702,15 +705,15 @@ if __name__ == "__main__":
 
     import sys
 
-    args = sys.argv[1:]
-    args='single -sim_type BLA_DLS_dispersed -num_clustered 2 -num_dispersed 5 -min_disp 150e-6 -max_disp 200e-6 -start_cluster 0.2 -end_dispersed 0.3 -block_naf True'.split() #for debugging
+    #args = sys.argv[1:]
+    args='single -sim_type BLA_DLS_dispersed -num_clustered 4 -num_dispersed 0 -min_disp 150e-6 -max_disp 200e-6 -start_cluster 0.2 -end_cluster 0.3 -end_dispersed 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
     if params.base_sim == "single":
         spn_name=params.SPN.split('.')[-1][0:5]+params.SPN.split('.')[-1][-1]
         if params.spkfile:
-            tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':2}
+            tt_Ctx_SPN={'fname':params.spkfile,'syn_per_tt':1} #must be 1 if you use the tables for both clustered and dispersed
         else:
             tt_Ctx_SPN=None
         model=upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=True,filename=spn_name+sims[0]['name'], time_tables=tt_Ctx_SPN)

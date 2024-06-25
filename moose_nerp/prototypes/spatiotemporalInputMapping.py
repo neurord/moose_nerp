@@ -313,18 +313,17 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
     
     input_times = [];ttlist=[]
     if input_spikes is not None:
-        from moose_nerp.prototypes import ttables
+        #from moose_nerp.prototypes import ttables #move up
         from moose_nerp.prototypes.connect import select_entry
-        tt_Ctx_SPN = ttables.TableSet('CtxSPN', input_spikes['fname'],syn_per_tt=input_spikes['syn_per_tt'])
-        ttables.TableSet.create_all()
-        if end_time is not None: #limit spikes to duration_limit
-            for tt in tt_Ctx_SPN.stimtab:
-                times=tt[0].vector
-                times = times[np.array(times<end_time) & np.array(times>start_time)]
-                tt[0].vector = times        
+        #tt_Ctx_SPN = ttables.TableSet('CtxSPN', input_spikes['fname'],syn_per_tt=input_spikes['syn_per_tt']) #move up
+        #ttables.TableSet.create_all() #move up
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
-            tt=select_entry(tt_Ctx_SPN.stimtab)
+            tt=select_entry(input_spikes.stimtab) #tt_Ctx_SPN
+            if end_time is not None: #limit spikes to duration_limit - only for used tables
+                times=tt.vector
+                times = times[np.array(times<end_time) & np.array(times>start_time)]
+                tt.vector = times        
             #tt=input_spikes.stimtab[i][0] #eliminate randomness here
             connect.synconn(sh.path,False,tt,model.param_syn,mindel=0)
             input_times.extend(tt.vector)
