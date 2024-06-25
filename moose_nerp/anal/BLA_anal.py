@@ -2,6 +2,8 @@ import numpy as np
 import glob
 import sys
 from moose_nerp.anal.neur_anal_class import neur_text
+import warnings
+warnings.simplefilter("ignore", category=RuntimeWarning)
 
 def plot_traces(fnames,reg,spn,startime,endtime):
     from matplotlib import pyplot as plt
@@ -74,11 +76,12 @@ def parsarg(commandline):
     parser.add_argument('-dir', type=str, help='directory with files')
     parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
     parser.add_argument('-dist', type=int, help='max_dist of dispersed')
+    parser.add_argument('-output', type=bool,help='Y or 1 to write output file')
     args=parser.parse_args(commandline)
     return args
 
 args = sys.argv[1:]
-#args='-num_dispersed 20 -num_clustered 0 -end_time 0.3'.split()
+#args='-num_clustered 0 4 -num_dispersed 30 -end_time 0.3  -output 1'.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
@@ -99,8 +102,9 @@ num_spikes={reg:{str(c):[] for c in num_stim} for reg in region}
 plateauVm={reg:{str(c):[] for c in num_stim} for reg in region}
 decay10={reg:{str(c):[] for c in num_stim} for reg in region}
 plat_trials={reg:{str(c):0 for c in num_stim} for reg in region} #number of trials used to calculate plateau and decay
-inst_freq={reg:{} for reg in region}
+inst_freq={reg:{str(c):[] for c in num_stim} for reg in region}
 trials={reg:{} for reg in region}
+rows=[]
 
 #for spn in ['Mat3', 'Mat2']:
 for reg in region:
@@ -134,7 +138,8 @@ for reg in region:
                 data=neur_text(fn)
                 data.spikes(0) #calculate spike times, using 0 mV as threshold
                 spk_tm=data.spiketime[data.soma_name[0]] #extract spike times of soma
-                num_spikes[reg][nc].append(len(spk_tm)) 
+                num_spikes[reg][nc].append(len(spk_tm))
+                isi=np.nan #inittialize as nan
                 if not len(data.spiketime[data.soma_name[0]]): #if no spikes, measure plateau and decay time
                     baseVm,_,_=mean_Vm(data,base_time) #baseline Vm
                     plateau,plat_start,peakVm=mean_Vm(data,plateau_time) #plateau Vm
@@ -143,28 +148,59 @@ for reg in region:
                     decay10[reg][nc].append(1000*(decay-plateau_time[1]))
                     plat_trials[reg][nc]+=1
                 else:
+                    decay10[reg][nc].append(np.nan)
+                    plateauVm[reg][nc].append(np.nan)
                     print('spikes for', fn)
                 if len(data.spiketime[data.soma_name[0]])>1: #if more than 1 spike, calculate mean ISI
-                    isis[reg][nc].append(np.diff(data.spiketime[data.soma_name[0]]))
+                    isi=np.diff(data.spiketime[data.soma_name[0]])
+                    isis[reg][nc].append(isi)
+                    inst_freq[reg][nc].append(np.mean(1/isi))
                 if par.seed:
                     if str(par.seed) in fn:
-                        plot_one_file(fn,data, par.start,et)      
-            if len(isis[reg][nc]):
-                inst_freq[reg][nc]=np.mean([np.mean(1/isi) for isi in isis[reg][nc]])  #from ISIs, calculate mean instaneous frequency
+                        plot_one_file(fn,data, par.start,et)
+                #output for stat analysis
+                parts=fn.split('_')
+                ndisp=parts[2]
+                nclust=parts[3]
+                maxdist=parts[6]
+                if parts[7]=='NaF':
+                    naf='1'
+                    seed=parts[8].split('0Vm')[0]
+                else: 
+                    naf='0'
+                    seed=parts[7].split('0Vm')[0]
+                rows.append([reg,ndisp,nclust,maxdist,naf,seed,str(round(plateauVm[reg][nc][-1],3)),str(round(decay10[reg][nc][-1],1)),str(len(spk_tm)),str(round(np.nanmean(1/isi),2))])
         else:
             print('no files found using pattern',pattern, 'with parameters',nc,reg)
 
-################## Results ###################33
+#output for stat analysis, export and then read in and combine multiple files
+if par.output:
+    if parts[7]=='NaF':
+       outfname='_'.join(parts[0:7])
+    else:
+       outfname='_'.join(parts[0:6])
+    f=open(outfname+'.out','w')
+    header='region  ndisp  nclust  maxdist   naf   seed  plateauVm  decay10  num_spk  inst_freq'
+    np.savetxt(f,rows,fmt='%7s',header=header,comments='')  
+    f.close()         
+ 
+################## Results ###################
+import scipy.stats as sps
 for reg in region:
-    print('***', num_disp, reg,'trials=',[trials[reg]])
+    if len(par.num_clustered)>=1 and len(par.num_dispersed)==1:
+        print('***', num_disp, 'dispersed, ', reg,'trials=',[trials[reg]])
+    else:
+         print('***', num_clust, 'clustered, ', reg,'trials=',[trials[reg]])
     for num_clust in num_stim:    
         nc=str(num_clust)
-        print( '  ', nc,'inputs, spikes=',round(np.mean(num_spikes[reg][nc]),3),'+/-',round(np.std(num_spikes[reg][nc])/np.sqrt(len(fnames)),3))
+        print( '  ', nc,'inputs, spikes=',np.round(np.mean(num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(num_spikes[reg][nc],nan_policy='omit'),3))
         if len(isis[reg][nc]):
-            print('        freq=',round(inst_freq[reg][nc],2), 'from', len(isis[reg][nc]), 'trials')
+            print('        freq=',np.round(np.nanmean(inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(isis[reg][nc]), 'trials')
         else:
             print('        no frequency, only 1 spike per trace')
-        if len(decay10[reg][nc]):
-            print('        mean plateau',round(np.mean(plateauVm[reg][nc]),1),'+/-',round(np.std(plateauVm[reg][nc])/np.sqrt(plat_trials[reg][nc]),2), 'in mV, n=',plat_trials[reg][nc])
-            print('        mean decay',round(np.mean(decay10[reg][nc]),1),'+/-',round(np.std(decay10[reg][nc])/np.sqrt(plat_trials[reg][nc]),2), 'in msec, n=',plat_trials[reg][nc])
+        if not np.all(np.isnan(decay10[reg][nc])):
+            print('        mean plateau',np.round(np.nanmean(plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(plateauVm[reg][nc],nan_policy='omit'),2), 'in mV, n=',plat_trials[reg][nc])
+            print('        mean decay',np.round(np.nanmean(decay10[reg][nc]),1),'+/-',np.round(sps.sem(decay10[reg][nc],nan_policy='omit'),2), 'in msec, n=',plat_trials[reg][nc])
+
+
 
