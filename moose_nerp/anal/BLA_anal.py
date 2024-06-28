@@ -4,6 +4,7 @@ import sys
 from moose_nerp.anal.neur_anal_class import neur_text
 import warnings
 warnings.simplefilter("ignore", category=RuntimeWarning)
+import os
 
 def plot_traces(fnames,reg,spn,startime,endtime):
     from matplotlib import pyplot as plt
@@ -44,6 +45,7 @@ def mean_Vm(dat,time_vals):
 
 def decay_time(dat,base_val,plateau_val,pt):
     amp=plateau_val-base_val
+    #amp=dat.traces[dat.soma_name[0]][pt] -base_val #use value at end stim to determine amplitude
     thresh=0.2*amp+base_val #80% decayed to baseline
     decay_pt= np.where(dat.traces[dat.soma_name[0]][pt:]<thresh) #start search at end of plateau
     if len(decay_pt[0]):
@@ -56,12 +58,18 @@ def decay_time(dat,base_val,plateau_val,pt):
 
 def duration(dat,baseVm,start,end_stim):
     start_pt=np.min(np.where(dat.time>=start)) #start of stimulation
-    end_pt = np.min(np.where(dat.traces[dat.soma_name[0]][end_stim:]-baseVm<.0001))+end_stim#0.1 mV, return to basal
+    end_pt = np.min(np.where(dat.traces[dat.soma_name[0]][end_stim:]-baseVm<.0001))+end_stim#1 mV, return to basal
     auc=np.sum(dat.traces[dat.soma_name[0]][start_pt:end_pt]-baseVm)*dat.time[1] #this is dt
     mean=np.mean(dat.traces[dat.soma_name[0]][start_pt:end_pt]-baseVm)
     dur=auc/mean #issue: mean is sensitive to end point
     dur = dat.time[end_pt]-dat.time[end_stim]
     return dur
+
+def risetime(dat,start,stim_stop,base):
+    stop_pt=np.min(np.where(dat.time>stim_stop))
+    early_amp=np.max(dat.traces[dat.soma_name[0]][start:stop_pt])-base
+    rise_pt=np.min(np.where(dat.traces[dat.soma_name[0]][start:stop_pt]>0.8*early_amp+base))+start
+    return rise_pt*dat.time[1] #dt
 
 def remove_fn(fnames,key):
     remove=[]
@@ -113,6 +121,7 @@ decay10={reg:{str(c):[] for c in num_stim} for reg in region}
 dur={reg:{str(c):[] for c in num_stim} for reg in region}
 plat_trials={reg:{str(c):0 for c in num_stim} for reg in region} #number of trials used to calculate plateau and decay
 inst_freq={reg:{str(c):[] for c in num_stim} for reg in region}
+#rise_time={reg:{str(c):[] for c in num_stim} for reg in region}
 trials={reg:{} for reg in region}
 rows=[]
 
@@ -151,7 +160,8 @@ for reg in region:
                 num_spikes[reg][nc].append(len(spk_tm))
                 isi=np.nan #inittialize as nan
                 if not len(data.spiketime[data.soma_name[0]]): #if no spikes, measure plateau and decay time
-                    baseVm,_,_=mean_Vm(data,base_time) #baseline Vm
+                    baseVm,start_pt,_=mean_Vm(data,base_time) #baseline Vm
+                    #rise_time[reg][nc].append(1000*risetime(data,start_pt,0.15,baseVm))
                     plateau,plat_start,peakVm=mean_Vm(data,plateau_time) #plateau Vm
                     dur[reg][nc].append(1000*duration(data,baseVm,par.start,plat_start))
                     plateauVm[reg][nc].append(peakVm-baseVm) #plateau amplitude
@@ -171,7 +181,7 @@ for reg in region:
                     if str(par.seed) in fn:
                         plot_one_file(fn,data, par.start,et)
                 #output for stat analysis
-                parts=fn.split('_')
+                parts=os.path.basename(fn).split('_')
                 ndisp=parts[2]
                 nclust=parts[3]
                 maxdist=parts[6]
@@ -214,6 +224,6 @@ for reg in region:
             print('        mean plateau',np.round(np.nanmean(plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(plateauVm[reg][nc],nan_policy='omit'),1), 'in mV, n=',plat_trials[reg][nc])
             print('        mean decay',np.round(np.nanmean(decay10[reg][nc]),1),'+/-',np.round(sps.sem(decay10[reg][nc],nan_policy='omit'),1), 'in msec, n=',plat_trials[reg][nc])
             print('        mean dur',np.round(np.nanmean(dur[reg][nc]),1),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
-
+            #print('        mean rise_time',np.round(np.nanmean(rise_time[reg][nc]),1),'+/-',np.round(sps.sem(rise_time[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
 
 
