@@ -7,7 +7,7 @@ from statsmodels.stats.anova import anova_lm
 import pandas as pd
 import glob
 
-filenames=glob.glob('*.out')
+filenames=glob.glob('D1Mat2BLA_DLS_24_8_0.3_2.25.out')
 
 
 
@@ -43,18 +43,24 @@ print('group means', grouped_data.mean()[['PSmean1','PSmean2']], grouped_data.st
 '''
 #2.how to do ANOVA
 for dat in [dms,dls]:
-    for depvar in ['plateauVm','decay10']:
-        results=ols(depvar+' ~ C(nclust)',data=dat).fit()
-        table=sm.stats.anova_lm(results,typ=2) #coefficients
-        print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=','********\n',table)
-        print(results.summary()) #overall anova result
+    if len(dat):
+        for depvar in ['plateauVm','decay10']:
+            results=ols(depvar+' ~ C(nclust)',data=dat).fit()
+            table=sm.stats.anova_lm(results,typ=2) #coefficients
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=','********\n',table)
+            indep_var=list(table['PR(>F)'].keys())[0]
+            if table['PR(>F)'][indep_var]<0.05:
+                print(results.summary()) #overall anova result
 
 for dat in [dms_naf,dls_naf]:
-    for depvar in ['num_spk', 'inst_freq']:
-        results=ols(depvar+' ~ C(nclust)',data=dat).fit()
-        table=sm.stats.anova_lm(results,typ=2) #coefficients
-        print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], dat.ndisp[dat.index[0]],'********\n',table)
-        print(results.summary()) #overall anova result
+    if len(dat):
+        for depvar in ['num_spk', 'inst_freq']:
+            results=ols(depvar+' ~ C(nclust)',data=dat).fit()
+            table=sm.stats.anova_lm(results,typ=2) #coefficients
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], dat.ndisp[dat.index[0]],'********\n',table)
+            indep_var=list(table['PR(>F)'].keys())[0]
+            if table['PR(>F)'][indep_var]<0.05:
+                print(results.summary()) #overall anova result
 
 #print('post-hoc on sex\n', sp.posthoc_ttest(nodrug_theta10, val_col='PSmean1', group_col='sex', p_adjust='holm'))
 
