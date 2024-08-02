@@ -98,7 +98,7 @@ def parsarg(commandline):
     return args
 
 args = sys.argv[1:]
-#args='-num_clustered 0 4 -num_dispersed 30 -end_time 0.3  -output 1'.split()
+#args='-num_clustered 0 -num_dispersed 36 48 60 72 -dist 200'.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
@@ -158,25 +158,27 @@ for reg in region:
                 data.spikes(0) #calculate spike times, using 0 mV as threshold
                 spk_tm=data.spiketime[data.soma_name[0]] #extract spike times of soma
                 num_spikes[reg][nc].append(len(spk_tm))
-                isi=np.nan #inittialize as nan
+                isi=np.nan #initialize as nan
+                baseVm,start_pt,_=mean_Vm(data,base_time) #baseline Vm
+                plateau,plat_start,peakVm=mean_Vm(data,plateau_time) #plateau Vm
                 if not len(data.spiketime[data.soma_name[0]]): #if no spikes, measure plateau and decay time
-                    baseVm,start_pt,_=mean_Vm(data,base_time) #baseline Vm
                     #rise_time[reg][nc].append(1000*risetime(data,start_pt,0.15,baseVm))
-                    plateau,plat_start,peakVm=mean_Vm(data,plateau_time) #plateau Vm
-                    dur[reg][nc].append(1000*duration(data,baseVm,par.start,plat_start))
-                    plateauVm[reg][nc].append(peakVm-baseVm) #plateau amplitude
+                    dur[reg][nc].append(np.nan)#(1000*duration(data,baseVm,par.start,plat_start))
+                    plateauVm[reg][nc].append(peakVm-baseVm) #plateau amplitude defined using peak.  If use plateau-baseVm, then could define it even with spikes
                     decay=decay_time(data,baseVm,peakVm, plat_start) #time to decay
-                    decay10[reg][nc].append(1000*(decay-plateau_time[1]))
+                    decay10[reg][nc].append(1000*(decay-plateau_time[1])) #decay duration, in msec
                     plat_trials[reg][nc]+=1
                 else:
                     decay10[reg][nc].append(np.nan)
-                    plateauVm[reg][nc].append(np.nan)
-                    dur[reg][nc].append(np.nan)
+                    plateauVm[reg][nc].append(np.nan) #plateau-baseVm - test this with example files
                     print('spikes for', fn)
                 if len(data.spiketime[data.soma_name[0]])>1: #if more than 1 spike, calculate mean ISI
                     isi=np.diff(data.spiketime[data.soma_name[0]])
                     isis[reg][nc].append(isi)
                     inst_freq[reg][nc].append(np.mean(1/isi))
+                    dur[reg][nc].append(data.spiketime[data.soma_name[0]][-1]-data.spiketime[data.soma_name[0]][0]) #time between 1st and last spike
+                else:
+                    dur[reg][nc].append(np.nan)
                 if par.seed:
                     if str(par.seed) in fn:
                         plot_one_file(fn,data, par.start,et)
@@ -213,17 +215,17 @@ for reg in region:
         print('***', num_disp, 'dispersed, ', reg,'trials=',[trials[reg]])
     else:
          print('***', num_clust, 'clustered, ', reg,'trials=',[trials[reg]])
-    for num_clust in num_stim:    
-        nc=str(num_clust)
+    for nstim in num_stim:    
+        nc=str(nstim)
         print( '  ', nc,'inputs, spikes=',np.round(np.mean(num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(num_spikes[reg][nc],nan_policy='omit'),3))
         if len(isis[reg][nc]):
             print('        freq=',np.round(np.nanmean(inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(isis[reg][nc]), 'trials')
+            print('        mean dur of spiking',np.round(np.nanmean(dur[reg][nc]),1),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),1), 'in sec')
         else:
-            print('        no frequency, only 1 spike per trace')
+            print('        no frequency or spike dur, only 1 spike per trace')
         if not np.all(np.isnan(decay10[reg][nc])):
             print('        mean plateau',np.round(np.nanmean(plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(plateauVm[reg][nc],nan_policy='omit'),1), 'in mV, n=',plat_trials[reg][nc])
             print('        mean decay',np.round(np.nanmean(decay10[reg][nc]),1),'+/-',np.round(sps.sem(decay10[reg][nc],nan_policy='omit'),1), 'in msec, n=',plat_trials[reg][nc])
-            print('        mean dur',np.round(np.nanmean(dur[reg][nc]),1),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
             #print('        mean rise_time',np.round(np.nanmean(rise_time[reg][nc]),1),'+/-',np.round(sps.sem(rise_time[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
 
 
