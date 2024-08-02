@@ -218,9 +218,9 @@ def syn_plastabs(connections, model,plas=[]):
                         #print ('###########',synchan.path,'/'+neur_name.split('/')[-1]+'-'+precomp)
                         syn_tabs[neur_type][syntype].append(moose.Table(DATA_NAME+'/%s' %(neur_name.split('/')[-1]+'-'+precomp)))
                         log.debug('neur={} syn={} {} comp={} tab={}', neur_name,syntype, synchan.path,precomp,syn_tabs[neur_type][syntype][-1], )
-                        moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, synapse_message)
+                        moose.connect(syn_tabs[neur_type][syntype][-1], 'requestOut', synchan, synapse_msg)
                         if getattr(model,'stpYN',False):
-                            create_stp_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,stp_tabs[neur_type][syntype],['fac','dep','stp'])
+                            create_plas_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,stp_tabs[neur_type][syntype],['fac','dep','stp'])
                         if model.plasYN:
                             create_plas_tabs(synchan,syn_tabs[neur_type][syntype][-1].name,plas_tabs[neur_type][syntype],['plas'])
     return syn_tabs, plas_tabs, stp_tabs
