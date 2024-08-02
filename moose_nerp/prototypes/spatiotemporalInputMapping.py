@@ -392,9 +392,12 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
         bd=getBranchDict(neur)
+        compList=[y for x in bd.values() for y in x['CompList'] ]
+        compDist=[y for x in bd.values() for y in x['CompDistances'] ]
+        compDistdict={x:y for x,y in zip(compList,compDist)}
         all_inputs=[]
         exclude_branch_list=[]
-        input_comp=[]
+        input_comps={}
         while len(all_inputs)<nInputs:
             #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified
             elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
@@ -402,18 +405,19 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
                                     )
-            elementlist=remove_comps(elementlist, spine_per_comp, input_comp) #remove compartments that have < spine_per_comp
+            elementlist=remove_comps(elementlist, spine_per_comp, input_comps) #remove compartments that have < spine_per_comp
             if len(elementlist):
                 inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
                 comp=inputs[0].path.split('/sp')[0] ######### This assumes that input is to a spine 
                 if int(moose.__version__[0])>3:
                     comp=comp[0:-3] #strip off [0]
-                input_comp.append(comp)
+                input_comps[comp]={'dist':compDistdict[comp], 'inputs':inputs}
                 if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
                     chans.remove(inputs[0])
                     more_inputs=selectRandom(chans,n=spine_per_comp-1,func='n_inputs_per_comp')
                     inputs=[inp for inp in inputs]+[minp for minp in more_inputs]
+                    input_comps[comp]['inputs']=inputs
                 for branch, bvalues in bd.items(): #possibly don't do this
                     if comp in bvalues['CompList']:
                         exclude_branch_list.append(branch) #do not select any other inputs from that branch
@@ -430,7 +434,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
                     print('***** Even with branchOrder of None, insufficient branches. Number of inputs is', len(all_inputs))
                     break
             all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
-        return all_inputs
+        return all_inputs, input_comps
 
 def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6, exclude_syn=[]): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
