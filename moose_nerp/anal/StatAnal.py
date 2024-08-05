@@ -7,8 +7,7 @@ from statsmodels.stats.anova import anova_lm
 import pandas as pd
 import glob
 
-filenames=glob.glob('D1Mat2BLA_DLS_24_8_0.3_2.25.out')
-
+filenames=glob.glob('*.out')
 
 
 data=[]
@@ -16,6 +15,8 @@ for fn in filenames:
     data.append(pd.read_csv(fn,sep='\s+'))
 #concatenate multiple files of data
 alldata = pd.concat(data,ignore_index=True)
+if not 'spc' in alldata.columns:
+    alldata['spc']=6    
 #eliminate duplicates
 alldata.drop_duplicates()
 
@@ -26,7 +27,7 @@ alldata.std(numeric_only=True)
 #means of different groups
 #1. how to create subsets of data or exclude rows
 #nodrug=alldata[alldata.drug=='none']
-print(alldata.groupby(['region','ndisp','nclust','naf']).mean()[['plateauVm','decay10','num_spk','inst_freq']])
+print(alldata.groupby(['region','ndisp','nclust','naf','spc']).mean()[['plateauVm','decay10','num_spk','inst_freq','duration']])
 
 no_naf=alldata[(alldata.naf==0)]
 dms=alldata[(alldata.region=='DMS') & (alldata.naf==0)]
@@ -47,7 +48,7 @@ for dat in [dms,dls]:
         for depvar in ['plateauVm','decay10']:
             results=ols(depvar+' ~ C(nclust)',data=dat).fit()
             table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=','********\n',table)
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.ndisp[dat.index[0]],'********\n',table)
             indep_var=list(table['PR(>F)'].keys())[0]
             if table['PR(>F)'][indep_var]<0.05:
                 print(results.summary()) #overall anova result
@@ -57,7 +58,7 @@ for dat in [dms_naf,dls_naf]:
         for depvar in ['num_spk', 'inst_freq']:
             results=ols(depvar+' ~ C(nclust)',data=dat).fit()
             table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], dat.ndisp[dat.index[0]],'********\n',table)
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], 'dispersed=',dat.ndisp[dat.index[0]],'********\n',table)
             indep_var=list(table['PR(>F)'].keys())[0]
             if table['PR(>F)'][indep_var]<0.05:
                 print(results.summary()) #overall anova result

@@ -187,24 +187,21 @@ for reg in region:
                 ndisp=parts[2]
                 nclust=parts[3]
                 maxdist=parts[6]
-                if parts[7]=='NaF':
+                spc=parts[7] #this will not be correct for files generated prior to 2024 aug 5
+                if 'NaF' in fn:
                     naf='1'
-                    seed=parts[8].split('0Vm')[0]
                 else: 
                     naf='0'
-                    seed=parts[7].split('0Vm')[0]
-                rows.append([reg,ndisp,nclust,maxdist,naf,seed,str(round(plateauVm[reg][nc][-1],3)),str(round(decay10[reg][nc][-1],1)), str(round(dur[reg][nc][-1],1)), str(len(spk_tm)),str(round(np.nanmean(1/isi),2))])
+                seed=parts[-1].split('0Vm')[0]
+                rows.append([reg,ndisp,nclust,maxdist,naf,spc, seed,str(round(plateauVm[reg][nc][-1],3)),str(round(decay10[reg][nc][-1],1)), str(round(dur[reg][nc][-1],1)), str(len(spk_tm)),str(round(np.nanmean(1/isi),2))])
         else:
             print('no files found using pattern',pattern, 'with parameters',nc,reg)
 
 #output for stat analysis, export and then read in and combine multiple files
 if par.output:
-    if parts[7]=='NaF':
-       outfname='_'.join(parts[0:7])
-    else:
-       outfname='_'.join(parts[0:6])
+    outfname='_'.join(parts[0:-1])
     f=open(outfname+'.out','w')
-    header='region  ndisp  nclust  maxdist   naf   seed  plateauVm  decay10  duration num_spk  inst_freq'
+    header='region  ndisp  nclust  maxdist   naf  spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
     np.savetxt(f,rows,fmt='%7s',header=header,comments='')  
     f.close()         
  
@@ -220,7 +217,7 @@ for reg in region:
         print( '  ', nc,'inputs, spikes=',np.round(np.mean(num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(num_spikes[reg][nc],nan_policy='omit'),3))
         if len(isis[reg][nc]):
             print('        freq=',np.round(np.nanmean(inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(isis[reg][nc]), 'trials')
-            print('        mean dur of spiking',np.round(np.nanmean(dur[reg][nc]),1),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),1), 'in sec')
+            print('        mean dur of spiking',np.round(np.nanmean(dur[reg][nc]),3),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),3), 'in sec')
         else:
             print('        no frequency or spike dur, only 1 spike per trace')
         if not np.all(np.isnan(decay10[reg][nc])):
