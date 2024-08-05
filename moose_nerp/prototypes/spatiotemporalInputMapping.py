@@ -382,13 +382,17 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
         elementlist.remove(val)
     return elementlist
 
-def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None):
+def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None,spc_subset=1):
     #get 1 comp, then call elementlist again with that branch excluded, repeat. 
     #select one spine on that comp for a synapse, then select spine_per_comp-1 other spines
     #possibly exclude the entire 1st order parent? (primary dendrite) or 2nd order parent?  - more complicated
     #only exclude that compartment and not the entire branch?
     schan='ampa'
     elementType='SynChan'
+    if spc_subset==spine_per_comp:
+        total_inputs=nInputs
+    else:
+        total_inputs=int((spine_per_comp/spc_subset)*nInputs)
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
         bd=getBranchDict(neur)
@@ -398,7 +402,8 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
         all_inputs=[]
         exclude_branch_list=[]
         input_comps={}
-        while len(all_inputs)<nInputs:
+        proximal=0;distal=0;middle=0
+        while len(all_inputs)<total_inputs:
             #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified
             elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                     minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
@@ -412,6 +417,20 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
                 if int(moose.__version__[0])>3:
                     comp=comp[0:-3] #strip off [0]
                 input_comps[comp]={'dist':compDistdict[comp], 'inputs':inputs}
+                #keep track of how many distal and how many proximal sets of inputs
+                if compDistdict[comp]<100e-6:
+                    proximal+=1
+                elif compDistdict[comp]>150e-6:
+                    distal+=1
+                else:
+                    middle+=1
+                if proximal>=(nInputs/spine_per_comp)/2: #if too many proximal inputs, make minDistance larger
+                    minDistance=100e-6
+                if (proximal+middle)>=(nInputs/spine_per_comp):
+                    minDistance=150e-6
+                if distal>4: #if too many distal inputs, make maxDistance smaller
+                    maxDistance=200e-6
+                #
                 if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
                     chans.remove(inputs[0])
@@ -445,7 +464,7 @@ def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_
         inputs = selectRandom(elementlist,n=nInputs,seed=seed, func='dispersed')
         return inputs
 
-def report_element_distance(inputs, print_num=40):
+def report_element_distance(inputs, print_num=50):
     dist_list=[]
     dist100=0
     dist150=0
