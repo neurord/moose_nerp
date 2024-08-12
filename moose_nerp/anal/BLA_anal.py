@@ -87,9 +87,10 @@ def parsarg(commandline):
     parser.add_argument('-dur', type=float, default=0.05, help='duration for measuring plateau, in sec')
     parser.add_argument('-num_dispersed', nargs="+", type=int, default=[75], help='number of dispersed inputs')
     parser.add_argument('-num_clustered', nargs="+", type=int, default=[16], help='number of clustered inputs')
+    parser.add_argument('-spc', type=int, help='spines per cluster')
     parser.add_argument('-end_time', nargs="+", type=float, default=[0.3], help='time to begin measuring decay, in sec')
     parser.add_argument('-start', type=float, default=0.1, help='time that stimulation begins, in sec')
-    parser.add_argument('-seed', type=int, help='seed for file to plot all compartments')
+    parser.add_argument('-seed', nargs="+", type=int, help='seed for file to plot all compartments')
     parser.add_argument('-dir', type=str, help='directory with files')
     parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
     parser.add_argument('-dist', type=int, help='max_dist of dispersed')
@@ -143,6 +144,10 @@ for reg in region:
             pattern=par.dir+pattern
         if par.dist:
             pattern=pattern+'*'+str(par.dist)
+        else:
+            pattern=pattern+'*'
+        if par.spc:
+            pattern=pattern+'_'+str(par.spc)+'_'
         if par.naf:
             fnames=glob.glob(pattern+'*NaF*0Vm.txt')
         else:
@@ -180,8 +185,9 @@ for reg in region:
                 else:
                     dur[reg][nc].append(np.nan)
                 if par.seed:
-                    if str(par.seed) in fn:
-                        plot_one_file(fn,data, par.start,et)
+                    for sd in par.seed:
+                        if str(sd) in fn:
+                            plot_one_file(fn,data, par.start,et)
                 #output for stat analysis
                 parts=os.path.basename(fn).split('_')
                 ndisp=parts[2]
@@ -201,9 +207,9 @@ for reg in region:
 if par.output:
     outfname='_'.join(parts[0:-1])
     f=open(outfname+'.out','w')
-    header='region  ndisp  nclust  maxdist   naf  spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
+    header='region    ndisp  nclust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
     np.savetxt(f,rows,fmt='%7s',header=header,comments='')  
-    f.close()         
+    f.close()
  
 ################## Results ###################
 import scipy.stats as sps
@@ -219,7 +225,7 @@ for reg in region:
             print('        freq=',np.round(np.nanmean(inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(isis[reg][nc]), 'trials')
             print('        mean dur of spiking',np.round(np.nanmean(dur[reg][nc]),3),'+/-',np.round(sps.sem(dur[reg][nc],nan_policy='omit'),3), 'in sec')
         else:
-            print('        no frequency or spike dur, only 1 spike per trace')
+            print('        no frequency or spike dur, only 0 or 1 spike per trace')
         if not np.all(np.isnan(decay10[reg][nc])):
             print('        mean plateau',np.round(np.nanmean(plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(plateauVm[reg][nc],nan_policy='omit'),1), 'in mV, n=',plat_trials[reg][nc])
             print('        mean decay',np.round(np.nanmean(decay10[reg][nc]),1),'+/-',np.round(sps.sem(decay10[reg][nc],nan_policy='omit'),1), 'in msec, n=',plat_trials[reg][nc])
