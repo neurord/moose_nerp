@@ -202,7 +202,7 @@ def setupOutput(model, **kwargs):
     if model.spineYN:
         model.spinecatab, model.spinevmtab = tables.spinetabs(model,
                                                               model.neurons,
-                                                              #model.param_sim.plotcomps,
+                                                              model.param_sim.plotcomps,
                                                               )
     else:
         model.spinevmtab = []
