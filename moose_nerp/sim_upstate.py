@@ -60,7 +60,7 @@ import numpy as np
 
 
 def rand_mod_dict():
-    mod_dict = {"D1MatrixSample2": {},"D1MatrixSample3": {}, "D1PatchSample5": {}}
+    mod_dict = {"D1MatrixSample2": {},"D1MatrixSample3": {}, "D1PatchSample5": {}, "D1PatchSample4": {}}
 
     var_range = {
         "KaS": [0, 4],
@@ -86,7 +86,7 @@ def make_mod_dict():
     mod_dict = {
         "D1MatrixSample2": {},
         "D1MatrixSample3": {},
-        # "D1PatchSample4": {},
+        "D1PatchSample4": {},
         "D1PatchSample5": {},
     }
 
@@ -125,26 +125,26 @@ def make_mod_dict():
     #     "KaF": 1,
     #     "CaCC": 0,
     # }
-    # mod_dict["D1PatchSample4"] = {
-    #     "KaS": 1,
-    #     "NMDA": 2,
-    #     "CaR": 100,
-    #     "AMPA": .19,#1,
-    #     "CaL12": 1,
-    #     "CaL13": 1,
-    #     "CaT32": 1,
-    #     "CaT33": 1,
-    #     "Kir": 1,
-    #     "KaF": 1,
-    # }
+    mod_dict["D1PatchSample4"] = {
+        "KaS": 1,
+        "NMDA": 5.0,
+        "CaR": 2,
+        "AMPA": 0.4,#1,
+        "CaL12": 1,
+        "CaL13": 1,
+        "CaT32": 0.5,
+        "CaT33": 1,
+        "Kir": 1,
+        "KaF": 1,
+    }
     mod_dict["D1PatchSample5"] = {
         "KaS": 1,
-        "NMDA": 2.25,
+        "NMDA": 5.0,
         "CaR": 2,
         "AMPA": 0.4,  # .3,#1,
         "CaL12": 1,
         "CaL13": 1,
-        "CaT32": 1,
+        "CaT32": 0.5,
         "CaT33": 1,
         "Kir": 1,
         "KaF": 1,  # 1,
@@ -168,10 +168,10 @@ def mod_local_gbar(complist, mod_dict):
 def mod_dist_gbar(model, mod_dict):
     for chan in mod_dict:
         if chan in model.Condset.D1.keys():
-            #print("{} before: {}".format(chan, model.Condset.D1[chan]))
+            print("{} before: {}".format(chan, model.Condset.D1[chan]))
             model.Condset.D1[chan][model.param_cond.dist] *= mod_dict[chan]
             #print("modifying {} ".format(chan))
-            #print("{} after: {}".format(chan, model.Condset.D1[chan]))
+            print("{} after: {}".format(chan, model.Condset.D1[chan]))
 
 
 def setup_model(model, mod_dict, block_naf=False, Mg_conc=1, filename=None,spine_parent='branch'): #default based on Dorman simulations
@@ -188,7 +188,8 @@ def setup_model(model, mod_dict, block_naf=False, Mg_conc=1, filename=None,spine
     model.param_sim.plot_vm = False
     model.param_sim.plot_current = False #True
     model.param_sim.plot_current_message = "getIk"
-    model.param_sim.simtime=0.8
+    model.param_sim.simtime=1.0
+    model.param_sim.plot_calcium=True
     model.spineYN = True
     model.calYN = True
     model.synYN = True
@@ -294,7 +295,7 @@ def upstate_main(
     bd = stim.getBranchDict(neuron)
     branch_list=_util.select_branch(model.clusteredparent)
     model.param_sim.plotcomps = [s.split("/")[-1] for s in bd[branch_list[0]]["BranchPath"]] #add in parent_dend for plotting
-    inputs=[]; far=[]
+    far=[] 
     ############# Identify a cluster of synapses for stimulation ########################
     ### updated to make specified number of inputs per branch/compartment
     ### update to ensure each set of inputs has unique parent branch?
@@ -333,10 +334,12 @@ def upstate_main(
         input_parent_dends = set(parents)
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
         print('clustered stim for seed', clustered_seed) #if want to exclude these branches from dispersed input, need to put into branch_list
-        far.append(stim.report_element_distance(inputs))
-        cluster_comps=list(np.unique([pd.path for pd in parent_dend]))
-    comps = [moose.element(comp) for comp in bd[branch_list[0]]["BranchPath"]] #plot compartments for 1st branch
-    spines = [sp[0] for comp in comps for sp in comp.children if "head" in sp.name] #
+        el_dist=stim.report_element_distance(inputs) #select closest, middle, and furthest - index 0, len/2, -1 for plotting
+        model.param_sim.plotcomps=[model.param_sim.plotcomps[0]]+[el_dist[x][0].parent.parent.name for x in [0,-1,len(el_dist)//2]]
+        far.append(el_dist[0][0])
+        cluster_comps=list(np.unique([pd.path for pd in parent_dend])) #unused
+    comps = [moose.element(comp) for comp in bd[branch_list[0]]["BranchPath"]] #plot compartments along 1st branch
+    spines = [sp[0] for comp in comps for sp in comp.children if "head" in sp.name] #unused
 
     # mod_local_gbar(set(comps+spines), mod_dict[modelname])
     # from IPython import embed; embed()
@@ -358,11 +361,10 @@ def upstate_main(
             print(filename,'dispersing inputs on:', possibleBranches, 'dispersed',n_per_dispersed, freq_dispersed)
             dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed, exclude_syn=inputs,
                 branch_list=possibleBranches,seed=dispersed_seed, minDistance=min_dist_disp, maxDistance=max_dist_disp) #using seed - always same; min_disp and max_disp needed here, too
-        far.append(stim.report_element_distance(dispersed_inputs))
-        disp_comps=list(np.unique([i.parent.parent.path for i in dispersed_inputs]))
-        model.param_sim.plotcomps+=[dc.split('/')[-1] for dc in disp_comps]
+        el_dist_disp=stim.report_element_distance(dispersed_inputs)
+        far.append(el_dist_disp[0][0])
+        model.param_sim.plotcomps+=list(np.unique([i.parent.parent.name for i in dispersed_inputs]))
     print('num dispersed stim for seed',dispersed_seed,'=',num_dispersed)
-    print('FURTHEST ELEMENTS', [f.path for f in far])
 
     create_model_sim.setupOutput(model)
     # import pdb;pdb.set_trace()
@@ -386,7 +388,7 @@ def upstate_main(
         input_times,tt = stim.createTimeTables(
             inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)#, freq=80) #FIXME.  make syn_per_comp parameter, divide by n_per_cluster?
         #n_per_syn is how many times each synapse in the cluster receives an input, default freq for all synapses =500 Hz, unused if using time tables
-    if num_dispersed>0:
+    if num_dispersed>0 and not spc_subset<spc: #do not add dispersed inputs to model if using spc_subset
         inputs_disp,tt = stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_dispersed,  #n_per_syn is unused if using time tables
             freq=freq_dispersed, end_time=end_dispersed, input_spikes=tt_Ctx_SPN)# freq_dispersed is unused if using time tables #=time_tables
         print('dispersed inputs:', time_tables, 'num stimuli=', len(inputs_disp), '\n   begin=', inputs_disp[0:5], '\n   end=', inputs_disp[-5:])
@@ -408,7 +410,10 @@ def upstate_main(
     else:
         iterations=1
     for ii in range(iterations):
-        model.param_sim.fname=filename+'_'+str(num_dispersed)+'_'+str(num_clustered)
+        if spc_subset<spc: #naming convention differs when adding spines
+            model.param_sim.fname=filename+'_'+str(ii*num_dispersed)+'_'+str(num_clustered) #fname will have num_dispersed non-zero in second iteration only
+        else:
+            model.param_sim.fname=filename+'_'+str(num_dispersed)+'_'+str(num_clustered) #fname will have num_dispersed correct if not using spc_subset<spc - conventional num_dispersed
         print('ready to simulate, simtime=', model.param_sim.simtime)
         moose.reinit()
         moose.start(model.param_sim.simtime)
@@ -463,23 +468,27 @@ def upstate_main(
         print("upstate filename: {}".format(model.param_sim.fname))
 
         if ii ==0:
-            if num_clustered/spc_subset>=12:  #number of clusters
-                num_BLA_comps=4 #make this param? 
-            elif num_clustered/spc_subset>=8:
-                num_BLA_comps=3 #  must be <= num_clustered/spc_subset/2
+            if num_dispersed>0:
+                inputs_disp,tt = stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_dispersed,  #n_per_syn is unused if using time tables
+                                                       freq=freq_dispersed, end_time=end_dispersed, input_spikes=tt_Ctx_SPN)
             else:
-                num_BLA_comps=int(num_clustered/spc_subset/2) #e.g., if spc_subset=4 there are 6 clusters,  add to 3 of them. if spc_subset=5, there are 5 clusters? add to 2 of them
-            if 'DMS' in filename:
-                new=[x['inputs'] for x in list(BLA_inputs.values())[:num_BLA_comps]] #closest n comps
-                new_dist=[x['dist'] for x in list(BLA_inputs.values())[:num_BLA_comps]]
-            elif 'DLS' in filename:
-                new=[x['inputs'] for x in list(BLA_inputs.values())[len(BLA_inputs)-num_BLA_comps:]] #furthest n comps,  May need to make sure they are > 150 um
-                new_dist=[x['dist'] for x in list(BLA_inputs.values())[len(BLA_inputs)-num_BLA_comps:]]
-            new_inputs=[x for y in new for x in y]
-            print('Adding additional inputs from BLA to existing clusters at these distances:', new_dist)
-            input_times,tt = stim.createTimeTables(
-                new_inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)
-            num_clustered+=len(new_inputs)
+                if num_clustered/spc_subset>=12:  #number of clusters
+                    num_BLA_comps=4 #make this param? 
+                elif num_clustered/spc_subset>=8:
+                    num_BLA_comps=3 #  must be <= num_clustered/spc_subset/2
+                else:
+                    num_BLA_comps=2 
+                if 'DMS' in filename:
+                    new=[x['inputs'] for x in list(BLA_inputs.values())[:num_BLA_comps]] #closest n comps
+                    new_dist=[x['dist'] for x in list(BLA_inputs.values())[:num_BLA_comps]]
+                elif 'DLS' in filename:
+                    new=[x['inputs'] for x in list(BLA_inputs.values())[len(BLA_inputs)-num_BLA_comps:]] #furthest n comps,  May need to make sure they are > 150 um
+                    new_dist=[x['dist'] for x in list(BLA_inputs.values())[len(BLA_inputs)-num_BLA_comps:]]
+                new_inputs=[x for y in new for x in y]
+                print('Adding additional inputs from BLA to existing clusters at these distances:', new_dist)
+                input_times,tt = stim.createTimeTables(
+                    new_inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)
+                num_clustered+=len(new_inputs)
     # return model.vmtab['D1'][0].vector
     # return plt.gcf()
     #from IPython import embed
@@ -727,7 +736,7 @@ if __name__ == "__main__":
     import sys
 
     args = sys.argv[1:]
-    args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    #args='single -sim_type BLA_DLS -SPN D1PatchSample5 -num_clustered 12 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
@@ -745,7 +754,7 @@ if __name__ == "__main__":
 
     elif params.base_sim == "iv":
         # upstate_main(list(mod_dict.keys())[0],mod_dict)
-        iv_main("D1PatchSample5", mod_dict, filename="test")
+        iv_main(params.SPN, mod_dict, filename=params.SPN.split('.')[-1])
 
     elif params.base_sim == "mp":
         results = []
