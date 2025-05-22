@@ -20,6 +20,6 @@ else:
 sims=su.specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed, params)
 tt_Ctx_SPN = {'fname': params.spkfile,'syn_per_tt':2} 
 spn_name=params.SPN.split('.')[-1][0:5]+params.SPN.split('.')[-1][-1]
-print(sims[0],'clustered seed=', clustered_seed, ', dispersed_seed=', dispersed_seed)
+print(sims[0],'clustered seed=', clustered_seed, ', dispersed_seed=', dispersed_seed, 'spn_name=',spn_name)
 model=su.upstate_main(params.SPN, mod_dict, **sims[0]['kwds'],do_plots=False, filename=spn_name+sims[0]['name'], time_tables=tt_Ctx_SPN)
 
