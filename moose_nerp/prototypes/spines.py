@@ -222,6 +222,22 @@ def getChildren(parentname,childrenlist):
             childrenlist.append(child.name)
             getChildren(child,childrenlist)
 
+def spine_channels(model,SpParams,ghkYN,head,module=None):
+    if SpParams.spineChanList:
+        if ghkYN:
+            ghkproto=moose.element('/library/ghk')
+            ghk=moose.copy(ghkproto,head,'ghk')[0]
+            moose.connect(ghk,'channel',head,'channel')
+        chan_dict = {}
+        for c in SpParams.spineChanList:
+            chan_dict.update(c)
+        for chanpath,mult in chan_dict.items():
+            cond = mult#*distance_mapping(modelcond[chanpath],head)
+            if cond > 0:
+                log.debug('Testing Cond If {} {}', chanpath, cond)
+                calciumPermeable = model.Channels[chanpath].calciumPermeable
+                addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable,module=module)
+
 def addSpines(model, container,ghkYN,name_soma,neuron_object,module=None):
     distance_mapped_spineDensity = {(model.SpineParams.spineStart,model.SpineParams.spineEnd):model.SpineParams.spineDensity}
     headarray=[]
@@ -259,7 +275,7 @@ def addSpines(model, container,ghkYN,name_soma,neuron_object,module=None):
             raise Exception(parentComp + ' Does not exist in Moose model!')
         compList = [SpineParams.spineParent]
         getChildren(parentComp,compList)
-
+        possible_spine_list = [] # Collect every potential spine with info needed to make that spine in another function.
         for comp in moose.wildcardFind(container + '/#[TYPE=Compartment]'):
             dist = (comp.x**2+comp.y**2+comp.z**2)**0.5
             if name_soma not in comp.path and comp.name in compList and (SpineParams.spineEnd > dist > SpineParams.spineStart):
@@ -296,22 +312,16 @@ def addSpines(model, container,ghkYN,name_soma,neuron_object,module=None):
                     #print comp.path,"Spine:", index, "located:", frac
                     head,neck = makeSpine(model, comp, 'sp',index, frac, SpineParams)
                     headarray.append(head)
-                    if SpineParams.spineChanList:
-                        if ghkYN:
-                            ghkproto=moose.element('/library/ghk')
-                            ghk=moose.copy(ghkproto,comp,'ghk')[0]
-                            moose.connect(ghk,'channel',comp,'channel')
-                        chan_dict = {}
-                        for c in SpineParams.spineChanList:
-                            chan_dict.update(c)
-                        for chanpath,mult in chan_dict.items():
-                            cond = mult#*distance_mapping(modelcond[chanpath],head)
-                            if cond > 0:
-                                log.debug('Testing Cond If {} {}', chanpath, cond)
-                                calciumPermeable = model.Channels[chanpath].calciumPermeable
-                                addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable,module=module)
+                    spine_channels(model,SpineParams,ghkYN,head,module=module)
+                    spineInfo = makeSpineInfo(model, comp, 'sp',index, frac, SpineParams)
+                    possible_spine_list.append(spineInfo)
                 #end for index
         #end for comp
+        spine_to_spine_dists = possible_spine_to_spine_distances(model, possible_spine_list,neuron_object)
+        all_possible_spine_info={ps['head_path']:(ps['x'],ps['y'],ps['z']) for ps in possible_spine_list}
+        print('prep for auto file name',model.morph_file, container,len(headarray),'spines created')
+        fname=model.morph_file[container].split('.p')[0] #container is ntype
+        np.savez(fname+'_s2sdist', s2sd=spine_to_spine_dists,index=all_possible_spine_info) #needed for analysis later.  Probably need to save in different directory
 
         log.info('{} spines created in {}', len(headarray), container)
         return headarray
@@ -365,20 +375,6 @@ def getPossibleSpines(model, container,ghkYN,name_soma):
                 spineInfo = makeSpineInfo(model, comp, 'sp',index, frac, SpineParams)
                 #headarray.append(head)
                 possible_spine_list.append(spineInfo)
-                # if SpineParams.spineChanList:
-                #     if ghkYN:
-                #         ghkproto=moose.element('/library/ghk')
-                #         ghk=moose.copy(ghkproto,comp,'ghk')[0]
-                #         moose.connect(ghk,'channel',comp,'channel')
-                #     chan_dict = {}
-                #     for c in SpineParams.spineChanList:
-                #         chan_dict.update(c)
-                #     for chanpath,mult in chan_dict.items():
-                #         cond = mult#*distance_mapping(modelcond[chanpath],head)
-                #         if cond > 0:
-                #             log.debug('Testing Cond If {} {}', chanpath, cond)
-                #             calciumPermeable = model.Channels[chanpath].calciumPermeable
-                #             addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
             #end for index
     #end for comp
 
@@ -553,18 +549,5 @@ def add_one_spine_from_spine_info(spine_info, model,SpineParams,container,ghkYN,
     surface_area = parentComp.diameter*parentComp.length*np.pi
     reverse_compensate_for_explicit_spines(model,parentComp,spine_surface(SpineParams),surface_area)
     # add channel code for single spine here
-    if SpineParams.spineChanList:
-        if ghkYN:
-            ghkproto=moose.element('/library/ghk')
-            ghk=moose.copy(ghkproto,comp,'ghk')[0]
-            moose.connect(ghk,'channel',comp,'channel')
-        chan_dict = {}
-        for c in SpineParams.spineChanList:
-            chan_dict.update(c)
-        for chanpath,mult in chan_dict.items():
-            cond = mult#*distance_mapping(modelcond[chanpath],head)
-            if cond > 0:
-                log.debug('Testing Cond If {} {}', chanpath, cond)
-                calciumPermeable = model.Channels[chanpath].calciumPermeable
-                addOneChan(chanpath,cond,head,ghkYN,calciumPermeable=calciumPermeable)
+    spine_channels(model,SpineParams,ghkYN,head)
     return head
