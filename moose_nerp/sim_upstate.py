@@ -492,8 +492,9 @@ def upstate_main(
                     new_inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)
                 num_clustered+=len(new_inputs)
                 extra=[i.parent.path for i in new_inputs]
-            npz_name='_'.join([filename,str(num_dispersed),str(num_clustered),str(spc),str(dispersed_seed)])
-            np.savez(npz_name,orig=[i.parent.path for i in inputs],extra=extra)
+            if block_naf:
+                npz_name='_'.join([filename,str(num_dispersed),str(num_clustered),str(spc),str(dispersed_seed)])
+                np.savez(npz_name,orig=[i.parent.path for i in inputs],extra=extra)
 
      # return model.vmtab['D1'][0].vector
     # return plt.gcf()
@@ -742,7 +743,7 @@ if __name__ == "__main__":
     import sys
 
     args = sys.argv[1:]
-    args='single -sim_type BLA_DLS -SPN cells.D1PatchSample4 -num_clustered 12 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    #args='single -sim_type BLA_DLS -SPN cells.D1PatchSample4 -num_clustered 12 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
