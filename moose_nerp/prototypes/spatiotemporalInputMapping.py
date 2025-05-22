@@ -468,7 +468,8 @@ def report_element_distance(inputs, print_num=50):
     dist_list=[]
     dist100=0
     dist150=0
-    furthest=(inputs[0],0)
+    #furthest=(inputs[0],0)
+    el_dist=[]
     for i,el in enumerate(inputs):
         if el.className=='Compartment' or el.className=='ZombieCompartment':
             dist,name = util.get_dist_name(el)
@@ -476,8 +477,9 @@ def report_element_distance(inputs, print_num=50):
         elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = el.parent
-        if dist>furthest[1]:
-            furthest=(el,dist)
+        el_dist.append((el,dist))
+        #if dist>furthest[1]:
+        #    furthest=(el,dist)
         dist_list.append(dist)
         if dist>100e-6:
             dist100+=1
@@ -485,8 +487,9 @@ def report_element_distance(inputs, print_num=50):
             dist150+=1
         if i < print_num: #don't print out 200 inputs
             print('     ',el.path,name, dist)
+        el_dist_sorted=sorted(el_dist,key=lambda x:x[1])
     print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list),', num>100um=', dist100, ',150um=', dist150)
-    return furthest[0]
+    return el_dist_sorted
 
 def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):
     # Want to distribute total_num_spines into num_clusters of size cluster_distance
