@@ -464,13 +464,15 @@ def upstate_main(
         else:
             model.param_sim.fname='_'.join([model.param_sim.fname,str(end_dispersed),str(end_cluster),str(round(max_dist*1e6)),str(spc),'NaF',str(dispersed_seed)])
 
-        tables.write_textfiles(model, 0, ca=False, spines=False, spineca=False)
+        tables.write_textfiles(model, 0, ca=True, spines=False, spineca=False)
         print("upstate filename: {}".format(model.param_sim.fname))
 
         if ii ==0:
             if num_dispersed>0:
                 inputs_disp,tt = stim.createTimeTables(dispersed_inputs, model, n_per_syn=n_per_dispersed, start_time=start_dispersed,  #n_per_syn is unused if using time tables
                                                        freq=freq_dispersed, end_time=end_dispersed, input_spikes=tt_Ctx_SPN)
+                print('Adding additional dispersed inputs at these distances:',[i[1] for i in el_dist_disp])
+                extra=[i[0].parent.path for i in el_dist_disp]
             else:
                 if num_clustered/spc_subset>=12:  #number of clusters
                     num_BLA_comps=4 #make this param? 
@@ -489,7 +491,11 @@ def upstate_main(
                 input_times,tt = stim.createTimeTables(
                     new_inputs, model, n_per_syn=n_per_clustered, start_time=start_cluster,end_time=end_cluster, input_spikes=tt_Ctx_SPN)
                 num_clustered+=len(new_inputs)
-    # return model.vmtab['D1'][0].vector
+                extra=[i.parent.path for i in new_inputs]
+            npz_name='_'.join([filename,str(num_dispersed),str(num_clustered),str(spc),str(dispersed_seed)])
+            np.savez(npz_name,orig=[i.parent.path for i in inputs],extra=extra)
+
+     # return model.vmtab['D1'][0].vector
     # return plt.gcf()
     #from IPython import embed
     #embed()
@@ -736,7 +742,7 @@ if __name__ == "__main__":
     import sys
 
     args = sys.argv[1:]
-    #args='single -sim_type BLA_DLS -SPN D1PatchSample5 -num_clustered 12 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    args='single -sim_type BLA_DLS -SPN cells.D1PatchSample4 -num_clustered 12 -num_dispersed 0 -spc_subset 2 -spc 4 -min_dist_clust 50e-6 -max_dist_clust 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
