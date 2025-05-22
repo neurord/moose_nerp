@@ -5,6 +5,7 @@ from moose_nerp.anal.neur_anal_class import neur_text
 import warnings
 warnings.simplefilter("ignore", category=RuntimeWarning)
 import os
+from scipy.signal import find_peaks
 
 def plot_traces(fnames,reg,spn,startime,endtime):
     from matplotlib import pyplot as plt
@@ -99,7 +100,7 @@ def parsarg(commandline):
     return args
 
 args = sys.argv[1:]
-#args='-num_clustered 0 -num_dispersed 36 48 60 72 -dist 200'.split()
+#args='-num_clustered 18 24 -num_dispersed 0 -dist 350 '.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
@@ -160,13 +161,14 @@ for reg in region:
             plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
             for fn in fnames:
                 data=neur_text(fn)
-                data.spikes(0) #calculate spike times, using 0 mV as threshold
-                spk_tm=data.spiketime[data.soma_name[0]] #extract spike times of soma
+                trace=data.traces[data.soma_name[0]]
+                spikes=find_peaks(trace,height=0,distance=int(0.002/data.time[1] ))
+                spk_tm=spikes[0]*data.time[1] #take 1st array of points, convert to time
                 num_spikes[reg][nc].append(len(spk_tm))
                 isi=np.nan #initialize as nan
                 baseVm,start_pt,_=mean_Vm(data,base_time) #baseline Vm
                 plateau,plat_start,peakVm=mean_Vm(data,plateau_time) #plateau Vm
-                if not len(data.spiketime[data.soma_name[0]]): #if no spikes, measure plateau and decay time
+                if not len(spk_tm): #if no spikes, measure plateau and decay time
                     #rise_time[reg][nc].append(1000*risetime(data,start_pt,0.15,baseVm))
                     dur[reg][nc].append(np.nan)#(1000*duration(data,baseVm,par.start,plat_start))
                     plateauVm[reg][nc].append(peakVm-baseVm) #plateau amplitude defined using peak.  If use plateau-baseVm, then could define it even with spikes
@@ -177,11 +179,11 @@ for reg in region:
                     decay10[reg][nc].append(np.nan)
                     plateauVm[reg][nc].append(np.nan) #plateau-baseVm - test this with example files
                     print('spikes for', fn)
-                if len(data.spiketime[data.soma_name[0]])>1: #if more than 1 spike, calculate mean ISI
-                    isi=np.diff(data.spiketime[data.soma_name[0]])
+                if len(spk_tm)>1: #if more than 1 spike, calculate mean ISI
+                    isi=np.diff(spk_tm)
                     isis[reg][nc].append(isi)
                     inst_freq[reg][nc].append(np.mean(1/isi))
-                    dur[reg][nc].append(data.spiketime[data.soma_name[0]][-1]-data.spiketime[data.soma_name[0]][0]) #time between 1st and last spike
+                    dur[reg][nc].append(spk_tm[-1]-spk_tm[0]) #time between 1st and last spike
                 else:
                     dur[reg][nc].append(np.nan)
                 if par.seed:
