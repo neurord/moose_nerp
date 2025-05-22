@@ -51,6 +51,9 @@ _SynNMDA = SynChannelParams(Erev = 5e-3,
                              nmdaCaFrac = 0.05,
 )
 
+#spinic: False or absent - do not add to spines
+#        True of 1 - add to spines if present, o.w. dendrites
+#        2        - add to spines only
 #nmdaCaFra fraction of nmda current carried by calcium
 #Note that since Ca reversal produces ~2x driving potential,
 #need to make this half of typical value.  Default is 0.02 in Moose

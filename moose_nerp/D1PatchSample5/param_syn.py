@@ -39,14 +39,14 @@ _SynAMPA = SynChannelParams(Erev = 5e-3,
                             Gbar = 5e-9,
                             var=0.05,
                             nmdaCaFrac = 0.001,
-                             spinic = 2)
+                             spinic = True)
 _SynNMDA = SynChannelParams(Erev = 5e-3,
                              tau1 = 2.23e-3*2,
                              tau2 = 56.25e-3*5,
-                             Gbar = 1e-9,
+                             Gbar = 1e-9, #OVER-RIDDEN IN SIM_UPSTATE.PY
                              var=0,#0.05,
                              MgBlock = _NMDA_MgParams,
-                             spinic = 2,
+                             spinic = True,
                              NMDA=True,
                              nmdaCaFrac = 0.05,
 )
