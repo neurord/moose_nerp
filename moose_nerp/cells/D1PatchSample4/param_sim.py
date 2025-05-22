@@ -7,10 +7,10 @@ param_sim = Namespace()
 # Options for setting up stim paradigm
 param_sim.stim_loc = NAME_SOMA
 param_sim.stim_paradigm = 'inject'
-param_sim.injection_current = [160e-12,170e-12,180e-12,190e-12,200e-12]
+param_sim.injection_current = [-200e-12,-100e-12, 100e-12,125e-12,150e-12,175e-12,200e-12]
 param_sim.injection_delay = 0.1
-param_sim.injection_width = 0.5
-param_sim.simtime = 0.7
+param_sim.injection_width = 0.4
+param_sim.simtime = 0.6
 
 param_sim.neuron_type = 'D1' # 'D1' or 'D2', or None for both
 
