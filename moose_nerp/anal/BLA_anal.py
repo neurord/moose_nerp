@@ -304,7 +304,7 @@ for reg in region:
 #output for stat analysis, export and then read in and combine multiple files
 if par.output:
     outfname='_'.join(dependent_vars[0:-1])
-    header='region    ndisp  nclust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
+    header='region    num_disp  num_clust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
     np.savetxt(outfname+'.out',data_set.rows,fmt='%7s',header=header,comments='')  
  
 ################## Results ###################

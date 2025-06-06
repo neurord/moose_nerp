@@ -7,8 +7,8 @@ from statsmodels.stats.anova import anova_lm
 import pandas as pd
 import glob
 
-spc=6
-filenames=glob.glob('*_'+str(spc)+'*out')
+spc=4
+filenames=glob.glob('D1Pat4BLA_DLS_0*_'+str(spc)+'*out') #FIXME: read in subset of .out files
 
 data=[]
 for fn in filenames:
@@ -89,5 +89,3 @@ print(table,'\n',model.summary())
 print(paired_df.groupby(['region','add_inputs','naf','spc']).mean()[['delta_plateau','delta_decay']])
 #
 #print('post-hoc on sex\n', sp.posthoc_ttest(nodrug_theta10, val_col='PSmean1', group_col='sex', p_adjust='holm'))
-
-
