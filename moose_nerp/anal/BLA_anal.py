@@ -83,6 +83,8 @@ def remove_fn(fnames,key):
 
 def dep_vars(fn):
     parts=os.path.basename(fn).split('_')
+    root=parts[0]
+    reg=parts[1]
     ndisp=parts[2]
     nclust=parts[3]
     maxdist=parts[6]
@@ -92,7 +94,7 @@ def dep_vars(fn):
     else: 
         naf='0'
     seed=parts[-1].split('0Vm')[0]
-    depend_vars=[reg,ndisp,nclust,maxdist,naf,spc, seed]
+    depend_vars=[root,reg,ndisp,nclust,maxdist,naf,spc, seed]
     return depend_vars
 
 def paired_files(fnames,dir,nclust,ndisp,paired): #for each file in fnames, find the one with same seed and one parameter different
@@ -220,7 +222,7 @@ def parsarg(commandline):
     return args
 
 args = sys.argv[1:]
-args='-num_clustered 10 -num_dispersed 0 4 -output 1'.split()#'-num_clustered 10 -num_dispersed 4 -paired ndisp -dir clustered_exp50/patch4_Rm5_Ra0.34/'.split()
+#args='-num_clustered 10 -num_dispersed 4 -paired ndisp -output 1'.split()
 par=parsarg(args)
 print('disp',par.num_dispersed,'clust',par.num_clustered)
 
@@ -280,7 +282,9 @@ for reg in region:
                     print('too many parameter differences beween paired files')
                 print('### paired files for',nc,nc2,reg,':',paired_fnames)
             print('### files for ',nc,reg,':', fnames)
-            plot_traces(fnames,reg,nc,par.start,et) 
+            plot_traces(fnames,reg,nc,par.start,et)
+            if par.paired: 
+                plot_traces(paired_fnames,reg,new_par,par.start,et)
             plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
             for i,fn in enumerate(fnames):
                 results=data_set.analyze_file(fn,reg,nc)
@@ -290,10 +294,11 @@ for reg in region:
                             plot_one_file(fn,data_set.data, par.start,et)
                 #output for stat analysis
                 dependent_vars=dep_vars(fn)
-                data_set.rows.append(dependent_vars+results)
+                data_set.rows.append(dependent_vars[1:]+results)
                 if par.paired:
-                    results2=data_set.analyze_file(paired_fnames[i],reg,new_par)                    
-                    data_set.rows.append(dependent_vars+results2)
+                    results2=data_set.analyze_file(paired_fnames[i],reg,new_par)
+                    dependent_vars=dep_vars(paired_fnames[i])                    
+                    data_set.rows.append(dependent_vars[1:]+results2)
         else:
             print('no files found using pattern',pattern, 'with parameters',nc,reg)
 #output for stat analysis, export and then read in and combine multiple files
@@ -309,7 +314,7 @@ for reg in region:
         print('***', num_disp, 'dispersed, ', reg,'trials for nclust =',[data_set.trials[reg]])
     else:
          print('***', num_clust, 'clustered, ', reg,'trials for ndisp =',[data_set.trials[reg]])
-    for nstim in data_set.num_spikes[reg]:    
+    for nstim in sorted(data_set.num_spikes[reg]): 
         nc=str(nstim)
         print( '  ', nc,'inputs, spikes=',np.round(np.mean(data_set.num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(data_set.num_spikes[reg][nc],nan_policy='omit'),3))
         if len(data_set.isis[reg][nc]):
