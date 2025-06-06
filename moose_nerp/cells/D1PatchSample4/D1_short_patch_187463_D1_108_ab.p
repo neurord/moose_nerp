@@ -11,7 +11,7 @@
      
 *set_global RA 0.3413539465679143
 *set_global CM 0.009325517251959532
-*set_global RM 10.0427900822820575
+*set_global RM 5.0427900822820575
 *set_global EREST_ACT -86e-3 //Volts
 *set_global ELEAK -0.06724232568976782
      
