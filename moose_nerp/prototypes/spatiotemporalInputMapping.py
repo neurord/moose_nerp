@@ -113,6 +113,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
 
     Examples: Add use cases
     '''
+    from moose_nerp.prototypes.spines import compute_spine_to_spine_dist
     # 1. Moose wildcard find from neuron using elementType.
     neuron.buildSegmentTree()
 
@@ -130,24 +131,27 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     if exclude_branch_list is not None:
         possibleBranches = [b for b in possibleBranches if b not in exclude_branch_list]
     bd = getBranchDict(neuron)
+    comp_to_branch_dict = mapCompartmentToBranch(neuron)
     possibleCompartments = [comp for branch in possibleBranches for comp in bd[branch]['CompList']]
     possible_comp_dists = [d for branch in possibleBranches for d in bd[branch]['CompDistances']]
-    elementList = []
+    elementList = [];distances={}
+    exclude_info={s.parent.path:{'parentComp':s.parent.parent,'x':s.parent.x,'y':s.parent.y,'z':s.parent.z,'soma_dist':util.get_dist_name(s.parent)[0]} for s in exclude_syn}
     #print('#####possible compartments\n', possibleCompartments)
     for el in allList:
         # Get Distance of element, or parent compartment if element not compartment
         el = moose.element(el)
         if el.className=='Compartment' or el.className=='ZombieCompartment':
-            dist,name = util.get_dist_name(el)
-            path = el
+            dist,compname = util.get_dist_name(el)
+            comppath = el
         elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
-            dist,name = util.get_dist_name(moose.element(el.parent))
-            path = el.parent
+            dist,compname = util.get_dist_name(moose.element(el.parent))
+            comppath = el.parent #path is either spinehead/neck or the parent compartment
         else:
             print('Invalid Element')
-        if any(s in name.lower() for s in ['head'.lower(),'neck'.lower()]):
+        if any(s in compname.lower() for s in ['head'.lower(),'neck'.lower()]):
             dist,name = util.get_dist_name(moose.element(el.parent))
-            path = moose.element(path).parent
+            path = moose.element(comppath).parent #path needs to be the branch/compartment name
+            sp_info={'parentComp':comppath.parent,'x':comppath.x,'y':comppath.y,'z':comppath.z}
         #print(name, dist, path)
         if path.path in possibleCompartments:
             ind = possibleCompartments.index(path.path)
@@ -157,8 +161,15 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
                 #or ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance))  \
                 #or ((minDistance <= dist) and (dist <= maxDistance)):
                     elementList.append(el)
-    # print(elementList)
-    return elementList
+                    #calculate distance from exclude_syn
+                    distances[comppath.path]=[]
+                    for other_spine in exclude_info.values():
+                        distances[comppath.path].append(compute_spine_to_spine_dist(sp_info, other_spine,bd,comp_to_branch_dict))
+    if len(exclude_info):
+        # print(elementList)
+        return elementList, distances
+    else:
+        return elementList
 
 
 def getBranchOrder(compartment):
@@ -455,13 +466,24 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
             all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
         return all_inputs, input_comps
 
-def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6, exclude_syn=[]): #FIXME: will only generate inputs for one neuron
+def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6, exclude_syn=[],dist_to_cluster=None): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
-        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
+        elementlist,distDict = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
                                           branch_list=branch_list, minDistance=minDistance, maxDistance=maxDistance, exclude_syn=exclude_syn)
-        num_inputs=min(nInputs,len(elementlist))
-        inputs = selectRandom(elementlist,n=nInputs,seed=seed, func='dispersed')
+        minDist={x:min(y) for x,y in distDict.items()}
+        maxDist={x:max(y) for x,y in distDict.items()}
+        minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
+        maxDist={k: v for k, v in sorted(maxDist.items(), key=lambda item: item[1])}
+        print('closest',np.unique(list(minDist.values()))*1e6)
+        print('furthest',np.unique(list(maxDist.values()))*1e6)
+        if dist_to_cluster is not None:
+            subset=[e for e in elementlist if minDist[e.parent.path]<dist_to_cluster[1] and minDist[e.parent.path]>dist_to_cluster[0]]
+            num_inputs=min(nInputs,len(subset))
+            inputs = selectRandom(subset,n=num_inputs,seed=seed, func='dispersed')
+        else:
+            num_inputs=min(nInputs,len(elementlist))
+            inputs = selectRandom(elementlist,n=num_inputs,seed=seed, func='dispersed')
         return inputs
 
 def report_element_distance(inputs, print_num=50):
