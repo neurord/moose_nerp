@@ -416,57 +416,56 @@ def makeSpineInfo(model, parentComp, compName,index,frac,SpineParams,randomAngle
     #setSpineCompParams(model, head,SpineParams.headdia,SpineParams.headlen,SpineParams.headRA,SpineParams.spineRM,SpineParams.spineCM)
     return spine_info #head, neck
 
+def compute_spine_to_spine_dist(spine, other_spine,bd,comp_to_branch_dict,print_info=False):
+    '''Compute the path distance along dendritic tree between any two spines'''
+    # get parent compartment of spine
+    spine_parents = [spine['parentComp'], other_spine['parentComp']]
+
+    # get the branch of the spine_parent
+    spine_branches = [comp_to_branch_dict[sp.path] for sp in spine_parents]
+    branch_paths = spine_branches[0]['BranchPath'], spine_branches[1]['BranchPath']
+    # if on same branch
+    if spine_branches[0]==spine_branches[1]:
+        # if on same compartment:
+        if spine_parents[0]==spine_parents[1]:
+            spine_to_spine_dist = np.sqrt((spine['x'] - other_spine['x'])**2 + (spine['y'] - other_spine['y'])**2 + (spine['z'] - other_spine['z'])**2)
+        # else if on same branch but not same compartment:
+        else:
+            compdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
+            complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
+            compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
+            comp_to_comp_distance = np.abs(compdistances[0][compindexes[0]] - compdistances[1][compindexes[1]])
+            spine_to_spine_dist = comp_to_comp_distance
+    # else if on different branches, find common parent branch first
+    else:
+        for a,b in zip(branch_paths[0], branch_paths[1]):
+            #print(a,b)
+            if a == b:
+                common_parent = a
+        common_parent_distance = bd[common_parent]['CompDistances'][0]
+        if print_info:
+            print('common parent is ', common_parent, 'common_parent_distance is ', common_parent_distance)
+        allcompdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
+        complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
+        compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
+        compdistances = [allcompdistances[0][compindexes[0]], allcompdistances[1][compindexes[1]]]
+        comp_to_comp_distance = (compdistances[0]-common_parent_distance) + (compdistances[1]-common_parent_distance)
+        if print_info:
+            print('compdistances',compdistances,'comp_to_comp_distance', comp_to_comp_distance)
+        spine_to_spine_dist = comp_to_comp_distance
+    return spine_to_spine_dist
+
 def possible_spine_to_spine_distances(model, possible_spines,neuron_object):
     from moose_nerp.prototypes import spatiotemporalInputMapping as stim
     neuron = neuron_object#list(model.neurons.values())[0][0]
     bd = stim.getBranchDict(neuron)
     comp_to_branch_dict = stim.mapCompartmentToBranch(neuron)
-    
-    def compute_spine_to_spine_dist(spine, other_spine,print_info=False):
-        '''Compute the path distance along dendritic tree between any two spines'''
-        # get parent compartment of spine
-        spine_parents = [spine['parentComp'], other_spine['parentComp']]
-
-        # get the branch of the spine_parent
-        spine_branches = [comp_to_branch_dict[sp.path] for sp in spine_parents]
-        branch_paths = spine_branches[0]['BranchPath'], spine_branches[1]['BranchPath']
-        # if on same branch
-        if spine_branches[0]==spine_branches[1]:
-            # if on same compartment:
-            if spine_parents[0]==spine_parents[1]:
-                spine_to_spine_dist = np.sqrt((spine['x'] - other_spine['x'])**2 + (spine['y'] - other_spine['y'])**2 + (spine['z'] - other_spine['z'])**2)
-            # else if on same branch but not same compartment:
-            else:
-                compdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
-                complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
-                compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
-                comp_to_comp_distance = np.abs(compdistances[0][compindexes[0]] - compdistances[1][compindexes[1]])
-                spine_to_spine_dist = comp_to_comp_distance
-        # else if on different branches, find common parent branch first
-        else:
-            for a,b in zip(branch_paths[0], branch_paths[1]):
-                #print(a,b)
-                if a == b:
-                    common_parent = a
-            common_parent_distance = bd[common_parent]['CompDistances'][0]
-            if print_info:
-                print('common parent is ', common_parent, 'common_parent_distance is ', common_parent_distance)
-            allcompdistances = [bd[sb['Branch']]['CompDistances'] for sb in spine_branches]
-            complists = [bd[sb['Branch']]['CompList'] for sb in spine_branches]
-            compindexes = [cl.index(spine_parent.path) for cl,spine_parent in zip(complists, spine_parents)]
-            compdistances = [allcompdistances[0][compindexes[0]], allcompdistances[1][compindexes[1]]]
-            comp_to_comp_distance = (compdistances[0]-common_parent_distance) + (compdistances[1]-common_parent_distance)
-            if print_info:
-                print('compdistances',compdistances,'comp_to_comp_distance', comp_to_comp_distance)
-            spine_to_spine_dist = comp_to_comp_distance
-        return spine_to_spine_dist
-    
 
     spine_to_spine_dist_array = np.zeros((len(possible_spines)+1, len(possible_spines)+1)) #+1 for adding spine to soma distance
     spine_index=[]
     import itertools
     for spine_pairs in itertools.combinations(range(len(possible_spines)), 2):
-        spine_dist = compute_spine_to_spine_dist(possible_spines[spine_pairs[0]],possible_spines[spine_pairs[1]])
+        spine_dist = compute_spine_to_spine_dist(possible_spines[spine_pairs[0]],possible_spines[spine_pairs[1]],bd,comp_to_branch_dict)
         spine_to_spine_dist_array[spine_pairs[0], spine_pairs[1]] = spine_dist
         spine_to_spine_dist_array[spine_pairs[1], spine_pairs[0]] = spine_dist
     missing=[]
