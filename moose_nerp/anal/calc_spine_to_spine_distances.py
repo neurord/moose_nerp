@@ -22,6 +22,7 @@ from moose_nerp.prototypes import (
         ttables,
         spines,
     )
+from moose_nerp.prototypes import spatiotemporalInputMapping as stim
 from moose_nerp import str_net as net
 net.single = True
 total_spines = 200 # Minimum -- note that we round up n spines per cluster
@@ -55,7 +56,7 @@ bd = stim.getBranchDict(d1) #dictionary of 39 items - only those branches which 
 # 'MinBranchDistance', 'MaxBranchDistance','BranchOrder', 'CompList','BranchLength', 'CompDistances'
 #To determine distance to soma of all spines, need comp_to_branch_dict for all spines
 
-comp_to_branch_dict = stim.mapCompartmentToBranch(d1)
+comp_to_branch_dict = stim.mapCompartmentToBranch(d1, bd)
 #Similar to bd, but doesn't have distances or lengths
 
 allspines = moose.wildcardFind('/D1/##/#head')
@@ -69,7 +70,7 @@ spine_to_spine_dist_array = np.zeros((len(allspines), len(allspines)))
 for i,spine in enumerate(allspines):
     for j,other_spine in enumerate(allspines):
         if spine.parent.path in comp_to_branch_dict.keys() and other_spine.parent.path in comp_to_branch_dict.keys():
-            spine_to_spine_dist_array[i,j] = compute_spine_to_spine_dist(spine, other_spine)
+            spine_to_spine_dist_array[i,j] = spines.compute_spine_to_spine_dist(spine, other_spine)
         #else:
         #    print(spine.path,other_spine.path,'not found')
 
