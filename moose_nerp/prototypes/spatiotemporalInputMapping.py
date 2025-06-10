@@ -421,7 +421,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, 
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
                                     )
-            elementlist=remove_comps(elementlist, spine_per_comp, input_comps) #remove compartments that have < spine_per_comp
+            elementlist=remove_comps(elementlist, spine_per_comp, input_comps) #remove compartments that have < spine_per_comp or already selected
             if len(elementlist):
                 inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
                 comp=inputs[0].path.split('/sp')[0] ######### This assumes that input is to a spine 
@@ -435,11 +435,12 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                     distal+=1
                 else:
                     middle+=1
-                if proximal>=(nInputs/spine_per_comp)/2: #if too many proximal inputs, make minDistance larger
+                #kluge: though inputs randomly selected, make sure not too many clusters are proximal or distal
+                if proximal>=(nInputs/spine_per_comp)/2 and min_max_dist[0]<100e-6: #if too many proximal inputs, make minDistance larger
                     min_max_dist[0]=100e-6
-                if (proximal+middle)>=(nInputs/spine_per_comp):
+                if (proximal+middle)>=(nInputs/spine_per_comp) and min_max_dist[0]<150e-6:
                     min_max_dist[0]=150e-6
-                if distal>4: #if too many distal inputs, make maxDistance smaller
+                if distal>4 and min_max_dist[1]>200e-6: #if too many distal inputs, make maxDistance smaller
                     min_max_dist[1]=200e-6
                 #
                 if spine_per_comp>1:
@@ -450,7 +451,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                     input_comps[comp]['inputs']=inputs
                 for branch, bvalues in bd.items(): #possibly don't do this
                     if comp in bvalues['CompList']:
-                        exclude_branch_list.append(branch) #do not select any other inputs from that branch
+                        exclude_branch_list.append(branch) #do not select any other inputs from that branch.  UNUSED
             else:
                 inputs=[]
                 if branch_list:
@@ -486,7 +487,7 @@ def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_
             num_inputs=min(nInputs,len(elementlist))
             inputs = selectRandom(elementlist,n=num_inputs,seed=seed, func='dispersed')
         if num_inputs<nInputs:
-            print('In dispersed, insufficient input elements, desired=',nInputs,', achieved=',num_inputs)
+            print('In dispersed, insufficient input elements from', min_max_dist[0],'to',min_max_dist[1],', desired=',nInputs,', achieved=',num_inputs)
         return inputs
 
 def report_element_distance(inputs, print_num=50):
@@ -513,7 +514,7 @@ def report_element_distance(inputs, print_num=50):
         if i < print_num: #don't print out 200 inputs
             print('     ',el.path,name, dist)
         el_dist_sorted=sorted(el_dist,key=lambda x:x[1])
-    print('Input Path Distance, mean +/- stdev=', np.mean(dist_list), np.std(dist_list), 'count=',len(dist_list),', num>100um=', dist100, ',150um=', dist150)
+    print('Input Path Distance, mean +/- stdev=', round(np.mean(dist_list)*1e6,2), round(np.std(dist_list)*1e6,2), 'um, count=',len(dist_list),', num>100um=', dist100, ',>150um=', dist150)
     return el_dist_sorted
 
 def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_num_spines = 20):

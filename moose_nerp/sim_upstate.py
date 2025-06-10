@@ -188,7 +188,7 @@ def setup_model(model, mod_dict, block_naf=False, Mg_conc=1, filename=None,spine
     model.param_sim.plot_vm = False
     model.param_sim.plot_current = False #True
     model.param_sim.plot_current_message = "getIk"
-    model.param_sim.simtime=0.01#1.0
+    model.param_sim.simtime=1.0
     model.param_sim.plot_calcium=True
     model.spineYN = True
     model.calYN = True
@@ -327,17 +327,17 @@ def upstate_main(
                 branch_list=branch_list,
                 seed=clustered_seed,  # 6,
             )
-        parent_dend = [i.parent.parent for i in inputs]
+        parent_dend = [i.parent.parent for i in inputs] #unused
         parent_spine = [i.parent for i in inputs]
-        parents = parent_dend + parent_spine
-        input_parent_dends = set(parents)
+        parents = parent_dend + parent_spine #unused
+        input_parent_dends = set(parents) #unused
         # mod_local_gbar(input_parent_dends, mod_dict[modelname])
         print('clustered stim for seed', clustered_seed) #if want to exclude these branches from dispersed input, need to put into branch_list
         el_dist=stim.report_element_distance(inputs) #select closest, middle, and furthest - index 0, len/2, -1 for plotting
         model.param_sim.plotcomps=[model.param_sim.plotcomps[0]]+[el_dist[x][0].parent.parent.name for x in [0,-1,len(el_dist)//2]]
         far.append(el_dist[0][0])
         cluster_comps=list(np.unique([pd.path for pd in parent_dend])) #unused
-    comps = [moose.element(comp) for comp in bd[branch_list[0]]["BranchPath"]] #plot compartments along 1st branch
+    comps = [moose.element(comp) for comp in bd[branch_list[0]]["BranchPath"]] #plot compartments along 1st branch, unused
     spines = [sp[0] for comp in comps for sp in comp.children if "head" in sp.name] #unused
 
     # mod_local_gbar(set(comps+spines), mod_dict[modelname])
@@ -740,7 +740,7 @@ if __name__ == "__main__":
     import sys
 
     args = sys.argv[1:]
-    args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 0 50e-6 -dist_dispers 50e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 200e-6 350e-6 -dist_dispers 50e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  

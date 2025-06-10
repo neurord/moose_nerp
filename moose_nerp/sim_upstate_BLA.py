@@ -5,7 +5,7 @@ import sim_upstate as su
 mod_dict = su.make_mod_dict()
 single_epsp_seed = 314
 
-#args='single -sim_type BLA_DLS_dispersed -num_clustered 24 -num_dispersed 60 -start_cluster 0.2 -end_dispersed 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split()
+#args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 50e-6 120e-6 -dist_dispers 50e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
 #args='-BLA DMS'.split()# -seed 123'.split()
 args = sys.argv[1:]
 params=su.parsarg(args)
