@@ -459,7 +459,7 @@ def possible_spine_to_spine_distances(model, possible_spines,neuron_object):
     from moose_nerp.prototypes import spatiotemporalInputMapping as stim
     neuron = neuron_object#list(model.neurons.values())[0][0]
     bd = stim.getBranchDict(neuron)
-    comp_to_branch_dict = stim.mapCompartmentToBranch(neuron)
+    comp_to_branch_dict = stim.mapCompartmentToBranch(neuron, bd) 
 
     spine_to_spine_dist_array = np.zeros((len(possible_spines)+1, len(possible_spines)+1)) #+1 for adding spine to soma distance
     spine_index=[]

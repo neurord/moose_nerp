@@ -53,8 +53,9 @@ Ideas for spatiotemporal input mapping.
 """
 
 import numpy as np
-import moose_nerp.prototypes.util as util
 import moose
+import moose_nerp.prototypes.util as util
+from moose_nerp.prototypes.spines import compute_spine_to_spine_dist
 
 
 def selectRandom(elementList, n=1, replace=False, weight=None, seed = None, func=None):
@@ -65,7 +66,7 @@ def selectRandom(elementList, n=1, replace=False, weight=None, seed = None, func
     Add weight parsing to this function, or create a separate function?
     '''
     intlist=range(len(elementList))
-    print('selectRandom', func, seed)
+    print('In selectRandom, func=', func, ', seed=',seed,', num elements',len(elementList))
     if n<=len(intlist):
         selections = np.random.RandomState(seed).choice(intlist, size=n, replace=replace, p=weight)
     else:
@@ -94,8 +95,8 @@ def distanceWeighting(elementList, distanceMapping):
 
 
 def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                        minDistance=0, maxDistance=1, commonParentOrder=0, exclude_syn=[],
-                        numBranches='all', branchOrder=None,min_length = None, min_path_length = None, max_path_length = None,branch_list = None, exclude_branch_list = None, branch_seed = None, select_seed = None):
+                        min_max_dist=[0,1], commonParentOrder=0, exclude_syn=[],
+                        numBranches='all', branchOrder=None,min_length = None, branch_list = None, exclude_branch_list = None, branch_seed = None):
     '''Generate list of Moose elements between minDistance and maxDistance from
     soma. if commonParent is None, then all branches considered. If numBranches
     is None, then all branches included. If numBranches is not None, then n branches
@@ -113,25 +114,24 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
 
     Examples: Add use cases
     '''
-    from moose_nerp.prototypes.spines import compute_spine_to_spine_dist
     # 1. Moose wildcard find from neuron using elementType.
-    neuron.buildSegmentTree()
+    #neuron.buildSegmentTree()
 
     allList = []
     for s in wildcardStrings:
         l = moose.wildcardFind(neuron.path+'/##/#'+s+'#[ISA='+elementType+']')
         allList.extend(l)
     #print('allList', allList)
+    bd = getBranchDict(neuron)
     if branch_list is None:
-        possibleBranches,_ = getBranchesOfOrder(neuron, branchOrder, n=numBranches,
-                                          commonParentOrder=commonParentOrder, min_length = min_length, min_path_length = minDistance, max_path_length = maxDistance,seed=branch_seed)
+        possibleBranches,_ = getBranchesOfOrder(neuron, branchOrder, bd, n=numBranches,
+                                          commonParentOrder=commonParentOrder, min_length = min_length, min_max_path_length = min_max_dist,seed=branch_seed)
     else:
         possibleBranches = branch_list
     #print('********** possibleBranches\n', possibleBranches,'\n exclude',exclude_branch_list)
     if exclude_branch_list is not None:
         possibleBranches = [b for b in possibleBranches if b not in exclude_branch_list]
-    bd = getBranchDict(neuron)
-    comp_to_branch_dict = mapCompartmentToBranch(neuron)
+    comp_to_branch_dict = mapCompartmentToBranch(neuron, bd) 
     possibleCompartments = [comp for branch in possibleBranches for comp in bd[branch]['CompList']]
     possible_comp_dists = [d for branch in possibleBranches for d in bd[branch]['CompDistances']]
     elementList = [];distances={}
@@ -157,7 +157,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             ind = possibleCompartments.index(path.path)
             dist = possible_comp_dists[ind]
             # print(path, minDistance,dist+path.length/2., maxDistance, dist-path.length/2.) #Start and end distance of compartment
-            if ((minDistance <= dist+path.length/2.) and (dist-path.length/2. <= maxDistance)) and (el not in exclude_syn):              
+            if ((min_max_dist[0] <= dist+path.length/2.) and (dist-path.length/2. <= min_max_dist[1])) and (el not in exclude_syn):              
                 #or ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance))  \
                 #or ((minDistance <= dist) and (dist <= maxDistance)):
                     elementList.append(el)
@@ -252,18 +252,20 @@ def getBranchDict(neuron):
     return branchDict
 
 
-def mapCompartmentToBranch(neuron):
-    bd = getBranchDict(neuron) 
+def mapCompartmentToBranch(neuron, bd): 
+    #bd = getBranchDict(neuron) 
     compToBranchDict={}
     missing=[]
     for comp in neuron.compartments:
+        found=False
         for k,v in bd.items():
             if comp.path in bd[k]['CompList']:
                 compToBranchDict[comp.path]={'Branch':k}
                 compToBranchDict[comp.path]['BranchOrder']=bd[k]['BranchOrder']
                 compToBranchDict[comp.path]['Terminal']=bd[k]['Terminal']
                 compToBranchDict[comp.path]['BranchPath']=bd[k]['BranchPath']
-        if comp.path not in bd.keys() and comp.path not in missing:
+                found=True
+        if comp.path not in bd.keys() and found==False and comp.path not in missing:
             #print(comp.path,'not in branchDict keys')
             missing.append(comp.path)
             #compToBranchDict[comp.path]['Distance']
@@ -272,7 +274,7 @@ def mapCompartmentToBranch(neuron):
     return compToBranchDict
 
 
-def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0, min_length = None, min_path_length = None, max_path_length = None, seed = None,commonParentBranch=None):
+def getBranchesOfOrder(neuron,order,bd,n=1,commonParentOrder=0, min_length = None, min_max_path_length = None, seed = None,commonParentBranch=None):
     '''Returns n Branches selected without replacement of specified order from
     soma (0=soma, 1=primary branch, etc.). n can be an int, less than the
     total number of branches of specified order, or an error will be raised.
@@ -281,11 +283,10 @@ def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0, min_length = None, 
     If order is None, then branches selected from any order (but with commonParent if
     commonParentOrder not 0).
     '''
-    bd = getBranchDict(neuron)
 
     if commonParentOrder != 0:
         if not commonParentBranch:
-            commonParentBranch = getBranchesOfOrder(neuron,commonParentOrder)[0]
+            commonParentBranch = getBranchesOfOrder(neuron,commonParentOrder,bd)[0]
     else:
         commonParentBranch = neuron.compartments[0].path
     if order == -1:
@@ -298,11 +299,10 @@ def getBranchesOfOrder(neuron,order,n=1,commonParentOrder=0, min_length = None, 
     if min_length is not None:
         branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['BranchLength'] > min_length]
     
-    if min_path_length is not None:
-        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MaxBranchDistance'] >= min_path_length]
+    if min_max_path_length is not None:
+        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MaxBranchDistance'] >= min_max_path_length[0]]
     
-    if max_path_length is not None:
-        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MinBranchDistance'] <= max_path_length]
+        branchesOfOrder = [branch for branch in branchesOfOrder if bd[branch]['MinBranchDistance'] <= min_max_path_length[1]]
 
     branch_length= {br: (bd[br]['MinBranchDistance'],bd[br]['MaxBranchDistance']) for br in branchesOfOrder} #use if desaire branches < min path len and/or > max path len
     if n in ['all','All','ALL']:
@@ -364,8 +364,8 @@ def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
         elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                minDistance=150e-6, maxDistance=190e-6, commonParentOrder=0,
-                                numBranches=1, branchOrder=-1,min_length=20e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                min_max_dist=[150e-6, 190e-6], commonParentOrder=0,
+                                numBranches=1, branchOrder=-1,min_length=20e-6, 
                                 branch_list=branch_list,
                                 #branch_list = ['/D1[0]/570_3[0]'],
                                 #branch_list = ['/D1[0]/138_3[0]'],
@@ -393,7 +393,7 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
         elementlist.remove(val)
     return elementlist
 
-def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=None,spc_subset=1):
+def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 60e-6],branch_list = None, seed = None, branchOrder=None,spc_subset=1):
     #get 1 comp, then call elementlist again with that branch excluded, repeat. 
     #select one spine on that comp for a synapse, then select spine_per_comp-1 other spines
     #possibly exclude the entire 1st order parent? (primary dendrite) or 2nd order parent?  - more complicated
@@ -417,8 +417,8 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
         while len(all_inputs)<total_inputs:
             #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified
             elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                    minDistance=minDistance, maxDistance=maxDistance, commonParentOrder=0,
-                                    numBranches='all', branchOrder=branchOrder,#min_length=10e-6, #max_path_length = 180e-6, min_path_length = 200e-6,
+                                    min_max_dist=min_max_dist, commonParentOrder=0,
+                                    numBranches='all', branchOrder=branchOrder,#min_length=10e-6, 
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
                                     )
             elementlist=remove_comps(elementlist, spine_per_comp, input_comps) #remove compartments that have < spine_per_comp
@@ -436,11 +436,11 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
                 else:
                     middle+=1
                 if proximal>=(nInputs/spine_per_comp)/2: #if too many proximal inputs, make minDistance larger
-                    minDistance=100e-6
+                    min_max_dist[0]=100e-6
                 if (proximal+middle)>=(nInputs/spine_per_comp):
-                    minDistance=150e-6
+                    min_max_dist[0]=150e-6
                 if distal>4: #if too many distal inputs, make maxDistance smaller
-                    maxDistance=200e-6
+                    min_max_dist[1]=200e-6
                 #
                 if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
@@ -454,29 +454,30 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,minDistance=40e-6, ma
             else:
                 inputs=[]
                 if branch_list:
-                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs with', spine_per_comp,'inputs/comp on', branch_list, 'at distance', minDistance,maxDistance)
+                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs with', spine_per_comp,'inputs/comp on', branch_list, 'at distance', min_max_dist)
                     break
                 elif branchOrder:
-                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs for branches of order', branchOrder, 'at distance', minDistance,maxDistance)
+                    print('********* n_inputs_per_comp: PROBLEM, only',  len(all_inputs), 'inputs for branches of order', branchOrder, 'at distance', min_max_dist)
                     print('************ changing branchOrder to None')
                     branchOrder=None
                 else:
                     print('***** Even with branchOrder of None, insufficient branches. Number of inputs is', len(all_inputs))
                     break
             all_inputs=[ai for ai in all_inputs] + [inp for inp in inputs]
+            print('In n_inputs_per_comp, aiming for',total_inputs,', num inputs=',len(all_inputs))
         return all_inputs, input_comps
 
-def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, minDistance=20e-6, maxDistance=300e-6, exclude_syn=[],dist_to_cluster=None): #FIXME: will only generate inputs for one neuron
+def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, min_max_dist=[20e-6, 300e-6], exclude_syn=[],dist_to_cluster=None): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
         elementlist,distDict = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
-                                          branch_list=branch_list, minDistance=minDistance, maxDistance=maxDistance, exclude_syn=exclude_syn)
+                                          branch_list=branch_list, min_max_dist=min_max_dist, exclude_syn=exclude_syn)
         minDist={x:min(y) for x,y in distDict.items()}
         maxDist={x:max(y) for x,y in distDict.items()}
         minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
         maxDist={k: v for k, v in sorted(maxDist.items(), key=lambda item: item[1])}
-        print('closest',np.unique(list(minDist.values()))*1e6)
-        print('furthest',np.unique(list(maxDist.values()))*1e6)
+        #print('closest',np.unique(list(minDist.values()))*1e6)
+        #print('furthest',np.unique(list(maxDist.values()))*1e6)
         if dist_to_cluster is not None:
             subset=[e for e in elementlist if minDist[e.parent.path]<dist_to_cluster[1] and minDist[e.parent.path]>dist_to_cluster[0]]
             num_inputs=min(nInputs,len(subset))
@@ -484,6 +485,8 @@ def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_
         else:
             num_inputs=min(nInputs,len(elementlist))
             inputs = selectRandom(elementlist,n=num_inputs,seed=seed, func='dispersed')
+        if num_inputs<nInputs:
+            print('In dispersed, insufficient input elements, desired=',nInputs,', achieved=',num_inputs)
         return inputs
 
 def report_element_distance(inputs, print_num=50):
@@ -520,13 +523,13 @@ def generate_clusters(model,num_clusters = 1, cluster_distance = 20e-6, total_nu
     # Determine dendritic location of each connection 
     # Add explicit spines to each location
     for neuron in model.neurons.values():
-        branch_dict = getBranchDict(neuron) #not used FIXME
+        bd = getBranchDict(neuron) #not used FIXME
         # randomly choose compartment for potential cluster center
         # We don't want clusters near each other, so choose the parent level that maximally disperses each cluster
         # e.g. if we have 1 cluster, soma is the parent level; if we have 4 primary branches and 4 clusters, each cluster should be within 
         # a different primary branch. if we have 4 primary branches and more than 4 clusters, choose clusters based on secondary branches, etc.
-        comp_to_branch_dict = mapCompartmentToBranch(neuron)
-        num_branches_per_order = [len(getBranchesOfOrder(neuron,order,'all')) for order in [0,1,2,3]]
+        comp_to_branch_dict = mapCompartmentToBranch(neuron, bd) 
+        num_branches_per_order = [len(getBranchesOfOrder(neuron,order,bd, 'all')) for order in [0,1,2,3]]
         for i,nb in enumerate(num_branches_per_order):
             if num_clusters <= nb:
                 cluster_parent_order = i
@@ -554,23 +557,24 @@ if __name__ == '__main__':
                     fo.write('   '+k+':'+line+'\n')
                 else:
                     fo.write('   '+k+':'+str(v)+'\n')
-    possibleBranches, branch_len = getBranchesOfOrder(neuron, 3, n=1,
-                                          commonParentOrder=1, min_length = 120e-6, commonParentBranch='/D1[0]/785_3')
+    possibleBranches, branch_len = getBranchesOfOrder(neuron, 3, bd, n=1,
+                                          commonParentOrder=1, min_length = 10e-6, commonParentBranch='/D1[0]/785_3')
     
     #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified, in generateElementList and n_inputs_per_comp
+    #if only using 1 branch, need a long branch to find enough inputs
     elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                minDistance=40e-6, maxDistance=70e-6, commonParentOrder=0,
-                                numBranches=1, min_length=10e-6, branch_list=possibleBranches
+                                min_max_dist=[40e-6, 80e-6], commonParentOrder=0,
+                                numBranches=1, min_length=120e-6, branch_list=possibleBranches
                                 ) #could try minDistance=120e-6'''
     elist_DMS = selectRandom(elist,n=16,func='elist_DMS')
     elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                minDistance=80e-6, maxDistance=120e-6, commonParentOrder=0,
-                                numBranches=1, min_length=10e-6, branch_list=possibleBranches
+                                min_max_dist=[80e-6, 140e-6], commonParentOrder=0,
+                                numBranches=1, min_length=40e-6, branch_list=possibleBranches
                                 ) #could try minDistance=120e-6'''
     elist_DLS = selectRandom(elist,n=16,func='elist_DMS')
-    #elist_DLS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,minDistance=80e-6, maxDistance=120e-6,branch_list=possibleBranches, seed = None)
-    #elist_DMS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,minDistance=40e-6, maxDistance=60e-6, branch_list=possibleBranches, seed = None)
-    #elist_DMS=n_inputs_per_comp(model, nInputs = 32,spine_per_comp=4,minDistance=40e-6, maxDistance=60e-6,branch_list = None, seed = None, branchOrder=3)
+    elist_DLS,group_DLS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,min_max_dist=[80e-6, 140e-6],branch_list=possibleBranches, seed = None)
+    elist_DMS,group_DMS=n_inputs_per_comp(model, nInputs = 16,spine_per_comp=2,min_max_dist=[40e-6, 60e-6], branch_list=possibleBranches, seed = None)
+    elist_DMS,group_DMS=n_inputs_per_comp(model, nInputs = 32,spine_per_comp=4,min_max_dist=[40e-6, 60e-6],branch_list = None, seed = None, branchOrder=3)
     elist={'DMS':elist_DMS,'DLS':elist_DLS}
     for k,v in elist.items():
         print('elements and distance for', k)
