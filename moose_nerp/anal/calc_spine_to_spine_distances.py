@@ -15,8 +15,8 @@ from moose_nerp.prototypes import spatiotemporalInputMapping as stim
 from moose_nerp import str_net as net
 import sim_upstate as su
 
-args='single -sim_type BLA_DLS -num_clustered 10 -spc 4 -spc_subset 2 -num_dispersed 4 -dist_dispers 50e-6 350e-6 -dist_cluster 50e-6 350e-6 -d2c 0 50e-6 -block_naf True -start_cluster 0.1 -end_cluster 0.3'.split()
- #-SPN cells.D1PatchSample4
+args='single -sim_type BLA_DLS -SPN cells.D1PatchSample4 -num_clustered 10 -spc 4 -spc_subset 2 -num_dispersed 4 -dist_dispers 50e-6 350e-6 -dist_cluster 50e-6 350e-6 -d2c 0 50e-6 -block_naf True -start_cluster 0.1 -end_cluster 0.3'.split()
+ #
 #args = sys.argv[1:]
 clust=False #make true to test clustering and create spine to spine distance file for that.
 
@@ -83,8 +83,8 @@ spine_index[neuron.path+'/'+model.NAME_SOMA]=(0,0,0)
 ################# Can probably delete all but spine_to_soma_distance ###################33333
 ################ possibly just spine_key and get distance from last row/col of spine_to_spine_dist_array
 spine_to_soma_distance={}
-for i,spine in enumerate(allspines_info): #KEEP
-    spine_key=allspines[i].path.replace('[0]','').replace('/','_').replace('D1','').lstrip('_') #KEEP
+for i,spine in enumerate(allspines_info): 
+    spine_key=allspines[i].path.replace('[0]','').replace('/','_').replace('D1','').lstrip('_') 
     spine_to_soma_distance[spine_key]=spine_to_spine_dist_array[i,-1]
 spine_dist_df = pd.DataFrame(spine_to_spine_dist_array,columns=spine_index.keys(),
                              index=spine_index.keys())
@@ -106,3 +106,6 @@ from matplotlib import pyplot as plt
 plt.imshow(spine_to_spine_dist_array)
 plt.colorbar()
 
+plt.figure()
+plt.scatter(spine_to_spine_dist_array[-1,0:-1],spine_to_soma_distance.values())
+plt.show()
