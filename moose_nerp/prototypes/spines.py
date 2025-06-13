@@ -319,6 +319,7 @@ def addSpines(model, container,ghkYN,name_soma,neuron_object,module=None):
         #end for comp
         spine_to_spine_dists = possible_spine_to_spine_distances(model, possible_spine_list,neuron_object)
         all_possible_spine_info={ps['head_path']:(ps['x'],ps['y'],ps['z']) for ps in possible_spine_list}
+        all_possible_spine_info[neuron_object.path+'/'+model.NAME_SOMA]=(0,0,0) #make index same length as s2s_dists
         print('prep for auto file name',model.morph_file, container,len(headarray),'spines created')
         fname=model.morph_file[container].split('.p')[0] #container is ntype
         np.savez(fname+'_s2sdist', s2sd=spine_to_spine_dists,index=all_possible_spine_info) #needed for analysis later.  Probably need to save in different directory
