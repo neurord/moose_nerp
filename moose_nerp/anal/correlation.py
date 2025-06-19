@@ -73,63 +73,66 @@ def parsarg(commandline):
     args=parser.parse_args(commandline)
     return args
 
-args = sys.argv[1:]
-args='D1Pat4BLA_DLS_0_14_0.298_0.3_350_4_clust clustered_exp50/patch4_Rm5_Ra0.34/D1Pat4BLA_disp0_clust14_distance num_disp 14'.split()
-#args='D1Pat4BLA_DLS_0_10_350_0_4_disp D1Pat4BLA_disp4_clust10_distance num_clust 4'.split()
-#args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
-par=parsarg(args)
-newdata=pd.read_csv(par.out+'.out',sep='\s+') 
-distdata=pd.read_csv(par.csv+'.csv')
-combined=pd.merge(newdata,distdata,on=['seed','region',par.merge_col],suffixes=[None,'_drop'])
-drop_names=[cn for cn in combined.columns if cn.endswith('_drop')]+['Unnamed: 0']
-combined.drop(axis=1,columns=drop_names,inplace=True)
+combine=False
 
-if not par.naf:
-    combined.drop(axis=1,columns=['num_spk','inst_freq','duration'],inplace=True)
+if combine:
+    args = sys.argv[1:]
+    args='D1Pat4BLA_DLS_0_14_0.298_0.3_350_4_clust clustered_exp50/patch4_Rm5_Ra0.34/D1Pat4BLA_disp0_clust14_distance num_disp 14'.split()
+    args='D1Mat2BLA_DLS_0_32_200_0_4_clust D1Mat2BLA_disp0_clust32_distance num_disp 24'.split()
+    #args='D1Pat4BLA_DLS_0_10_350_0_4_disp D1Pat4BLA_disp4_clust10_distance num_clust 4'.split()
+    #args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
+    par=parsarg(args)
+    newdata=pd.read_csv(par.out+'.out',sep='\s+') 
+    distdata=pd.read_csv(par.csv+'.csv')
+    combined=pd.merge(newdata,distdata,on=['seed','region',par.merge_col],suffixes=[None,'_drop'])
+    drop_names=[cn for cn in combined.columns if cn.endswith('_drop')]+['Unnamed: 0']
+    combined.drop(axis=1,columns=drop_names,inplace=True)
 
-combined.to_csv(par.out+'_combined.csv') 
+    if not par.naf:
+        combined.drop(axis=1,columns=['num_spk','inst_freq','duration'],inplace=True)
 
-if par.merge_col=='num_clust':
-    dfsubset=combined[(combined.num_disp==par.paired_stim)]
+    combined.to_csv(par.out+'_combined.csv') 
+
+    if par.merge_col=='num_clust':
+        dfsubset=combined[(combined.num_disp==par.paired_stim)]
+    else:
+        dfsubset=combined[(combined.num_clust==par.paired_stim)]
+    dfsubset.drop(axis=1,columns=['num_clust','maxdist','num_disp','naf','spc','seed','soma_dist_sd','spine_dist_sd'],inplace=True)
+
+    if par.merge_col=='num_clust':
+        pvalues=calc_corr(dfsubset,'all')
+    else:
+        for region in ['DMS','DLS']:
+            dfsub=dfsubset[dfsubset['region']==region]
+            pvalues=calc_corr(dfsub,region)
+
+    plots(combined,region=True)
 else:
-    dfsubset=combined[(combined.num_clust==par.paired_stim)]
-dfsubset.drop(axis=1,columns=['num_clust','maxdist','num_disp','naf','spc','seed','soma_dist_sd','spine_dist_sd'],inplace=True)
-
-if par.merge_col=='num_clust':
-    pvalues=calc_corr(dfsubset,'all')
-else:
+    ####################################################################
+    ##### now read in all the combined.csv files and analyze
+    filenames=glob.glob('D1Mat2BLA_DLS_*combined.csv')
+    df=[]
+    for f in filenames:
+        df.append(pd.read_csv(f))
+    whole_df=pd.concat(df)
+    dfsubset=whole_df[(whole_df.num_disp==whole_df.num_disp.max()) | (whole_df.num_clust==whole_df.num_clust.max())] #FIXME: will this work for all  conditions?
+    dfsubset.drop(axis=1,columns=['Unnamed: 0','naf','spc','seed','soma_dist_sd','spine_dist_sd','maxdist'],inplace=True)
+    calc_corr(dfsubset,'all')
     for region in ['DMS','DLS']:
         dfsub=dfsubset[dfsubset['region']==region]
         pvalues=calc_corr(dfsub,region)
 
-plots(combined,region=True)
+    plots(dfsubset,region=True)
 
-####################################################################
-##### now read in all the combined.csv files and analyze
+    import scipy.stats as stats
+    import statsmodels.api as sm
+    from statsmodels.formula.api import ols
+    from statsmodels.stats.anova import anova_lm
 
-filenames=glob.glob('D1Pat4BLA_DLS_*combined.csv')
-df=[]
-for f in filenames:
-    df.append(pd.read_csv(f))
-whole_df=pd.concat(df)
-dfsubset=whole_df[(whole_df.num_disp==whole_df.num_disp.max()) | (whole_df.num_clust==whole_df.num_clust.max())] #FIXME: will this work for all  conditions?
-dfsubset.drop(axis=1,columns=['Unnamed: 0','naf','spc','seed','soma_dist_sd','spine_dist_sd','maxdist'],inplace=True)
-calc_corr(dfsubset,'all')
-for region in ['DMS','DLS']:
-    dfsub=dfsubset[dfsubset['region']==region]
-    pvalues=calc_corr(dfsub,region)
-
-plots(dfsubset,region=True)
-
-import scipy.stats as stats
-import statsmodels.api as sm
-from statsmodels.formula.api import ols
-from statsmodels.stats.anova import anova_lm
-
-for depvar in ['plateauVm','decay10']:
-    results=ols(depvar+' ~ C(num_clust)',data=dfsubset).fit()
-    table=sm.stats.anova_lm(results,typ=2) #coefficients
-    print('\n*** depvar=',depvar, '\n',table)
-    indep_var=list(table['PR(>F)'].keys())[0]
-    if table['PR(>F)'][indep_var]<0.05:
-        print(results.summary()) #overall anova result
+    for depvar in ['plateauVm','decay10']:
+        results=ols(depvar+' ~ C(num_clust)',data=dfsubset).fit()
+        table=sm.stats.anova_lm(results,typ=2) #coefficients
+        print('\n*** depvar=',depvar, '\n',table)
+        indep_var=list(table['PR(>F)'].keys())[0]
+        if table['PR(>F)'][indep_var]<0.05:
+            print(results.summary()) #overall anova result
