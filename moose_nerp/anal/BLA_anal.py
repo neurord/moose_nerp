@@ -81,7 +81,7 @@ def remove_fn(fnames,key):
         fnames.remove(fn)
     return fnames
 
-def dep_vars(fn):
+def dep_vars(fn,ftype='0Vm'):
     parts=os.path.basename(fn).split('_')
     root=parts[0]
     reg=parts[1]
@@ -93,20 +93,20 @@ def dep_vars(fn):
         naf='1'
     else: 
         naf='0'
-    seed=parts[-1].split('0Vm')[0]
+    seed=parts[-1].split(ftype)[0]
     depend_vars=[root,reg,ndisp,nclust,maxdist,naf,spc, seed]
     return depend_vars
 
-def paired_files(fnames,dir,nclust,ndisp,paired): #for each file in fnames, find the one with same seed and one parameter different
+def paired_files(fnames,dir,nclust,ndisp,paired,reg,ftype='0Vm'): #for each file in fnames, find the one with same seed and one parameter different
     paired_fnames=[];diff=[]
     for fn in fnames:
-        depend_vars=dep_vars(fn)
+        depend_vars=dep_vars(fn,ftype)
         seed=depend_vars[-1]
         if paired=='ndisp': #need to specify whether paired file differs by ndisp of nclust
             input_str='_'.join(['*',str(nclust)])
         else: #paired files vary in num_clustered
             input_str='_'.join([str(ndisp),'*'])
-        paired_pattern='D1*BLA_'+reg+'_'+input_str+'_*'+seed+'0Vm.txt'  #find all files that match input string - should be two
+        paired_pattern='D1*BLA_'+reg+'_'+input_str+'_*'+seed+ftype+'.txt'  #find all files that match input string - should be two
         if dir:
             paired_pattern=dir+paired_pattern
         paired_file=sorted(glob.glob(paired_pattern))
@@ -126,7 +126,7 @@ def paired_files(fnames,dir,nclust,ndisp,paired): #for each file in fnames, find
             print('unable to determine  correct file from', paired_file)
     return paired_fnames, list(set(diff))
         
-def construct_pattern(par,num_input_string): #depending on input args, construct pattern to find files using glob
+def construct_pattern(par,num_input_string,reg): #depending on input args, construct pattern to find files using glob
     if len(par.end_time)==1:
         et=par.end_time[0]
     elif len(par.end_time)==len(par.num_clustered):
@@ -201,13 +201,34 @@ class BLA_anal():
                  str(round(self.dur[reg][nc][-1],1)), str(len(self.spk_tm)),str(round(np.nanmean(1/isi),2))]
         return results
 
+def config_loop(par):
+    loop_over='ndisp'
+    if len(par.num_clustered)>=1 and len(par.num_dispersed)==1:  #loop_over num_clustered
+        if par.paired=='nclust' or par.paired is None:
+            num_stim=par.num_clustered #if paired, use (num_disp,*) - num_disp correct, num_clust NOT USED
+            loop_over='nclust'
+        elif len(par.num_clustered)==1 and par.paired=='ndisp':
+            num_stim=par.num_dispersed #if paired, use (*,num_clust) - num_clust correct,num_disp NOT USE
+        else:
+            print('paired param must be num_clust if num_clustered>1')
+            sys.exit()
+    elif len(par.num_clustered)==1 and len(par.num_dispersed)>=1: # loop_over num_dispersed
+        if par.paired=='ndisp' or par.paired is None:
+            num_stim=par.num_dispersed   #if paired, use (*,num_clust) , num_clust correct, num_disp does NOT USE
+        else:
+            print('must have only single num_clustered if paired parameter is num_disp')
+            sys.exit()
+    else:
+        print('ERROR: either specify one value for num_clustered or one value for num_dispersed')
+    return loop_over, num_stim
+
 #may need to add NMDA, celltype, distance or other parameters at some point
 def parsarg(commandline):
     import argparse
     parser=argparse.ArgumentParser()
     parser.add_argument('-dur', type=float, default=0.05, help='duration for measuring plateau, in sec')
-    parser.add_argument('-num_dispersed', nargs="+", type=int, default=[75], help='number of dispersed inputs')
-    parser.add_argument('-num_clustered', nargs="+", type=int, default=[16], help='number of clustered inputs')
+    parser.add_argument('-num_dispersed', nargs="+", type=int, default=[0], help='number of dispersed inputs')
+    parser.add_argument('-num_clustered', nargs="+", type=int, default=[0], help='number of clustered inputs')
     parser.add_argument('-spc', type=int, help='spines per cluster')
     parser.add_argument('-end_time', nargs="+", type=float, default=[0.3], help='time to begin measuring decay, in sec')
     parser.add_argument('-start', type=float, default=0.1, help='time that stimulation begins, in sec')
@@ -221,110 +242,96 @@ def parsarg(commandline):
     args=parser.parse_args(commandline)
     return args
 
-args = sys.argv[1:]
-#args='-num_clustered 10 -num_dispersed 4 -paired ndisp -output 1'.split()
-par=parsarg(args)
-print('disp',par.num_dispersed,'clust',par.num_clustered)
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    #args='-num_clustered 10 -num_dispersed 4 -paired ndisp -output 1'.split()
+    par=parsarg(args)
+    print('disp',par.num_dispersed,'clust',par.num_clustered)
 
-num_clust=par.num_clustered[0]
-num_disp=par.num_dispersed[0]
-loop_over='ndisp'
-if len(par.num_clustered)>=1 and len(par.num_dispersed)==1:  #loop_over num_clustered
-    if par.paired=='nclust' or par.paired is None:
-        num_stim=par.num_clustered #if paired, use (num_disp,*) - num_disp correct, num_clust NOT USED
-        loop_over='nclust'
-    elif len(par.num_clustered)==1 and par.paired=='ndisp':
-        num_stim=par.num_dispersed #if paired, use (*,num_clust) - num_clust correct,num_disp NOT USE
-    else:
-        print('paired param must be num_clust if num_clustered>1')
-        sys.exit()
-elif len(par.num_clustered)==1 and len(par.num_dispersed)>=1: # loop_over num_dispersed
-    if par.paired=='ndisp' or par.paired is None:
-        num_stim=par.num_dispersed   #if paired, use (*,num_clust) , num_clust correct, num_disp does NOT USE
-    else:
-        print('must have only single num_clustered if paired parameter is num_disp')
-        sys.exit()
-else:
-    print('ERROR: either specify one value for num_clustered or one value for num_dispersed')
+    num_clust=par.num_clustered[0]
+    num_disp=par.num_dispersed[0]
+    loop_over, num_stim=config_loop(par)
 
-region=['DMS','DLS']
+    region=['DMS','DLS']
 
-data_set=BLA_anal(region,num_stim)
+    data_set=BLA_anal(region,num_stim)
 
-base_time=[par.start-par.dur,par.start]
+    base_time=[par.start-par.dur,par.start]
 
-#for spn in ['Mat3', 'Mat2']:
-for reg in region:
-    for ii,nstim in enumerate(num_stim):
-        nc=str(nstim)
-        if loop_over=='nclust': 
-            num_inputs='_'.join([str(num_disp),nc])
+    #for spn in ['Mat3', 'Mat2']:
+    for reg in region:
+        for ii,nstim in enumerate(num_stim):
+            nc=str(nstim)
+            if loop_over=='nclust': 
+                num_inputs='_'.join([str(num_disp),nc])
+            else:
+                num_inputs='_'.join([nc,str(num_clust)])
+            pattern,et=construct_pattern(par,num_inputs,reg)
+            if par.naf:
+                fnames=glob.glob(pattern+'*NaF*0Vm.txt')
+            else:
+                fnames=glob.glob(pattern+'*0Vm.txt')
+                fnames=remove_fn(fnames,'NaF')
+            data_set.trials[reg][nc]=len(fnames)
+            if len(fnames):
+                if par.paired: #find additional files that have different clust or disp inputs, but same random seed
+                    paired_fnames,nc2=paired_files(fnames,par.dir, num_clust,num_disp, par.paired, reg) #nc2 is list of tuples containing both paired parameters.  
+                    if len(nc2)==1: #Should only be one list 
+                        paired_param=list(nc2[0])
+                        for p in paired_param:
+                            if p not in data_set.isis[reg].keys():#identify which parameter in the tuple is the "new" one
+                                data_set.paired_init(reg,p)
+                                new_par=p #this will only work if there is only one paired param
+                                data_set.trials[reg][p]=len(paired_fnames)
+                    else:
+                        print('too many parameter differences beween paired files')
+                    print('### paired files for',nc,nc2,reg,':',paired_fnames)
+                print('### files for ',nc,reg,':', fnames)
+                #Plot the data
+                plot_traces(fnames,reg,nc,par.start,et)
+                if par.paired: 
+                    plot_traces(paired_fnames,reg,new_par,par.start,et)
+                #Next, extract some measurements
+                plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
+                for i,fn in enumerate(fnames):
+                    results=data_set.analyze_file(fn,reg,nc)
+                    if par.seed:
+                        for sd in par.seed:
+                            if str(sd) in fn:
+                                plot_one_file(fn,data_set.data, par.start,et)
+                    #output for stat analysis
+                    dependent_vars=dep_vars(fn)
+                    data_set.rows.append(dependent_vars[1:]+results)
+                    if par.paired:
+                        results2=data_set.analyze_file(paired_fnames[i],reg,new_par)
+                        dependent_vars=dep_vars(paired_fnames[i])                    
+                        data_set.rows.append(dependent_vars[1:]+results2)
+            else:
+                print('no files found using pattern',pattern, 'with parameters',nc,reg)
+    #output for stat analysis, export and then read in and combine multiple files
+    if par.output:
+        outfname='_'.join(dependent_vars[0:-1])
+        header='region    num_disp  num_clust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
+        np.savetxt(outfname+'.out',data_set.rows,fmt='%7s',header=header,comments='')  
+    
+    ################## Results ###################
+    import scipy.stats as sps
+    for reg in region:
+        if loop_over=='nclust':
+            print('***', num_disp, 'dispersed, ', reg,'trials for nclust =',[data_set.trials[reg]])
         else:
-            num_inputs='_'.join([nc,str(num_clust)])
-        pattern,et=construct_pattern(par,num_inputs)
-        if par.naf:
-            fnames=glob.glob(pattern+'*NaF*0Vm.txt')
-        else:
-            fnames=glob.glob(pattern+'*0Vm.txt')
-            fnames=remove_fn(fnames,'NaF')
-        data_set.trials[reg][nc]=len(fnames)
-        if len(fnames):
-            if par.paired:
-                paired_fnames,nc2=paired_files(fnames,par.dir, num_clust,num_disp, par.paired) #nc2 is list of tuples containing both paired parameters.  
-                if len(nc2)==1: #Should only be one list 
-                    paired_param=list(nc2[0])
-                    for p in paired_param:
-                        if p not in data_set.isis[reg].keys():#identify which parameter in the tuple is the "new" one
-                            data_set.paired_init(reg,p)
-                            new_par=p #this will only work if there is only one paired param
-                            data_set.trials[reg][p]=len(paired_fnames)
-                else:
-                    print('too many parameter differences beween paired files')
-                print('### paired files for',nc,nc2,reg,':',paired_fnames)
-            print('### files for ',nc,reg,':', fnames)
-            plot_traces(fnames,reg,nc,par.start,et)
-            if par.paired: 
-                plot_traces(paired_fnames,reg,new_par,par.start,et)
-            plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
-            for i,fn in enumerate(fnames):
-                results=data_set.analyze_file(fn,reg,nc)
-                if par.seed:
-                    for sd in par.seed:
-                        if str(sd) in fn:
-                            plot_one_file(fn,data_set.data, par.start,et)
-                #output for stat analysis
-                dependent_vars=dep_vars(fn)
-                data_set.rows.append(dependent_vars[1:]+results)
-                if par.paired:
-                    results2=data_set.analyze_file(paired_fnames[i],reg,new_par)
-                    dependent_vars=dep_vars(paired_fnames[i])                    
-                    data_set.rows.append(dependent_vars[1:]+results2)
-        else:
-            print('no files found using pattern',pattern, 'with parameters',nc,reg)
-#output for stat analysis, export and then read in and combine multiple files
-if par.output:
-    outfname='_'.join(dependent_vars[0:-1])
-    header='region    num_disp  num_clust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
-    np.savetxt(outfname+'.out',data_set.rows,fmt='%7s',header=header,comments='')  
- 
-################## Results ###################
-import scipy.stats as sps
-for reg in region:
-    if loop_over=='nclust':
-        print('***', num_disp, 'dispersed, ', reg,'trials for nclust =',[data_set.trials[reg]])
-    else:
-         print('***', num_clust, 'clustered, ', reg,'trials for ndisp =',[data_set.trials[reg]])
-    for nstim in sorted(data_set.num_spikes[reg]): 
-        nc=str(nstim)
-        print( '  ', nc,'inputs, spikes=',np.round(np.mean(data_set.num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(data_set.num_spikes[reg][nc],nan_policy='omit'),3))
-        if len(data_set.isis[reg][nc]):
-            print('        freq=',np.round(np.nanmean(data_set.inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(data_set.inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(data_set.isis[reg][nc]), 'trials')
-            print('        mean dur of spiking',np.round(np.nanmean(data_set.dur[reg][nc]),3),'+/-',np.round(sps.sem(data_set.dur[reg][nc],nan_policy='omit'),3), 'in sec')
-        else:
-            print('        no frequency or spike dur, only 0 or 1 spike per trace')
-        if not np.all(np.isnan(data_set.decay10[reg][nc])):
-            print('        mean plateau',np.round(np.nanmean(data_set.plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(data_set.plateauVm[reg][nc],nan_policy='omit'),1), 'in mV, n=',data_set.plat_trials[reg][nc])
-            print('        mean decay',np.round(np.nanmean(data_set.decay10[reg][nc]),1),'+/-',np.round(sps.sem(data_set.decay10[reg][nc],nan_policy='omit'),1), 'in msec, n=',data_set.plat_trials[reg][nc])
-            #print('        mean rise_time',np.round(np.nanmean(rise_time[reg][nc]),1),'+/-',np.round(sps.sem(rise_time[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
+            print('***', num_clust, 'clustered, ', reg,'trials for ndisp =',[data_set.trials[reg]])
+        for nstim in sorted(data_set.num_spikes[reg]): 
+            nc=str(nstim)
+            print( '  ', nc,'inputs, spikes=',np.round(np.mean(data_set.num_spikes[reg][nc]),3),'+/-',np.round(sps.sem(data_set.num_spikes[reg][nc],nan_policy='omit'),3))
+            if len(data_set.isis[reg][nc]):
+                print('        freq=',np.round(np.nanmean(data_set.inst_freq[reg][nc]),2),'+/-',np.round(sps.sem(data_set.inst_freq[reg][nc],nan_policy='omit'),2), 'from', len(data_set.isis[reg][nc]), 'trials')
+                print('        mean dur of spiking',np.round(np.nanmean(data_set.dur[reg][nc]),3),'+/-',np.round(sps.sem(data_set.dur[reg][nc],nan_policy='omit'),3), 'in sec')
+            else:
+                print('        no frequency or spike dur, only 0 or 1 spike per trace')
+            if not np.all(np.isnan(data_set.decay10[reg][nc])):
+                print('        mean plateau',np.round(np.nanmean(data_set.plateauVm[reg][nc]),1),'+/-',np.round(sps.sem(data_set.plateauVm[reg][nc],nan_policy='omit'),1), 'in mV, n=',data_set.plat_trials[reg][nc])
+                print('        mean decay',np.round(np.nanmean(data_set.decay10[reg][nc]),1),'+/-',np.round(sps.sem(data_set.decay10[reg][nc],nan_policy='omit'),1), 'in msec, n=',data_set.plat_trials[reg][nc])
+                #print('        mean rise_time',np.round(np.nanmean(rise_time[reg][nc]),1),'+/-',np.round(sps.sem(rise_time[reg][nc],nan_policy='omit'),1), 'in sec, n=',plat_trials[reg][nc])
 
 
