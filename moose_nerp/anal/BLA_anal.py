@@ -106,7 +106,7 @@ def paired_files(fnames,dir,nclust,ndisp,paired,reg,ftype='0Vm'): #for each file
             input_str='_'.join(['*',str(nclust)])
         else: #paired files vary in num_clustered
             input_str='_'.join([str(ndisp),'*'])
-        paired_pattern='D1*BLA_'+reg+'_'+input_str+'_*'+seed+ftype+'.txt'  #find all files that match input string - should be two
+        paired_pattern='D1*BLA_'+reg+'_'+input_str+'_*'+'_'+seed+ftype+'.txt'  #find all files that match input string - should be two
         if dir:
             paired_pattern=dir+paired_pattern
         paired_file=sorted(glob.glob(paired_pattern))
@@ -223,7 +223,7 @@ def config_loop(par):
     return loop_over, num_stim
 
 #may need to add NMDA, celltype, distance or other parameters at some point
-def parsarg(commandline):
+def parsarg():
     import argparse
     parser=argparse.ArgumentParser()
     parser.add_argument('-dur', type=float, default=0.05, help='duration for measuring plateau, in sec')
@@ -239,13 +239,13 @@ def parsarg(commandline):
     parser.add_argument('-output', type=bool,help='Y or 1 to write output file')
     parser.add_argument('-paired', type=str,help='Specify which parameter to pair (ndisp or nclust)',choices=['ndisp','nclust'])
 
-    args=parser.parse_args(commandline)
-    return args
+    return parser
 
 if __name__ == '__main__':
     args = sys.argv[1:]
     #args='-num_clustered 10 -num_dispersed 4 -paired ndisp -output 1'.split()
-    par=parsarg(args)
+    parser=parsarg()
+    par=parser.parse_args(args)
     print('disp',par.num_dispersed,'clust',par.num_clustered)
 
     num_clust=par.num_clustered[0]
