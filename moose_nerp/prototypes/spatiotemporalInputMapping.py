@@ -136,6 +136,10 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     possible_comp_dists = [d for branch in possibleBranches for d in bd[branch]['CompDistances']]
     elementList = [];distances={}
     exclude_info={s.parent.path:{'parentComp':s.parent.parent,'x':s.parent.x,'y':s.parent.y,'z':s.parent.z,'soma_dist':util.get_dist_name(s.parent)[0]} for s in exclude_syn}
+    exclude_comps=set([s.parent.parent.path for s in exclude_syn])
+    for ex in exclude_comps:
+        if ex in possibleCompartments:
+            possibleCompartments.remove(ex)
     #print('#####possible compartments\n', possibleCompartments)
     for el in allList:
         # Get Distance of element, or parent compartment if element not compartment
@@ -157,13 +161,13 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             ind = possibleCompartments.index(path.path)
             dist = possible_comp_dists[ind]
             # print(path, minDistance,dist+path.length/2., maxDistance, dist-path.length/2.) #Start and end distance of compartment
-            if ((min_max_dist[0] <= dist+path.length/2.) and (dist-path.length/2. <= min_max_dist[1])) and (el not in exclude_syn):              
+            if ((min_max_dist[0] <= dist+path.length/2.) and (dist-path.length/2. <= min_max_dist[1])):              
                 #or ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance))  \
                 #or ((minDistance <= dist) and (dist <= maxDistance)):
                     elementList.append(el)
                     #calculate distance from exclude_syn
                     distances[comppath.path]=[]
-                    for other_spine in exclude_info.values():
+                    for other_spine in exclude_info.values(): #distance to existing synapses
                         distances[comppath.path].append(compute_spine_to_spine_dist(sp_info, other_spine,bd,comp_to_branch_dict))
     if len(exclude_info):
         # print(elementList)
@@ -414,10 +418,11 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
         exclude_branch_list=[]
         input_comps={}
         proximal=0;distal=0;middle=0
+        dist_constraint=[m for m in min_max_dist]
         while len(all_inputs)<total_inputs:
             #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified
             elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
-                                    min_max_dist=min_max_dist, commonParentOrder=0,
+                                    min_max_dist=dist_constraint, commonParentOrder=0,
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, 
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
                                     )
@@ -436,12 +441,12 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                 else:
                     middle+=1
                 #kluge: though inputs randomly selected, make sure not too many clusters are proximal or distal
-                if proximal>=(nInputs/spine_per_comp)/2 and min_max_dist[0]<100e-6: #if too many proximal inputs, make minDistance larger
-                    min_max_dist[0]=100e-6
-                if (proximal+middle)>=(nInputs/spine_per_comp) and min_max_dist[0]<150e-6:
-                    min_max_dist[0]=150e-6
-                if distal>4 and min_max_dist[1]>200e-6: #if too many distal inputs, make maxDistance smaller
-                    min_max_dist[1]=200e-6
+                if proximal>=(nInputs/spine_per_comp)/2 and dist_constraint[0]<100e-6: #if too many proximal inputs, make minDistance larger
+                    dist_constraint[0]=100e-6
+                if (proximal+middle)>=(nInputs/spine_per_comp) and dist_constraint[0]<150e-6:
+                    dist_constraint[0]=150e-6
+                if distal>4 and dist_constraint[1]>200e-6: #if too many distal inputs, make maxDistance smaller
+                    dist_constraint[1]=200e-6
                 #
                 if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
@@ -471,16 +476,21 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
 def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_list=None, min_max_dist=[20e-6, 300e-6], exclude_syn=[],dist_to_cluster=None): #FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
-        elementlist,distDict = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
+        elementlist,sp2sp_distDict = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
                                           branch_list=branch_list, min_max_dist=min_max_dist, exclude_syn=exclude_syn)
-        minDist={x:min(y) for x,y in distDict.items()}
-        maxDist={x:max(y) for x,y in distDict.items()}
-        minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
-        maxDist={k: v for k, v in sorted(maxDist.items(), key=lambda item: item[1])}
+        minDist={x:min(y) for x,y in sp2sp_distDict.items()}
+        maxDist={x:max(y) for x,y in sp2sp_distDict.items()} #unused
+        #minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
+        #maxDist={k: v for k, v in sorted(maxDist.items(), key=lambda item: item[1])}
         #print('closest',np.unique(list(minDist.values()))*1e6)
         #print('furthest',np.unique(list(maxDist.values()))*1e6)
         if dist_to_cluster is not None:
+            #dist_to_clust=[[0, 50e-6],[50e-6, 80e-6],[80e-6, 120e-6],[120e-6, 150e-6 ],[150e-6, 300e-6]] 
+            #for dtc in dist_to_clust:
+            #    subset=[e for e in elementlist if minDist[e.parent.path]<dtc[1] and minDist[e.parent.path]>dtc[0]]
+            #    print('dtc',dtc,'num elements',len(subset))
             subset=[e for e in elementlist if minDist[e.parent.path]<dist_to_cluster[1] and minDist[e.parent.path]>dist_to_cluster[0]]
+            print('dispersed inputs, num available=',len(subset), ', using soma dist=', min_max_dist, ',sp2sp dist=',dist_to_cluster)
             num_inputs=min(nInputs,len(subset))
             inputs = selectRandom(subset,n=num_inputs,seed=seed, func='dispersed')
         else:
