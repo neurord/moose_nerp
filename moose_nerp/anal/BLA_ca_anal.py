@@ -6,9 +6,11 @@ warnings.simplefilter("ignore", category=RuntimeWarning)
 import os
 import moose_nerp.anal.BLA_anal as ba
 from matplotlib import pyplot as plt
+import pandas as pd
 plt.ion()
 
 m2um=1e6
+mM2uM=1e3
 
 def load_spine_file(fn,pattern):
     dependent_vars=ba.dep_vars(fn,ftype='0Ca')
@@ -17,7 +19,7 @@ def load_spine_file(fn,pattern):
     inputs=np.load(spine_file[0],allow_pickle=True)
     #clust_spines=[os.path.dirname(i) for i in inputs['orig']]
     #extra_spines=[os.path.dirname(i) for i in inputs['extra']]
-    return list(inputs['orig']),list(inputs['extra'])
+    return list(inputs['orig']),list(inputs['extra']), dependent_vars
 
 class BLA_anal():
     def __init__(self,region,locations,onset):
@@ -27,9 +29,10 @@ class BLA_anal():
         self.auc_diff={reg:{loc:[] for loc in locations} for reg in region}
         self.auc_ratio={reg:{loc:[] for loc in locations} for reg in region}
         self.distances={reg:{loc:[] for loc in locations} for reg in region}
+        self.rows=[]
         return
                 
-    def calc_auc(self,data,orig_data,columns,dist_dict,reg):
+    def calc_auc(self,extra_data,orig_data,columns,dist_dict,reg):
         def map_distance(dist): #FIXME somewhat arbitrary distances
             if dist<80:
                 return 'prox'
@@ -38,21 +41,33 @@ class BLA_anal():
             else:
                 return 'mid'
         
-        dt=data[1,0]
+        dt=extra_data[1,0]
         onset_pt=int(self.onset/dt)
         for comp,col in columns.items():
             dist=dist_dict[comp]
             key=map_distance(dist)
-            diff=(data[:,col]-orig_data[:,col])
+            diff=(extra_data[:,col]-orig_data[:,col])
             basal=np.mean(orig_data[0:onset_pt,col])
             auc_orig=np.sum(orig_data[:,col]-basal)*dt
-            basal=np.mean(data[0:onset_pt,col])
-            self.auc[reg][key].append(np.sum(data[:,col]-basal)*dt)
+            basal=np.mean(extra_data[0:onset_pt,col])
+            self.auc[reg][key].append(np.sum(extra_data[:,col]-basal)*dt)
             basal=np.mean(diff[0:onset_pt])
             self.auc_diff[reg][key].append(np.sum(diff)*dt)
             self.auc_ratio[reg][key].append(np.sum(diff)*dt/auc_orig)
             self.distances[reg][key].append(dist)
         return 
+    
+    def output_results(self,data,columns):
+        results=[]
+        dt=data[1,0]
+        onset_pt=int(self.onset/dt)
+        for comp,col in columns.items():
+            basal=np.mean(data[0:onset_pt,col])
+            auc=np.sum(data[:,col]-basal)*dt*mM2uM
+            peak=(np.max(data[:,col])-basal)*mM2uM
+            results.append(round(auc,2))
+            results.append(round(peak,2))
+        return results
 
     def calc_distance(self,orig,extra):
 
@@ -147,21 +162,50 @@ def plot_traces(data,orig_data,columns,fn,labels,title=''):
         else:
             labl=os.path.dirname(comp)+' '+labels[comp]+'u'
             linestyle='-'
-        p=plt.plot(time,data[:,col]*1000,label=labl, linestyle=linestyle)
+        p=plt.plot(time,data[:,col]*mM2uM,label=labl, linestyle=linestyle)
         color=p[-1].get_color()
-        plt.plot(time,orig_data[:,col]*1000,color=color,linestyle=':')
+        plt.plot(time,orig_data[:,col]*mM2uM,color=color,linestyle=':')
     plt.title(title)
     plt.legend()
     plt.xlabel('Time (sec)')
     plt.ylabel(fn)
     return fig
 
+def sorted_comp_col(shell0,header,soma_dist):
+    comp_col={c:header.index(c) for c in shell0 if c in header}
+    #sort comp_col by distance to soma (orig_dist)
+    triplets=[(k,comp_col[k],soma_dist[k]) for k in comp_col.keys()]
+    trip_sorted=sorted(triplets,key=lambda x:x[2])
+    comp_col={k: v for (k, v,d) in trip_sorted}
+    return  comp_col
+
+def create_title(soma_dist,extra_comp,paired,sp_dist,sp_dist_distal):
+    distance_par1=np.mean([soma_dist[k+'/Shell_0'] for k in extra_comp])
+    title='soma '+str(round(distance_par1))
+    if paired=='ndisp':
+        distance_par2=np.mean(list(sp_dist.values()))
+        title=title+' sp2sp '+str(round(distance_par2))
+        distance_par3=np.nanmean(list(sp_dist_distal.values()))
+        if np.isnan(distance_par3):
+            title=title+' no distal clusters'
+        else:
+            title=title+' sp2distal '+str(round(distance_par3))
+    return title
+def create_output_header(output_dist):
+    out_header='region    num_disp  num_clust  maxdist  naf spc   seed  '.split()
+    out_header=out_header+['comp'+str(i)+'dist' for i in range(len(output_dist))]
+    auc_peak=' '.join(['auc'+str(i)+ '_uM-s  peak'+str(i)+'_uM' for i in range(len(output_dist))])
+    out_header=out_header+ auc_peak.split()
+    out_header=out_header+['spine_dist','max_clust_dist','min_clust_dist','soma_dist','max_soma_dist','min_soma_dist']
+    return out_header
+
 if __name__ == '__main__':
-    #args = sys.argv[1:]
+    args = sys.argv[1:]
     #args='-dir clustered_exp50/spc4_again/ -num_clustered 32 -paired nclust -ntype matrix'.split() #matrix, clustered
-    args='-dir clustered_exp50/patch4_Rm5_Ra0.34/ -num_clustered 14 -paired nclust -ntype patch'.split() #patch clustered
+    #args='-dir clustered_exp50/patch4_Rm5_Ra0.34/ -num_clustered 14 -paired nclust -ntype patch'.split() #patch clustered
     #args='-dir clustered_exp50/matrix2_disp/ -num_clustered 24 -num_dispersed 8 -paired ndisp -ntype matrix'.split()
     #args='-dir clustered_exp50/patch4_Rm5_Ra0.34_disp2/ -num_clustered 10 -num_dispersed 4 -paired ndisp -ntype patch'.split()
+    args='-num_clustered 24 -num_dispersed 8 -paired ndisp -ntype matrix -output 1'.split()
     parser=ba.parsarg()
     parser.add_argument('-ntype', type=str,choices=['patch','matrix'],help='neuron type to determine sp2sdist file')
     par=parser.parse_args(args)
@@ -174,7 +218,7 @@ if __name__ == '__main__':
     region=['DMS','DLS']
     locations=['prox','mid','dist']
     shell='Shell_0'
-    trace_plots=5
+    trace_plots=1
 
     data_set=BLA_anal(region,locations,par.start)
 
@@ -201,54 +245,59 @@ if __name__ == '__main__':
             fnames=ba.remove_fn(fnames,'NaF')
             paired_fnames,nc2=ba.paired_files(fnames,par.dir, num_clust,num_disp, par.paired,reg, ftype='0Ca')
             for idx,fn in enumerate(fnames):
-                data=np.loadtxt(fn)
+                extra_data=np.loadtxt(fn)
                 orig_data=np.loadtxt(paired_fnames[idx])
                 with open(fn) as f:
                     header=f.readline().split()
                 if '#' in header:
                     header.remove('#')
-                print(os.path.basename(fn),', 0 disp',np.shape(orig_data),'added disp',np.shape(data))
-                orig,extra=load_spine_file(fn,pattern) #load file with list of spines used in simulation
-                soma_dist,sp_dist,shell0,sp_dist_distal=data_set.calc_distance(orig,extra) #extract distance for spines in simulation
+                #print(os.path.basename(fn),', orig clusters:',np.shape(orig_data),', added spines:',np.shape(extra_data)) #if not the same length, there is problem
+                orig,extra,dep_vars=load_spine_file(fn,pattern) #load file with list of spines used in simulation
+                soma_dist,sp_dist,shell0,sp_dist_distal=data_set.calc_distance(orig,extra) #extract distance for spines to soma and to closest cluster 
                 labels={k:str(round(v)) for k,v in soma_dist.items()}
                 if par.paired=='ndisp':
                     for k,v in sp_dist.items():
                         labels[k]=str(round(v))+' sp2sp'
-                comp_col={c:header.index(c) for c in shell0 if c in header}
+                comp_col=sorted_comp_col(shell0,header,soma_dist)
                 #Exclude files in which added spines are in same comp as original spines
                 orig_comp=set([os.path.dirname(s) for s in orig])
                 extra_comp=set([os.path.dirname(s) for s in extra])
                 duplicate_comp=extra_comp & orig_comp
                 if len(duplicate_comp) and par.paired=='ndisp':
                     print('PROBLEM', fn, 'added dispersed input in same comp as clustered',duplicate_comp,'skipping this file')
-                    #plot_traces(data,orig_data,comp_col,os.path.basename(fn), labels)
+                    #plot_traces(extra_data,orig_data,comp_col,os.path.basename(fn), labels)
                     print('     sp2sp distances for this trace',[l for l in labels.values() if 'sp2sp' in l]) 
                     continue
-                distance_par1=np.mean([soma_dist[k+'/Shell_0'] for k in extra_comp])
-                title='soma '+str(round(distance_par1))
-                if par.paired=='ndisp':
-                    distance_par2=np.mean(list(sp_dist.values()))
-                    title=title+' sp2sp '+str(round(distance_par2))
-                    distance_par3=np.nanmean(list(sp_dist_distal.values()))
-                    if np.isnan(distance_par3):
-                        title=title+' no distal clusters'
-                    else:
-                        title=title+' sp2distal '+str(round(distance_par3))
                 #only calculate AUC for comps that had synaptic input in original sims
-                data_set.calc_auc(data,orig_data,comp_col,soma_dist,reg)
+                data_set.calc_auc(extra_data,orig_data,comp_col,soma_dist,reg)
+                if par.output:
+                  #one row of results for data WITH added spines
+                    output_dist=[round(soma_dist[k],1) for k in comp_col.keys()] #distance of output shells (which are subset of clustered spine comps) to soma
+                    spine2clust_dist=[np.mean(list(sp_dist.values())), np.max(list(sp_dist.values())),np.min(list(sp_dist.values()))] #mean, min, max distance of added spines to closest cluster
+                    soma_dist_extra=[soma_dist[os.path.dirname(k)+'/Shell_0'] for k in extra] #distance of spine to soma for extra spines
+                    spine2soma_dist=[np.mean(soma_dist_extra), np.max(soma_dist_extra),np.min(soma_dist_extra)] #mean, min, max distance of spine to soma for extra spines
+                    
+                    data_set.rows.append(dep_vars[1:]+output_dist+data_set.output_results(extra_data,comp_col)+spine2clust_dist+spine2soma_dist)
+                    #one row of results for data without added spines
+                    dep_vars=ba.dep_vars(paired_fnames[idx],ftype='0Ca')
+                    data_set.rows.append(dep_vars[1:]+output_dist+data_set.output_results(orig_data,comp_col)+spine2clust_dist+spine2soma_dist)
                 if idx<trace_plots:
-                    #sort comp_col by distance to soma (orig_dist)
-                    triplets=[(k,comp_col[k],soma_dist[k]) for k in comp_col.keys()]
-                    trip_sorted=sorted(triplets,key=lambda x:x[2])
-                    comp_col={k: v for (k, v,d) in trip_sorted}
-                    plot_traces(data,orig_data,comp_col,os.path.basename(fn), labels,title) 
+                    title=create_title(soma_dist,extra_comp,par.paired,sp_dist,sp_dist_distal)
+                    plot_traces(extra_data,orig_data,comp_col,os.path.basename(fn), labels,title) 
+    
+    out_header=create_output_header(output_dist)
+    df=pd.DataFrame(data_set.rows,columns=out_header)
+
+    if par.output:
+        outfname='_'.join(dep_vars[0:-1]+['_Ca_combined'])
+        df.to_csv(outfname+'.csv')
+
     data_set.calc_means()
     data_set.corr_plot()
     print('finished')
 
-    #1. calculate peak?
-    #1b. correlate peak/AUC with distance of extra comp from soma?
-    #2. read in Vm, calculate decay10 or plateau, and correlate with ca
+    #1. correlate peak/AUC with distance of extra comp from soma?
+    #2. read in Vm, calculate decay10 or plateau, and correlate with ca?
 
 
 
