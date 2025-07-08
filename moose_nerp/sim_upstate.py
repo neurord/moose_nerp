@@ -350,7 +350,7 @@ def upstate_main(
             print(filename,'has excluded synapses:', [i.path for i in parent_spine], 'dispersed',n_per_dispersed, freq_dispersed) 
             if dist_dispers:
                 dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed,
-                    seed=dispersed_seed, min_max_dist=dist_dispers, exclude_syn=inputs,dist_to_cluster=d2c) #using seed - always same. exclude synapses with clustered inputs, but not branch
+                    seed=dispersed_seed, min_max_dist=dist_dispers, exclude_syn=inputs,dist_to_cluster=d2c) #using seed - always same. exclude synapses (comp) with clustered inputs, but not branch
             else:
                 dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed,
                     exclude_branch_list=branch_list, seed=dispersed_seed,dist_to_cluster=d2c) # exclude entire branch with clustered inputs.  do not specify min and max distances
@@ -358,7 +358,7 @@ def upstate_main(
             possibleBranches, _ = stim.getBranchesOfOrder(neuron, None, bd, n='all', min_max_path_length=dist_dispers, #select multiple branches on specified primary 
                                           commonParentOrder=1, commonParentBranch=branch_list[0]) #select with parent=specified primary, with 120 um length
             print(filename,'dispersing inputs on:', possibleBranches, 'dispersed',n_per_dispersed, freq_dispersed)
-            dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed, exclude_syn=inputs,
+            dispersed_inputs = stim.dispersed(model,nInputs=num_dispersed, exclude_syn=inputs, #in this case, might not want to exclude comp?  Only synapses?
                 branch_list=possibleBranches,seed=dispersed_seed, min_max_dist=dist_dispers) #using seed - always same; min_disp and max_disp needed here, too
         el_dist_disp=stim.report_element_distance(dispersed_inputs)
         far.append(el_dist_disp[0][0])
@@ -732,15 +732,16 @@ def parsarg(commandline):
 
 if __name__ == "__main__":
     mod_dict = make_mod_dict()
-    clustered_seed = 135
-    dispersed_seed = 172
+    clustered_seed = 2717
+    dispersed_seed = 2717
     single_epsp_seed = 314
     #sim_type='rheobase_only' #'new_dispersed_300ms_only'#  or 'upstate_only'?
 
     import sys
 
     args = sys.argv[1:]
-    args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 200e-6 350e-6 -dist_dispers 50e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    #args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 150e-6 350e-6 -dist_dispers 0 100e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 500e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
+    args='single -sim_type BLA_DLS -SPN cells.D1PatchSample4 -num_clustered 10 -num_dispersed 4 -d2c 0e-6 50e-6 -dist_dispers 100e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 500e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split()
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
  
