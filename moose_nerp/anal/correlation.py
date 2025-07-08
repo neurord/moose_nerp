@@ -55,8 +55,8 @@ def plots(combined,region=False):
             axes.legend()
     else:
             axes.scatter(combined['min_soma_dist'].to_numpy()*1e6, combined['spine_dist'].to_numpy()*1e6)        
-    axes.set_ylabel('min_soma_dist')
-    axes.set_xlabel('spine_dist')
+    axes.set_xlabel('min_soma_dist')
+    axes.set_ylabel('spine_dist')
     plt.show()
     return
 
@@ -77,9 +77,9 @@ combine=False
 
 if combine:
     args = sys.argv[1:]
-    args='D1Pat4BLA_DLS_0_14_0.298_0.3_350_4_clust clustered_exp50/patch4_Rm5_Ra0.34/D1Pat4BLA_disp0_clust14_distance num_disp 14'.split()
-    args='D1Mat2BLA_DLS_0_32_200_0_4_clust D1Mat2BLA_disp0_clust32_distance num_disp 24'.split()
-    #args='D1Pat4BLA_DLS_0_10_350_0_4_disp D1Pat4BLA_disp4_clust10_distance num_clust 4'.split()
+    args='D1Pat4BLA_DLS_0_10_350_0_4_disp_2025-07-08 D1Pat4BLA_disp4_clust10_2025-07-08_distance num_clust 4'.split()
+    #args=' D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
+    #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-07-08 D1Pat4BLA_disp0_clust14_2025-07-08_distance num_disp 14'.split()
     #args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
     par=parsarg(args)
     newdata=pd.read_csv(par.out+'.out',sep='\s+') 
@@ -110,7 +110,7 @@ if combine:
 else:
     ####################################################################
     ##### now read in all the combined.csv files and analyze
-    filenames=glob.glob('D1Mat2BLA_DLS_*combined.csv')
+    filenames=glob.glob('D1Pat4BLA_DLS_*2025-07-08_combined.csv')
     df=[]
     for f in filenames:
         df.append(pd.read_csv(f))
