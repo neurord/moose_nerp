@@ -4,7 +4,9 @@ import pandas as pd
 import glob
 import os
 
-args=['D1_short_patch_187463_D1_108_ab_s2sdist', 'D1Pat4BLA_'] #clustered_exp50/patch4_Rm5_Ra0.34/
+args=['D1_long_matrix_84362_D1_15_ab_s2sdist', 'D1Mat2BLA_D?S_0_32']  
+#args=['D1_short_patch_187463_D1_108_ab_s2sdist', 'D1Pat4BLA_D?S_4_10'] 
+#args=['D1_short_patch_187463_D1_108_ab_s2sdist', './D1Pat4BLA_'] #'clustered_exp50/patch4_Rm5_Ra0.34_disp/D1Pat4BLA_'] #
 #args = sys.argv[1:]
 sp2sp_file=args[0] #s2s distance file
 input_spine=args[1] #root name of stimulated spine files,with single num dispersed and num clustered
@@ -15,6 +17,7 @@ spine_list=[s.replace('[0]','') for s in spines.keys()]
 sp2sp_dist=sp2sp['s2sd']
 
 files=glob.glob(input_spine+'*.npz')
+#files=['D1Pat4BLA_DLS_4_10_4_2717.npz']
 mean_dist=[];disp=[]; clust=[]
 for fn in files:
     base_fn=os.path.basename(fn)
@@ -48,7 +51,8 @@ for fn in files:
     fclust=np.unique(clust)
 mean_df=pd.DataFrame.from_dict(mean_dist)
 print(mean_df) 
-outfname=input_spine+'disp'+str(fdisp[0])+'_clust'+str(fclust[0])
+from datetime import datetime
+outfname=input_spine+'disp'+str(fdisp[0])+'_clust'+str(fclust[0])+'_'+datetime.today().strftime('%Y-%m-%d')
 mean_df.to_csv(outfname+'_distance.csv')
 
 import statsmodels.api as sm

@@ -66,19 +66,20 @@ def parsarg(commandline):
     parser.add_argument('out', type=str, help='name of .out file with plateau and spike analysis')
     parser.add_argument('csv', type=str, help='name of .csv file with spine to cluster distances')
     parser.add_argument('merge_col', type=str, choices=['num_disp','num_clust'], help='merge out and csv files on num_disp if the simulations varied num_clust and vice versa')
-    parser.add_argument('paired_stim', type=int, help='number of dispersed (if merge on num_clust) or cluster (if merge on num_disp)')
+    parser.add_argument('paired_stim', type=int, help='number of dispersed (if merge on num_clust) or cluster (if merge on num_disp) with added inputs')
     parser.add_argument('-dir', type=str, help='directory with files')
     parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
  
     args=parser.parse_args(commandline)
     return args
 
-combine=False
+combine=True
 
 if combine:
     args = sys.argv[1:]
     args='D1Pat4BLA_DLS_0_10_350_0_4_disp_2025-07-08 D1Pat4BLA_disp4_clust10_2025-07-08_distance num_clust 4'.split()
-    #args=' D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
+    args='D1Mat2BLA_DLS_0_24_350_0_4_clust_2025-07-09  D1Mat2BLA_disp0_clust32_2025-07-09_distance num_disp 32'.split()
+    args='D1Mat2BLA_DLS_0_24_350_0_4_disp_2025-07-09  D1Mat2BLA_disp8_clust24_2025-07-09_distance num_clust 8'.split()
     #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-07-08 D1Pat4BLA_disp0_clust14_2025-07-08_distance num_disp 14'.split()
     #args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
     par=parsarg(args)

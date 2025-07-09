@@ -87,6 +87,7 @@ def dep_vars(fn,ftype='0Vm'):
     reg=parts[1]
     ndisp=parts[2]
     nclust=parts[3]
+    endtime=parts[4]
     maxdist=parts[6]
     spc=parts[7] #this will not be correct for files generated prior to 2024 aug 5
     if 'NaF' in fn:
@@ -94,18 +95,18 @@ def dep_vars(fn,ftype='0Vm'):
     else: 
         naf='0'
     seed=parts[-1].split(ftype)[0]
-    depend_vars=[root,reg,ndisp,nclust,maxdist,naf,spc, seed]
+    depend_vars=[root,reg,ndisp,nclust,maxdist,naf,spc, endtime,seed]
     return depend_vars
 
 def paired_files(fnames,dir,nclust,ndisp,paired,reg,ftype='0Vm'): #for each file in fnames, find the one with same seed and one parameter different
-    paired_fnames=[];diff=[]
+    paired_fnames=[];diff=[];remove_fn=[]
     for fn in fnames:
         depend_vars=dep_vars(fn,ftype)
         seed=depend_vars[-1]
         if paired=='ndisp': #need to specify whether paired file differs by ndisp of nclust
-            input_str='_'.join(['*',str(nclust)])
+            input_str='_'.join(['*',str(nclust),depend_vars[-2]])
         else: #paired files vary in num_clustered
-            input_str='_'.join([str(ndisp),'*'])
+            input_str='_'.join([str(ndisp),'*',depend_vars[-2]])
         paired_pattern='D1*BLA_'+reg+'_'+input_str+'_*'+'_'+seed+ftype+'.txt'  #find all files that match input string - should be two
         if dir:
             paired_pattern=dir+paired_pattern
@@ -123,7 +124,10 @@ def paired_files(fnames,dir,nclust,ndisp,paired,reg,ftype='0Vm'): #for each file
             new_fn=paired_file[0] #new file is the one that was not in the original fnames list
             paired_fnames.append(new_fn)                        
         else:
-            print('unable to determine  correct file from', paired_file)
+            print('unable to determine  correct file from', paired_file, 'removing from the list')
+            remove_fn.append(fn)
+        #for fn in remove_fn:
+        #    fnames.remove(fn)
     return paired_fnames, list(set(diff))
         
 def construct_pattern(par,num_input_string,reg): #depending on input args, construct pattern to find files using glob
@@ -243,7 +247,7 @@ def parsarg():
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    #args='-num_clustered 10 -num_dispersed 4 -paired ndisp -output 1'.split()
+    args='-num_clustered 24 -num_dispersed 8 -paired ndisp -output 1'.split()
     parser=parsarg()
     par=parser.parse_args(args)
     print('disp',par.num_dispersed,'clust',par.num_clustered)
@@ -301,16 +305,19 @@ if __name__ == '__main__':
                                 plot_one_file(fn,data_set.data, par.start,et)
                     #output for stat analysis
                     dependent_vars=dep_vars(fn)
+                    del dependent_vars[-2]
                     data_set.rows.append(dependent_vars[1:]+results)
                     if par.paired:
                         results2=data_set.analyze_file(paired_fnames[i],reg,new_par)
-                        dependent_vars=dep_vars(paired_fnames[i])                    
+                        dependent_vars=dep_vars(paired_fnames[i])
+                        del dependent_vars[-2]                  
                         data_set.rows.append(dependent_vars[1:]+results2)
             else:
                 print('no files found using pattern',pattern, 'with parameters',nc,reg)
     #output for stat analysis, export and then read in and combine multiple files
     if par.output:
-        outfname='_'.join(dependent_vars[0:-1])
+        from datetime import datetime
+        outfname='_'.join(dependent_vars[0:-1]+[par.paired[1:],datetime.today().strftime('%Y-%m-%d')])
         header='region    num_disp  num_clust  maxdist     naf    spc   seed  plateauVm  decay10  duration num_spk  inst_freq'
         np.savetxt(outfname+'.out',data_set.rows,fmt='%7s',header=header,comments='')  
     
