@@ -133,7 +133,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
         possibleBranches = [b for b in possibleBranches if b not in exclude_branch_list]
     comp_to_branch_dict = mapCompartmentToBranch(neuron, bd) 
     possibleCompartments = [comp for branch in possibleBranches for comp in bd[branch]['CompList']]
-    possible_comp_dists = [d for branch in possibleBranches for d in bd[branch]['CompDistances']]
+    possible_comp_dists = {comp:d for branch in possibleBranches for comp,d in zip(bd[branch]['CompList'],bd[branch]['CompDistances'])}
     elementList = [];distances={}
     exclude_info={s.parent.path:{'parentComp':s.parent.parent,'x':s.parent.x,'y':s.parent.y,'z':s.parent.z,'soma_dist':util.get_dist_name(s.parent)[0]} for s in exclude_syn}
     exclude_comps=set([s.parent.parent.path for s in exclude_syn])
@@ -158,12 +158,13 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             sp_info={'parentComp':comppath.parent,'x':comppath.x,'y':comppath.y,'z':comppath.z}
         #print(name, dist, path)
         if path.path in possibleCompartments:
-            ind = possibleCompartments.index(path.path)
-            dist = possible_comp_dists[ind]
-            # print(path, minDistance,dist+path.length/2., maxDistance, dist-path.length/2.) #Start and end distance of compartment
+            #print(comppath.path, dist, 'allowed=',min_max_dist, 'range=',dist+path.length/2., dist-path.length/2.) #Start and end distance of compartment
             if ((min_max_dist[0] <= dist+path.length/2.) and (dist-path.length/2. <= min_max_dist[1])):              
                 #or ((minDistance <= dist-path.length/2.) and (dist-path.length/2. <= maxDistance))  \
                 #or ((minDistance <= dist) and (dist <= maxDistance)):
+                #if dist>min_max_dist[1] or dist<min_max_dist[0]:
+                #    print(comppath.path, dist, 'range=',min_max_dist)
+                #else:
                     elementList.append(el)
                     #calculate distance from exclude_syn
                     distances[comppath.path]=[]
@@ -428,7 +429,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                                     )
             elementlist=remove_comps(elementlist, spine_per_comp, input_comps) #remove compartments that have < spine_per_comp or already selected
             if len(elementlist):
-                inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment
+                inputs = selectRandom(elementlist,n=1,seed=seed) #select one spine from one compartment, update seed?
                 comp=inputs[0].path.split('/sp')[0] ######### This assumes that input is to a spine 
                 if int(moose.__version__[0])>3:
                     comp=comp[0:-3] #strip off [0]
@@ -439,14 +440,16 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                 elif compDistdict[comp]>150e-6:
                     distal+=1
                 else:
-                    middle+=1
+                    middle+=1  
                 #kluge: though inputs randomly selected, make sure not too many clusters are proximal or distal
-                if proximal>=(nInputs/spine_per_comp)/2 and dist_constraint[0]<100e-6: #if too many proximal inputs, make minDistance larger
-                    dist_constraint[0]=100e-6
-                if (proximal+middle)>=(nInputs/spine_per_comp) and dist_constraint[0]<150e-6:
-                    dist_constraint[0]=150e-6
-                if distal>4 and dist_constraint[1]>200e-6: #if too many distal inputs, make maxDistance smaller
-                    dist_constraint[1]=200e-6
+                #don't do this for patch simulations, because dendrites are shorter
+                if 'matrix' in model.morph_file[neuron.name]:
+                    if proximal>=(nInputs/spine_per_comp)/2 and dist_constraint[0]<100e-6: #if too many proximal inputs, make minDistance larger
+                        dist_constraint[0]=100e-6
+                    if (proximal+middle)>=(nInputs/spine_per_comp) and dist_constraint[0]<150e-6:
+                        dist_constraint[0]=150e-6
+                    if distal>4 and dist_constraint[1]>200e-6: #if too many distal inputs, make maxDistance smaller
+                        dist_constraint[1]=200e-6
                 #
                 if spine_per_comp>1:
                     chans = list(moose.wildcardFind(comp+'/##/#'+schan+'#[ISA='+elementType+']')) #select additional spines from same  compartment
@@ -481,9 +484,8 @@ def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_
         minDist={x:min(y) for x,y in sp2sp_distDict.items()}
         maxDist={x:max(y) for x,y in sp2sp_distDict.items()} #unused
         #minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
-        #maxDist={k: v for k, v in sorted(maxDist.items(), key=lambda item: item[1])}
         #print('closest',np.unique(list(minDist.values()))*1e6)
-        #print('furthest',np.unique(list(maxDist.values()))*1e6)
+
         if dist_to_cluster is not None:
             #dist_to_clust=[[0, 50e-6],[50e-6, 80e-6],[80e-6, 120e-6],[120e-6, 150e-6 ],[150e-6, 300e-6]] 
             #for dtc in dist_to_clust:
@@ -508,10 +510,10 @@ def report_element_distance(inputs, print_num=50):
     el_dist=[]
     for i,el in enumerate(inputs):
         if el.className=='Compartment' or el.className=='ZombieCompartment':
-            dist,name = util.get_dist_name(el)
+            dist,name = util.get_dist_name(el) #this is euclidean distance
             path = el
         elif moose.element(el.parent).className=='Compartment' or moose.element(el.parent).className=='ZombieCompartment':
-            dist,name = util.get_dist_name(moose.element(el.parent))
+            dist,name = util.get_dist_name(moose.element(el.parent)) #this is euclidean distance
             path = el.parent
         el_dist.append((el,dist))
         #if dist>furthest[1]:
