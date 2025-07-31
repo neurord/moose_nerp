@@ -206,7 +206,7 @@ if __name__ == '__main__':
     #args='-dir clustered_exp50/patch4_Rm5_Ra0.34/ -num_clustered 14 -paired nclust -ntype patch'.split() #patch clustered
     #args='-dir clustered_exp50/matrix2_disp/ -num_clustered 24 -num_dispersed 8 -paired ndisp -ntype matrix'.split()
     #args='-dir clustered_exp50/patch4_Rm5_Ra0.34_disp2/ -num_clustered 10 -num_dispersed 4 -paired ndisp -ntype patch'.split()
-    #args='-num_clustered 24 -num_dispersed 8 -paired ndisp -ntype matrix -output 1'.split()
+    #args='-num_clustered 32 -num_dispersed 0 -paired nclust -ntype matrix -output 1'.split()
     #args='-num_clustered 14 -num_dispersed 0 -paired nclust -ntype patch -output 1'.split()
     parser=ba.parsarg()
     parser.add_argument('-ntype', type=str,choices=['patch','matrix'],help='neuron type to determine sp2spdist file')
@@ -299,10 +299,10 @@ if __name__ == '__main__':
                     title=create_title(soma_dist,extra_comp,par.paired,sp_dist,sp_dist_distal)
                     plot_traces(extra_data,orig_data,comp_col,os.path.basename(fn), labels,title) 
     
-    out_header=create_output_header(output_dist)
-    df=pd.DataFrame(data_set.rows,columns=out_header)
 
     if par.output:
+        out_header=create_output_header(output_dist)
+        df=pd.DataFrame(data_set.rows,columns=out_header)
         from datetime import datetime
         outfname='_'.join(dep_vars[0:-1]+[par.paired,datetime.today().strftime('%Y-%m-%d'),'Ca_combined'])
         df.to_csv(outfname+'.csv')
