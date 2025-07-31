@@ -156,6 +156,8 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
             dist,name = util.get_dist_name(moose.element(el.parent))
             path = moose.element(comppath).parent #path needs to be the branch/compartment name
             sp_info={'parentComp':comppath.parent,'x':comppath.x,'y':comppath.y,'z':comppath.z}
+        else:
+            path=comppath
         #print(name, dist, path)
         if path.path in possibleCompartments:
             #print(comppath.path, dist, 'allowed=',min_max_dist, 'range=',dist+path.length/2., dist-path.length/2.) #Start and end distance of compartment
@@ -168,13 +170,13 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
                     elementList.append(el)
                     #calculate distance from exclude_syn
                     distances[comppath.path]=[]
-                    for other_spine in exclude_info.values(): #distance to existing synapses
+                    for other_spine in exclude_info.values(): #distance to existing, excluded synapses
                         distances[comppath.path].append(compute_spine_to_spine_dist(sp_info, other_spine,bd,comp_to_branch_dict))
     if len(exclude_info):
         # print(elementList)
         return elementList, distances
     else:
-        return elementList
+        return elementList, distances
 
 
 def getBranchOrder(compartment):
@@ -351,10 +353,10 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
         for i,input in enumerate(inputList):
             sh = moose.element(input.path+'/SH')
             tt = moose.TimeTable(input.path+'/tt')
-            if end_time:
-                freq=(num*n_per_syn)/(end_time-start_time) #formula will reproduce correct input frequency 
+            #if end_time:
+            #    freq=(num*n_per_syn)/(end_time-start_time) #formula does not reproduce correct input frequency 
             times = np.array([start_time+i*1./freq + j*num*1./freq for j in range(n_per_syn)]) #n_per_syn is number of spikes to each synapse
-            if end_time: #probably not needed
+            if end_time: 
                 times = times[times<end_time]
             tt.vector = times
             input_times.extend(tt.vector)
@@ -365,10 +367,24 @@ def createTimeTables(inputList,model,n_per_syn=1,start_time=0.05,freq=500.0, end
     input_times.sort()
     return input_times,ttlist
 
+def create_groups(inputs,bd,branch):
+    input_comps={}
+    for ip in inputs:
+        comp=ip.path.split('/sp')[0] ######### This assumes that input is to a spine 
+        if int(moose.__version__[0])>3:
+            comp=comp[0:-3] #strip off [0]
+        if comp in input_comps.keys():
+            input_comps[comp]['inputs'].append(ip)
+        else:
+            bd_index=bd[branch]['CompList'].index(comp)
+            dist=bd[branch]['CompDistances'][bd_index]
+            input_comps[comp]={'dist':dist, 'inputs':[ip]}
+    return input_comps
+
 def exampleClusteredDistal(model, nInputs = 5,branch_list = None, seed = None):#FIXME: will only generate inputs for one neuron
     for neuron in model.neurons.values():
         neur=util.select_neuron(neuron)
-        elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
+        elementlist,_ = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 min_max_dist=[150e-6, 190e-6], commonParentOrder=0,
                                 numBranches=1, branchOrder=-1,min_length=20e-6, 
                                 branch_list=branch_list,
@@ -383,7 +399,7 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
     elementDict={}
     remove_el=[]
     for el in elementlist:
-        key=el.path.split('/sp')[0]
+        key=el.path.split('/sp')[0] #el.parent.path
         if key in elementDict.keys():
             elementDict[key].append(el)
         else:
@@ -393,9 +409,11 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
     for values in elementDict.values():
         if len(values)<input_per_comp:
             for el in values:
-                elementlist.remove(el)
+                if el in elementlist:
+                    elementlist.remove(el)
     for val in remove_el:
-        elementlist.remove(val)
+        if val in elementlist:
+            elementlist.remove(val)
     return elementlist
 
 def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 60e-6],branch_list = None, seed = None, branchOrder=None,spc_subset=1):
@@ -422,7 +440,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
         dist_constraint=[m for m in min_max_dist]
         while len(all_inputs)<total_inputs:
             #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified
-            elementlist = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
+            elementlist,_ = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                     min_max_dist=dist_constraint, commonParentOrder=0,
                                     numBranches='all', branchOrder=branchOrder,#min_length=10e-6, 
                                     branch_list=branch_list#, exclude_branch_list=exclude_branch_list,
@@ -481,12 +499,15 @@ def dispersed(model, nInputs = 100,exclude_branch_list=None, seed = None,branch_
         neur=util.select_neuron(neuron)
         elementlist,sp2sp_distDict = generateElementList(neur, wildcardStrings=['ampa,nmda'], elementType='SynChan',exclude_branch_list=exclude_branch_list,
                                           branch_list=branch_list, min_max_dist=min_max_dist, exclude_syn=exclude_syn)
-        minDist={x:min(y) for x,y in sp2sp_distDict.items()}
-        maxDist={x:max(y) for x,y in sp2sp_distDict.items()} #unused
-        #minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
-        #print('closest',np.unique(list(minDist.values()))*1e6)
 
         if dist_to_cluster is not None:
+            if not len(exclude_syn):
+                print('Cannot calculate distance to cluster unless cluster specified as exclude_syn')
+            minDist={x:min(y) for x,y in sp2sp_distDict.items()}
+            maxDist={x:max(y) for x,y in sp2sp_distDict.items()} #unused
+            #minDist={k: v for k, v in sorted(minDist.items(), key=lambda item: item[1])}
+            #print('closest',np.unique(list(minDist.values()))*1e6)
+
             #dist_to_clust=[[0, 50e-6],[50e-6, 80e-6],[80e-6, 120e-6],[120e-6, 150e-6 ],[150e-6, 300e-6]] 
             #for dtc in dist_to_clust:
             #    subset=[e for e in elementlist if minDist[e.parent.path]<dtc[1] and minDist[e.parent.path]>dtc[0]]
@@ -575,12 +596,12 @@ if __name__ == '__main__':
     
     #numBranches,commonParentOrder and branchOrder are ignored if branch_list is specified, in generateElementList and n_inputs_per_comp
     #if only using 1 branch, need a long branch to find enough inputs
-    elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
+    elist,_ = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 min_max_dist=[40e-6, 80e-6], commonParentOrder=0,
                                 numBranches=1, min_length=120e-6, branch_list=possibleBranches
                                 ) #could try minDistance=120e-6'''
     elist_DMS = selectRandom(elist,n=16,func='elist_DMS')
-    elist = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
+    elist,_ = generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynChan',
                                 min_max_dist=[80e-6, 140e-6], commonParentOrder=0,
                                 numBranches=1, min_length=40e-6, branch_list=possibleBranches
                                 ) #could try minDistance=120e-6'''
