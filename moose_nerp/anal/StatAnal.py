@@ -8,7 +8,7 @@ import pandas as pd
 import glob
 
 spc=4
-filenames=glob.glob('D1Pat4BLA_DLS_0*_'+str(spc)+'*out') #FIXME: read in subset of .out files
+filenames=glob.glob('D1Mat2BLA_DLS_0*_2025-07-10.out') #FIXME: read in subset of .out files
 
 data=[]
 for fn in filenames:
@@ -25,7 +25,7 @@ alldata.std(numeric_only=True)
 #means of different groups
 #1. how to create subsets of data or exclude rows
 #nodrug=alldata[alldata.drug=='none']
-print(alldata.groupby(['region','ndisp','nclust','naf','spc']).mean()[['plateauVm','decay10','num_spk','inst_freq','duration']])
+print(alldata.groupby(['region','num_disp','num_clust','naf','spc']).mean()[['plateauVm','decay10','num_spk','inst_freq','duration']])
 
 no_naf=alldata[(alldata.naf==0)]
 dms=alldata[(alldata.region=='DMS') & (alldata.naf==0)]
@@ -47,38 +47,45 @@ print('\n######################################### Simulations with NaF blocked,
 for dat in [dms,dls]:
     if len(dat):
         for depvar in ['plateauVm','decay10']:
-            results=ols(depvar+' ~ C(nclust)',data=dat).fit()
+            results=ols(depvar+' ~ C(num_clust)',data=dat).fit()
             table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.ndisp[dat.index[0]],'********\n',table)
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.num_disp.min(),'********\n',table)
             indep_var=list(table['PR(>F)'].keys())[0]
             if table['PR(>F)'][indep_var]<0.05:
                 print(results.summary()) #overall anova result
 
+        for depvar in ['plateauVm','decay10']:
+            results=ols(depvar+' ~ C(num_disp)',data=dat).fit()
+            table=sm.stats.anova_lm(results,typ=2) #coefficients
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.num_disp.max(),'********\n',table)
+            indep_var=list(table['PR(>F)'].keys())[0]
+            if table['PR(>F)'][indep_var]<0.05:
+                print(results.summary()) #overall anova result
 print('\n######################################## Simulations with NaF, maximum spines per compartment = ',spc, '########################################')
 for dat in [dms_naf,dls_naf]:
     if len(dat):
         for depvar in ['num_spk', 'inst_freq']:
             results=ols(depvar+' ~ C(nclust)',data=dat).fit()
             table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], 'dispersed=',dat.ndisp[dat.index[0]],'********\n',table)
+            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], 'dispersed=',dat.num_disp[dat.index[0]],'********\n',table)
             indep_var=list(table['PR(>F)'].keys())[0]
             if table['PR(>F)'][indep_var]<0.05:
                 print(results.summary()) #overall anova result
 
 print('\n########################################## two way ANOVA ###################################')
 #2way anova with interaction term
-model=ols('decay10 ~ nclust+C(region)+nclust*C(region)',data=no_naf).fit()
+model=ols('decay10 ~ num_clust+C(region)+num_clust*C(region)',data=no_naf).fit()
 table=sm.stats.anova_lm(model,typ=2) #coefficients
 print(table,'\n',model.summary())
 ##### Cannot do post-hoc tests for 2 way anova in python
 
 ################# Paired data #######################
 dfs=[]
-for nclust in no_naf['nclust'].unique():
-    dfs.append(no_naf[(no_naf.nclust==nclust)])
+for nclust in no_naf['num_clust'].unique():
+    dfs.append(no_naf[(no_naf.num_clust==nclust)])
 paired_df=pd.merge(dfs[0],dfs[1],how='left',on=['seed','region','ndisp', 'maxdist','naf','spc'])
 paired_df['delta_decay']=paired_df['decay10_y']-paired_df['decay10_x']
-paired_df['add_inputs']=paired_df['nclust_y']-paired_df['nclust_x']
+paired_df['add_inputs']=paired_df['num_clust_y']-paired_df['num_clust_x']
 paired_df['delta_plateau']=paired_df['plateauVm_y']-paired_df['plateauVm_x']
 
 print('\n########################################## paired ###################################')
