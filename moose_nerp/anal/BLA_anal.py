@@ -247,7 +247,7 @@ def parsarg():
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    args='-num_clustered 24 -num_dispersed 8 -paired ndisp -output 1'.split()
+    #args='-num_clustered 14 -num_dispersed 0 -paired nclust -dir clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07/ -seed 4664'.split()
     parser=parsarg()
     par=parser.parse_args(args)
     print('disp',par.num_dispersed,'clust',par.num_clustered)
