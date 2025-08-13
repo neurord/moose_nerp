@@ -126,8 +126,8 @@ def paired_files(fnames,dir,nclust,ndisp,paired,reg,ftype='0Vm'): #for each file
         else:
             print('unable to determine  correct file from', paired_file, 'removing from the list')
             remove_fn.append(fn)
-        #for fn in remove_fn:
-        #    fnames.remove(fn)
+    for fn in remove_fn:
+        fnames.remove(fn)
     return paired_fnames, list(set(diff))
         
 def construct_pattern(par,num_input_string,reg): #depending on input args, construct pattern to find files using glob
@@ -247,7 +247,7 @@ def parsarg():
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    #args='-num_clustered 14 -num_dispersed 0 -paired nclust -dir clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07/ -seed 4664'.split()
+    #args='-num_clustered 18 -num_dispersed 0 -paired nclust '.split()
     parser=parsarg()
     par=parser.parse_args(args)
     print('disp',par.num_dispersed,'clust',par.num_clustered)
