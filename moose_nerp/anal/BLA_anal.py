@@ -36,13 +36,13 @@ def plot_one_file(fn,dat,startime,endtime):
     plt.ylabel('Vm (mV)')
     plt.axvspan(startime, endtime, facecolor="gray", alpha=0.1, zorder=-10)
     
-def mean_Vm(dat,time_vals):
+def mean_peak(dat,time_vals):
     points=[]
     for bt in time_vals:
         points.append(np.where(dat.time>=bt)[0][0])
-    baseVm=np.mean(dat.traces[dat.soma_name[0]][points[0]:points[1]])
+    meanVm=np.mean(dat.traces[dat.soma_name[0]][points[0]:points[1]])
     peakVm=np.max(dat.traces[dat.soma_name[0]][points[0]:points[1]])
-    return baseVm,points[1],peakVm
+    return meanVm,points[1],peakVm
 
 def decay_time(dat,base_val,plateau_val,pt):
     amp=plateau_val-base_val
@@ -174,15 +174,15 @@ class BLA_anal():
         self.inst_freq[reg][new_stim]=[]
 
 
-    def analyze_file(self,fn,reg,nc): #extract spikes, plateau, decay rate, etc from single Vm trace
+    def analyze_file(self,fn,reg,nc,plateau_time): #extract spikes, plateau, decay rate, etc from single Vm trace
         self.data=neur_text(fn)
         trace=self.data.traces[self.data.soma_name[0]]
         spikes=find_peaks(trace,height=self.spike_height,distance=int(self.min_isi/self.data.time[1] ))
         self.spk_tm=spikes[0]*self.data.time[1] #take 1st array of points, convert to time
         self.num_spikes[reg][nc].append(len(self.spk_tm))
         isi=np.nan #initialize as nan
-        baseVm,start_pt,_=mean_Vm(self.data,base_time) #baseline Vm
-        plateau,plat_start,peakVm=mean_Vm(self.data,plateau_time) #plateau Vm
+        baseVm,start_pt,_=mean_peak(self.data,base_time) #baseline Vm
+        plateau,plat_start,peakVm=mean_peak(self.data,plateau_time) #plateau Vm
         if not len(self.spk_tm): #if no spikes, measure plateau and decay time
             #rise_time[reg][nc].append(1000*risetime(data,start_pt,0.15,baseVm))
             self.dur[reg][nc].append(np.nan)#(1000*duration(data,baseVm,par.start,plat_start))
@@ -296,9 +296,9 @@ if __name__ == '__main__':
                 if par.paired: 
                     plot_traces(paired_fnames,reg,new_par,par.start,et)
                 #Next, extract some measurements
-                plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau
+                plateau_time=[float(et)-par.dur,float(et)] #measure Vm over 50 msec during plateau = last 50 ms of stim
                 for i,fn in enumerate(fnames):
-                    results=data_set.analyze_file(fn,reg,nc)
+                    results=data_set.analyze_file(fn,reg,nc,plateau_time)
                     if par.seed:
                         for sd in par.seed:
                             if str(sd) in fn:
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                     del dependent_vars[-2]
                     data_set.rows.append(dependent_vars[1:]+results)
                     if par.paired:
-                        results2=data_set.analyze_file(paired_fnames[i],reg,new_par)
+                        results2=data_set.analyze_file(paired_fnames[i],reg,new_par,plateau_time)
                         dependent_vars=dep_vars(paired_fnames[i])
                         del dependent_vars[-2]                  
                         data_set.rows.append(dependent_vars[1:]+results2)
