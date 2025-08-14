@@ -6,6 +6,7 @@ import pandas as pd
 from scipy.stats import pearsonr
 import glob
 import sys
+import numpy as np
 
 def calc_corr(dfsub,region):
     pvalues={r:{} for r in dfsub.columns if not r.endswith('_sd')}
@@ -77,9 +78,9 @@ combine=True
 
 if combine:
     args = sys.argv[1:]
-    args='D1Pat4BLA_DLS_0_10_350_0_4_disp_2025-07-08 D1Pat4BLA_disp4_clust10_2025-07-08_distance num_clust 4'.split()
-    args='D1Mat2BLA_DLS_0_24_350_0_4_clust_2025-07-09  D1Mat2BLA_disp0_clust32_2025-07-09_distance num_disp 32'.split()
-    args='D1Mat2BLA_DLS_0_24_350_0_4_disp_2025-07-09  D1Mat2BLA_disp8_clust24_2025-07-09_distance num_clust 8'.split()
+    #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-08-14 D1Pat4BLA_disp0_clust14_2025-08-14_distance num_disp 14'.split()
+    #args='D1Mat2BLA_DLS_0_24_350_0_4_clust_2025-08-08 D1Mat2BLA_disp0_clust26_2025-08-08_distance num_disp 32'.split()
+    #args='D1Mat2BLA_DLS_0_24_350_0_4_disp_2025-07-09  D1Mat2BLA_disp8_clust24_2025-07-09_distance num_clust 8'.split()
     #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-07-08 D1Pat4BLA_disp0_clust14_2025-07-08_distance num_disp 14'.split()
     #args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
     par=parsarg(args)
@@ -111,29 +112,37 @@ if combine:
 else:
     ####################################################################
     ##### now read in all the combined.csv files and analyze
-    filenames=glob.glob('D1Pat4BLA_DLS_*2025-07-08_combined.csv')
-    df=[]
-    for f in filenames:
-        df.append(pd.read_csv(f))
-    whole_df=pd.concat(df)
-    dfsubset=whole_df[(whole_df.num_disp==whole_df.num_disp.max()) | (whole_df.num_clust==whole_df.num_clust.max())] #FIXME: will this work for all  conditions?
-    dfsubset.drop(axis=1,columns=['Unnamed: 0','naf','spc','seed','soma_dist_sd','spine_dist_sd','maxdist'],inplace=True)
-    calc_corr(dfsubset,'all')
-    for region in ['DMS','DLS']:
-        dfsub=dfsubset[dfsubset['region']==region]
-        pvalues=calc_corr(dfsub,region)
-
-    plots(dfsubset,region=True)
-
     import scipy.stats as stats
     import statsmodels.api as sm
     from statsmodels.formula.api import ols
     from statsmodels.stats.anova import anova_lm
 
-    for depvar in ['plateauVm','decay10']:
-        results=ols(depvar+' ~ C(num_clust)',data=dfsubset).fit()
-        table=sm.stats.anova_lm(results,typ=2) #coefficients
-        print('\n*** depvar=',depvar, '\n',table)
-        indep_var=list(table['PR(>F)'].keys())[0]
-        if table['PR(>F)'][indep_var]<0.05:
-            print(results.summary()) #overall anova result
+    filenames=glob.glob('D1Pat4BLA_DLS_0_10_350_0_4_*combined.csv')# 'clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07_2nd_submit/D1Pat4BLA_DLS_0_10_350_0_4_*_2025-07-08_combined.csv') #
+    opposite={'num_disp':'num_clust', 'num_clust':'num_disp'}
+    df=[]
+    for f in filenames:
+        if '_Ca_' not in f:
+            df.append(pd.read_csv(f))
+    whole_df=pd.concat(df)
+    for indep in ['num_disp','num_clust']:
+        exclude=opposite[indep]
+        dfsubset=whole_df[(whole_df[exclude]==whole_df[exclude].min())] 
+        if len(np.unique(dfsubset[indep]))>1:
+            dfsubset.drop(axis=1,columns=['Unnamed: 0','naf','spc','seed','soma_dist_sd','spine_dist_sd','maxdist'],inplace=True)
+            print('\n********************************* analying data with variation in ',indep,'*********************************\n')
+            calc_corr(dfsubset,'all')
+            for region in ['DMS','DLS']:
+                print('\n********************************* analying ',region, 'for',indep,'*********************************\n')
+                dfsub=dfsubset[dfsubset['region']==region]
+                pvalues=calc_corr(dfsub,region)
+
+                for depvar in ['plateauVm','decay10']:
+                    results=ols(depvar+' ~ C('+indep+')',data=dfsub).fit()
+                    table=sm.stats.anova_lm(results,typ=2) #coefficients
+                    print('\n*** depvar=',depvar, '\n',table)
+                    indep_var=list(table['PR(>F)'].keys())[0]
+                    if table['PR(>F)'][indep_var]<0.05:
+                        print(results.summary()) #overall anova result
+    plots(whole_df,region=True)
+
+
