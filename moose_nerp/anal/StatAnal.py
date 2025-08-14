@@ -8,7 +8,7 @@ import pandas as pd
 import glob
 
 spc=4
-filenames=glob.glob('D1Mat2BLA_DLS_0*_2025-07-10.out') #FIXME: read in subset of .out files
+filenames=glob.glob('clustered_exp50/patch4_Rm5_Ra0.34_2025*2nd_submit/D1Pat4BLA_DLS_0*.out') #FIXME: read in subset of .out files
 
 data=[]
 for fn in filenames:
@@ -44,33 +44,37 @@ print('group means', grouped_data.mean()[['PSmean1','PSmean2']], grouped_data.st
 '''
 #2.how to do ANOVA
 print('\n######################################### Simulations with NaF blocked, maximum spines per compartment = ',spc, '########################################')
-for dat in [dms,dls]:
+opposite={'num_disp':'num_clust', 'num_clust':'num_disp'}
+for dat,region in zip([dms,dls],['DMS','DLS']):
     if len(dat):
-        for depvar in ['plateauVm','decay10']:
-            results=ols(depvar+' ~ C(num_clust)',data=dat).fit()
-            table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.num_disp.min(),'********\n',table)
-            indep_var=list(table['PR(>F)'].keys())[0]
-            if table['PR(>F)'][indep_var]<0.05:
-                print(results.summary()) #overall anova result
+        for indep in ['num_disp','num_clust']:
+            exclude=opposite[indep]
+            dfsubset=dat[(dat[exclude]==dat[exclude].min())] 
+            if len(np.unique(dfsubset[indep]))>1:           
+                print('\n********************************* analying ',region, 'for',indep,'*********************************\n')
+                for depvar in ['plateauVm','decay10']:
+                    results=ols(depvar+' ~ C('+indep+')',data=dfsubset).fit()
+                    table=sm.stats.anova_lm(results,typ=2) #coefficients
+                    print('\n*** depvar=',depvar, ',',exclude,'=',dfsubset[exclude][dfsubset.index[0]],'\n',table)
+                    indep_var=list(table['PR(>F)'].keys())[0]
+                    if table['PR(>F)'][indep_var]<0.05:
+                        print(results.summary()) #overall anova result
 
-        for depvar in ['plateauVm','decay10']:
-            results=ols(depvar+' ~ C(num_disp)',data=dat).fit()
-            table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]],'dispersed=',dat.num_disp.max(),'********\n',table)
-            indep_var=list(table['PR(>F)'].keys())[0]
-            if table['PR(>F)'][indep_var]<0.05:
-                print(results.summary()) #overall anova result
 print('\n######################################## Simulations with NaF, maximum spines per compartment = ',spc, '########################################')
-for dat in [dms_naf,dls_naf]:
+for dat,region in zip([dms_naf,dls_naf],['DMS','DLS']):
     if len(dat):
-        for depvar in ['num_spk', 'inst_freq']:
-            results=ols(depvar+' ~ C(nclust)',data=dat).fit()
-            table=sm.stats.anova_lm(results,typ=2) #coefficients
-            print('\n*** depvar=',depvar, 'region=',dat.region[dat.index[0]], 'dispersed=',dat.num_disp[dat.index[0]],'********\n',table)
-            indep_var=list(table['PR(>F)'].keys())[0]
-            if table['PR(>F)'][indep_var]<0.05:
-                print(results.summary()) #overall anova result
+       for indep in ['num_disp','num_clust']:
+            exclude=opposite[indep]
+            dfsubset=dat[(dat[exclude]==dat[exclude].min())] 
+            if len(np.unique(dfsubset[indep]))>1:           
+                print('\n********************************* analying ',region, 'for',indep,'*********************************\n')
+                for depvar in ['num_spk', 'inst_freq']:
+                    results=ols(depvar+' ~ C('+indep+')',data=dfsubset).fit()
+                    table=sm.stats.anova_lm(results,typ=2) #coefficients
+                    print('\n*** depvar=',depvar, ',',exclude,'=',dfsubset[exclude][dfsubset.index[0]],'********\n',table)
+                    indep_var=list(table['PR(>F)'].keys())[0]
+                    if table['PR(>F)'][indep_var]<0.05:
+                        print(results.summary()) #overall anova result
 
 print('\n########################################## two way ANOVA ###################################')
 #2way anova with interaction term
@@ -83,10 +87,10 @@ print(table,'\n',model.summary())
 dfs=[]
 for nclust in no_naf['num_clust'].unique():
     dfs.append(no_naf[(no_naf.num_clust==nclust)])
-paired_df=pd.merge(dfs[0],dfs[1],how='left',on=['seed','region','ndisp', 'maxdist','naf','spc'])
-paired_df['delta_decay']=paired_df['decay10_y']-paired_df['decay10_x']
-paired_df['add_inputs']=paired_df['num_clust_y']-paired_df['num_clust_x']
-paired_df['delta_plateau']=paired_df['plateauVm_y']-paired_df['plateauVm_x']
+paired_df=pd.merge(dfs[0],dfs[1],how='left',on=['seed','region','num_disp', 'maxdist','naf','spc'])
+paired_df['delta_decay']=paired_df['decay10_x']-paired_df['decay10_y']
+paired_df['add_inputs']=paired_df['num_clust_x']-paired_df['num_clust_y']
+paired_df['delta_plateau']=paired_df['plateauVm_x']-paired_df['plateauVm_y']
 
 print('\n########################################## paired ###################################')
 model=ols('delta_decay ~ C(region)',data=paired_df).fit()

@@ -74,7 +74,7 @@ def parsarg(commandline):
     args=parser.parse_args(commandline)
     return args
 
-combine=True
+combine=False
 
 if combine:
     args = sys.argv[1:]
@@ -117,7 +117,7 @@ else:
     from statsmodels.formula.api import ols
     from statsmodels.stats.anova import anova_lm
 
-    filenames=glob.glob('D1Pat4BLA_DLS_0_10_350_0_4_*combined.csv')# 'clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07_2nd_submit/D1Pat4BLA_DLS_0_10_350_0_4_*_2025-07-08_combined.csv') #
+    filenames=glob.glob('clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07_2nd_submit/D1Pat4BLA_DLS_0_10_350_0_4_*_2025-07-08_combined.csv')
     opposite={'num_disp':'num_clust', 'num_clust':'num_disp'}
     df=[]
     for f in filenames:
@@ -136,13 +136,6 @@ else:
                 dfsub=dfsubset[dfsubset['region']==region]
                 pvalues=calc_corr(dfsub,region)
 
-                for depvar in ['plateauVm','decay10']:
-                    results=ols(depvar+' ~ C('+indep+')',data=dfsub).fit()
-                    table=sm.stats.anova_lm(results,typ=2) #coefficients
-                    print('\n*** depvar=',depvar, '\n',table)
-                    indep_var=list(table['PR(>F)'].keys())[0]
-                    if table['PR(>F)'][indep_var]<0.05:
-                        print(results.summary()) #overall anova result
     plots(whole_df,region=True)
 
 
