@@ -137,7 +137,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
     elementList = [];distances={}
     exclude_info={s.parent.path:{'parentComp':s.parent.parent,'x':s.parent.x,'y':s.parent.y,'z':s.parent.z,'soma_dist':util.get_dist_name(s.parent)[0]} for s in exclude_syn}
     exclude_comps=set([s.parent.parent.path for s in exclude_syn])
-    for ex in exclude_comps:
+    for ex in exclude_comps: #only used for dispersed, not clustered input
         if ex in possibleCompartments:
             possibleCompartments.remove(ex)
     #print('#####possible compartments\n', possibleCompartments)
@@ -176,7 +176,7 @@ def generateElementList(neuron, wildcardStrings=['ampa,nmda'], elementType='SynC
         # print(elementList)
         return elementList, distances
     else:
-        return elementList, distances
+        return elementList, distances #empty dict, probably not needed
 
 
 def getBranchOrder(compartment):
@@ -405,13 +405,13 @@ def remove_comps(elementlist, input_per_comp,comps=[]):
         else:
             elementDict[key]=[el]
         if key[0:-3] in comps:
-            remove_el.append(el) #list of items to remove
-    for values in elementDict.values():
+            remove_el.append(el) #list of items to remove because previously used
+    for values in elementDict.values(): #remove all elements from comp if less than needed elements (less thn input_per_comp)
         if len(values)<input_per_comp:
             for el in values:
                 if el in elementlist:
                     elementlist.remove(el)
-    for val in remove_el:
+    for val in remove_el: #remove elements already used
         if val in elementlist:
             elementlist.remove(val)
     return elementlist
@@ -452,7 +452,7 @@ def n_inputs_per_comp(model, nInputs = 16,spine_per_comp=1,min_max_dist=[40e-6, 
                 if int(moose.__version__[0])>3:
                     comp=comp[0:-3] #strip off [0]
                 input_comps[comp]={'dist':compDistdict[comp], 'inputs':inputs}
-                #keep track of how many distal and how many proximal sets of inputs
+                #keep track of how many distal and how many proximal _sets_ of inputs (not individual inputs)
                 if compDistdict[comp]<100e-6:
                     proximal+=1
                 elif compDistdict[comp]>150e-6:

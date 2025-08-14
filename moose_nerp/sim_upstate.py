@@ -125,7 +125,7 @@ def make_mod_dict():
     #     "KaF": 1,
     #     "CaCC": 0,
     # }
-    mod_dict["D1PatchSample4"] = {
+    mod_dict["D1PatchSample4"] = { #this neuron used in BLA simulations
         "KaS": 1,
         "NMDA": 5.0,
         "CaR": 2,
@@ -139,12 +139,12 @@ def make_mod_dict():
     }
     mod_dict["D1PatchSample5"] = {
         "KaS": 1,
-        "NMDA": 2.25, #5 in BLA paper
+        "NMDA": 2.25, 
         "CaR": 2,
         "AMPA": 0.4,  # .3,#1,
         "CaL12": 1,
         "CaL13": 1,
-        "CaT32": 1, #0.5 in BLA aper
+        "CaT32": 1, 
         "CaT33": 1,
         "Kir": 1,
         "KaF": 1,  # 1,
@@ -199,8 +199,8 @@ def setup_model(model, mod_dict, block_naf=False, Mg_conc=1, filename=None,spine
         model.clusteredparent = "570_3"
     if any("matrix" in v for v in model.morph_file.values()):
         # model.SpineParams.spineParent = "1157_3"
-        model.clusteredparent = "1157_3" #4th order, terminal branch; distance is 119 um from soma
-        #model.clusteredparent = "785_3" #1st order, tert is either 889_3 or 1483, with >= 4 branches and correct length for both DMS and DLS
+        model.clusteredparent = "1157_3" #4th order, terminal branch; distance is 119 um from soma, for Prager sims
+        #model.clusteredparent = "785_3" #1st order, tert is either 889_3 or 1483, with >= 4 branches and correct length for both DMS and DLS; for BLA sims using one branch
     
     if spine_parent=='branch':  #or possibly specified clusteredparent?
         model.SpineParams.spineParent = model.clusteredparent # clusteredparent will create all spines in one compartment only
@@ -208,7 +208,7 @@ def setup_model(model, mod_dict, block_naf=False, Mg_conc=1, filename=None,spine
         model.SpineParams.spineParent = "soma"  # 
 
     if model.SpineParams.spineParent != 'soma':
-        model.SpineParams.explicitSpineDensity =1e6 #increase spine density if only putting spines on one branch. from Prager Neuron
+        model.SpineParams.explicitSpineDensity =1e6 #0.5e6 for single branch BLA sims #increase spine density if only putting spines on one branch. from Prager Neuron
     modelname = model.__name__.split(".")[-1]
     model.param_syn._SynNMDA.Gbar = 10e-09 * mod_dict[modelname]["NMDA"]
     model.param_syn._SynNMDA.tau2 *= 2
@@ -303,7 +303,7 @@ def upstate_main(
             possibleBranches, branch_len = stim.getBranchesOfOrder(neuron, -1, bd, n=1,  #select one terminal branch; n='all' will select multiple terminal on specified primary; None will include all order branches, 3 will use only tertiary 
                                           commonParentOrder=1, commonParentBranch=branch_list[0]) #, min_length = 120e-6#select with parent=specified primary, with 120 um length - but not for exampleClustered
         if 'DLS' in filename or 'DMS' in filename:
-            print('simulating',num_clustered,'  BLA inputs beween', dist_cluster, 'um')
+            print('simulating',num_clustered,'  BLA inputs between', dist_cluster, 'um')
             if model.SpineParams.spineParent == 'soma': #inputs dispersed over entire tree.  maybe 4 spine_per_comp to get more inputs on each branch?
                 inputs, groups=stim.n_inputs_per_comp(model, nInputs = num_clustered,spine_per_comp=spc,seed=clustered_seed, min_max_dist=dist_cluster, spc_subset=spc_subset)
             else:
@@ -482,9 +482,9 @@ def upstate_main(
                 print('Adding additional dispersed inputs at these distances:',[i[1] for i in el_dist_disp])
                 extra=[i[0].parent.path for i in el_dist_disp]
             else:
-                if num_clustered/spc_subset>=12:  #number of clusters
+                if num_clustered/spc_subset>=8:  #number of clusters
                     num_BLA_comps=4 #make this param? 
-                elif num_clustered/spc_subset>=8:
+                elif num_clustered/spc_subset>=6:
                     num_BLA_comps=3 #  must be <= num_clustered/spc_subset/2
                 else:
                     num_BLA_comps=2 
@@ -753,9 +753,9 @@ if __name__ == "__main__":
 
     args = sys.argv[1:]
     #args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 8 -d2c 150e-6 350e-6 -dist_dispers 0 100e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 500e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split() #for debugging
-    #args='single -sim_type BLA_DLS -num_clustered 24 -num_dispersed 0 -d2c 0e-6 50e-6 -dist_dispers 100e-6 350e-6 -spc_subset 2 -spc 4 -dist_cluster 50e-6 500e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split()
+    #args='single -sim_type BLA_DLS -num_clustered 18 -num_dispersed 0 -spc_subset 2 -spc 4 -dist_cluster 50e-6 350e-6 -start_cluster 0.1 -end_cluster 0.3 -block_naf True -spkfile spn1_net/Ctx1000_exp_freq50.0'.split()
     #args='single -sim_type upstate_only -SPN D1PatchSample5'.split()
-    args='single -sim_type upstate_plus_new_dispersed_300ms -start_dispersed 0.35 -SPN D1PatchSample5'.split()
+    #args='single -sim_type upstate_plus_new_dispersed_300ms -start_dispersed 0.35 -SPN D1PatchSample5'.split()
     #args='single -sim_type new_dispersed_300ms_only -start_dispersed 0.35 -SPN D1PatchSample5'.split()
     params=parsarg(args)
     sims=specify_sims(params.sim_type,clustered_seed,dispersed_seed,single_epsp_seed,params)
