@@ -4,10 +4,10 @@ import pandas as pd
 import glob
 import os
 
-args=['D1_long_matrix_84362_D1_15_ab_s2sdist', 'D1Mat2BLA_D?S_0_32']  
+#args=['D1_long_matrix_84362_D1_15_ab_s2sdist', 'D1Mat2BLA_D?S_0_32']  
 #args=['D1_short_patch_187463_D1_108_ab_s2sdist', 'D1Pat4BLA_D?S_4_10'] 
 #args=['D1_short_patch_187463_D1_108_ab_s2sdist', './D1Pat4BLA_'] #'clustered_exp50/patch4_Rm5_Ra0.34_disp/D1Pat4BLA_'] #
-#args = sys.argv[1:]
+args = sys.argv[1:]
 sp2sp_file=args[0] #s2s distance file
 input_spine=args[1] #root name of stimulated spine files,with single num dispersed and num clustered
 

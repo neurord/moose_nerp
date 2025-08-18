@@ -67,7 +67,7 @@ def parsarg(commandline):
     parser.add_argument('out', type=str, help='name of .out file with plateau and spike analysis')
     parser.add_argument('csv', type=str, help='name of .csv file with spine to cluster distances')
     parser.add_argument('merge_col', type=str, choices=['num_disp','num_clust'], help='merge out and csv files on num_disp if the simulations varied num_clust and vice versa')
-    parser.add_argument('paired_stim', type=int, help='number of dispersed (if merge on num_clust) or cluster (if merge on num_disp) with added inputs')
+    parser.add_argument('paired_stim', type=int, help='number of dispersed (if merge on num_clust) or clustered (if merge on num_disp) added inputs')
     parser.add_argument('-dir', type=str, help='directory with files')
     parser.add_argument('-naf', type=bool, help='analyze files with NaF (specify -naf 1) or without (do not use this argument)')
  
@@ -79,10 +79,9 @@ combine=False
 if combine:
     args = sys.argv[1:]
     #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-08-14 D1Pat4BLA_disp0_clust14_2025-08-14_distance num_disp 14'.split()
-    #args='D1Mat2BLA_DLS_0_24_350_0_4_clust_2025-08-08 D1Mat2BLA_disp0_clust26_2025-08-08_distance num_disp 32'.split()
-    #args='D1Mat2BLA_DLS_0_24_350_0_4_disp_2025-07-09  D1Mat2BLA_disp8_clust24_2025-07-09_distance num_clust 8'.split()
     #args='D1Pat4BLA_DLS_0_10_350_0_4_clust_2025-07-08 D1Pat4BLA_disp0_clust14_2025-07-08_distance num_disp 14'.split()
-    #args='D1Mat2BLA_DLS_8_24_350_0_4_disp  clustered_exp50/matrix2_disp/D1Mat2BLA_disp8_clust24_distance num_clust 8'.split()
+    args='D1Mat2BLA_DLS_0_18_350_0_4_clust_2025-08-18 D1Mat2BLA_disp0_clust26_2025-08-18_distance num_disp 26'.split()
+    #args='D1Mat2BLA_DLS_0_18_350_0_4_disp_2025-08-18 D1Mat2BLA_disp8_clust18_2025-08-18_distance num_clust 8'.split()
     par=parsarg(args)
     newdata=pd.read_csv(par.out+'.out',sep='\s+') 
     distdata=pd.read_csv(par.csv+'.csv')
@@ -111,13 +110,13 @@ if combine:
     plots(combined,region=True)
 else:
     ####################################################################
-    ##### now read in all the combined.csv files and analyze
+    ##### now read in all the combined.csv files and analyze spine distance
     import scipy.stats as stats
     import statsmodels.api as sm
     from statsmodels.formula.api import ols
     from statsmodels.stats.anova import anova_lm
 
-    filenames=glob.glob('clustered_exp50/patch4_Rm5_Ra0.34_2025-07-07_2nd_submit/D1Pat4BLA_DLS_0_10_350_0_4_*_2025-07-08_combined.csv')
+    filenames=glob.glob('D1Mat2BLA_DLS_0_18_350_0_4_clust_2025-08-*_combined.csv')
     opposite={'num_disp':'num_clust', 'num_clust':'num_disp'}
     df=[]
     for f in filenames:
