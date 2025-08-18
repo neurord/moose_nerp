@@ -23,5 +23,15 @@ Processing procedure
                -num_clust means  use num_clust for merge
                number of clustered or dispersed inputs for the paired files.  If -num_disp, then provide number of clustered inputs, and vice versa
           This is used in the second part of the code, in which he data is reformated to have results with and without added input on the same line.
+    if correlation = True:
+        reads in a set of .csv files - specified by pattern (line 119), combines into one dataframe
+        then analyzes correlation between location of added spines and dependent variables
+        separately for region, and also with all regions combined.
 
-
+5. StatAnal.py 
+    no args.  Specify pattern for reading in 1 or more .out files
+    performs ANOVA separately on DMS and DLS, with num_dispersed and num_clustered as independent variables
+    for files with NaF blocked, uses plateauVm and decay10 as dependent variables
+    for files without NaF blocked, analyzes spike measures
+    Also performs two way ANOVA on DMS and DLS together, adding in region as independent variable
+    Also calculates the change in decay10 with added inputs, and then does 1way ANOVA on the difference, with region as independent variable
