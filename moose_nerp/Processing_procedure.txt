@@ -1,0 +1,27 @@
+Processing procedure
+1. BLA_ca_anal.py - inputs are 
+     -num_clustered X -num_dispersed X -paired nclust -ntype matrix -out 1
+     when using the paired keyword, enter the numbers after inputs are added, and it will find the files before inputs were added with same seed
+     can also pair on ndisp, and use ntype patch
+     this calculates calcium peak, calcium AUC for three different compartments (prox, mid, distal), and also determines distance of each comp to soma
+2. BLA_anal.py - inputs are 
+     -num_clustered X -num_dispersed X -paired nclust -out 1
+     when using the paired keyword, enter the numbers after inputs are added, and it will find the files before inputs were added with same seed
+     can also pair on ndisp
+     this does less than BLA_ca_anal.py, so not needed to indicate ntype
+     this calculates plateauVm and decay time for all groups
+3. dispersed_dist.py
+     analyze distance of spines to soma and added spines to clusters
+     args: s2sdist file (spine to spine distance) and root name of .npz files identifying the stimulated spines
+     min, max and mean distance of added spines to clusters (important for dispersed inputs) and distance to soma
+4. correlation.py
+     if correlation=False:
+          combines the output of BLA_anal.py and dispersed_dist.py
+          args .out file and .csv file, 
+          args -also how to merge the data from the two files.  It always uses 'seed' and 'region'
+               -num_disp means  use num_disp for merge
+               -num_clust means  use num_clust for merge
+               number of clustered or dispersed inputs for the paired files.  If -num_disp, then provide number of clustered inputs, and vice versa
+          This is used in the second part of the code, in which he data is reformated to have results with and without added input on the same line.
+
+
